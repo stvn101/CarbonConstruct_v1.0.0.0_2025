@@ -3,6 +3,7 @@ import { ScopeCard } from "@/components/ScopeCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEmissionTotals } from "@/hooks/useEmissionTotals";
 import ProjectSelector from "@/components/ProjectSelector";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart } from "lucide-react";
 import heroImage from "@/assets/hero-carbon-calc.jpg";
@@ -57,13 +58,7 @@ const Index = () => {
     );
   }
 
-  // Sample data - in real app this would come from backend
-  const totalEmissions = 847.2;
-  const scopeData = {
-    scope1: 156.4,
-    scope2: 298.1,
-    scope3: 392.7
-  };
+  const { totals, loading: emissionsLoading } = useEmissionTotals();
 
   return (
     <div className="space-y-8">
@@ -92,7 +87,7 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-accent mb-1">
-              {totalEmissions.toLocaleString()}
+              {emissionsLoading ? "..." : totals.total.toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground">tCO₂e per year</div>
           </CardContent>
@@ -105,10 +100,10 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-scope-1 mb-1">
-              {scopeData.scope1}
+              {emissionsLoading ? "..." : totals.scope1.toFixed(1)}
             </div>
             <div className="text-sm text-muted-foreground">
-              {((scopeData.scope1 / totalEmissions) * 100).toFixed(1)}% of total
+              {emissionsLoading ? "..." : totals.total > 0 ? ((totals.scope1 / totals.total) * 100).toFixed(1) : "0"}% of total
             </div>
           </CardContent>
         </Card>
@@ -120,10 +115,10 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-scope-2 mb-1">
-              {scopeData.scope2}
+              {emissionsLoading ? "..." : totals.scope2.toFixed(1)}
             </div>
             <div className="text-sm text-muted-foreground">
-              {((scopeData.scope2 / totalEmissions) * 100).toFixed(1)}% of total
+              {emissionsLoading ? "..." : totals.total > 0 ? ((totals.scope2 / totals.total) * 100).toFixed(1) : "0"}% of total
             </div>
           </CardContent>
         </Card>
@@ -135,10 +130,10 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-scope-3 mb-1">
-              {scopeData.scope3}
+              {emissionsLoading ? "..." : totals.scope3.toFixed(1)}
             </div>
             <div className="text-sm text-muted-foreground">
-              {((scopeData.scope3 / totalEmissions) * 100).toFixed(1)}% of total
+              {emissionsLoading ? "..." : totals.total > 0 ? ((totals.scope3 / totals.total) * 100).toFixed(1) : "0"}% of total
             </div>
           </CardContent>
         </Card>
@@ -153,7 +148,7 @@ const Index = () => {
             description="Fuel combustion, company vehicles, manufacturing"
             icon={Factory}
             scopeNumber={1}
-            emissions={scopeData.scope1}
+            emissions={totals.scope1}
             actionUrl="/scope-1"
           />
           
@@ -162,7 +157,7 @@ const Index = () => {
             description="Purchased electricity, heating, cooling"
             icon={Zap}
             scopeNumber={2}
-            emissions={scopeData.scope2}
+            emissions={totals.scope2}
             actionUrl="/scope-2"
           />
           
@@ -171,7 +166,7 @@ const Index = () => {
             description="Upstream & downstream supply chain activities"
             icon={Truck}
             scopeNumber={3}
-            emissions={scopeData.scope3}
+            emissions={totals.scope3}
             actionUrl="/scope-3"
           />
         </div>
