@@ -2,41 +2,110 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Carbon Calculator Design System - Professional Green & Carbon Theme
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Carbon and Green Professional Palette */
+    --background: 0 0% 98%;
+    --foreground: 156 8% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 156 8% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 156 8% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary: Deep Forest Green */
+    --primary: 156 45% 25%;
+    --primary-foreground: 0 0% 98%;
+    --primary-hover: 156 45% 20%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary: Carbon Grey */
+    --secondary: 220 8% 25%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Accent: Bright Environmental Green */
+    --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 98%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Muted: Light Green Grey */
+    --muted: 156 12% 95%;
+    --muted-foreground: 156 8% 45%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Scope Colors for Data Visualization */
+    --scope-1: 15 86% 55%;     /* Bright orange-red for direct emissions */
+    --scope-2: 48 89% 50%;     /* Golden yellow for energy emissions */
+    --scope-3: 156 45% 35%;    /* Forest green for value chain emissions */
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Status Colors */
+    --success: 142 76% 36%;
+    --warning: 48 89% 50%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --radius: 0.5rem;
+    /* Interface Elements */
+    --border: 156 12% 88%;
+    --input: 156 12% 92%;
+    --ring: 156 45% 25%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(156 45% 25%), hsl(142 76% 36%));
+    --gradient-carbon: linear-gradient(135deg, hsl(220 8% 25%), hsl(156 8% 35%));
+    --gradient-eco: linear-gradient(135deg, hsl(142 76% 36%), hsl(156 76% 46%));
+
+    /* Shadows */
+    --shadow-carbon: 0 4px 20px -8px hsl(156 45% 25% / 0.3);
+    --shadow-elevated: 0 8px 30px -10px hsl(156 45% 25% / 0.2);
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Dark mode carbon theme */
+    --background: 156 8% 8%;
+    --foreground: 156 12% 88%;
+
+    --card: 156 8% 12%;
+    --card-foreground: 156 12% 88%;
+
+    --popover: 156 8% 12%;
+    --popover-foreground: 156 12% 88%;
+
+    --primary: 142 76% 46%;
+    --primary-foreground: 156 8% 8%;
+    --primary-hover: 142 76% 40%;
+
+    --secondary: 156 8% 18%;
+    --secondary-foreground: 156 12% 88%;
+
+    --accent: 142 76% 46%;
+    --accent-foreground: 156 8% 8%;
+
+    --muted: 156 8% 15%;
+    --muted-foreground: 156 8% 65%;
+
+    --scope-1: 15 86% 60%;
+    --scope-2: 48 89% 55%;
+    --scope-3: 142 76% 46%;
+
+    --success: 142 76% 46%;
+    --warning: 48 89% 55%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 156 12% 88%;
+
+    --border: 156 8% 18%;
+    --input: 156 8% 18%;
+    --ring: 142 76% 46%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(142 76% 46%), hsl(156 76% 56%));
+    --gradient-carbon: linear-gradient(135deg, hsl(156 8% 18%), hsl(156 8% 25%));
+    --gradient-eco: linear-gradient(135deg, hsl(142 76% 46%), hsl(156 76% 56%));
+
+    --shadow-carbon: 0 4px 20px -8px hsl(142 76% 46% / 0.3);
+    --shadow-elevated: 0 8px 30px -10px hsl(142 76% 46% / 0.2);
 
     --sidebar-background: 0 0% 98%;
 
