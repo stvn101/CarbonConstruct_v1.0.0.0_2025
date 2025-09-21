@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LucideIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ScopeCardProps {
   title: string;
@@ -21,6 +22,7 @@ export function ScopeCard({
   unit = "tCO₂e",
   actionUrl 
 }: ScopeCardProps) {
+  const navigate = useNavigate();
   const scopeColorMap = {
     1: "text-scope-1",
     2: "text-scope-2", 
@@ -68,7 +70,7 @@ export function ScopeCard({
         <Button 
           className="w-full" 
           variant={emissions !== undefined ? "outline" : "default"}
-          onClick={() => window.location.href = actionUrl}
+          onClick={() => navigate(actionUrl)}
         >
           {emissions !== undefined ? "View Details" : "Start Calculation"}
         </Button>

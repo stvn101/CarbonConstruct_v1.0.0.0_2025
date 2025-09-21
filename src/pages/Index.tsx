@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmissionTotals } from "@/hooks/useEmissionTotals";
 import ProjectSelector from "@/components/ProjectSelector";
+import { DemoDataButton } from "@/components/DemoDataButton";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart } from "lucide-react";
 import heroImage from "@/assets/hero-carbon-calc.jpg";
 
@@ -68,9 +69,12 @@ const Index = () => {
           <h1 className="text-3xl font-bold">Carbon Assessment Dashboard</h1>
           <p className="text-muted-foreground">Welcome back! Select a project to continue.</p>
         </div>
-        <Button variant="outline" onClick={signOut}>
-          Sign Out
-        </Button>
+        <div className="flex gap-2">
+          <DemoDataButton />
+          <Button variant="outline" onClick={signOut}>
+            Sign Out
+          </Button>
+        </div>
       </div>
 
       {/* Project Selector */}

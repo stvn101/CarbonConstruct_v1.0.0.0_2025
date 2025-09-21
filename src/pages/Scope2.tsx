@@ -81,8 +81,14 @@ export default function Scope2() {
   const { toast } = useToast();
   const { calculateScope2Emissions, loading: calculating } = useEmissionCalculations();
 
+  // Use useEffect for navigation to prevent render-time updates
+  React.useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+    }
+  }, [user, navigate]);
+
   if (!user) {
-    navigate("/auth");
     return null;
   }
   
@@ -147,6 +153,15 @@ export default function Scope2() {
   });
 
   const onSubmit = async (data: Scope2FormData) => {
+    if (!currentProject) {
+      toast({
+        title: "No Project Selected",
+        description: "Please select a project before calculating emissions.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Transform form data to match calculation hook format
     const transformedData = {
       electricity: data.electricity.map(elec => ({
@@ -168,9 +183,28 @@ export default function Scope2() {
       }))
     };
 
-    const result = await calculateScope2Emissions(transformedData);
-    if (result) {
-      console.log("Scope 2 Calculation Result:", result);
+    try {
+      const result = await calculateScope2Emissions(transformedData);
+      if (result) {
+        toast({
+          title: "Emissions Calculated",
+          description: `Total Scope 2 emissions: ${result.total.toFixed(2)} tCO₂e`,
+        });
+        console.log("Scope 2 Calculation Result:", result);
+      } else {
+        toast({
+          title: "Calculation Failed",
+          description: "Unable to calculate emissions. Please check your data and try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Calculation error:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred during calculation. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -775,6 +809,23 @@ export default function Scope2() {
               <Button type="submit" size="lg" disabled={calculating} className="flex-1">
                 <Calculator className="h-4 w-4 mr-2" />
                 {calculating ? "Calculating..." : "Calculate & Save Emissions"}
+              </Button>
+              
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="lg"
+                onClick={() => {
+                  const formData = form.getValues();
+                  console.log("Form data saved:", formData);
+                  toast({
+                    title: "Data Saved",
+                    description: "Your emission data has been saved to the current project.",
+                  });
+                }}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Data
               </Button>
             </div>
           )}

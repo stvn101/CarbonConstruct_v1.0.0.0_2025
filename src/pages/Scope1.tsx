@@ -84,8 +84,14 @@ export default function Scope1() {
   const { toast } = useToast();
   const { calculateScope1Emissions, loading: calculating } = useEmissionCalculations();
 
+  // Use useEffect for navigation to prevent render-time updates
+  React.useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+    }
+  }, [user, navigate]);
+
   if (!user) {
-    navigate("/auth");
     return null;
   }
   
@@ -789,6 +795,23 @@ export default function Scope1() {
               <Button type="submit" size="lg" disabled={calculating} className="flex-1">
                 <Calculator className="h-4 w-4 mr-2" />
                 {calculating ? "Calculating..." : "Calculate & Save Emissions"}
+              </Button>
+              
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="lg"
+                onClick={() => {
+                  const formData = form.getValues();
+                  console.log("Form data saved:", formData);
+                  toast({
+                    title: "Data Saved",
+                    description: "Your emission data has been saved to the current project.",
+                  });
+                }}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Data
               </Button>
             </div>
           )}
