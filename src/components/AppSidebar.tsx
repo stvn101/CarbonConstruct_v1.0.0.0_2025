@@ -74,7 +74,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {calculatorItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink 
                       to={item.url} 
                       end={item.url === "/"} 
@@ -98,7 +98,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {otherItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink 
                       to={item.url} 
                       className={getNavClass}
