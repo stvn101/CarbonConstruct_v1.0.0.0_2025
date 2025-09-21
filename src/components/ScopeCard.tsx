@@ -68,11 +68,9 @@ export function ScopeCard({
         <Button 
           className="w-full" 
           variant={emissions !== undefined ? "outline" : "default"}
-          asChild
+          onClick={() => window.location.href = actionUrl}
         >
-          <a href={actionUrl}>
-            {emissions !== undefined ? "View Details" : "Start Calculation"}
-          </a>
+          {emissions !== undefined ? "View Details" : "Start Calculation"}
         </Button>
       </CardContent>
     </Card>

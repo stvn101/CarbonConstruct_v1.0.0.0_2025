@@ -50,7 +50,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className={collapsed ? "w-14" : "w-64"}>
-      <SidebarContent className="bg-card border-r">
+      <SidebarContent className="bg-green-50 border-r">
         <div className="p-4 border-b">
           {!collapsed && (
             <div className="flex items-center gap-2">
@@ -77,8 +77,8 @@ export function AppSidebar() {
                       end={item.url === "/"} 
                       className={getNavClass}
                     >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                       <item.icon className="h-4 w-4" />
+                       <span className={collapsed ? "sr-only" : ""}>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -100,8 +100,8 @@ export function AppSidebar() {
                       to={item.url} 
                       className={getNavClass}
                     >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                       <item.icon className="h-4 w-4" />
+                       <span className={collapsed ? "sr-only" : ""}>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

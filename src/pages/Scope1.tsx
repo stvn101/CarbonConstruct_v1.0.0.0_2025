@@ -137,38 +137,66 @@ export default function Scope1() {
   });
 
   const onSubmit = async (data: Scope1FormData) => {
-    // Transform form data to match calculation hook format
-    const transformedData = {
-      fuelCombustion: data.fuel_combustion.map(fuel => ({
-        fuelType: fuel.fuel_type,
-        quantity: fuel.quantity,
-        unit: fuel.unit,
-        notes: fuel.notes
-      })),
-      vehicles: data.vehicles.map(vehicle => ({
-        vehicleType: vehicle.vehicle_type,
-        fuelType: vehicle.fuel_type,
-        quantity: vehicle.distance_km,
-        unit: 'km',
-        notes: vehicle.notes
-      })),
-      processes: data.processes.map(process => ({
-        processType: process.process_type,
-        quantity: process.quantity,
-        unit: process.unit,
-        notes: process.notes
-      })),
-      fugitiveEmissions: data.fugitive.map(fugitive => ({
-        refrigerantType: fugitive.refrigerant_type,
-        quantity: fugitive.quantity_leaked,
-        unit: fugitive.unit,
-        notes: fugitive.notes
-      }))
-    };
+    if (!currentProject) {
+      toast({
+        title: "No Project Selected",
+        description: "Please select a project before calculating emissions.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const result = await calculateScope1Emissions(transformedData);
-    if (result) {
-      console.log("Scope 1 Calculation Result:", result);
+    try {
+      // Transform form data to match calculation hook format
+      const transformedData = {
+        fuelCombustion: data.fuel_combustion.map(fuel => ({
+          fuelType: fuel.fuel_type,
+          quantity: fuel.quantity,
+          unit: fuel.unit,
+          notes: fuel.notes
+        })),
+        vehicles: data.vehicles.map(vehicle => ({
+          vehicleType: vehicle.vehicle_type,
+          fuelType: vehicle.fuel_type,
+          quantity: vehicle.distance_km,
+          unit: 'km',
+          notes: vehicle.notes
+        })),
+        processes: data.processes.map(process => ({
+          processType: process.process_type,
+          quantity: process.quantity,
+          unit: process.unit,
+          notes: process.notes
+        })),
+        fugitiveEmissions: data.fugitive.map(fugitive => ({
+          refrigerantType: fugitive.refrigerant_type,
+          quantity: fugitive.quantity_leaked,
+          unit: fugitive.unit,
+          notes: fugitive.notes
+        }))
+      };
+
+      const result = await calculateScope1Emissions(transformedData);
+      if (result) {
+        toast({
+          title: "Emissions Calculated",
+          description: `Total Scope 1 emissions: ${result.total.toFixed(2)} tCO₂e`,
+        });
+        console.log("Scope 1 Calculation Result:", result);
+      } else {
+        toast({
+          title: "Calculation Failed",
+          description: "Unable to calculate emissions. Please check your data and try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Calculation error:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred during calculation. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
