@@ -16,7 +16,7 @@ interface EmissionEntry {
   calculation_method?: string;
 }
 
-export const useEmissionCalculations = () => {
+export const useEmissionCalculations = (onDataChange?: () => void) => {
   const [loading, setLoading] = useState(false);
   const { currentProject } = useProject();
 
@@ -148,17 +148,35 @@ export const useEmissionCalculations = () => {
 
       // Save to database
       if (emissions.length > 0) {
-        const { error } = await supabase
+        console.log("Saving emissions to database:", emissions);
+        
+        // First, delete existing emissions for this project to avoid duplicates
+        const { error: deleteError } = await supabase
           .from('scope1_emissions')
-          .upsert(
+          .delete()
+          .eq('project_id', currentProject.id);
+
+        if (deleteError) {
+          console.error('Error deleting old emissions:', deleteError);
+        }
+
+        // Insert new emissions
+        const { data: savedData, error } = await supabase
+          .from('scope1_emissions')
+          .insert(
             emissions.map(emission => ({
               ...emission,
               project_id: currentProject.id
-            })),
-            { onConflict: 'project_id,category,subcategory,fuel_type' }
-          );
+            }))
+          )
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database save error:', error);
+          throw error;
+        }
+
+        console.log("Successfully saved emissions:", savedData);
 
         const totalEmissions = emissions.reduce((sum, emission) => sum + emission.emissions_tco2e, 0);
         
@@ -166,6 +184,11 @@ export const useEmissionCalculations = () => {
           title: "Scope 1 emissions calculated",
           description: `Total: ${totalEmissions.toFixed(2)} tCO₂e`,
         });
+
+        // Trigger data refresh if callback provided
+        if (onDataChange) {
+          setTimeout(() => onDataChange(), 500);
+        }
 
         return { emissions, total: totalEmissions };
       }

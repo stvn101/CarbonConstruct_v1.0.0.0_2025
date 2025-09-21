@@ -6,13 +6,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEmissionTotals } from "@/hooks/useEmissionTotals";
 import ProjectSelector from "@/components/ProjectSelector";
 import { DemoDataButton } from "@/components/DemoDataButton";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart } from "lucide-react";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
 import heroImage from "@/assets/hero-carbon-calc.jpg";
 
 const Index = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { totals, loading: emissionsLoading } = useEmissionTotals();
+  const { totals, loading: emissionsLoading, refetch } = useEmissionTotals();
 
   if (!user) {
     return (
@@ -70,6 +70,15 @@ const Index = () => {
           <p className="text-muted-foreground">Welcome back! Select a project to continue.</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => refetch()}
+            disabled={emissionsLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${emissionsLoading ? 'animate-spin' : ''}`} />
+            Refresh Data
+          </Button>
           <DemoDataButton />
           <Button variant="outline" onClick={signOut}>
             Sign Out

@@ -19,26 +19,26 @@ import { useProject } from "@/contexts/ProjectContext";
 import { useEmissionCalculations } from "@/hooks/useEmissionCalculations";
 import ProjectSelector from "@/components/ProjectSelector";
 
-// Scope 1 schema for direct emissions
+// Scope 1 schema for direct emissions - Made more flexible for easier use
 const scope1Schema = z.object({
-  project_name: z.string().min(1, "Project name is required"),
+  project_name: z.string().optional(),
   fuel_combustion: z.array(z.object({
-    fuel_type: z.string().min(1, "Fuel type is required"),
-    equipment_type: z.string().min(1, "Equipment type is required"),
+    fuel_type: z.string().optional(),
+    equipment_type: z.string().optional(),
     quantity: z.number().min(0, "Quantity must be positive"),
     unit: z.string().min(1, "Unit is required"),
     operating_hours: z.number().min(0, "Operating hours must be positive"),
     notes: z.string().optional(),
   })),
   vehicles: z.array(z.object({
-    vehicle_type: z.string().min(1, "Vehicle type is required"),
-    fuel_type: z.string().min(1, "Fuel type is required"),
+    vehicle_type: z.string().optional(),
+    fuel_type: z.string().optional(),
     distance_km: z.number().min(0, "Distance must be positive"),
     fuel_consumption: z.number().min(0, "Fuel consumption must be positive"),
     notes: z.string().optional(),
   })),
   processes: z.array(z.object({
-    process_type: z.string().min(1, "Process type is required"),
+    process_type: z.string().optional(),
     material_type: z.string().optional(),
     quantity: z.number().min(0, "Quantity must be positive"),
     unit: z.string().min(1, "Unit is required"),
@@ -46,7 +46,7 @@ const scope1Schema = z.object({
     notes: z.string().optional(),
   })),
   fugitive: z.array(z.object({
-    emission_source: z.string().min(1, "Emission source is required"),
+    emission_source: z.string().optional(),
     refrigerant_type: z.string().optional(),
     quantity_leaked: z.number().min(0, "Quantity must be positive"),
     unit: z.string().min(1, "Unit is required"),
@@ -153,42 +153,60 @@ export default function Scope1() {
     }
 
     try {
-      // Transform form data to match calculation hook format
+      // Filter out empty entries and transform form data
       const transformedData = {
-        fuelCombustion: data.fuel_combustion.map(fuel => ({
-          fuelType: fuel.fuel_type,
-          quantity: fuel.quantity,
-          unit: fuel.unit,
-          notes: fuel.notes
-        })),
-        vehicles: data.vehicles.map(vehicle => ({
-          vehicleType: vehicle.vehicle_type,
-          fuelType: vehicle.fuel_type,
-          quantity: vehicle.distance_km,
-          unit: 'km',
-          notes: vehicle.notes
-        })),
-        processes: data.processes.map(process => ({
-          processType: process.process_type,
-          quantity: process.quantity,
-          unit: process.unit,
-          notes: process.notes
-        })),
-        fugitiveEmissions: data.fugitive.map(fugitive => ({
-          refrigerantType: fugitive.refrigerant_type,
-          quantity: fugitive.quantity_leaked,
-          unit: fugitive.unit,
-          notes: fugitive.notes
-        }))
+        fuelCombustion: data.fuel_combustion
+          .filter(fuel => fuel.quantity > 0 && fuel.fuel_type && fuel.equipment_type)
+          .map(fuel => ({
+            fuelType: fuel.fuel_type,
+            quantity: fuel.quantity,
+            unit: fuel.unit,
+            notes: fuel.notes
+          })),
+        vehicles: data.vehicles
+          .filter(vehicle => vehicle.distance_km > 0 && vehicle.vehicle_type && vehicle.fuel_type)
+          .map(vehicle => ({
+            vehicleType: vehicle.vehicle_type,
+            fuelType: vehicle.fuel_type,
+            quantity: vehicle.distance_km,
+            unit: 'km',
+            notes: vehicle.notes
+          })),
+        processes: data.processes
+          .filter(process => process.quantity > 0 && process.process_type)
+          .map(process => ({
+            processType: process.process_type,
+            quantity: process.quantity,
+            unit: process.unit,
+            notes: process.notes
+          })),
+        fugitiveEmissions: data.fugitive
+          .filter(fugitive => fugitive.quantity_leaked > 0 && fugitive.emission_source)
+          .map(fugitive => ({
+            refrigerantType: fugitive.refrigerant_type || fugitive.emission_source,
+            quantity: fugitive.quantity_leaked,
+            unit: fugitive.unit,
+            notes: fugitive.notes
+          }))
       };
 
+      console.log("Transformed data for calculation:", transformedData);
+
       const result = await calculateScope1Emissions(transformedData);
-      if (result) {
+      if (result && result.total > 0) {
         toast({
-          title: "Emissions Calculated",
-          description: `Total Scope 1 emissions: ${result.total.toFixed(2)} tCO₂e`,
+          title: "Success!",
+          description: `Scope 1 emissions calculated and saved: ${result.total.toFixed(2)} tCO₂e`,
         });
         console.log("Scope 1 Calculation Result:", result);
+        // Navigate back to dashboard after successful calculation
+        setTimeout(() => navigate("/"), 2000);
+      } else if (result && result.total === 0) {
+        toast({
+          title: "No Emissions Calculated",
+          description: "Please ensure you have entered valid data with quantities greater than 0.",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Calculation Failed",
@@ -790,31 +808,34 @@ export default function Scope1() {
             </TabsContent>
           </Tabs>
 
-          {currentProject && (
-            <div className="flex gap-4">
-              <Button type="submit" size="lg" disabled={calculating} className="flex-1">
-                <Calculator className="h-4 w-4 mr-2" />
-                {calculating ? "Calculating..." : "Calculate & Save Emissions"}
-              </Button>
-              
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="lg"
-                onClick={() => {
-                  const formData = form.getValues();
-                  console.log("Form data saved:", formData);
-                  toast({
-                    title: "Data Saved",
-                    description: "Your emission data has been saved to the current project.",
-                  });
-                }}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save Data
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-4">
+            <Button 
+              type="submit" 
+              size="lg" 
+              disabled={calculating} 
+              className="flex-1 bg-primary hover:bg-primary/90"
+            >
+              <Calculator className="h-4 w-4 mr-2" />
+              {calculating ? "Calculating..." : "Calculate & Save Emissions"}
+            </Button>
+            
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="lg"
+              onClick={() => {
+                const formData = form.getValues();
+                console.log("Form data saved:", formData);
+                toast({
+                  title: "Data Saved",
+                  description: "Your emission data has been saved locally.",
+                });
+              }}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Draft
+            </Button>
+          </div>
         </form>
       </Form>
     </div>
