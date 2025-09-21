@@ -45,8 +45,8 @@ export function AppSidebar() {
 
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-accent text-accent-foreground font-medium border-l-4 border-primary"
-      : "hover:bg-muted/50 transition-colors";
+      ? "bg-green-800 text-white font-medium border-l-4 border-green-600"
+      : "bg-green-700 text-white hover:bg-green-600 transition-colors";
 
   return (
     <Sidebar className={collapsed ? "w-14" : "w-64"}>
