@@ -14,7 +14,395 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      emission_factors: {
+        Row: {
+          category: string
+          created_at: string
+          factor_value: number
+          fuel_type: string | null
+          id: string
+          methodology: string | null
+          region: string | null
+          scope: number | null
+          source: string
+          subcategory: string | null
+          uncertainty_range: string | null
+          unit: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          factor_value: number
+          fuel_type?: string | null
+          id?: string
+          methodology?: string | null
+          region?: string | null
+          scope?: number | null
+          source: string
+          subcategory?: string | null
+          uncertainty_range?: string | null
+          unit: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          factor_value?: number
+          fuel_type?: string | null
+          id?: string
+          methodology?: string | null
+          region?: string | null
+          scope?: number | null
+          source?: string
+          subcategory?: string | null
+          uncertainty_range?: string | null
+          unit?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      lca_materials: {
+        Row: {
+          created_at: string
+          data_source: string | null
+          embodied_carbon_a1a3: number | null
+          embodied_carbon_a4: number | null
+          embodied_carbon_a5: number | null
+          embodied_carbon_total: number | null
+          id: string
+          material_category: string
+          material_name: string
+          region: string | null
+          unit: string
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          created_at?: string
+          data_source?: string | null
+          embodied_carbon_a1a3?: number | null
+          embodied_carbon_a4?: number | null
+          embodied_carbon_a5?: number | null
+          embodied_carbon_total?: number | null
+          id?: string
+          material_category: string
+          material_name: string
+          region?: string | null
+          unit: string
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          created_at?: string
+          data_source?: string | null
+          embodied_carbon_a1a3?: number | null
+          embodied_carbon_a4?: number | null
+          embodied_carbon_a5?: number | null
+          embodied_carbon_total?: number | null
+          id?: string
+          material_category?: string
+          material_name?: string
+          region?: string | null
+          unit?: string
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          assessment_period_end: string | null
+          assessment_period_start: string | null
+          created_at: string
+          description: string | null
+          green_star_target: number | null
+          id: string
+          location: string | null
+          nabers_target: number | null
+          name: string
+          ncc_compliance_level: string | null
+          project_type: string
+          size_sqm: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assessment_period_end?: string | null
+          assessment_period_start?: string | null
+          created_at?: string
+          description?: string | null
+          green_star_target?: number | null
+          id?: string
+          location?: string | null
+          nabers_target?: number | null
+          name: string
+          ncc_compliance_level?: string | null
+          project_type?: string
+          size_sqm?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assessment_period_end?: string | null
+          assessment_period_start?: string | null
+          created_at?: string
+          description?: string | null
+          green_star_target?: number | null
+          id?: string
+          location?: string | null
+          nabers_target?: number | null
+          name?: string
+          ncc_compliance_level?: string | null
+          project_type?: string
+          size_sqm?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          compliance_status: string | null
+          created_at: string
+          generated_at: string
+          id: string
+          project_id: string
+          report_data: Json | null
+          report_type: string
+          total_emissions: number | null
+          total_scope1: number | null
+          total_scope2: number | null
+          total_scope3: number | null
+        }
+        Insert: {
+          compliance_status?: string | null
+          created_at?: string
+          generated_at?: string
+          id?: string
+          project_id: string
+          report_data?: Json | null
+          report_type: string
+          total_emissions?: number | null
+          total_scope1?: number | null
+          total_scope2?: number | null
+          total_scope3?: number | null
+        }
+        Update: {
+          compliance_status?: string | null
+          created_at?: string
+          generated_at?: string
+          id?: string
+          project_id?: string
+          report_data?: Json | null
+          report_type?: string
+          total_emissions?: number | null
+          total_scope1?: number | null
+          total_scope2?: number | null
+          total_scope3?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scope1_emissions: {
+        Row: {
+          calculation_method: string | null
+          category: string
+          created_at: string
+          data_quality: string | null
+          emission_factor: number | null
+          emissions_tco2e: number
+          fuel_type: string | null
+          id: string
+          notes: string | null
+          project_id: string
+          quantity: number
+          subcategory: string | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          calculation_method?: string | null
+          category: string
+          created_at?: string
+          data_quality?: string | null
+          emission_factor?: number | null
+          emissions_tco2e?: number
+          fuel_type?: string | null
+          id?: string
+          notes?: string | null
+          project_id: string
+          quantity?: number
+          subcategory?: string | null
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          calculation_method?: string | null
+          category?: string
+          created_at?: string
+          data_quality?: string | null
+          emission_factor?: number | null
+          emissions_tco2e?: number
+          fuel_type?: string | null
+          id?: string
+          notes?: string | null
+          project_id?: string
+          quantity?: number
+          subcategory?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scope1_emissions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scope2_emissions: {
+        Row: {
+          calculation_method: string | null
+          created_at: string
+          data_quality: string | null
+          emission_factor: number | null
+          emissions_tco2e: number
+          energy_type: string
+          id: string
+          notes: string | null
+          project_id: string
+          quantity: number
+          renewable_percentage: number | null
+          state_region: string | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          calculation_method?: string | null
+          created_at?: string
+          data_quality?: string | null
+          emission_factor?: number | null
+          emissions_tco2e?: number
+          energy_type: string
+          id?: string
+          notes?: string | null
+          project_id: string
+          quantity?: number
+          renewable_percentage?: number | null
+          state_region?: string | null
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          calculation_method?: string | null
+          created_at?: string
+          data_quality?: string | null
+          emission_factor?: number | null
+          emissions_tco2e?: number
+          energy_type?: string
+          id?: string
+          notes?: string | null
+          project_id?: string
+          quantity?: number
+          renewable_percentage?: number | null
+          state_region?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scope2_emissions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scope3_emissions: {
+        Row: {
+          activity_description: string | null
+          calculation_method: string | null
+          category: number
+          category_name: string
+          created_at: string
+          data_quality: string | null
+          emission_factor: number | null
+          emissions_tco2e: number
+          id: string
+          lca_stage: string | null
+          notes: string | null
+          project_id: string
+          quantity: number
+          subcategory: string | null
+          supplier_data: boolean | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          activity_description?: string | null
+          calculation_method?: string | null
+          category: number
+          category_name: string
+          created_at?: string
+          data_quality?: string | null
+          emission_factor?: number | null
+          emissions_tco2e?: number
+          id?: string
+          lca_stage?: string | null
+          notes?: string | null
+          project_id: string
+          quantity?: number
+          subcategory?: string | null
+          supplier_data?: boolean | null
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          activity_description?: string | null
+          calculation_method?: string | null
+          category?: number
+          category_name?: string
+          created_at?: string
+          data_quality?: string | null
+          emission_factor?: number | null
+          emissions_tco2e?: number
+          id?: string
+          lca_stage?: string | null
+          notes?: string | null
+          project_id?: string
+          quantity?: number
+          subcategory?: string | null
+          supplier_data?: boolean | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scope3_emissions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

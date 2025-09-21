@@ -1,0 +1,754 @@
+import React from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Plus, Trash2, Calculator, Save, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+
+// Scope 2 schema for energy emissions
+const scope2Schema = z.object({
+  electricity: z.array(z.object({
+    state_region: z.string().min(1, "State/region is required"),
+    energy_source: z.string().min(1, "Energy source is required"),
+    quantity: z.number().min(0, "Quantity must be positive"),
+    unit: z.string().min(1, "Unit is required"),
+    green_power_percentage: z.number().min(0).max(100, "Must be between 0-100"),
+    supplier_name: z.string().optional(),
+    tariff_type: z.string().optional(),
+    notes: z.string().optional(),
+  })),
+  heating_cooling: z.array(z.object({
+    system_type: z.string().min(1, "System type is required"),
+    energy_source: z.string().min(1, "Energy source is required"),
+    quantity: z.number().min(0, "Quantity must be positive"),
+    unit: z.string().min(1, "Unit is required"),
+    efficiency_rating: z.number().min(0, "Efficiency must be positive"),
+    operating_hours: z.number().min(0, "Operating hours must be positive"),
+    notes: z.string().optional(),
+  })),
+  purchased_steam: z.array(z.object({
+    steam_source: z.string().min(1, "Steam source is required"),
+    quantity: z.number().min(0, "Quantity must be positive"),
+    unit: z.string().min(1, "Unit is required"),
+    pressure_rating: z.string().optional(),
+    supplier_name: z.string().optional(),
+    notes: z.string().optional(),
+  })),
+});
+
+type Scope2FormData = z.infer<typeof scope2Schema>;
+
+const australianStates = [
+  { value: "nsw", label: "New South Wales (NSW)" },
+  { value: "vic", label: "Victoria (VIC)" },
+  { value: "qld", label: "Queensland (QLD)" },
+  { value: "wa", label: "Western Australia (WA)" },
+  { value: "sa", label: "South Australia (SA)" },
+  { value: "tas", label: "Tasmania (TAS)" },
+  { value: "act", label: "Australian Capital Territory (ACT)" },
+  { value: "nt", label: "Northern Territory (NT)" },
+];
+
+const energySources = [
+  "Grid Electricity", "Solar PV", "Wind", "Natural Gas", "Coal", "Biomass", "Hydro", "Nuclear"
+];
+
+const systemTypes = [
+  "HVAC Central", "Heat Pump", "Gas Boiler", "Electric Heater", "Chiller", "District Heating", "Geothermal"
+];
+
+const tariffTypes = [
+  "Standard Residential", "Business", "Industrial", "Time of Use", "Peak Demand", "Green Energy"
+];
+
+export default function Scope2() {
+  const { toast } = useToast();
+  
+  const form = useForm<Scope2FormData>({
+    resolver: zodResolver(scope2Schema),
+    defaultValues: {
+      electricity: [{ 
+        state_region: "", 
+        energy_source: "", 
+        quantity: 0, 
+        unit: "kWh", 
+        green_power_percentage: 0,
+        supplier_name: "",
+        tariff_type: "",
+        notes: "" 
+      }],
+      heating_cooling: [{ 
+        system_type: "", 
+        energy_source: "", 
+        quantity: 0, 
+        unit: "GJ", 
+        efficiency_rating: 0,
+        operating_hours: 0,
+        notes: "" 
+      }],
+      purchased_steam: [{ 
+        steam_source: "", 
+        quantity: 0, 
+        unit: "GJ", 
+        pressure_rating: "",
+        supplier_name: "",
+        notes: "" 
+      }],
+    },
+  });
+
+  const {
+    fields: electricityFields,
+    append: appendElectricity,
+    remove: removeElectricity,
+  } = useFieldArray({
+    control: form.control,
+    name: "electricity",
+  });
+
+  const {
+    fields: heatingFields,
+    append: appendHeating,
+    remove: removeHeating,
+  } = useFieldArray({
+    control: form.control,
+    name: "heating_cooling",
+  });
+
+  const {
+    fields: steamFields,
+    append: appendSteam,
+    remove: removeSteam,
+  } = useFieldArray({
+    control: form.control,
+    name: "purchased_steam",
+  });
+
+  const onSubmit = async (data: Scope2FormData) => {
+    try {
+      // TODO: Save to Supabase
+      console.log("Scope 2 data:", data);
+      toast({
+        title: "Success",
+        description: "Scope 2 emissions data saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save emissions data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-scope-2">Scope 2: Energy Emissions</h1>
+          <p className="text-muted-foreground mt-2">
+            Calculate emissions from purchased electricity, steam, heat and cooling
+          </p>
+        </div>
+        <Badge variant="secondary" className="text-scope-2 border-scope-2/20">
+          LCA Methodology
+        </Badge>
+      </div>
+
+      <Card className="bg-gradient-to-r from-scope-2/5 to-scope-2/10 border-scope-2/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-scope-2">
+            <Zap className="h-5 w-5" />
+            Australian Grid Emission Factors
+          </CardTitle>
+          <CardDescription>
+            Using National Greenhouse Accounts Factors 2024 for state-specific calculations
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="text-center">
+              <div className="font-semibold">NSW</div>
+              <div className="text-scope-2">0.79 tCO₂e/MWh</div>
+            </div>
+            <div className="text-center">
+              <div className="font-semibold">VIC</div>
+              <div className="text-scope-2">1.02 tCO₂e/MWh</div>
+            </div>
+            <div className="text-center">
+              <div className="font-semibold">QLD</div>
+              <div className="text-scope-2">0.81 tCO₂e/MWh</div>
+            </div>
+            <div className="text-center">
+              <div className="font-semibold">SA</div>
+              <div className="text-scope-2">0.42 tCO₂e/MWh</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Tabs defaultValue="electricity" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="electricity">Grid Electricity</TabsTrigger>
+              <TabsTrigger value="heating">Heating & Cooling</TabsTrigger>
+              <TabsTrigger value="steam">Purchased Steam</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="electricity">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5" />
+                    Grid Electricity Consumption
+                  </CardTitle>
+                  <CardDescription>
+                    Electricity purchased from the grid with state-specific emission factors
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {electricityFields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">Electricity Source {index + 1}</h4>
+                        {electricityFields.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeElectricity(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`electricity.${index}.state_region`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>State/Region</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select state" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {australianStates.map((state) => (
+                                    <SelectItem key={state.value} value={state.value}>
+                                      {state.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`electricity.${index}.energy_source`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Energy Source</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select source" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {energySources.map((source) => (
+                                    <SelectItem key={source} value={source.toLowerCase().replace(" ", "_")}>
+                                      {source}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`electricity.${index}.quantity`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Quantity</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`electricity.${index}.unit`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Unit</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select unit" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="kWh">Kilowatt-hours (kWh)</SelectItem>
+                                  <SelectItem value="MWh">Megawatt-hours (MWh)</SelectItem>
+                                  <SelectItem value="GWh">Gigawatt-hours (GWh)</SelectItem>
+                                  <SelectItem value="GJ">Gigajoules (GJ)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`electricity.${index}.green_power_percentage`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Green Power (%)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  step="1"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Percentage of renewable energy certificates
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`electricity.${index}.supplier_name`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Supplier</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Energy supplier" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`electricity.${index}.tariff_type`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tariff Type</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select tariff" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {tariffTypes.map((tariff) => (
+                                    <SelectItem key={tariff} value={tariff.toLowerCase().replace(" ", "_")}>
+                                      {tariff}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => appendElectricity({ 
+                      state_region: "", 
+                      energy_source: "", 
+                      quantity: 0, 
+                      unit: "kWh", 
+                      green_power_percentage: 0,
+                      supplier_name: "",
+                      tariff_type: "",
+                      notes: "" 
+                    })}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Electricity Source
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="heating">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Heating & Cooling Systems</CardTitle>
+                  <CardDescription>
+                    Purchased heating, cooling, and HVAC system energy consumption
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {heatingFields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">HVAC System {index + 1}</h4>
+                        {heatingFields.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeHeating(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`heating_cooling.${index}.system_type`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>System Type</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select system" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {systemTypes.map((system) => (
+                                    <SelectItem key={system} value={system.toLowerCase().replace(" ", "_")}>
+                                      {system}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`heating_cooling.${index}.energy_source`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Energy Source</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select source" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {energySources.map((source) => (
+                                    <SelectItem key={source} value={source.toLowerCase().replace(" ", "_")}>
+                                      {source}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`heating_cooling.${index}.quantity`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Energy Consumed</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`heating_cooling.${index}.unit`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Unit</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select unit" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="GJ">Gigajoules (GJ)</SelectItem>
+                                  <SelectItem value="kWh">Kilowatt-hours (kWh)</SelectItem>
+                                  <SelectItem value="MWh">Megawatt-hours (MWh)</SelectItem>
+                                  <SelectItem value="therms">Therms</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`heating_cooling.${index}.efficiency_rating`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Efficiency Rating (COP/EER)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.1"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`heating_cooling.${index}.operating_hours`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Operating Hours/Year</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="1"
+                                  max="8760"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => appendHeating({ 
+                      system_type: "", 
+                      energy_source: "", 
+                      quantity: 0, 
+                      unit: "GJ", 
+                      efficiency_rating: 0,
+                      operating_hours: 0,
+                      notes: "" 
+                    })}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add HVAC System
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="steam">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Purchased Steam</CardTitle>
+                  <CardDescription>
+                    Steam purchased from external suppliers or district heating systems
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {steamFields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">Steam Source {index + 1}</h4>
+                        {steamFields.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeSteam(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`purchased_steam.${index}.steam_source`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Steam Source</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., District Heating Plant" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`purchased_steam.${index}.quantity`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Quantity</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`purchased_steam.${index}.unit`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Unit</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select unit" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="GJ">Gigajoules (GJ)</SelectItem>
+                                  <SelectItem value="MMBtu">Million BTU (MMBtu)</SelectItem>
+                                  <SelectItem value="tonnes">Tonnes of Steam</SelectItem>
+                                  <SelectItem value="klb">Thousand pounds (klb)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`purchased_steam.${index}.pressure_rating`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Pressure Rating</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., 150 psi" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`purchased_steam.${index}.supplier_name`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Supplier Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Steam supplier" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => appendSteam({ 
+                      steam_source: "", 
+                      quantity: 0, 
+                      unit: "GJ", 
+                      pressure_rating: "",
+                      supplier_name: "",
+                      notes: "" 
+                    })}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Steam Source
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex gap-4">
+            <Button type="submit" size="lg" className="flex-1">
+              <Save className="h-4 w-4 mr-2" />
+              Save Scope 2 Data
+            </Button>
+            <Button type="button" variant="outline" size="lg">
+              <Calculator className="h-4 w-4 mr-2" />
+              Calculate Emissions
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}
