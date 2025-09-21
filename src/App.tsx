@@ -12,6 +12,8 @@ import Scope1 from "./pages/Scope1";
 import Scope2 from "./pages/Scope2";
 import Scope3 from "./pages/Scope3";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,7 +25,7 @@ const App = () => (
         <ProjectProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Layout>
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -32,6 +34,8 @@ const App = () => (
                 <Route path="/scope-2" element={<Scope2 />} />
                 <Route path="/scope-3" element={<Scope3 />} />
                 <Route path="/reports" element={<Reports />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/help" element={<Help />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

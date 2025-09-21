@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { 
   Calculator, 
   Factory, 
@@ -20,7 +19,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -44,7 +42,6 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
 
   const isActive = (path: string) => path === "/" ? currentPath === path : currentPath.startsWith(path);
-  const isCalculatorExpanded = calculatorItems.some((item) => isActive(item.url));
 
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
     isActive 
