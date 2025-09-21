@@ -2,7 +2,8 @@ import React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Trash2, Calculator, Save, Truck, Factory, Users, Building } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Trash2, Calculator, Save, Truck, Factory, Users, Building, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,10 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProject } from "@/contexts/ProjectContext";
+import { useEmissionCalculations } from "@/hooks/useEmissionCalculations";
+import ProjectSelector from "@/components/ProjectSelector";
 
 // Scope 3 schema for value chain emissions
 const scope3Schema = z.object({
@@ -83,7 +88,16 @@ const transportModes = [
 ];
 
 export default function Scope3() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { currentProject } = useProject();
   const { toast } = useToast();
+  const { calculateScope3Emissions, loading: calculating } = useEmissionCalculations();
+
+  if (!user) {
+    navigate("/auth");
+    return null;
+  }
   
   const form = useForm<Scope3FormData>({
     resolver: zodResolver(scope3Schema),
@@ -133,35 +147,60 @@ export default function Scope3() {
   });
 
   const onSubmit = async (data: Scope3FormData) => {
-    try {
-      // TODO: Save to Supabase
-      console.log("Scope 3 data:", data);
-      toast({
-        title: "Success",
-        description: "Scope 3 emissions data saved successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save emissions data",
-        variant: "destructive",
-      });
+    // Transform form data to match calculation hook format
+    const transformedData = {
+      upstreamActivities: data.upstream.map(upstream => ({
+        category: upstream.category,
+        categoryName: upstream.category_name,
+        subcategory: upstream.material_type,
+        description: upstream.activity_description,
+        lcaStage: upstream.lca_stage,
+        quantity: upstream.quantity,
+        unit: upstream.unit,
+        emissionFactor: upstream.emission_factor,
+        supplierData: upstream.supplier_data,
+        notes: upstream.notes
+      })),
+      downstreamActivities: data.downstream.map(downstream => ({
+        category: downstream.category,
+        categoryName: downstream.category_name,
+        subcategory: downstream.lifecycle_stage,
+        description: downstream.activity_description,
+        quantity: downstream.quantity,
+        unit: downstream.unit,
+        emissionFactor: downstream.emission_factor,
+        supplierData: downstream.end_user_data,
+        notes: downstream.notes
+      }))
+    };
+
+    const result = await calculateScope3Emissions(transformedData);
+    if (result) {
+      console.log("Scope 3 Calculation Result:", result);
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-scope-3">Scope 3: Value Chain Emissions</h1>
-          <p className="text-muted-foreground mt-2">
-            Calculate upstream and downstream emissions across your entire value chain
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-scope-3">Scope 3: Value Chain Emissions</h1>
+            <p className="text-muted-foreground mt-2">
+              Calculate upstream and downstream emissions across your entire value chain
+            </p>
+          </div>
         </div>
         <Badge variant="secondary" className="text-scope-3 border-scope-3/20">
           LCA Compliant • 15 Categories
         </Badge>
       </div>
+
+      <ProjectSelector />
 
       <Card className="bg-gradient-to-r from-scope-3/5 to-scope-3/10 border-scope-3/20">
         <CardHeader>
@@ -676,16 +715,14 @@ export default function Scope3() {
             </TabsContent>
           </Tabs>
 
-          <div className="flex gap-4">
-            <Button type="submit" size="lg" className="flex-1">
-              <Save className="h-4 w-4 mr-2" />
-              Save Scope 3 Data
-            </Button>
-            <Button type="button" variant="outline" size="lg">
-              <Calculator className="h-4 w-4 mr-2" />
-              Calculate Emissions
-            </Button>
-          </div>
+          {currentProject && (
+            <div className="flex gap-4">
+              <Button type="submit" size="lg" disabled={calculating} className="flex-1">
+                <Calculator className="h-4 w-4 mr-2" />
+                {calculating ? "Calculating..." : "Calculate & Save Emissions"}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>

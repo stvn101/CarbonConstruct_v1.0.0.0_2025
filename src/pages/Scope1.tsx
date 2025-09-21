@@ -2,7 +2,8 @@ import React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Trash2, Calculator, Save } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Trash2, Calculator, Save, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProject } from "@/contexts/ProjectContext";
+import { useEmissionCalculations } from "@/hooks/useEmissionCalculations";
+import ProjectSelector from "@/components/ProjectSelector";
 
 // Scope 1 schema for direct emissions
 const scope1Schema = z.object({
@@ -73,7 +78,16 @@ const refrigerantTypes = [
 ];
 
 export default function Scope1() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { currentProject } = useProject();
   const { toast } = useToast();
+  const { calculateScope1Emissions, loading: calculating } = useEmissionCalculations();
+
+  if (!user) {
+    navigate("/auth");
+    return null;
+  }
   
   const form = useForm<Scope1FormData>({
     resolver: zodResolver(scope1Schema),
@@ -123,35 +137,62 @@ export default function Scope1() {
   });
 
   const onSubmit = async (data: Scope1FormData) => {
-    try {
-      // TODO: Save to Supabase
-      console.log("Scope 1 data:", data);
-      toast({
-        title: "Success",
-        description: "Scope 1 emissions data saved successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save emissions data",
-        variant: "destructive",
-      });
+    // Transform form data to match calculation hook format
+    const transformedData = {
+      fuelCombustion: data.fuel_combustion.map(fuel => ({
+        fuelType: fuel.fuel_type,
+        quantity: fuel.quantity,
+        unit: fuel.unit,
+        notes: fuel.notes
+      })),
+      vehicles: data.vehicles.map(vehicle => ({
+        vehicleType: vehicle.vehicle_type,
+        fuelType: vehicle.fuel_type,
+        quantity: vehicle.distance_km,
+        unit: 'km',
+        notes: vehicle.notes
+      })),
+      processes: data.processes.map(process => ({
+        processType: process.process_type,
+        quantity: process.quantity,
+        unit: process.unit,
+        notes: process.notes
+      })),
+      fugitiveEmissions: data.fugitive.map(fugitive => ({
+        refrigerantType: fugitive.refrigerant_type,
+        quantity: fugitive.quantity_leaked,
+        unit: fugitive.unit,
+        notes: fugitive.notes
+      }))
+    };
+
+    const result = await calculateScope1Emissions(transformedData);
+    if (result) {
+      console.log("Scope 1 Calculation Result:", result);
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-scope-1">Scope 1: Direct Emissions</h1>
-          <p className="text-muted-foreground mt-2">
-            Calculate emissions from sources directly owned or controlled by your organization
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-scope-1">Scope 1: Direct Emissions</h1>
+            <p className="text-muted-foreground mt-2">
+              Calculate emissions from sources directly owned or controlled by your organization
+            </p>
+          </div>
         </div>
         <Badge variant="secondary" className="text-scope-1 border-scope-1/20">
           Australian NCC Compliant
         </Badge>
       </div>
+
+      <ProjectSelector />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -715,16 +756,14 @@ export default function Scope1() {
             </TabsContent>
           </Tabs>
 
-          <div className="flex gap-4">
-            <Button type="submit" size="lg" className="flex-1">
-              <Save className="h-4 w-4 mr-2" />
-              Save Scope 1 Data
-            </Button>
-            <Button type="button" variant="outline" size="lg">
-              <Calculator className="h-4 w-4 mr-2" />
-              Calculate Emissions
-            </Button>
-          </div>
+          {currentProject && (
+            <div className="flex gap-4">
+              <Button type="submit" size="lg" disabled={calculating} className="flex-1">
+                <Calculator className="h-4 w-4 mr-2" />
+                {calculating ? "Calculating..." : "Calculate & Save Emissions"}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>

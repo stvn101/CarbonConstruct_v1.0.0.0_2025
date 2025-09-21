@@ -1,10 +1,62 @@
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { ScopeCard } from "@/components/ScopeCard";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import ProjectSelector from "@/components/ProjectSelector";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart } from "lucide-react";
 import heroImage from "@/assets/hero-carbon-calc.jpg";
 
 const Index = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center space-y-8">
+            <div className="space-y-4">
+              <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Carbon Calculator
+              </h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
+              </p>
+            </div>
+            
+            <div className="relative max-w-4xl mx-auto rounded-lg overflow-hidden shadow-2xl">
+              <img 
+                src={heroImage} 
+                alt="Carbon footprint calculation and environmental assessment" 
+                className="w-full h-64 md:h-96 object-cover"
+              />
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <h2 className="text-2xl md:text-3xl font-bold text-white">
+                    Professional Carbon Assessment
+                  </h2>
+                  <p className="text-white/90 max-w-md">
+                    Comprehensive LCA methodologies for Australian construction projects
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Button asChild size="lg" className="text-lg px-8 py-6">
+                <Button onClick={() => navigate("/auth")}>Get Started</Button>
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Sign up to start calculating your carbon footprint
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Sample data - in real app this would come from backend
   const totalEmissions = 847.2;
   const scopeData = {
@@ -15,37 +67,19 @@ const Index = () => {
 
   return (
     <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-accent text-white">
-        <div className="absolute inset-0 opacity-20">
-          <img 
-            src={heroImage} 
-            alt="Carbon footprint visualization with industrial buildings and green energy" 
-            className="h-full w-full object-cover"
-          />
+      {/* Header with user actions */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Carbon Assessment Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back! Select a project to continue.</p>
         </div>
-        <div className="relative p-8 md:p-12">
-          <div className="max-w-3xl">
-            <h1 className="mb-4 text-4xl font-bold md:text-5xl">
-              Professional Carbon Calculator
-            </h1>
-            <p className="mb-6 text-lg opacity-90 md:text-xl">
-              Calculate Scope 1, 2 & 3 emissions with Australian NCC compliance. 
-              Generate reports for Green Star and NABERS ratings.
-            </p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button size="lg" variant="secondary" className="shadow-lg">
-                <Calculator className="mr-2 h-5 w-5" />
-                Start New Assessment
-              </Button>
-              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
-                <FileBarChart className="mr-2 h-5 w-5" />
-                View Sample Report
-              </Button>
-            </div>
-          </div>
-        </div>
+        <Button variant="outline" onClick={signOut}>
+          Sign Out
+        </Button>
       </div>
+
+      {/* Project Selector */}
+      <ProjectSelector />
 
       {/* Current Emissions Overview */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
