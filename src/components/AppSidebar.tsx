@@ -78,7 +78,7 @@ export function AppSidebar() {
                       className={getNavClass}
                     >
                        <item.icon className="h-4 w-4" />
-                       <span className={collapsed ? "sr-only" : ""}>{item.title}</span>
+                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -101,7 +101,7 @@ export function AppSidebar() {
                       className={getNavClass}
                     >
                        <item.icon className="h-4 w-4" />
-                       <span className={collapsed ? "sr-only" : ""}>{item.title}</span>
+                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
