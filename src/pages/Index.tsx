@@ -11,6 +11,7 @@ import heroImage from "@/assets/hero-carbon-calc.jpg";
 const Index = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { totals, loading: emissionsLoading } = useEmissionTotals();
 
   if (!user) {
     return (
@@ -58,7 +59,6 @@ const Index = () => {
     );
   }
 
-  const { totals, loading: emissionsLoading } = useEmissionTotals();
 
   return (
     <div className="space-y-8">
