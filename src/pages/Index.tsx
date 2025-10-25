@@ -2,17 +2,22 @@ import { useNavigate } from "react-router-dom";
 import { ScopeCard } from "@/components/ScopeCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmissionTotals } from "@/hooks/useEmissionTotals";
+import { useComplianceCheck } from "@/hooks/useComplianceCheck";
 import ProjectSelector from "@/components/ProjectSelector";
 import { DemoDataButton } from "@/components/DemoDataButton";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
+import { EmissionsChart } from "@/components/EmissionsChart";
+import { ComplianceCard } from "@/components/ComplianceCard";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, Package } from "lucide-react";
 import heroImage from "@/assets/hero-carbon-calc.jpg";
 
 const Index = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { totals, loading: emissionsLoading, refetch } = useEmissionTotals();
+  const { totals, scope1Details, scope2Details, scope3Details, loading: emissionsLoading, refetch } = useEmissionTotals();
+  const compliance = useComplianceCheck(totals);
 
   if (!user) {
     return (
@@ -185,31 +190,130 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Compliance Section */}
-      <Card className="bg-gradient-to-r from-success/5 to-accent/5 border-success/20">
+      {/* LCA / Embodied Carbon Section */}
+      <Card className="bg-gradient-to-r from-lca-material/5 to-lca-construction/5 border-lca-material/20">
         <CardHeader>
-          <CardTitle className="text-xl text-success">Australian Compliance Ready</CardTitle>
+          <CardTitle className="text-xl">Life Cycle Assessment (LCA)</CardTitle>
           <CardDescription>
-            This calculator is designed to meet Australian environmental standards
+            Calculate embodied carbon following ISO 14040/14044 standards
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="text-center p-4 bg-success/10 rounded-lg">
-              <div className="font-semibold text-success">NCC Compliant</div>
-              <div className="text-sm text-muted-foreground">National Construction Code</div>
-            </div>
-            <div className="text-center p-4 bg-success/10 rounded-lg">
-              <div className="font-semibold text-success">Green Star Ready</div>
-              <div className="text-sm text-muted-foreground">GBCA Rating System</div>
-            </div>
-            <div className="text-center p-4 bg-success/10 rounded-lg">
-              <div className="font-semibold text-success">NABERS Aligned</div>
-              <div className="text-sm text-muted-foreground">Energy Rating System</div>
-            </div>
-          </div>
+          <Button onClick={() => navigate('/lca')} className="w-full" size="lg">
+            <Package className="h-5 w-5 mr-2" />
+            Start LCA Calculation
+          </Button>
         </CardContent>
       </Card>
+
+      {/* Data Visualization & Compliance Tabs */}
+      <Tabs defaultValue="charts" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="charts">Emission Charts</TabsTrigger>
+          <TabsTrigger value="compliance">Compliance Status</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="charts" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <EmissionsChart
+              type="pie"
+              title="Emissions by Scope"
+              description="Distribution of total emissions across all scopes"
+              data={[
+                { category: 'Scope 1', emissions: totals.scope1, percentage: totals.total > 0 ? (totals.scope1 / totals.total) * 100 : 0 },
+                { category: 'Scope 2', emissions: totals.scope2, percentage: totals.total > 0 ? (totals.scope2 / totals.total) * 100 : 0 },
+                { category: 'Scope 3', emissions: totals.scope3, percentage: totals.total > 0 ? (totals.scope3 / totals.total) * 100 : 0 },
+              ]}
+            />
+
+            {scope1Details.length > 0 && (
+              <EmissionsChart
+                type="bar"
+                title="Scope 1 Breakdown"
+                description="Direct emissions by category"
+                data={scope1Details}
+              />
+            )}
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {scope2Details.length > 0 && (
+              <EmissionsChart
+                type="bar"
+                title="Scope 2 Breakdown"
+                description="Energy emissions by type"
+                data={scope2Details}
+              />
+            )}
+
+            {scope3Details.length > 0 && (
+              <EmissionsChart
+                type="bar"
+                title="Scope 3 Breakdown"
+                description="Value chain emissions by category"
+                data={scope3Details}
+              />
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="compliance" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-3">
+            <ComplianceCard
+              framework="NCC"
+              title="NCC Section J"
+              description="National Construction Code Energy Efficiency"
+              overallCompliance={compliance.ncc.status}
+              requirements={compliance.ncc.requirements}
+            />
+
+            <ComplianceCard
+              framework="GBCA"
+              title="Green Star Buildings"
+              description="GBCA Sustainability Rating"
+              overallCompliance={compliance.gbca.status}
+              requirements={compliance.gbca.requirements}
+              score={compliance.gbca.score}
+              maxScore={compliance.gbca.maxScore}
+            />
+
+            <ComplianceCard
+              framework="NABERS"
+              title="NABERS Energy"
+              description="National Built Environment Rating"
+              overallCompliance={compliance.nabers.status}
+              requirements={compliance.nabers.requirements}
+              score={compliance.nabers.rating}
+              maxScore={compliance.nabers.maxRating}
+            />
+          </div>
+
+          <Card className="bg-gradient-to-r from-success/5 to-accent/5 border-success/20">
+            <CardHeader>
+              <CardTitle className="text-xl">ISO Standards Compliance</CardTitle>
+              <CardDescription>
+                This calculator follows international environmental management standards
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="p-4 bg-card rounded-lg border">
+                  <div className="font-semibold mb-2">ISO 14040/14044</div>
+                  <div className="text-sm text-muted-foreground">
+                    Life Cycle Assessment principles and framework for embodied carbon calculations
+                  </div>
+                </div>
+                <div className="p-4 bg-card rounded-lg border">
+                  <div className="font-semibold mb-2">ISO 14067</div>
+                  <div className="text-sm text-muted-foreground">
+                    Carbon footprint of products - greenhouse gas quantification and reporting
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

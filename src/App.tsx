@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Scope1 from "./pages/Scope1";
 import Scope2 from "./pages/Scope2";
 import Scope3 from "./pages/Scope3";
+import LCA from "./pages/LCA";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
@@ -33,6 +34,7 @@ const App = () => (
                 <Route path="/scope-1" element={<Scope1 />} />
                 <Route path="/scope-2" element={<Scope2 />} />
                 <Route path="/scope-3" element={<Scope3 />} />
+                <Route path="/lca" element={<LCA />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/help" element={<Help />} />

@@ -6,7 +6,8 @@ import {
   FileBarChart, 
   Settings,
   Home,
-  HelpCircle
+  HelpCircle,
+  Package
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -27,6 +28,7 @@ const calculatorItems = [
   { title: "Scope 1 (Direct)", url: "/scope-1", icon: Factory },
   { title: "Scope 2 (Energy)", url: "/scope-2", icon: Zap },
   { title: "Scope 3 (Value Chain)", url: "/scope-3", icon: Truck },
+  { title: "LCA Calculator", url: "/lca", icon: Package },
   { title: "Reports & Analysis", url: "/reports", icon: FileBarChart },
 ];
 

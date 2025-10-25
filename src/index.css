@@ -35,10 +35,29 @@ All colors MUST be HSL.
     --muted: 156 12% 95%;
     --muted-foreground: 156 8% 45%;
 
-    /* Scope Colors for Data Visualization */
+    /* Scope Colors for Data Visualization - Vibrant Australian Palette */
     --scope-1: 15 86% 55%;     /* Bright orange-red for direct emissions */
     --scope-2: 48 89% 50%;     /* Golden yellow for energy emissions */
     --scope-3: 156 45% 35%;    /* Forest green for value chain emissions */
+    --lca-material: 280 70% 55%; /* Purple for materials */
+    --lca-transport: 200 85% 50%; /* Cyan for transport */
+    --lca-construction: 30 90% 55%; /* Orange for construction */
+    --lca-eol: 340 75% 55%;    /* Pink for end-of-life */
+    
+    /* Compliance Framework Colors */
+    --ncc-blue: 210 85% 50%;
+    --gbca-green: 142 70% 45%;
+    --nabers-teal: 180 75% 45%;
+    
+    /* Chart Colors - Vibrant Data Visualization */
+    --chart-1: 15 86% 55%;     /* Vibrant red-orange */
+    --chart-2: 48 89% 50%;     /* Golden yellow */
+    --chart-3: 142 76% 36%;    /* Forest green */
+    --chart-4: 210 85% 50%;    /* Electric blue */
+    --chart-5: 280 70% 55%;    /* Royal purple */
+    --chart-6: 180 75% 45%;    /* Teal */
+    --chart-7: 30 90% 55%;     /* Bright orange */
+    --chart-8: 340 75% 55%;    /* Hot pink */
 
     /* Status Colors */
     --success: 142 76% 36%;
@@ -90,6 +109,23 @@ All colors MUST be HSL.
     --scope-1: 15 86% 60%;
     --scope-2: 48 89% 55%;
     --scope-3: 142 76% 46%;
+    --lca-material: 280 70% 60%;
+    --lca-transport: 200 85% 55%;
+    --lca-construction: 30 90% 60%;
+    --lca-eol: 340 75% 60%;
+    
+    --ncc-blue: 210 85% 55%;
+    --gbca-green: 142 70% 50%;
+    --nabers-teal: 180 75% 50%;
+    
+    --chart-1: 15 86% 60%;
+    --chart-2: 48 89% 55%;
+    --chart-3: 142 76% 46%;
+    --chart-4: 210 85% 55%;
+    --chart-5: 280 70% 60%;
+    --chart-6: 180 75% 50%;
+    --chart-7: 30 90% 60%;
+    --chart-8: 340 75% 60%;
 
     --success: 142 76% 46%;
     --warning: 48 89% 55%;

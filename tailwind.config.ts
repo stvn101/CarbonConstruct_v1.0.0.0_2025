@@ -54,6 +54,27 @@ export default {
           2: "hsl(var(--scope-2))",
           3: "hsl(var(--scope-3))",
         },
+        lca: {
+          material: "hsl(var(--lca-material))",
+          transport: "hsl(var(--lca-transport))",
+          construction: "hsl(var(--lca-construction))",
+          eol: "hsl(var(--lca-eol))",
+        },
+        compliance: {
+          ncc: "hsl(var(--ncc-blue))",
+          gbca: "hsl(var(--gbca-green))",
+          nabers: "hsl(var(--nabers-teal))",
+        },
+        chart: {
+          1: "hsl(var(--chart-1))",
+          2: "hsl(var(--chart-2))",
+          3: "hsl(var(--chart-3))",
+          4: "hsl(var(--chart-4))",
+          5: "hsl(var(--chart-5))",
+          6: "hsl(var(--chart-6))",
+          7: "hsl(var(--chart-7))",
+          8: "hsl(var(--chart-8))",
+        },
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
         sidebar: {
