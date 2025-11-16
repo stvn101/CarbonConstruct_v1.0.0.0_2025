@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { ChatAssistant } from "@/components/ChatAssistant";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -24,6 +25,7 @@ export function Layout({ children }: LayoutProps) {
             {children}
           </main>
         </div>
+        <ChatAssistant />
       </div>
     </SidebarProvider>
   );
