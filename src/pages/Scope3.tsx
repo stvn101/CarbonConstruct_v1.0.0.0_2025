@@ -13,11 +13,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { NumberInputWithPresets } from "@/components/ui/number-input-with-presets";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { useEmissionCalculations } from "@/hooks/useEmissionCalculations";
 import ProjectSelector from "@/components/ProjectSelector";
+import {
+  materialQuantityPresets,
+  distancePresets,
+  emissionFactorPresets,
+  transportWeightPresets,
+  concreteVolumePresets,
+  steelQuantityPresets,
+} from "@/lib/calculator-presets";
 
 // Scope 3 schema for value chain emissions
 const scope3Schema = z.object({
@@ -342,6 +352,7 @@ export default function Scope3() {
                   <CardTitle className="flex items-center gap-2">
                     <Factory className="h-5 w-5" />
                     Upstream Emissions (Categories 1-8)
+                    <InfoTooltip content="Enter data for materials purchased, capital goods, fuel production, transportation, waste, business travel, and commuting. Select common quantities or enter exact amounts for construction materials and activities." />
                   </CardTitle>
                   <CardDescription>
                     Emissions from activities in your supply chain and supporting activities
@@ -438,13 +449,16 @@ export default function Scope3() {
                           name={`upstream.${index}.quantity`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Quantity</FormLabel>
+                              <FormLabel className="flex items-center">
+                                Quantity
+                                <InfoTooltip content="Select typical quantities for construction materials (tonnes, m³) or enter your exact amount. Common values provided for concrete, steel, and other materials." />
+                              </FormLabel>
                               <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                <NumberInputWithPresets
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  presets={materialQuantityPresets}
+                                  placeholder="Select or enter quantity"
                                 />
                               </FormControl>
                               <FormMessage />
