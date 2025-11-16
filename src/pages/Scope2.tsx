@@ -33,7 +33,7 @@ const scope2Schema = z.object({
   electricity: z.array(z.object({
     state_region: z.string().min(1, "State/region is required"),
     energy_source: z.string().min(1, "Energy source is required"),
-    quantity: z.number().min(0, "Quantity must be positive"),
+    quantity: z.number().min(0.01, "Quantity must be greater than 0"),
     unit: z.string().min(1, "Unit is required"),
     green_power_percentage: z.number().min(0).max(100, "Must be between 0-100"),
     supplier_name: z.string().optional(),
@@ -43,15 +43,15 @@ const scope2Schema = z.object({
   heating_cooling: z.array(z.object({
     system_type: z.string().min(1, "System type is required"),
     energy_source: z.string().min(1, "Energy source is required"),
-    quantity: z.number().min(0, "Quantity must be positive"),
+    quantity: z.number().min(0.01, "Quantity must be greater than 0"),
     unit: z.string().min(1, "Unit is required"),
-    efficiency_rating: z.number().min(0, "Efficiency must be positive"),
-    operating_hours: z.number().min(0, "Operating hours must be positive"),
+    efficiency_rating: z.number().min(0.01, "Efficiency must be greater than 0"),
+    operating_hours: z.number().min(0.01, "Operating hours must be greater than 0"),
     notes: z.string().optional(),
   })),
   purchased_steam: z.array(z.object({
     steam_source: z.string().min(1, "Steam source is required"),
-    quantity: z.number().min(0, "Quantity must be positive"),
+    quantity: z.number().min(0.01, "Quantity must be greater than 0"),
     unit: z.string().min(1, "Unit is required"),
     pressure_rating: z.string().optional(),
     supplier_name: z.string().optional(),
@@ -213,6 +213,22 @@ export default function Scope2() {
       return;
     }
 
+    // Validate that at least one valid entry exists with quantity > 0
+    const validElectricity = data.electricity.filter(e => e.quantity > 0 && e.state_region && e.energy_source);
+    const validHeating = data.heating_cooling.filter(h => h.quantity > 0 && h.system_type && h.energy_source && h.efficiency_rating > 0 && h.operating_hours > 0);
+    const validSteam = data.purchased_steam.filter(s => s.quantity > 0 && s.steam_source);
+    
+    const totalValidEntries = validElectricity.length + validHeating.length + validSteam.length;
+    
+    if (totalValidEntries === 0) {
+      toast({
+        title: "No Valid Data",
+        description: "Please add at least one complete entry with quantity greater than 0 before calculating.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Transform form data to match calculation hook format
     const transformedData = {
       electricity: data.electricity.map(elec => ({
@@ -237,15 +253,23 @@ export default function Scope2() {
     try {
       const result = await calculateScope2Emissions(transformedData);
       if (result) {
-        toast({
-          title: "Emissions Calculated",
-          description: `Total Scope 2 emissions: ${result.total.toFixed(2)} tCO₂e`,
-        });
+        if (result.total === 0) {
+          toast({
+            title: "Calculation Complete",
+            description: "Emissions calculated but total is 0 tCO₂e. Please verify your data entries.",
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Emissions Calculated",
+            description: `Total Scope 2 emissions: ${result.total.toFixed(2)} tCO₂e`,
+          });
+        }
         console.log("Scope 2 Calculation Result:", result);
       } else {
         toast({
           title: "Calculation Failed",
-          description: "Unable to calculate emissions. Please check your data and try again.",
+          description: "No valid emission data was calculated. Please check your entries and try again.",
           variant: "destructive",
         });
       }
