@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { Plus, Trash2, Calculator, Save, Truck, Factory, Users, Building, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -393,30 +394,25 @@ export default function Scope3() {
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name={`upstream.${index}.material_type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Material Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select material" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {constructionMaterials.map((material) => (
-                                    <SelectItem key={material} value={material.toLowerCase()}>
-                                      {material}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`upstream.${index}.material_type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Material Type</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={constructionMaterials}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select material"
+                                searchPlaceholder="Search materials..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       </div>
 
                       <FormField
@@ -484,30 +480,25 @@ export default function Scope3() {
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name={`upstream.${index}.lca_stage`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>LCA Stage</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select stage" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {lcaStages.map((stage) => (
-                                    <SelectItem key={stage.value} value={stage.value}>
-                                      {stage.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`upstream.${index}.lca_stage`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>LCA Stage</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={lcaStages.map(stage => stage.label)}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select stage"
+                                searchPlaceholder="Search LCA stages..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                         <FormField
                           control={form.control}

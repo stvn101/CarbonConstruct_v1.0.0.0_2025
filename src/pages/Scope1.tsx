@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { Plus, Trash2, Calculator, Save, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -381,55 +382,45 @@ export default function Scope1() {
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <FormField
-                          control={form.control}
-                          name={`fuel_combustion.${index}.fuel_type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fuel Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select fuel type" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {fuelTypes.map((fuel) => (
-                                    <SelectItem key={fuel} value={fuel.toLowerCase().replace(" ", "_")}>
-                                      {fuel}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`fuel_combustion.${index}.fuel_type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Fuel Type</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={fuelTypes}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select fuel type"
+                                searchPlaceholder="Search fuel types..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                        <FormField
-                          control={form.control}
-                          name={`fuel_combustion.${index}.equipment_type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Equipment Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select equipment" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {equipmentTypes.map((equipment) => (
-                                    <SelectItem key={equipment} value={equipment.toLowerCase().replace(" ", "_")}>
-                                      {equipment}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`fuel_combustion.${index}.equipment_type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Equipment Type</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={equipmentTypes}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select equipment"
+                                searchPlaceholder="Search equipment types..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                         <FormField
                           control={form.control}
@@ -551,55 +542,45 @@ export default function Scope1() {
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <FormField
-                          control={form.control}
-                          name={`vehicles.${index}.vehicle_type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Vehicle Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select vehicle" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {vehicleTypes.map((vehicle) => (
-                                    <SelectItem key={vehicle} value={vehicle.toLowerCase().replace(" ", "_")}>
-                                      {vehicle}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`vehicles.${index}.vehicle_type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Vehicle Type</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={vehicleTypes}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select vehicle"
+                                searchPlaceholder="Search vehicle types..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                        <FormField
-                          control={form.control}
-                          name={`vehicles.${index}.fuel_type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fuel Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select fuel" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {fuelTypes.map((fuel) => (
-                                    <SelectItem key={fuel} value={fuel.toLowerCase().replace(" ", "_")}>
-                                      {fuel}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`vehicles.${index}.fuel_type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Fuel Type</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={fuelTypes}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select fuel"
+                                searchPlaceholder="Search fuel types..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                         <FormField
                           control={form.control}
@@ -681,30 +662,25 @@ export default function Scope1() {
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <FormField
-                          control={form.control}
-                          name={`processes.${index}.process_type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Process Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select process" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {processTypes.map((process) => (
-                                    <SelectItem key={process} value={process.toLowerCase().replace(" ", "_")}>
-                                      {process}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`processes.${index}.process_type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Process Type</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={processTypes}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select process"
+                                searchPlaceholder="Search process types..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                         <FormField
                           control={form.control}
@@ -800,30 +776,25 @@ export default function Scope1() {
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name={`fugitive.${index}.refrigerant_type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Refrigerant Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select refrigerant" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {refrigerantTypes.map((refrigerant) => (
-                                    <SelectItem key={refrigerant} value={refrigerant.toLowerCase().replace("-", "_")}>
-                                      {refrigerant}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`fugitive.${index}.refrigerant_type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Refrigerant Type</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={refrigerantTypes}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select refrigerant"
+                                searchPlaceholder="Search refrigerants..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                         <FormField
                           control={form.control}
