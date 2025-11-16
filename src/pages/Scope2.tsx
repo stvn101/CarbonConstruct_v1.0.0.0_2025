@@ -13,11 +13,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { NumberInputWithPresets } from "@/components/ui/number-input-with-presets";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { useEmissionCalculations } from "@/hooks/useEmissionCalculations";
 import ProjectSelector from "@/components/ProjectSelector";
+import {
+  electricityQuantityPresets,
+  greenPowerPresets,
+  operatingHoursPresets,
+  efficiencyRatingPresets,
+  materialQuantityPresets,
+} from "@/lib/calculator-presets";
 
 // Scope 2 schema for energy emissions
 const scope2Schema = z.object({
@@ -322,6 +331,7 @@ export default function Scope2() {
                   <CardTitle className="flex items-center gap-2">
                     <Zap className="h-5 w-5" />
                     Grid Electricity Consumption
+                    <InfoTooltip content="Calculate emissions from electricity purchased from the grid. Select typical site consumption amounts or enter your exact usage. Green power percentage reduces calculated emissions." />
                   </CardTitle>
                   <CardDescription>
                     Electricity purchased from the grid with state-specific emission factors
@@ -395,13 +405,16 @@ export default function Scope2() {
                           name={`electricity.${index}.quantity`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Quantity</FormLabel>
+                              <FormLabel className="flex items-center">
+                                Quantity
+                                <InfoTooltip content="Select typical construction site electricity consumption (daily or monthly) or enter your exact usage." />
+                              </FormLabel>
                               <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                <NumberInputWithPresets
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  presets={electricityQuantityPresets}
+                                  placeholder="Select or enter quantity"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -440,15 +453,18 @@ export default function Scope2() {
                           name={`electricity.${index}.green_power_percentage`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Green Power (%)</FormLabel>
+                              <FormLabel className="flex items-center">
+                                Green Power (%)
+                                <InfoTooltip content="Enter the percentage of renewable energy in your electricity supply. Select common GreenPower levels or enter exact percentage." />
+                              </FormLabel>
                               <FormControl>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  max="100"
-                                  step="1"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                <NumberInputWithPresets
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  presets={greenPowerPresets}
+                                  placeholder="Select or enter %"
+                                  unit="%"
+                                  min={0}
                                 />
                               </FormControl>
                               <FormDescription>

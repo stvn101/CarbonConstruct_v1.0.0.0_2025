@@ -14,11 +14,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
+import { NumberInputWithPresets } from "@/components/ui/number-input-with-presets";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { useEmissionCalculations } from "@/hooks/useEmissionCalculations";
 import ProjectSelector from "@/components/ProjectSelector";
+import {
+  operatingHoursPresets,
+  fuelQuantityPresets,
+  distancePresets,
+  fuelConsumptionPresets,
+  materialQuantityPresets,
+  refrigerantQuantityPresets,
+  gwpFactorPresets,
+  emissionFactorPresets,
+} from "@/lib/calculator-presets";
 
 // Scope 1 schema for direct emissions - Made more flexible for easier use
 const scope1Schema = z.object({
@@ -359,6 +371,7 @@ export default function Scope1() {
                   <CardTitle className="flex items-center gap-2">
                     <Calculator className="h-5 w-5" />
                     Fuel Combustion
+                    <InfoTooltip content="Enter data for diesel generators, batching plants, and other stationary equipment that burns fuel. Select from common fuel quantities or enter your exact values." />
                   </CardTitle>
                   <CardDescription>
                     Direct emissions from burning fossil fuels in stationary equipment
@@ -427,13 +440,16 @@ export default function Scope1() {
                           name={`fuel_combustion.${index}.quantity`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Quantity Consumed</FormLabel>
+                              <FormLabel className="flex items-center">
+                                Quantity Consumed
+                                <InfoTooltip content="Select a common fuel quantity or enter your exact amount. Standard values are provided based on typical construction equipment." />
+                              </FormLabel>
                               <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                <NumberInputWithPresets
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  presets={fuelQuantityPresets}
+                                  placeholder="Select or enter quantity"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -472,13 +488,17 @@ export default function Scope1() {
                           name={`fuel_combustion.${index}.operating_hours`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Operating Hours</FormLabel>
+                              <FormLabel className="flex items-center">
+                                Operating Hours
+                                <InfoTooltip content="Select typical shift patterns (8hr single shift, 16hr double shift, 24hr continuous) or enter your actual operating hours." />
+                              </FormLabel>
                               <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.1"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                <NumberInputWithPresets
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  presets={operatingHoursPresets}
+                                  placeholder="Select or enter hours"
+                                  unit="hours"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -519,7 +539,9 @@ export default function Scope1() {
             <TabsContent value="vehicles">
               <Card>
                 <CardHeader>
-                  <CardTitle>Company Vehicles</CardTitle>
+                  <CardTitle>Company Vehicles
+                    <InfoTooltip content="Track emissions from trucks, vans, and other vehicles used for construction. Enter distances traveled and select from typical fuel consumption rates or enter exact values." />
+                  </CardTitle>
                   <CardDescription>
                     Emissions from vehicles owned or leased by your organization
                   </CardDescription>
