@@ -606,24 +606,27 @@ export default function Scope2() {
                         )}
                       />
 
-                        <FormField
-                          control={form.control}
-                          name={`heating_cooling.${index}.quantity`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Energy Consumed</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`heating_cooling.${index}.quantity`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center">
+                              Energy Consumed
+                              <InfoTooltip content="Select typical HVAC energy consumption values or enter your exact usage. Values based on common construction site heating/cooling systems." />
+                            </FormLabel>
+                            <FormControl>
+                              <NumberInputWithPresets
+                                value={field.value}
+                                onChange={field.onChange}
+                                presets={electricityQuantityPresets}
+                                placeholder="Select or enter quantity"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -651,44 +654,51 @@ export default function Scope2() {
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name={`heating_cooling.${index}.efficiency_rating`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Efficiency Rating (COP/EER)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.1"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`heating_cooling.${index}.efficiency_rating`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center">
+                              Efficiency Rating (COP/EER)
+                              <InfoTooltip content="Select typical HVAC efficiency ratings or enter your system's specific rating. Common values for portable AC, split systems, and chillers provided." />
+                            </FormLabel>
+                            <FormControl>
+                              <NumberInputWithPresets
+                                value={field.value}
+                                onChange={field.onChange}
+                                presets={efficiencyRatingPresets}
+                                placeholder="Select or enter rating"
+                                min={0}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                        <FormField
-                          control={form.control}
-                          name={`heating_cooling.${index}.operating_hours`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Operating Hours/Year</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="1"
-                                  max="8760"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`heating_cooling.${index}.operating_hours`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center">
+                              Operating Hours/Year
+                              <InfoTooltip content="Select typical construction site operating hours or enter your exact hours. Maximum 8760 hours per year. Common values for day shifts, extended hours, and continuous operation provided." />
+                            </FormLabel>
+                            <FormControl>
+                              <NumberInputWithPresets
+                                value={field.value}
+                                onChange={field.onChange}
+                                presets={operatingHoursPresets}
+                                placeholder="Select or enter hours"
+                                min={0}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       </div>
                     </div>
                   ))}
@@ -754,24 +764,27 @@ export default function Scope2() {
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name={`purchased_steam.${index}.quantity`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Quantity</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`purchased_steam.${index}.quantity`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center">
+                              Quantity
+                              <InfoTooltip content="Select typical steam consumption quantities or enter your exact usage. Values provided for common construction site steam requirements." />
+                            </FormLabel>
+                            <FormControl>
+                              <NumberInputWithPresets
+                                value={field.value}
+                                onChange={field.onChange}
+                                presets={electricityQuantityPresets}
+                                placeholder="Select or enter quantity"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                         <FormField
                           control={form.control}
