@@ -39,14 +39,14 @@ const ProjectSelector = () => {
   if (!currentProject) {
     return (
       <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader className="text-center">
-          <Building className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <CardTitle>No Project Selected</CardTitle>
-          <CardDescription>
+        <CardHeader className="text-center px-4 sm:px-6">
+          <Building className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+          <CardTitle className="text-lg sm:text-xl">No Project Selected</CardTitle>
+          <CardDescription className="text-sm">
             Create a new project or select an existing one to start calculating emissions.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 sm:px-6">
           {projects.length > 0 && (
             <div className="space-y-2">
               <Label>Select Existing Project:</Label>
@@ -152,17 +152,16 @@ const ProjectSelector = () => {
   }
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Building className="h-5 w-5" />
-          {currentProject.name}
-        </CardTitle>
-        <CardDescription>
-          {currentProject.description || "No description provided"}
-        </CardDescription>
-      </CardHeader>
-    </Card>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-card rounded-lg border mb-4 md:mb-6">
+      <Building className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-xs sm:text-sm text-muted-foreground">Current Project:</p>
+        <h3 className="font-semibold text-sm sm:text-base truncate">{currentProject.name}</h3>
+        {currentProject.description && (
+          <p className="text-xs text-muted-foreground truncate hidden sm:block">{currentProject.description}</p>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -260,24 +260,25 @@ export default function Scope2() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex flex-col gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-fit">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-scope-2">Scope 2: Energy Emissions</h1>
-            <p className="text-muted-foreground text-sm md:text-base mt-1">
-              Calculate emissions from purchased electricity, steam, heat and cooling for construction sites
-            </p>
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              ISO 14064-1:2018 & Australian NGA Factors Compliant
-            </p>
-          </div>
+    <div className="space-y-4 md:space-y-6 pb-6 md:pb-8">
+      <div className="flex flex-col gap-3">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-fit touch-target">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          <span className="text-xs sm:text-sm">Back</span>
+        </Button>
+        <div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-scope-2 flex items-center gap-2">
+            <Zap className="h-6 w-6 sm:h-8 sm:w-8" />
+            Scope 2: Energy Emissions
+          </h1>
+          <p className="text-muted-foreground text-xs sm:text-sm md:text-base mt-1">
+            Calculate emissions from purchased electricity, steam, heat and cooling for construction sites
+          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1 hidden sm:block">
+            ISO 14064-1:2018 & Australian NGA Factors Compliant
+          </p>
         </div>
-        <Badge variant="secondary" className="text-scope-2 border-scope-2/20 w-fit">
+        <Badge variant="secondary" className="text-scope-2 border-scope-2/20 w-fit text-xs">
           LCA Methodology
         </Badge>
       </div>
@@ -319,10 +320,10 @@ export default function Scope2() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="electricity" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="electricity">Grid Electricity</TabsTrigger>
-              <TabsTrigger value="heating">Heating & Cooling</TabsTrigger>
-              <TabsTrigger value="steam">Purchased Steam</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto gap-1">
+              <TabsTrigger value="electricity" className="text-xs sm:text-sm px-2 py-2.5">Electricity</TabsTrigger>
+              <TabsTrigger value="heating" className="text-xs sm:text-sm px-2 py-2.5">Heating & Cooling</TabsTrigger>
+              <TabsTrigger value="steam" className="text-xs sm:text-sm px-2 py-2.5">Steam</TabsTrigger>
             </TabsList>
 
             <TabsContent value="electricity">
