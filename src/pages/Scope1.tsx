@@ -57,24 +57,93 @@ const scope1Schema = z.object({
 
 type Scope1FormData = z.infer<typeof scope1Schema>;
 
+// ISO 14067:2018 Compliant - Construction-specific fuel types
 const fuelTypes = [
-  "Diesel", "Petrol", "LPG", "Natural Gas", "Heavy Fuel Oil", "Biodiesel", "Ethanol"
+  "Diesel - Construction Equipment",
+  "Diesel - B20 Biodiesel Blend", 
+  "Petrol - Unleaded",
+  "LPG - Liquefied Petroleum Gas",
+  "Natural Gas - Pipeline",
+  "Natural Gas - Compressed (CNG)",
+  "Heavy Fuel Oil",
+  "Aviation Gasoline (AvGas)",
+  "Biodiesel B100",
+  "Ethanol E10"
 ];
 
+// Construction-specific equipment aligned with ISO 21931
 const equipmentTypes = [
-  "Generators", "Boilers", "Heaters", "Compressors", "Pumps", "Cranes", "Excavators", "Bulldozers"
+  "Diesel Generator - Portable",
+  "Diesel Generator - Stationary",
+  "Concrete Batching Plant",
+  "Asphalt Plant - Batch",
+  "Asphalt Plant - Drum Mix",
+  "Mobile Crane - Diesel",
+  "Tower Crane - Electric",
+  "Excavator - Hydraulic",
+  "Bulldozer - Tracked",
+  "Loader - Front End",
+  "Backhoe - Diesel",
+  "Concrete Pump - Truck Mounted",
+  "Concrete Mixer - Mobile",
+  "Compressor - Air (Diesel)",
+  "Welding Equipment - Gas",
+  "Piling Equipment - Diesel",
+  "Road Roller - Vibratory",
+  "Grader - Motor",
+  "Forklift - LPG",
+  "Lighting Tower - Diesel"
 ];
 
+// Construction site vehicles - ISO compliant categories
 const vehicleTypes = [
-  "Light Commercial Vehicle", "Heavy Truck", "Delivery Van", "Site Vehicle", "Forklift", "Crane Mobile"
+  "Light Commercial Vehicle (<3.5t)",
+  "Medium Rigid Truck (3.5-12t)",
+  "Heavy Rigid Truck (>12t)",
+  "Articulated Truck",
+  "Concrete Agitator Truck",
+  "Tipper Truck - Rigid",
+  "Tipper Truck - Articulated",
+  "Flatbed Truck",
+  "Crane Truck - Mobile",
+  "Service Vehicle - 4WD",
+  "Site Utility Vehicle",
+  "Forklift - Diesel",
+  "Forklift - LPG",
+  "Telehandler"
 ];
 
+// Construction process emissions - ISO 14067 compliant
 const processTypes = [
-  "Concrete Production", "Steel Welding", "Chemical Processes", "Cement Production", "Lime Production"
+  "On-site Concrete Production",
+  "Concrete Curing - Accelerated",
+  "Steel Cutting & Welding",
+  "Hot Works - Gas Cutting",
+  "Spray Painting - Solvent Based",
+  "Spray Painting - Water Based",
+  "Asphalt Laying & Compaction",
+  "Bitumen Heating",
+  "Acetylene Welding",
+  "Thermal Cutting",
+  "Surface Coating Application",
+  "Adhesive Application",
+  "Sealant Application",
+  "Lime Slaking",
+  "Cement Kiln Operation"
 ];
 
+// Construction refrigerants - ISO 817 & GWP factors
 const refrigerantTypes = [
-  "R-134a", "R-404A", "R-410A", "R-22", "R-407C", "R-32", "CO2", "Ammonia"
+  "R-134a (GWP: 1,430)",
+  "R-404A (GWP: 3,922)",
+  "R-410A (GWP: 2,088)",
+  "R-407C (GWP: 1,774)",
+  "R-32 (GWP: 675)",
+  "R-290 Propane (GWP: 3)",
+  "R-600a Isobutane (GWP: 3)",
+  "R-717 Ammonia (GWP: 0)",
+  "R-744 CO2 (GWP: 1)",
+  "HFO-1234yf (GWP: 4)"
 ];
 
 export default function Scope1() {
@@ -226,20 +295,23 @@ export default function Scope1() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-fit">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-scope-1">Scope 1: Direct Emissions</h1>
-            <p className="text-muted-foreground mt-2">
-              Calculate emissions from sources directly owned or controlled by your organization
+            <h1 className="text-2xl md:text-3xl font-bold text-scope-1">Scope 1: Direct Emissions</h1>
+            <p className="text-muted-foreground text-sm md:text-base mt-1">
+              Calculate emissions from sources directly owned or controlled by your construction project
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              ISO 14064-1:2018 & ISO 14067:2018 Compliant
             </p>
           </div>
         </div>
-        <Badge variant="secondary" className="text-scope-1 border-scope-1/20">
+        <Badge variant="secondary" className="text-scope-1 border-scope-1/20 w-fit">
           Australian NCC Compliant
         </Badge>
       </div>

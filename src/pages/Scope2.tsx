@@ -62,16 +62,57 @@ const australianStates = [
   { value: "nt", label: "Northern Territory (NT)" },
 ];
 
+// ISO 14064-1 compliant energy sources with Australian state emission factors
 const energySources = [
-  "Grid Electricity", "Solar PV", "Wind", "Natural Gas", "Coal", "Biomass", "Hydro", "Nuclear"
+  "Grid Electricity - Black Coal",
+  "Grid Electricity - Brown Coal",
+  "Grid Electricity - Natural Gas",
+  "Grid Electricity - Mixed (State Average)",
+  "Solar PV - Rooftop",
+  "Solar PV - Ground Mounted",
+  "Wind - Onshore",
+  "Wind - Offshore",
+  "Hydro - Large Scale",
+  "Hydro - Small Scale",
+  "Natural Gas - Pipeline",
+  "Natural Gas - LNG",
+  "Biomass - Wood",
+  "Biomass - Agricultural Waste",
+  "Diesel - Backup Generation",
+  "Battery Storage - Discharge"
 ];
 
+// Construction site HVAC systems - ISO 52000 compliant
 const systemTypes = [
-  "HVAC Central", "Heat Pump", "Gas Boiler", "Electric Heater", "Chiller", "District Heating", "Geothermal"
+  "Site Office HVAC - Split System",
+  "Site Office HVAC - Ducted",
+  "Portable Air Conditioner",
+  "Site Heater - Electric",
+  "Site Heater - Gas (LPG)",
+  "Site Heater - Diesel",
+  "Industrial Chiller - Water Cooled",
+  "Industrial Chiller - Air Cooled",
+  "Heat Pump - Air Source",
+  "Heat Pump - Ground Source",
+  "Radiant Heater - Gas",
+  "Radiant Heater - Electric",
+  "Evaporative Cooler",
+  "Ventilation Fan - Electric",
+  "Dehumidifier - Construction"
 ];
 
+// Australian construction site tariffs
 const tariffTypes = [
-  "Standard Residential", "Business", "Industrial", "Time of Use", "Peak Demand", "Green Energy"
+  "Construction Site - Temporary Supply",
+  "Industrial - Peak Demand",
+  "Industrial - Off-Peak",
+  "Business - Standard",
+  "Time of Use - Construction",
+  "Demand Charge - Construction",
+  "Green Power - 25%",
+  "Green Power - 50%",
+  "Green Power - 100%",
+  "Embedded Network"
 ];
 
 export default function Scope2() {
@@ -210,20 +251,23 @@ export default function Scope2() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-fit">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-scope-2">Scope 2: Energy Emissions</h1>
-            <p className="text-muted-foreground mt-2">
-              Calculate emissions from purchased electricity, steam, heat and cooling
+            <h1 className="text-2xl md:text-3xl font-bold text-scope-2">Scope 2: Energy Emissions</h1>
+            <p className="text-muted-foreground text-sm md:text-base mt-1">
+              Calculate emissions from purchased electricity, steam, heat and cooling for construction sites
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              ISO 14064-1:2018 & Australian NGA Factors Compliant
             </p>
           </div>
         </div>
-        <Badge variant="secondary" className="text-scope-2 border-scope-2/20">
+        <Badge variant="secondary" className="text-scope-2 border-scope-2/20 w-fit">
           LCA Methodology
         </Badge>
       </div>
