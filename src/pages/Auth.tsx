@@ -27,10 +27,42 @@ const Auth = () => {
     checkUser();
   }, [navigate]);
 
+  const validatePassword = (password: string): string | null => {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least one number";
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      return "Password must contain at least one special character";
+    }
+    return null;
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    // Validate password strength
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      toast({
+        title: "Weak password",
+        description: passwordError,
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
 
     const redirectUrl = `${window.location.origin}/`;
 
@@ -154,11 +186,14 @@ const Auth = () => {
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="Create a password"
+                    placeholder="Create a password (min. 8 chars, mixed case, number, special char)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Must include: 8+ characters, uppercase, lowercase, number, and special character
+                  </p>
                 </div>
                 {error && (
                   <Alert variant="destructive">
