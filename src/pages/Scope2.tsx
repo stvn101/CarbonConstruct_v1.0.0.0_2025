@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { Plus, Trash2, Calculator, Save, Zap, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -369,30 +370,25 @@ export default function Scope2() {
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name={`electricity.${index}.energy_source`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Energy Source</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select source" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {energySources.map((source) => (
-                                    <SelectItem key={source} value={source.toLowerCase().replace(" ", "_")}>
-                                      {source}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`electricity.${index}.energy_source`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Energy Source</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={energySources}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select source"
+                                searchPlaceholder="Search energy sources..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                         <FormField
                           control={form.control}
@@ -553,55 +549,45 @@ export default function Scope2() {
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <FormField
-                          control={form.control}
-                          name={`heating_cooling.${index}.system_type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>System Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select system" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {systemTypes.map((system) => (
-                                    <SelectItem key={system} value={system.toLowerCase().replace(" ", "_")}>
-                                      {system}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`heating_cooling.${index}.system_type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>System Type</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={systemTypes}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select system"
+                                searchPlaceholder="Search system types..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                        <FormField
-                          control={form.control}
-                          name={`heating_cooling.${index}.energy_source`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Energy Source</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select source" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {energySources.map((source) => (
-                                    <SelectItem key={source} value={source.toLowerCase().replace(" ", "_")}>
-                                      {source}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`heating_cooling.${index}.energy_source`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Energy Source</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={energySources}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select source"
+                                searchPlaceholder="Search energy sources..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                         <FormField
                           control={form.control}
