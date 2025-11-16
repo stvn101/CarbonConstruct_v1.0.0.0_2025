@@ -70,7 +70,7 @@ const steamSuppliers = [
 const scope2Schema = z.object({
   electricity: z.array(z.object({
     state_region: z.string().min(1, "State/region is required"),
-    energy_source: z.string().min(1, "Energy source is required"),
+    energy_source: z.string().optional(),
     quantity: z.number().min(0.01, "Quantity must be greater than 0"),
     unit: z.string().min(1, "Unit is required"),
     green_power_percentage: z.number().min(0).max(100, "Must be between 0-100"),
@@ -80,8 +80,8 @@ const scope2Schema = z.object({
   })),
   heating_cooling: z.array(z.object({
     state_region: z.string().min(1, "State/region is required"),
-    system_type: z.string().min(1, "System type is required"),
-    energy_source: z.string().min(1, "Energy source is required"),
+    system_type: z.string().optional(),
+    energy_source: z.string().optional(),
     quantity: z.number().min(0.01, "Quantity must be greater than 0"),
     unit: z.string().min(1, "Unit is required"),
     efficiency_rating: z.number().min(0.01, "Efficiency must be greater than 0"),
@@ -90,7 +90,7 @@ const scope2Schema = z.object({
   })),
   purchased_steam: z.array(z.object({
     state_region: z.string().min(1, "State/region is required"),
-    steam_source: z.string().min(1, "Steam source is required"),
+    steam_source: z.string().optional(),
     quantity: z.number().min(0.01, "Quantity must be greater than 0"),
     unit: z.string().min(1, "Unit is required"),
     pressure_rating: z.string().optional(),
@@ -272,11 +272,10 @@ export default function Scope2() {
 
     // Validate required fields for each type
     const validElectricity = data.electricity.filter(e => {
-      const isValid = e.quantity > 0 && e.state_region && e.energy_source && e.unit;
+      const isValid = e.quantity > 0 && e.state_region && e.unit;
       console.log(`Electricity entry ${data.electricity.indexOf(e)}:`, { 
         quantity: e.quantity, 
         state: e.state_region,
-        energy_source: e.energy_source,
         unit: e.unit,
         isValid 
       });
@@ -284,12 +283,10 @@ export default function Scope2() {
     });
     
     const validHeating = data.heating_cooling.filter(h => {
-      const isValid = h.quantity > 0 && h.state_region && h.system_type && h.energy_source && h.efficiency_rating > 0 && h.operating_hours > 0 && h.unit;
+      const isValid = h.quantity > 0 && h.state_region && h.efficiency_rating > 0 && h.operating_hours > 0 && h.unit;
       console.log(`Heating entry ${data.heating_cooling.indexOf(h)}:`, { 
         quantity: h.quantity, 
         state: h.state_region,
-        system_type: h.system_type,
-        energy_source: h.energy_source,
         efficiency: h.efficiency_rating,
         hours: h.operating_hours,
         unit: h.unit,
@@ -299,11 +296,10 @@ export default function Scope2() {
     });
     
     const validSteam = data.purchased_steam?.filter(s => {
-      const isValid = s.quantity > 0 && s.state_region && s.steam_source && s.unit;
+      const isValid = s.quantity > 0 && s.state_region && s.unit;
       console.log(`Steam entry ${data.purchased_steam!.indexOf(s)}:`, { 
         quantity: s.quantity, 
         state: s.state_region,
-        steam_source: s.steam_source,
         unit: s.unit,
         isValid 
       });
