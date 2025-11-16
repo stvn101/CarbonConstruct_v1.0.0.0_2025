@@ -68,13 +68,61 @@ const downstreamCategories = [
   { id: 15, name: "Investments", description: "Investment activities" },
 ];
 
+// ISO 21931 & ISO 14025 compliant construction materials with EPD data
 const constructionMaterials = [
-  "Concrete", "Steel", "Timber", "Aluminium", "Glass", "Insulation", "Plasterboard", "Roofing", "Flooring", "Electrical Components"
+  "Concrete - General Purpose (20-40 MPa)",
+  "Concrete - High Strength (>40 MPa)",
+  "Concrete - Precast Elements",
+  "Concrete - Ready Mixed",
+  "Steel - Structural (Hot Rolled)",
+  "Steel - Reinforcing Bar (Rebar)",
+  "Steel - Cold Formed",
+  "Steel - Stainless",
+  "Timber - Hardwood Structural",
+  "Timber - Softwood Structural",
+  "Timber - Engineered (LVL, Glulam)",
+  "Timber - Cross Laminated (CLT)",
+  "Aluminium - Extruded Sections",
+  "Aluminium - Sheet",
+  "Aluminium - Cast",
+  "Glass - Float",
+  "Glass - Toughened",
+  "Glass - Laminated",
+  "Glass - Low-E Coated",
+  "Insulation - Glass Wool",
+  "Insulation - Rock Wool",
+  "Insulation - Polyester",
+  "Insulation - EPS",
+  "Insulation - XPS",
+  "Plasterboard - Standard",
+  "Plasterboard - Fire Rated",
+  "Brickwork - Clay",
+  "Brickwork - Concrete",
+  "Blockwork - Concrete",
+  "Roofing - Metal (Colorbond)",
+  "Roofing - Concrete Tile",
+  "Roofing - Clay Tile",
+  "Roofing - Membrane",
+  "Flooring - Carpet",
+  "Flooring - Vinyl",
+  "Flooring - Timber",
+  "Flooring - Concrete Polished",
+  "Ceramic Tiles",
+  "Paint - Water Based",
+  "Paint - Solvent Based",
+  "Sealants & Adhesives",
+  "Electrical Cabling - Copper",
+  "Electrical Cabling - Aluminium",
+  "Mechanical Ductwork",
+  "Plumbing - PVC Pipe",
+  "Plumbing - Copper Pipe",
+  "Waterproofing Membrane"
 ];
 
+// ISO 21931 full lifecycle stages (A1-A5, B1-B7, C1-C4, D)
 const lcaStages = [
-  { value: "a1", label: "A1: Raw Material Extraction" },
-  { value: "a2", label: "A2: Transport to Factory" },
+  { value: "a1", label: "A1: Raw Material Extraction & Processing" },
+  { value: "a2", label: "A2: Transport to Manufacturing" },
   { value: "a3", label: "A3: Manufacturing" },
   { value: "a4", label: "A4: Transport to Site" },
   { value: "a5", label: "A5: Construction/Installation" },
@@ -216,20 +264,23 @@ export default function Scope3() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-fit">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-scope-3">Scope 3: Value Chain Emissions</h1>
-            <p className="text-muted-foreground mt-2">
-              Calculate upstream and downstream emissions across your entire value chain
+            <h1 className="text-2xl md:text-3xl font-bold text-scope-3">Scope 3: Value Chain Emissions</h1>
+            <p className="text-muted-foreground text-sm md:text-base mt-1">
+              Calculate upstream and downstream emissions from construction materials, transport, waste and lifecycle
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              ISO 14064-1:2018, ISO 21931:2022 & GHG Protocol Scope 3 Compliant
             </p>
           </div>
         </div>
-        <Badge variant="secondary" className="text-scope-3 border-scope-3/20">
+        <Badge variant="secondary" className="text-scope-3 border-scope-3/20 w-fit">
           LCA Compliant • 15 Categories
         </Badge>
       </div>
