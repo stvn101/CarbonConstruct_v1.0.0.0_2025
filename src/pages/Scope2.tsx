@@ -3,7 +3,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, Calculator, Save, Zap, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Calculator, Save, Zap, ArrowLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NumberInputWithPresets } from "@/components/ui/number-input-with-presets";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
@@ -27,6 +28,9 @@ import {
   efficiencyRatingPresets,
   materialQuantityPresets,
 } from "@/lib/calculator-presets";
+
+// Australian states with district steam infrastructure
+const STATES_WITH_STEAM = ['nsw', 'vic', 'act'];
 
 // Scope 2 schema for energy emissions
 const scope2Schema = z.object({
@@ -56,7 +60,7 @@ const scope2Schema = z.object({
     pressure_rating: z.string().optional(),
     supplier_name: z.string().optional(),
     notes: z.string().optional(),
-  })),
+  })).optional(),
 });
 
 type Scope2FormData = z.infer<typeof scope2Schema>;
@@ -203,6 +207,18 @@ export default function Scope2() {
     name: "purchased_steam",
   });
 
+  // Track the selected state from the first electricity entry to determine steam availability
+  const selectedState = form.watch("electricity.0.state_region");
+  const isSteamAvailable = React.useMemo(() => {
+    return selectedState ? STATES_WITH_STEAM.includes(selectedState.toLowerCase()) : false;
+  }, [selectedState]);
+
+  // Get state label for display
+  const getStateLabel = (stateValue: string) => {
+    const state = australianStates.find(s => s.value === stateValue);
+    return state ? state.label : stateValue.toUpperCase();
+  };
+
   const onSubmit = async (data: Scope2FormData) => {
     if (!currentProject) {
       toast({
@@ -216,7 +232,7 @@ export default function Scope2() {
     // Validate that at least one valid entry exists with quantity > 0
     const validElectricity = data.electricity.filter(e => e.quantity > 0 && e.state_region && e.energy_source);
     const validHeating = data.heating_cooling.filter(h => h.quantity > 0 && h.system_type && h.energy_source && h.efficiency_rating > 0 && h.operating_hours > 0);
-    const validSteam = data.purchased_steam.filter(s => s.quantity > 0 && s.steam_source);
+    const validSteam = data.purchased_steam?.filter(s => s.quantity > 0 && s.steam_source) || [];
     
     const totalValidEntries = validElectricity.length + validHeating.length + validSteam.length;
     
@@ -243,7 +259,7 @@ export default function Scope2() {
         unit: heat.unit,
         notes: heat.notes
       })),
-      steam: data.purchased_steam.map(steam => ({
+      steam: (data.purchased_steam || []).map(steam => ({
         quantity: steam.quantity,
         unit: steam.unit,
         notes: steam.notes
@@ -343,11 +359,26 @@ export default function Scope2() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Steam availability alert */}
+          {selectedState && !isSteamAvailable && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Purchased steam is not available in {getStateLabel(selectedState)}. District steam systems are primarily limited to major CBD areas in Sydney and Melbourne. This tab has been hidden as it's not applicable to your project location.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Tabs defaultValue="electricity" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto gap-1">
+            <TabsList className={`grid w-full ${isSteamAvailable ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'} h-auto gap-1`}>
               <TabsTrigger value="electricity" className="text-xs sm:text-sm px-2 py-2.5">Electricity</TabsTrigger>
               <TabsTrigger value="heating" className="text-xs sm:text-sm px-2 py-2.5">Heating & Cooling</TabsTrigger>
-              <TabsTrigger value="steam" className="text-xs sm:text-sm px-2 py-2.5">Steam</TabsTrigger>
+              {isSteamAvailable && (
+                <TabsTrigger value="steam" className="text-xs sm:text-sm px-2 py-2.5">
+                  Steam
+                  <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0">Limited</Badge>
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="electricity">
@@ -385,7 +416,12 @@ export default function Scope2() {
                           name={`electricity.${index}.state_region`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>State/Region</FormLabel>
+                              <FormLabel className="flex items-center gap-1">
+                                State/Region
+                                {index === 0 && (
+                                  <InfoTooltip content="Your state selection determines available emission sources. Steam heating is only available in NSW, VIC, and ACT where district steam systems exist." />
+                                )}
+                              </FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
