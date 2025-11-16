@@ -271,7 +271,15 @@ export default function Scope2() {
     };
 
     try {
+      console.log("=== Scope 2 Calculation Starting ===");
+      console.log("Form data:", data);
+      console.log("Valid entries:", { validElectricity, validHeating, validSteam });
+      console.log("Transformed data:", transformedData);
+      
       const result = await calculateScope2Emissions(transformedData);
+      
+      console.log("=== Calculation Result ===", result);
+      
       if (result) {
         if (result.total === 0) {
           toast({
@@ -285,7 +293,6 @@ export default function Scope2() {
             description: `Total Scope 2 emissions: ${result.total.toFixed(2)} tCO₂e`,
           });
         }
-        console.log("Scope 2 Calculation Result:", result);
       } else {
         toast({
           title: "Calculation Failed",
@@ -294,10 +301,10 @@ export default function Scope2() {
         });
       }
     } catch (error) {
-      console.error("Calculation error:", error);
+      console.error("=== Calculation Error ===", error);
       toast({
         title: "Error",
-        description: "An error occurred during calculation. Please try again.",
+        description: error instanceof Error ? error.message : "An error occurred during calculation. Please try again.",
         variant: "destructive",
       });
     }
