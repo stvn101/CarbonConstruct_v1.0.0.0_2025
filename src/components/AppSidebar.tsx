@@ -39,43 +39,33 @@ const otherItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { open } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
-  const collapsed = state === "collapsed";
 
   const isActive = (path: string) => path === "/" ? currentPath === path : currentPath.startsWith(path);
 
   return (
-    <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible="icon">
+    <Sidebar collapsible="icon" className="transition-all duration-300">
       <SidebarContent className="bg-sidebar border-r border-sidebar-border">
         {/* Brand Header */}
         <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30">
-          {!collapsed && (
-            <div className="flex items-center gap-3 animate-fade-in">
-              <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center shadow-glow">
-                <Calculator className="h-5 w-5 text-sidebar-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="font-bold text-base text-sidebar-foreground">CarbonCalc</h1>
-                <p className="text-xs text-sidebar-foreground/70">Pro Edition</p>
-              </div>
-            </div>
-          )}
-          {collapsed && (
-            <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center shadow-glow mx-auto">
+          <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center">
+            <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center shadow-glow flex-shrink-0">
               <Calculator className="h-5 w-5 text-sidebar-primary-foreground" />
             </div>
-          )}
+            <div className="group-data-[collapsible=icon]/sidebar-wrapper:hidden animate-fade-in">
+              <h1 className="font-bold text-base text-sidebar-foreground">CarbonCalc</h1>
+              <p className="text-xs text-sidebar-foreground/70">Pro Edition</p>
+            </div>
+          </div>
         </div>
 
         {/* Calculator Section */}
         <SidebarGroup className="mt-4 px-3">
-          {!collapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/60 font-semibold text-xs uppercase tracking-wider mb-2 px-2">
-              Carbon Calculator
-            </SidebarGroupLabel>
-          )}
+          <SidebarGroupLabel className="text-sidebar-foreground/60 font-semibold text-xs uppercase tracking-wider mb-2 px-2 group-data-[collapsible=icon]/sidebar-wrapper:hidden">
+            Carbon Calculator
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {calculatorItems.map((item) => {
@@ -95,13 +85,9 @@ export function AppSidebar() {
                         <item.icon className={`h-5 w-5 flex-shrink-0 transition-colors ${
                           active ? "text-sidebar-primary-foreground" : item.color
                         }`} />
-                        {!collapsed && (
-                          <>
-                            <span className="font-medium text-sm">{item.title}</span>
-                            {active && (
-                              <ChevronRight className="h-4 w-4 ml-auto opacity-70" />
-                            )}
-                          </>
+                        <span className="font-medium text-sm group-data-[collapsible=icon]/sidebar-wrapper:hidden">{item.title}</span>
+                        {active && (
+                          <ChevronRight className="h-4 w-4 ml-auto opacity-70 group-data-[collapsible=icon]/sidebar-wrapper:hidden" />
                         )}
                         {active && (
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-sidebar-primary-foreground rounded-r-full" />
@@ -120,11 +106,9 @@ export function AppSidebar() {
 
         {/* Tools Section */}
         <SidebarGroup className="px-3">
-          {!collapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/60 font-semibold text-xs uppercase tracking-wider mb-2 px-2">
-              Tools
-            </SidebarGroupLabel>
-          )}
+          <SidebarGroupLabel className="text-sidebar-foreground/60 font-semibold text-xs uppercase tracking-wider mb-2 px-2 group-data-[collapsible=icon]/sidebar-wrapper:hidden">
+            Tools
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {otherItems.map((item) => {
@@ -143,13 +127,9 @@ export function AppSidebar() {
                         <item.icon className={`h-5 w-5 flex-shrink-0 ${
                           active ? "text-sidebar-primary-foreground" : item.color
                         }`} />
-                        {!collapsed && (
-                          <>
-                            <span className="font-medium text-sm">{item.title}</span>
-                            {active && (
-                              <ChevronRight className="h-4 w-4 ml-auto opacity-70" />
-                            )}
-                          </>
+                        <span className="font-medium text-sm group-data-[collapsible=icon]/sidebar-wrapper:hidden">{item.title}</span>
+                        {active && (
+                          <ChevronRight className="h-4 w-4 ml-auto opacity-70 group-data-[collapsible=icon]/sidebar-wrapper:hidden" />
                         )}
                         {active && (
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-sidebar-primary-foreground rounded-r-full" />
