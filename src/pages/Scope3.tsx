@@ -212,6 +212,30 @@ export default function Scope3() {
   });
 
   const onSubmit = async (data: Scope3FormData) => {
+    if (!currentProject) {
+      toast({
+        title: "No Project Selected",
+        description: "Please select a project before calculating emissions.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate that at least one valid entry exists with quantity > 0 and emission_factor > 0
+    const validUpstream = data.upstream.filter(u => u.quantity > 0 && u.emission_factor > 0 && u.activity_description);
+    const validDownstream = data.downstream.filter(d => d.quantity > 0 && d.emission_factor > 0 && d.activity_description);
+    
+    const totalValidEntries = validUpstream.length + validDownstream.length;
+    
+    if (totalValidEntries === 0) {
+      toast({
+        title: "No Valid Data",
+        description: "Please add at least one complete entry with quantity and emission factor greater than 0 before calculating.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Transform form data to match calculation hook format
     const transformedData = {
       upstreamActivities: data.upstream.map(upstream => ({
@@ -239,27 +263,26 @@ export default function Scope3() {
       }))
     };
 
-    if (!currentProject) {
-      toast({
-        title: "No Project Selected",
-        description: "Please select a project before calculating emissions.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       const result = await calculateScope3Emissions(transformedData);
       if (result) {
-        toast({
-          title: "Emissions Calculated",
-          description: `Total Scope 3 emissions: ${result.total.toFixed(2)} tCO₂e`,
-        });
+        if (result.total === 0) {
+          toast({
+            title: "Calculation Complete",
+            description: "Emissions calculated but total is 0 tCO₂e. Please verify your data entries.",
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Emissions Calculated",
+            description: `Total Scope 3 emissions: ${result.total.toFixed(2)} tCO₂e`,
+          });
+        }
         console.log("Scope 3 Calculation Result:", result);
       } else {
         toast({
           title: "Calculation Failed",
-          description: "Unable to calculate emissions. Please check your data and try again.",
+          description: "No valid emission data was calculated. Please check your entries and try again.",
           variant: "destructive",
         });
       }
