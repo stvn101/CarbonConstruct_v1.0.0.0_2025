@@ -7,7 +7,8 @@ import {
   Settings,
   Home,
   HelpCircle,
-  Package
+  Package,
+  ChevronRight
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -24,17 +25,17 @@ import {
 } from "@/components/ui/sidebar";
 
 const calculatorItems = [
-  { title: "Dashboard", url: "/", icon: Home },
-  { title: "Scope 1 (Direct)", url: "/scope-1", icon: Factory },
-  { title: "Scope 2 (Energy)", url: "/scope-2", icon: Zap },
-  { title: "Scope 3 (Value Chain)", url: "/scope-3", icon: Truck },
-  { title: "LCA Calculator", url: "/lca", icon: Package },
-  { title: "Reports & Analysis", url: "/reports", icon: FileBarChart },
+  { title: "Dashboard", url: "/", icon: Home, color: "text-chart-4" },
+  { title: "Scope 1 (Direct)", url: "/scope-1", icon: Factory, color: "text-chart-1" },
+  { title: "Scope 2 (Energy)", url: "/scope-2", icon: Zap, color: "text-chart-2" },
+  { title: "Scope 3 (Value Chain)", url: "/scope-3", icon: Truck, color: "text-chart-3" },
+  { title: "LCA Calculator", url: "/lca", icon: Package, color: "text-chart-5" },
+  { title: "Reports & Analysis", url: "/reports", icon: FileBarChart, color: "text-chart-6" },
 ];
 
 const otherItems = [
-  { title: "Settings", url: "/settings", icon: Settings },
-  { title: "Help & Resources", url: "/help", icon: HelpCircle },
+  { title: "Settings", url: "/settings", icon: Settings, color: "text-muted-foreground" },
+  { title: "Help & Resources", url: "/help", icon: HelpCircle, color: "text-muted-foreground" },
 ];
 
 export function AppSidebar() {
@@ -45,72 +46,125 @@ export function AppSidebar() {
 
   const isActive = (path: string) => path === "/" ? currentPath === path : currentPath.startsWith(path);
 
-  const getNavClass = ({ isActive }: { isActive: boolean }) =>
-    isActive 
-      ? "bg-green-800 text-white font-medium border-l-4 border-green-600"
-      : "bg-green-700 text-white hover:bg-green-600 transition-colors";
-
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-64"}>
-      <SidebarContent className="bg-green-50 border-r">
-        <div className="p-4 border-b">
+    <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible="icon">
+      <SidebarContent className="bg-sidebar border-r border-sidebar-border">
+        {/* Brand Header */}
+        <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30">
           {!collapsed && (
-            <div className="flex items-center gap-2">
-              <Calculator className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg text-primary">CarbonCalc Pro</span>
+            <div className="flex items-center gap-3 animate-fade-in">
+              <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center shadow-glow">
+                <Calculator className="h-5 w-5 text-sidebar-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="font-bold text-base text-sidebar-foreground">CarbonCalc</h1>
+                <p className="text-xs text-sidebar-foreground/70">Pro Edition</p>
+              </div>
             </div>
           )}
           {collapsed && (
-            <Calculator className="h-6 w-6 text-primary mx-auto" />
+            <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center shadow-glow mx-auto">
+              <Calculator className="h-5 w-5 text-sidebar-primary-foreground" />
+            </div>
           )}
         </div>
 
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className="text-muted-foreground font-medium">
-            {!collapsed && "Carbon Calculator"}
-          </SidebarGroupLabel>
+        {/* Calculator Section */}
+        <SidebarGroup className="mt-4 px-3">
+          {!collapsed && (
+            <SidebarGroupLabel className="text-sidebar-foreground/60 font-semibold text-xs uppercase tracking-wider mb-2 px-2">
+              Carbon Calculator
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu>
-              {calculatorItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <NavLink 
-                      to={item.url} 
-                      end={item.url === "/"} 
-                      className={getNavClass}
-                    >
-                       <item.icon className="h-4 w-4" />
-                       <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+            <SidebarMenu className="space-y-1">
+              {calculatorItems.map((item) => {
+                const active = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <NavLink 
+                        to={item.url} 
+                        end={item.url === "/"} 
+                        className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                          active 
+                            ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md scale-105" 
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:scale-102"
+                        }`}
+                      >
+                        <item.icon className={`h-5 w-5 flex-shrink-0 transition-colors ${
+                          active ? "text-sidebar-primary-foreground" : item.color
+                        }`} />
+                        {!collapsed && (
+                          <>
+                            <span className="font-medium text-sm">{item.title}</span>
+                            {active && (
+                              <ChevronRight className="h-4 w-4 ml-auto opacity-70" />
+                            )}
+                          </>
+                        )}
+                        {active && (
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-sidebar-primary-foreground rounded-r-full" />
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-8">
-          <SidebarGroupLabel className="text-muted-foreground font-medium">
-            {!collapsed && "Tools"}
-          </SidebarGroupLabel>
+        {/* Divider */}
+        <div className="mx-6 my-4 border-t border-sidebar-border/30" />
+
+        {/* Tools Section */}
+        <SidebarGroup className="px-3">
+          {!collapsed && (
+            <SidebarGroupLabel className="text-sidebar-foreground/60 font-semibold text-xs uppercase tracking-wider mb-2 px-2">
+              Tools
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu>
-              {otherItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <NavLink 
-                      to={item.url} 
-                      className={getNavClass}
-                    >
-                       <item.icon className="h-4 w-4" />
-                       <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+            <SidebarMenu className="space-y-1">
+              {otherItems.map((item) => {
+                const active = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <NavLink 
+                        to={item.url} 
+                        className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                          active 
+                            ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md scale-105" 
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:scale-102"
+                        }`}
+                      >
+                        <item.icon className={`h-5 w-5 flex-shrink-0 ${
+                          active ? "text-sidebar-primary-foreground" : item.color
+                        }`} />
+                        {!collapsed && (
+                          <>
+                            <span className="font-medium text-sm">{item.title}</span>
+                            {active && (
+                              <ChevronRight className="h-4 w-4 ml-auto opacity-70" />
+                            )}
+                          </>
+                        )}
+                        {active && (
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-sidebar-primary-foreground rounded-r-full" />
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Footer Gradient */}
+        <div className="mt-auto h-20 bg-gradient-to-t from-sidebar-accent/50 to-transparent" />
       </SidebarContent>
     </Sidebar>
   );

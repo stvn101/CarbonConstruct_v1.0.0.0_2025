@@ -2,200 +2,98 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Carbon Calculator Design System - Professional Green & Carbon Theme
+/* Carbon Calculator Design System - Professional Twilight Theme
+Single unified theme combining best of light and dark for optimal visibility.
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Carbon and Green Professional Palette */
-    --background: 0 0% 98%;
-    --foreground: 156 8% 15%;
+    /* Twilight Base Colors - Soft warm grey background with high contrast text */
+    --background: 220 15% 92%;
+    --foreground: 220 15% 12%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 156 8% 15%;
+    --card: 0 0% 98%;
+    --card-foreground: 220 15% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 156 8% 15%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 220 15% 12%;
 
-    /* Primary: Deep Forest Green */
-    --primary: 156 45% 25%;
-    --primary-foreground: 0 0% 98%;
-    --primary-hover: 156 45% 20%;
+    /* Primary: Vibrant Forest Green */
+    --primary: 156 55% 35%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 156 60% 30%;
 
-    /* Secondary: Carbon Grey */
-    --secondary: 220 8% 25%;
-    --secondary-foreground: 0 0% 98%;
+    /* Secondary: Rich Carbon Blue-Grey */
+    --secondary: 220 25% 45%;
+    --secondary-foreground: 0 0% 100%;
 
     /* Accent: Bright Environmental Green */
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 142 70% 45%;
+    --accent-foreground: 0 0% 100%;
 
-    /* Muted: Light Green Grey */
-    --muted: 156 12% 95%;
-    --muted-foreground: 156 8% 45%;
+    /* Muted: Subtle Grey-Green */
+    --muted: 220 15% 85%;
+    --muted-foreground: 220 15% 40%;
 
-    /* Scope Colors for Data Visualization - Vibrant Australian Palette */
-    --scope-1: 15 86% 55%;     /* Bright orange-red for direct emissions */
-    --scope-2: 48 89% 50%;     /* Golden yellow for energy emissions */
-    --scope-3: 156 45% 35%;    /* Forest green for value chain emissions */
-    --lca-material: 280 70% 55%; /* Purple for materials */
-    --lca-transport: 200 85% 50%; /* Cyan for transport */
-    --lca-construction: 30 90% 55%; /* Orange for construction */
-    --lca-eol: 340 75% 55%;    /* Pink for end-of-life */
+    /* Scope Colors for Data Visualization - Maximum Vibrancy */
+    --scope-1: 15 90% 58%;        /* Bright coral-red for direct emissions */
+    --scope-2: 48 95% 55%;        /* Golden amber for energy emissions */
+    --scope-3: 156 60% 42%;       /* Rich forest green for value chain */
+    --lca-material: 280 75% 60%;  /* Vivid purple for materials */
+    --lca-transport: 200 90% 55%; /* Bright cyan for transport */
+    --lca-construction: 30 95% 58%; /* Vibrant orange for construction */
+    --lca-eol: 340 80% 60%;       /* Hot pink for end-of-life */
     
-    /* Compliance Framework Colors */
-    --ncc-blue: 210 85% 50%;
-    --gbca-green: 142 70% 45%;
-    --nabers-teal: 180 75% 45%;
+    /* Compliance Framework Colors - High Contrast */
+    --ncc-blue: 210 90% 55%;
+    --gbca-green: 142 75% 48%;
+    --nabers-teal: 180 80% 48%;
     
-    /* Chart Colors - Vibrant Data Visualization */
-    --chart-1: 15 86% 55%;     /* Vibrant red-orange */
-    --chart-2: 48 89% 50%;     /* Golden yellow */
-    --chart-3: 142 76% 36%;    /* Forest green */
-    --chart-4: 210 85% 50%;    /* Electric blue */
-    --chart-5: 280 70% 55%;    /* Royal purple */
-    --chart-6: 180 75% 45%;    /* Teal */
-    --chart-7: 30 90% 55%;     /* Bright orange */
-    --chart-8: 340 75% 55%;    /* Hot pink */
+    /* Chart Colors - Ultra Vibrant Data Visualization */
+    --chart-1: 15 90% 58%;        /* Coral red */
+    --chart-2: 48 95% 55%;        /* Golden amber */
+    --chart-3: 142 70% 45%;       /* Forest green */
+    --chart-4: 210 90% 55%;       /* Electric blue */
+    --chart-5: 280 75% 60%;       /* Royal purple */
+    --chart-6: 180 80% 48%;       /* Teal */
+    --chart-7: 30 95% 58%;        /* Bright orange */
+    --chart-8: 340 80% 60%;       /* Hot pink */
 
-    /* Status Colors */
-    --success: 142 76% 36%;
-    --warning: 48 89% 50%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    /* Status Colors - Clear & Vibrant */
+    --success: 142 70% 45%;
+    --warning: 48 95% 55%;
+    --destructive: 0 85% 62%;
+    --destructive-foreground: 0 0% 100%;
 
     /* Interface Elements */
-    --border: 156 12% 88%;
-    --input: 156 12% 92%;
-    --ring: 156 45% 25%;
+    --border: 220 15% 80%;
+    --input: 0 0% 98%;
+    --ring: 156 55% 35%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(156 45% 25%), hsl(142 76% 36%));
-    --gradient-carbon: linear-gradient(135deg, hsl(220 8% 25%), hsl(156 8% 35%));
-    --gradient-eco: linear-gradient(135deg, hsl(142 76% 36%), hsl(156 76% 46%));
+    /* Vibrant Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(156 55% 35%), hsl(142 70% 45%));
+    --gradient-carbon: linear-gradient(135deg, hsl(220 25% 45%), hsl(156 55% 35%));
+    --gradient-eco: linear-gradient(135deg, hsl(142 70% 45%), hsl(156 70% 50%));
+    --gradient-sunset: linear-gradient(135deg, hsl(15 90% 58%), hsl(48 95% 55%));
+    --gradient-ocean: linear-gradient(135deg, hsl(200 90% 55%), hsl(180 80% 48%));
 
-    /* Shadows */
-    --shadow-carbon: 0 4px 20px -8px hsl(156 45% 25% / 0.3);
-    --shadow-elevated: 0 8px 30px -10px hsl(156 45% 25% / 0.2);
+    /* Enhanced Shadows */
+    --shadow-carbon: 0 4px 24px -8px hsl(156 55% 35% / 0.35);
+    --shadow-elevated: 0 10px 40px -12px hsl(156 55% 35% / 0.25);
+    --shadow-glow: 0 0 24px hsl(142 70% 45% / 0.2);
+
+    /* Sidebar Colors - Professional & Modern */
+    --sidebar-background: 156 40% 25%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 142 70% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 156 45% 30%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 156 30% 20%;
+    --sidebar-ring: 142 70% 45%;
 
     --radius: 0.75rem;
-  }
-
-  .dark {
-    /* Dark mode carbon theme */
-    --background: 156 8% 8%;
-    --foreground: 156 12% 88%;
-
-    --card: 156 8% 12%;
-    --card-foreground: 156 12% 88%;
-
-    --popover: 156 8% 12%;
-    --popover-foreground: 156 12% 88%;
-
-    --primary: 142 76% 46%;
-    --primary-foreground: 156 8% 8%;
-    --primary-hover: 142 76% 40%;
-
-    --secondary: 156 8% 18%;
-    --secondary-foreground: 156 12% 88%;
-
-    --accent: 142 76% 46%;
-    --accent-foreground: 156 8% 8%;
-
-    --muted: 156 8% 15%;
-    --muted-foreground: 156 8% 65%;
-
-    --scope-1: 15 86% 60%;
-    --scope-2: 48 89% 55%;
-    --scope-3: 142 76% 46%;
-    --lca-material: 280 70% 60%;
-    --lca-transport: 200 85% 55%;
-    --lca-construction: 30 90% 60%;
-    --lca-eol: 340 75% 60%;
-    
-    --ncc-blue: 210 85% 55%;
-    --gbca-green: 142 70% 50%;
-    --nabers-teal: 180 75% 50%;
-    
-    --chart-1: 15 86% 60%;
-    --chart-2: 48 89% 55%;
-    --chart-3: 142 76% 46%;
-    --chart-4: 210 85% 55%;
-    --chart-5: 280 70% 60%;
-    --chart-6: 180 75% 50%;
-    --chart-7: 30 90% 60%;
-    --chart-8: 340 75% 60%;
-
-    --success: 142 76% 46%;
-    --warning: 48 89% 55%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 156 12% 88%;
-
-    --border: 156 8% 18%;
-    --input: 156 8% 18%;
-    --ring: 142 76% 46%;
-
-    --gradient-primary: linear-gradient(135deg, hsl(142 76% 46%), hsl(156 76% 56%));
-    --gradient-carbon: linear-gradient(135deg, hsl(156 8% 18%), hsl(156 8% 25%));
-    --gradient-eco: linear-gradient(135deg, hsl(142 76% 46%), hsl(156 76% 56%));
-
-    --shadow-carbon: 0 4px 20px -8px hsl(142 76% 46% / 0.3);
-    --shadow-elevated: 0 8px 30px -10px hsl(142 76% 46% / 0.2);
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -206,5 +104,42 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Smooth transitions for interactive elements */
+  button, a, input, select, textarea {
+    @apply transition-colors duration-200;
+  }
+}
+
+/* Custom utility classes for the Carbon Calculator */
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-carbon {
+    background: var(--gradient-carbon);
+  }
+  
+  .gradient-eco {
+    background: var(--gradient-eco);
+  }
+  
+  .gradient-sunset {
+    background: var(--gradient-sunset);
+  }
+  
+  .gradient-ocean {
+    background: var(--gradient-ocean);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
   }
 }
