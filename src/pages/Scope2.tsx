@@ -32,6 +32,40 @@ import {
 // Australian states with district steam infrastructure
 const STATES_WITH_STEAM = ['nsw', 'vic', 'act'];
 
+// Major Australian energy providers/retailers
+const australianEnergyProviders = [
+  "AGL Energy",
+  "Origin Energy",
+  "EnergyAustralia",
+  "Red Energy",
+  "Alinta Energy",
+  "Simply Energy",
+  "Momentum Energy",
+  "ActewAGL",
+  "Ergon Energy",
+  "Aurora Energy",
+  "Synergy",
+  "Horizon Power",
+  "Power and Water Corporation",
+  "GloBird Energy",
+  "CovaU",
+  "Powershop",
+  "Lumo Energy",
+  "Discover Energy",
+  "Tango Energy",
+  "Other"
+];
+
+// District steam suppliers (limited to NSW, VIC, ACT)
+const steamSuppliers = [
+  "Veolia Energy",
+  "Cogeneration Plant",
+  "District Heating Network",
+  "Industrial Steam Provider",
+  "Municipal Steam System",
+  "Other"
+];
+
 // Scope 2 schema for energy emissions
 const scope2Schema = z.object({
   electricity: z.array(z.object({
@@ -552,9 +586,15 @@ export default function Scope2() {
                           name={`electricity.${index}.supplier_name`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Supplier</FormLabel>
+                              <FormLabel>Supplier (Optional)</FormLabel>
                               <FormControl>
-                                <Input placeholder="Energy supplier" {...field} />
+                                <Combobox
+                                  options={australianEnergyProviders}
+                                  value={field.value || ""}
+                                  onValueChange={field.onChange}
+                                  placeholder="Select supplier"
+                                  searchPlaceholder="Search suppliers..."
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -955,9 +995,15 @@ export default function Scope2() {
                           name={`purchased_steam.${index}.supplier_name`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Supplier Name</FormLabel>
+                              <FormLabel>Supplier (Optional)</FormLabel>
                               <FormControl>
-                                <Input placeholder="Steam supplier" {...field} />
+                                <Combobox
+                                  options={steamSuppliers}
+                                  value={field.value || ""}
+                                  onValueChange={field.onChange}
+                                  placeholder="Select supplier"
+                                  searchPlaceholder="Search suppliers..."
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
