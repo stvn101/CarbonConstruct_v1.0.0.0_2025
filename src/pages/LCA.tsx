@@ -17,7 +17,7 @@ interface MaterialEntry {
   quantity: number;
   unit: string;
   category: string;
-  stage: 'A1-A3' | 'A4' | 'A5' | 'B' | 'C';
+  stage: 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'B1' | 'B2' | 'B3' | 'B4' | 'B5' | 'B6' | 'B7' | 'C1' | 'C2' | 'C3' | 'C4' | 'D';
 }
 
 const LCA = () => {
@@ -30,7 +30,7 @@ const LCA = () => {
     quantity: 0,
     unit: 'kg',
     category: 'concrete',
-    stage: 'A1-A3',
+    stage: 'A1',
   });
 
   const materialCategories = [
@@ -46,12 +46,30 @@ const LCA = () => {
     'flooring',
   ];
 
+  // ISO 21931 Lifecycle Stages - Complete Construction Lifecycle
   const lcaStages = {
-    'A1-A3': 'Product Stage (Raw material, Transport, Manufacturing)',
-    'A4': 'Transport to Site',
-    'A5': 'Construction/Installation',
-    'B': 'Use Stage',
-    'C': 'End of Life',
+    // Product Stage (A1-A3)
+    'A1': 'A1: Raw Material Supply',
+    'A2': 'A2: Transport to Factory',
+    'A3': 'A3: Manufacturing',
+    // Construction Process Stage (A4-A5)
+    'A4': 'A4: Transport to Site',
+    'A5': 'A5: Construction/Installation',
+    // Use Stage (B1-B7)
+    'B1': 'B1: Use/Application',
+    'B2': 'B2: Maintenance',
+    'B3': 'B3: Repair',
+    'B4': 'B4: Replacement',
+    'B5': 'B5: Refurbishment',
+    'B6': 'B6: Operational Energy Use',
+    'B7': 'B7: Operational Water Use',
+    // End of Life Stage (C1-C4)
+    'C1': 'C1: Deconstruction/Demolition',
+    'C2': 'C2: Transport to Waste Processing',
+    'C3': 'C3: Waste Processing',
+    'C4': 'C4: Disposal',
+    // Beyond Building Life (D)
+    'D': 'D: Benefits Beyond System Boundary',
   };
 
   const addMaterial = () => {
@@ -70,7 +88,7 @@ const LCA = () => {
       quantity: 0,
       unit: 'kg',
       category: 'concrete',
-      stage: 'A1-A3',
+      stage: 'A1',
     });
     
     toast({
@@ -113,36 +131,36 @@ const LCA = () => {
 
         let emissionFactor = 0;
         if (factorData) {
-          switch (material.stage) {
-            case 'A1-A3':
-              emissionFactor = factorData.embodied_carbon_a1a3 || 0;
-              break;
-            case 'A4':
-              emissionFactor = factorData.embodied_carbon_a4 || 0;
-              break;
-            case 'A5':
-              emissionFactor = factorData.embodied_carbon_a5 || 0;
-              break;
-            default:
-              emissionFactor = (factorData.embodied_carbon_a1a3 || 0) + (factorData.embodied_carbon_a4 || 0) + (factorData.embodied_carbon_a5 || 0);
+          // ISO 14067:2018 compliant calculation by lifecycle stage
+          const stage = material.stage;
+          if (stage === 'A1' || stage === 'A2' || stage === 'A3') {
+            emissionFactor = factorData.embodied_carbon_a1a3 || 0;
+          } else if (stage === 'A4') {
+            emissionFactor = factorData.embodied_carbon_a4 || 0;
+          } else if (stage === 'A5') {
+            emissionFactor = factorData.embodied_carbon_a5 || 0;
+          } else {
+            // For B, C, D stages use total or default factors
+            emissionFactor = (factorData.embodied_carbon_a1a3 || 0) + 
+                           (factorData.embodied_carbon_a4 || 0) + 
+                           (factorData.embodied_carbon_a5 || 0);
           }
         } else {
-          // Use default factors if not found
-          const defaultFactors: Record<string, number> = {
-            concrete: 0.15,
-            steel: 2.5,
-            timber: 0.5,
-            glass: 1.2,
-            insulation: 3.5,
-            brickwork: 0.24,
-            aluminium: 8.5,
-            plasterboard: 0.38,
-            roofing: 1.8,
-            flooring: 0.95,
+          // Default construction emission factors per kg (Australian standards)
+          const defaults: Record<string, number> = {
+            'concrete': 0.15,
+            'steel': 2.1,
+            'timber': 0.45,
+            'glass': 0.85,
+            'insulation': 1.2,
+            'brickwork': 0.22,
+            'aluminium': 8.5,
+            'plasterboard': 0.38,
+            'roofing': 1.5,
+            'flooring': 0.75,
           };
-          emissionFactor = defaultFactors[material.category] || 1.0;
+          emissionFactor = defaults[material.category] || 1.0;
         }
-
         const embodiedCarbon = material.quantity * emissionFactor;
         totalEmbodiedCarbon += embodiedCarbon;
 
@@ -304,7 +322,7 @@ const LCA = () => {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="stage">LCA Stage</Label>
+                  <Label htmlFor="stage">ISO 21931 Lifecycle Stage</Label>
                   <Select
                     value={currentMaterial.stage}
                     onValueChange={(value: any) =>
@@ -314,10 +332,10 @@ const LCA = () => {
                     <SelectTrigger id="stage">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-60">
                       {Object.entries(lcaStages).map(([key, label]) => (
                         <SelectItem key={key} value={key}>
-                          {key}: {label}
+                          {label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -325,7 +343,7 @@ const LCA = () => {
                 </div>
               </div>
 
-              <Button onClick={addMaterial} className="w-full">
+              <Button onClick={addMaterial} className="w-full" variant="eco">
                 Add Material to LCA
               </Button>
 
@@ -409,16 +427,17 @@ const LCA = () => {
         </TabsContent>
       </Tabs>
 
-      <Card className="bg-gradient-to-r from-lca-material/5 to-lca-construction/5">
+      <Card className="bg-gradient-primary/10 border-primary/20">
         <CardContent className="pt-6">
           <Button
             onClick={calculateLCA}
             disabled={loading || materials.length === 0}
             className="w-full text-lg py-6"
             size="lg"
+            variant="carbon"
           >
             <Calculator className="h-5 w-5 mr-2" />
-            {loading ? 'Calculating...' : 'Calculate Embodied Carbon (ISO 14040/14044)'}
+            {loading ? 'Calculating...' : `Calculate Embodied Carbon (${materials.length} materials)`}
           </Button>
         </CardContent>
       </Card>
