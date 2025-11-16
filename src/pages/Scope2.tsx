@@ -45,6 +45,7 @@ const scope2Schema = z.object({
     notes: z.string().optional(),
   })),
   heating_cooling: z.array(z.object({
+    state_region: z.string().min(1, "State/region is required"),
     system_type: z.string().min(1, "System type is required"),
     energy_source: z.string().min(1, "Energy source is required"),
     quantity: z.number().min(0.01, "Quantity must be greater than 0"),
@@ -54,6 +55,7 @@ const scope2Schema = z.object({
     notes: z.string().optional(),
   })),
   purchased_steam: z.array(z.object({
+    state_region: z.string().min(1, "State/region is required"),
     steam_source: z.string().min(1, "Steam source is required"),
     quantity: z.number().min(0.01, "Quantity must be greater than 0"),
     unit: z.string().min(1, "Unit is required"),
@@ -231,8 +233,8 @@ export default function Scope2() {
 
     // Validate that at least one valid entry exists with quantity > 0
     const validElectricity = data.electricity.filter(e => e.quantity > 0 && e.state_region && e.energy_source);
-    const validHeating = data.heating_cooling.filter(h => h.quantity > 0 && h.system_type && h.energy_source && h.efficiency_rating > 0 && h.operating_hours > 0);
-    const validSteam = data.purchased_steam?.filter(s => s.quantity > 0 && s.steam_source) || [];
+    const validHeating = data.heating_cooling.filter(h => h.quantity > 0 && h.state_region && h.system_type && h.energy_source && h.efficiency_rating > 0 && h.operating_hours > 0);
+    const validSteam = data.purchased_steam?.filter(s => s.quantity > 0 && s.state_region && s.steam_source) || [];
     
     const totalValidEntries = validElectricity.length + validHeating.length + validSteam.length;
     
@@ -255,11 +257,13 @@ export default function Scope2() {
         notes: elec.notes
       })),
       heating: data.heating_cooling.map(heat => ({
+        state: heat.state_region.toUpperCase(),
         quantity: heat.quantity,
         unit: heat.unit,
         notes: heat.notes
       })),
       steam: (data.purchased_steam || []).map(steam => ({
+        state: steam.state_region.toUpperCase(),
         quantity: steam.quantity,
         unit: steam.unit,
         notes: steam.notes
@@ -628,6 +632,31 @@ export default function Scope2() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
+                        name={`heating_cooling.${index}.state_region`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>State/Region</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select state" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {australianStates.map((state) => (
+                                  <SelectItem key={state.value} value={state.value}>
+                                    {state.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
                         name={`heating_cooling.${index}.system_type`}
                         render={({ field }) => (
                           <FormItem>
@@ -665,7 +694,9 @@ export default function Scope2() {
                           </FormItem>
                         )}
                       />
+                      </div>
 
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
                         name={`heating_cooling.${index}.quantity`}
@@ -767,6 +798,7 @@ export default function Scope2() {
                     type="button"
                     variant="outline"
                     onClick={() => appendHeating({ 
+                      state_region: "",
                       system_type: "", 
                       energy_source: "", 
                       quantity: 0, 
@@ -810,6 +842,31 @@ export default function Scope2() {
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`purchased_steam.${index}.state_region`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>State/Region</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select state" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {australianStates.map((state) => (
+                                    <SelectItem key={state.value} value={state.value}>
+                                      {state.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
                         <FormField
                           control={form.control}
                           name={`purchased_steam.${index}.steam_source`}
@@ -907,6 +964,7 @@ export default function Scope2() {
                     type="button"
                     variant="outline"
                     onClick={() => appendSteam({ 
+                      state_region: "",
                       steam_source: "", 
                       quantity: 0, 
                       unit: "GJ", 

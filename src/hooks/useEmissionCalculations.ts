@@ -262,7 +262,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           
           emissions.push({
             energy_type: 'heating_cooling',
-            state_region: null,
+            state_region: heating.state || null,
             quantity: heating.quantity,
             unit: heating.unit,
             emission_factor: factor,
@@ -282,7 +282,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           
           emissions.push({
             energy_type: 'purchased_steam',
-            state_region: null,
+            state_region: steam.state || null,
             quantity: steam.quantity,
             unit: steam.unit,
             emission_factor: factor,
