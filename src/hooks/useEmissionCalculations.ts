@@ -346,22 +346,22 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
 
       // Process upstream activities
       for (const activity of formData.upstreamActivities || []) {
-        if (activity.quantity > 0) {
-          const factor = activity.emissionFactor || 1.0; // Use provided or default factor
+        if (activity.quantity > 0 && activity.emissionFactor > 0) {
+          const factor = activity.emissionFactor;
           const calculatedEmissions = activity.quantity * factor;
           
           emissions.push({
             category: activity.category,
-            category_name: activity.categoryName,
-            subcategory: activity.subcategory,
-            activity_description: activity.description,
-            lca_stage: activity.lcaStage,
+            category_name: activity.categoryName || '',
+            subcategory: activity.subcategory || '',
+            activity_description: activity.description || 'No description',
+            lca_stage: activity.lcaStage || '',
             quantity: activity.quantity,
             unit: activity.unit,
             emission_factor: factor,
             emissions_tco2e: calculatedEmissions,
             supplier_data: activity.supplierData || false,
-            notes: activity.notes,
+            notes: activity.notes || '',
             data_quality: activity.supplierData ? 'supplier_specific' : 'estimated',
             calculation_method: 'activity_data_x_emission_factor'
           });
@@ -370,22 +370,22 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
 
       // Process downstream activities
       for (const activity of formData.downstreamActivities || []) {
-        if (activity.quantity > 0) {
-          const factor = activity.emissionFactor || 1.0;
+        if (activity.quantity > 0 && activity.emissionFactor > 0) {
+          const factor = activity.emissionFactor;
           const calculatedEmissions = activity.quantity * factor;
           
           emissions.push({
             category: activity.category,
-            category_name: activity.categoryName,
-            subcategory: activity.subcategory,
-            activity_description: activity.description,
-            lca_stage: activity.lcaStage,
+            category_name: activity.categoryName || '',
+            subcategory: activity.subcategory || '',
+            activity_description: activity.description || 'No description',
+            lca_stage: activity.lcaStage || '',
             quantity: activity.quantity,
             unit: activity.unit,
             emission_factor: factor,
             emissions_tco2e: calculatedEmissions,
             supplier_data: activity.supplierData || false,
-            notes: activity.notes,
+            notes: activity.notes || '',
             data_quality: activity.supplierData ? 'supplier_specific' : 'estimated',
             calculation_method: 'activity_data_x_emission_factor'
           });
@@ -416,12 +416,17 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         return { emissions, total: totalEmissions };
       }
 
-      return { emissions: [], total: 0 };
-    } catch (error) {
+      toast({
+        title: "No valid emissions data",
+        description: "Please ensure quantity and emission factors are greater than 0.",
+        variant: "destructive",
+      });
+      return null;
+    } catch (error: any) {
       console.error('Error calculating Scope 3 emissions:', error);
       toast({
         title: "Calculation failed",
-        description: "Failed to calculate emissions. Please try again.",
+        description: error?.message || "Failed to calculate emissions. Please try again.",
         variant: "destructive",
       });
       return null;

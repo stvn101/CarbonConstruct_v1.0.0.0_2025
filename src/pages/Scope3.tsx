@@ -36,22 +36,22 @@ const scope3Schema = z.object({
     category_name: z.string().min(1, "Category name is required"),
     activity_description: z.string().min(1, "Activity description is required"),
     material_type: z.string().optional(),
-    quantity: z.number().min(0, "Quantity must be positive"),
+    quantity: z.number().min(0.01, "Quantity must be greater than 0"),
     unit: z.string().min(1, "Unit is required"),
     supplier_data: z.boolean(),
     lca_stage: z.string().optional(),
-    emission_factor: z.number().min(0, "Emission factor must be positive"),
+    emission_factor: z.number().min(0.0001, "Emission factor must be greater than 0"),
     notes: z.string().optional(),
   })),
   downstream: z.array(z.object({
     category: z.number().min(9).max(15, "Must be category 9-15"),
     category_name: z.string().min(1, "Category name is required"),
     activity_description: z.string().min(1, "Activity description is required"),
-    quantity: z.number().min(0, "Quantity must be positive"),
+    quantity: z.number().min(0.01, "Quantity must be greater than 0"),
     unit: z.string().min(1, "Unit is required"),
     lifecycle_stage: z.string().optional(),
     end_user_data: z.boolean(),
-    emission_factor: z.number().min(0, "Emission factor must be positive"),
+    emission_factor: z.number().min(0.0001, "Emission factor must be greater than 0"),
     notes: z.string().optional(),
   })),
 });
@@ -515,25 +515,29 @@ export default function Scope3() {
                         )}
                       />
 
-                        <FormField
-                          control={form.control}
-                          name={`upstream.${index}.emission_factor`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Emission Factor</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.0001"
-                                  placeholder="tCO₂e/unit"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`upstream.${index}.emission_factor`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center">
+                              Emission Factor
+                              <InfoTooltip content="Select typical emission factors for construction materials or enter your specific value. Values in tCO₂e per unit. Required for calculation." />
+                            </FormLabel>
+                            <FormControl>
+                              <NumberInputWithPresets
+                                value={field.value}
+                                onChange={field.onChange}
+                                presets={emissionFactorPresets}
+                                placeholder="Select or enter factor"
+                                unit="tCO₂e/unit"
+                                min={0.0001}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       </div>
 
                       <div className="flex items-center space-x-2">
@@ -689,24 +693,27 @@ export default function Scope3() {
                       />
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <FormField
-                          control={form.control}
-                          name={`downstream.${index}.quantity`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Quantity</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`downstream.${index}.quantity`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center">
+                              Quantity
+                              <InfoTooltip content="Select typical quantities for downstream activities or enter your exact amount. Required for calculation." />
+                            </FormLabel>
+                            <FormControl>
+                              <NumberInputWithPresets
+                                value={field.value}
+                                onChange={field.onChange}
+                                presets={transportWeightPresets}
+                                placeholder="Select or enter quantity"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                         <FormField
                           control={form.control}
@@ -734,25 +741,29 @@ export default function Scope3() {
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name={`downstream.${index}.emission_factor`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Emission Factor</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.0001"
-                                  placeholder="tCO₂e/unit"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <FormField
+                        control={form.control}
+                        name={`downstream.${index}.emission_factor`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center">
+                              Emission Factor
+                              <InfoTooltip content="Select typical emission factors for downstream activities or enter your specific value. Values in tCO₂e per unit. Required for calculation." />
+                            </FormLabel>
+                            <FormControl>
+                              <NumberInputWithPresets
+                                value={field.value}
+                                onChange={field.onChange}
+                                presets={emissionFactorPresets}
+                                placeholder="Select or enter factor"
+                                unit="tCO₂e/unit"
+                                min={0.0001}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       </div>
 
                       <div className="flex items-center space-x-2">
