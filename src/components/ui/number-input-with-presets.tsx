@@ -73,15 +73,16 @@ export function NumberInputWithPresets({
           min={min}
           step="any"
           disabled={disabled}
-          className="flex-1"
+          className="flex-1 h-10 text-sm"
         />
-        {unit && <span className="flex items-center text-sm text-muted-foreground">{unit}</span>}
+        {unit && <span className="flex items-center text-sm text-muted-foreground px-2">{unit}</span>}
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          size="default"
           onClick={() => setCustomMode(false)}
           disabled={disabled}
+          className="touch-target whitespace-nowrap"
         >
           Presets
         </Button>
@@ -96,7 +97,7 @@ export function NumberInputWithPresets({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between h-10 touch-target text-sm"
           disabled={disabled}
         >
           <span className="truncate">
@@ -117,10 +118,13 @@ export function NumberInputWithPresets({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Search presets..." />
-          <CommandList>
+      <PopoverContent 
+        className="w-[calc(100vw-2rem)] sm:w-[400px] p-0 bg-popover" 
+        align="start"
+      >
+        <Command className="bg-popover">
+          <CommandInput placeholder="Search presets..." className="h-12" />
+          <CommandList className="max-h-[300px]">
             <CommandEmpty>No preset found.</CommandEmpty>
             <CommandGroup heading="Common Values">
               {presets.map((preset) => (
@@ -128,25 +132,26 @@ export function NumberInputWithPresets({
                   key={preset.value}
                   value={preset.label}
                   onSelect={() => handlePresetSelect(preset.value)}
+                  className="py-3 cursor-pointer"
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 h-4 w-4 shrink-0",
                       value === preset.value ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  <div className="flex flex-col">
-                    <span className="font-medium">{preset.label}</span>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="font-medium text-sm">{preset.label}</span>
                     {preset.description && (
-                      <span className="text-xs text-muted-foreground">{preset.description}</span>
+                      <span className="text-xs text-muted-foreground truncate">{preset.description}</span>
                     )}
                   </div>
                 </CommandItem>
               ))}
             </CommandGroup>
             <CommandGroup>
-              <CommandItem onSelect={handleCustomMode}>
-                <span className="text-primary font-medium">Enter Custom Value...</span>
+              <CommandItem onSelect={handleCustomMode} className="py-3 cursor-pointer">
+                <span className="text-primary font-medium text-sm">Enter Custom Value...</span>
               </CommandItem>
             </CommandGroup>
           </CommandList>
