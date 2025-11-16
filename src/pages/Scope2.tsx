@@ -270,12 +270,13 @@ export default function Scope2() {
 
     console.log("Current project:", currentProject.name);
 
-    // Simplified validation - only check essential fields
+    // Validate required fields for each type
     const validElectricity = data.electricity.filter(e => {
-      const isValid = e.quantity > 0 && e.state_region && e.unit;
+      const isValid = e.quantity > 0 && e.state_region && e.energy_source && e.unit;
       console.log(`Electricity entry ${data.electricity.indexOf(e)}:`, { 
         quantity: e.quantity, 
-        state: e.state_region, 
+        state: e.state_region,
+        energy_source: e.energy_source,
         unit: e.unit,
         isValid 
       });
@@ -283,10 +284,14 @@ export default function Scope2() {
     });
     
     const validHeating = data.heating_cooling.filter(h => {
-      const isValid = h.quantity > 0 && h.state_region && h.unit;
+      const isValid = h.quantity > 0 && h.state_region && h.system_type && h.energy_source && h.efficiency_rating > 0 && h.operating_hours > 0 && h.unit;
       console.log(`Heating entry ${data.heating_cooling.indexOf(h)}:`, { 
         quantity: h.quantity, 
-        state: h.state_region, 
+        state: h.state_region,
+        system_type: h.system_type,
+        energy_source: h.energy_source,
+        efficiency: h.efficiency_rating,
+        hours: h.operating_hours,
         unit: h.unit,
         isValid 
       });
@@ -294,10 +299,11 @@ export default function Scope2() {
     });
     
     const validSteam = data.purchased_steam?.filter(s => {
-      const isValid = s.quantity > 0 && s.state_region && s.unit;
+      const isValid = s.quantity > 0 && s.state_region && s.steam_source && s.unit;
       console.log(`Steam entry ${data.purchased_steam!.indexOf(s)}:`, { 
         quantity: s.quantity, 
-        state: s.state_region, 
+        state: s.state_region,
+        steam_source: s.steam_source,
         unit: s.unit,
         isValid 
       });
@@ -310,7 +316,7 @@ export default function Scope2() {
     if (totalValidEntries === 0) {
       toast({
         title: "No Valid Data",
-        description: "Please add at least one entry with: state, quantity > 0, and unit selected.",
+        description: "Please complete all required fields for at least one entry before calculating.",
         variant: "destructive",
       });
       return;
