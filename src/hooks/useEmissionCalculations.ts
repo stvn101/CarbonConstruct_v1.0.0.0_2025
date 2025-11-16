@@ -218,186 +218,222 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
     }
 
     setLoading(true);
-    console.log("=== useEmissionCalculations: Starting Scope 2 ===");
-    console.log("Project ID:", currentProject.id);
-    console.log("Form data received:", formData);
+    console.log("=== Starting Scope 2 Calculation ===");
+    console.log("Project:", currentProject.name, currentProject.id);
+    console.log("Input data:", JSON.stringify(formData, null, 2));
     
     try {
       const emissions = [];
 
-      // Process electricity
+      // Process electricity with detailed logging
+      console.log("Processing electricity entries:", formData.electricity?.length || 0);
       for (const electricity of formData.electricity || []) {
-        if (electricity.quantity > 0) {
-          // Australian grid emission factors (kg CO2-e/kWh)
-          const stateFactors: { [key: string]: number } = {
-            'NSW': 0.79,
-            'VIC': 1.02,
-            'QLD': 0.81,
-            'SA': 0.55,
-            'WA': 0.70,
-            'TAS': 0.17,
-            'NT': 0.58,
-            'ACT': 0.79
-          };
-          
-          const factor = stateFactors[electricity.state] || 0.79;
-          
-          // Convert quantity to kWh based on unit
-          let quantityInKwh = electricity.quantity;
-          if (electricity.unit === 'MWh') {
-            quantityInKwh = electricity.quantity * 1000;
-          } else if (electricity.unit === 'GJ') {
-            quantityInKwh = electricity.quantity * 277.778; // 1 GJ = 277.778 kWh
-          }
-          
-          // Calculate emissions in kg, then convert to tonnes
-          const calculatedEmissionsKg = quantityInKwh * factor * (1 - (electricity.renewablePercentage || 0) / 100);
-          const calculatedEmissionsTonnes = calculatedEmissionsKg / 1000;
-          
-          emissions.push({
-            energy_type: 'electricity',
-            state_region: electricity.state,
-            quantity: electricity.quantity,
-            unit: electricity.unit,
-            emission_factor: factor,
-            renewable_percentage: electricity.renewablePercentage || 0,
-            emissions_tco2e: calculatedEmissionsTonnes,
-            notes: electricity.notes,
-            data_quality: 'measured',
-            calculation_method: 'location_based'
-          });
+        console.log("Electricity entry:", electricity);
+        
+        if (!electricity.quantity || electricity.quantity <= 0) {
+          console.log("Skipping - quantity is 0 or undefined");
+          continue;
         }
+
+        // Australian grid emission factors (kg CO2-e/kWh)
+        const stateFactors: { [key: string]: number } = {
+          'NSW': 0.79,
+          'VIC': 1.02,
+          'QLD': 0.81,
+          'SA': 0.55,
+          'WA': 0.70,
+          'TAS': 0.17,
+          'NT': 0.58,
+          'ACT': 0.79
+        };
+        
+        const stateFactor = stateFactors[electricity.state?.toUpperCase()] || 0.79;
+        console.log(`Using emission factor ${stateFactor} for state ${electricity.state}`);
+        
+        // Convert quantity to kWh based on unit
+        let quantityInKwh = electricity.quantity;
+        if (electricity.unit === 'MWh') {
+          quantityInKwh = electricity.quantity * 1000;
+        } else if (electricity.unit === 'GJ') {
+          quantityInKwh = electricity.quantity * 277.778;
+        }
+        console.log(`Converted ${electricity.quantity} ${electricity.unit} to ${quantityInKwh} kWh`);
+        
+        // Calculate emissions: kWh * kg/kWh = kg, then /1000 for tonnes
+        const renewablePercent = electricity.renewablePercentage || 0;
+        const emissionsKg = quantityInKwh * stateFactor * (1 - renewablePercent / 100);
+        const emissionsTonnes = emissionsKg / 1000;
+        
+        console.log(`Calculation: ${quantityInKwh} kWh × ${stateFactor} kg/kWh × ${(1 - renewablePercent/100)} = ${emissionsTonnes.toFixed(4)} tCO₂e`);
+        
+        emissions.push({
+          energy_type: 'electricity',
+          state_region: electricity.state?.toUpperCase() || null,
+          quantity: electricity.quantity,
+          unit: electricity.unit,
+          emission_factor: stateFactor,
+          renewable_percentage: renewablePercent,
+          emissions_tco2e: emissionsTonnes,
+          notes: electricity.notes || null,
+          data_quality: 'measured',
+          calculation_method: 'location_based'
+        });
       }
 
       // Process heating/cooling
+      console.log("Processing heating/cooling entries:", formData.heating?.length || 0);
       for (const heating of formData.heating || []) {
-        if (heating.quantity > 0) {
-          // Natural gas factor: 0.185 kg CO2-e/kWh
-          const factor = 0.185;
-          
-          // Convert quantity to kWh based on unit
-          let quantityInKwh = heating.quantity;
-          if (heating.unit === 'MWh') {
-            quantityInKwh = heating.quantity * 1000;
-          } else if (heating.unit === 'GJ') {
-            quantityInKwh = heating.quantity * 277.778;
-          } else if (heating.unit === 'm3') {
-            quantityInKwh = heating.quantity * 10.55; // Natural gas: 1 m3 = ~10.55 kWh
-          }
-          
-          // Calculate emissions in kg, then convert to tonnes
-          const calculatedEmissionsKg = quantityInKwh * factor;
-          const calculatedEmissionsTonnes = calculatedEmissionsKg / 1000;
-          
-          emissions.push({
-            energy_type: 'heating_cooling',
-            state_region: heating.state || null,
-            quantity: heating.quantity,
-            unit: heating.unit,
-            emission_factor: factor,
-            emissions_tco2e: calculatedEmissionsTonnes,
-            notes: heating.notes,
-            data_quality: 'estimated',
-            calculation_method: 'activity_data_x_emission_factor'
-          });
+        console.log("Heating entry:", heating);
+        
+        if (!heating.quantity || heating.quantity <= 0) {
+          console.log("Skipping - quantity is 0 or undefined");
+          continue;
         }
+
+        // Natural gas emission factor: 0.185 kg CO2-e/kWh
+        const factor = 0.185;
+        
+        // Convert to kWh based on unit
+        let quantityInKwh = heating.quantity;
+        if (heating.unit === 'MWh') {
+          quantityInKwh = heating.quantity * 1000;
+        } else if (heating.unit === 'GJ') {
+          quantityInKwh = heating.quantity * 277.778;
+        } else if (heating.unit === 'm3') {
+          quantityInKwh = heating.quantity * 10.55;
+        }
+        console.log(`Converted ${heating.quantity} ${heating.unit} to ${quantityInKwh} kWh`);
+        
+        // Calculate emissions: kWh * kg/kWh = kg, then /1000 for tonnes
+        const emissionsKg = quantityInKwh * factor;
+        const emissionsTonnes = emissionsKg / 1000;
+        
+        console.log(`Calculation: ${quantityInKwh} kWh × ${factor} kg/kWh = ${emissionsTonnes.toFixed(4)} tCO₂e`);
+        
+        emissions.push({
+          energy_type: 'heating_cooling',
+          state_region: heating.state?.toUpperCase() || null,
+          quantity: heating.quantity,
+          unit: heating.unit,
+          emission_factor: factor,
+          emissions_tco2e: emissionsTonnes,
+          notes: heating.notes || null,
+          data_quality: 'estimated',
+          calculation_method: 'activity_data_x_emission_factor'
+        });
       }
 
       // Process purchased steam
+      console.log("Processing steam entries:", formData.steam?.length || 0);
       for (const steam of formData.steam || []) {
-        if (steam.quantity > 0) {
-          // Steam factor: 0.3 tCO2e/GJ (already in tonnes)
-          const factorPerGJ = 0.3;
-          
-          // Convert quantity to GJ based on unit
-          let quantityInGJ = steam.quantity;
-          if (steam.unit === 'MMBtu') {
-            quantityInGJ = steam.quantity * 1.055; // 1 MMBtu = 1.055 GJ
-          } else if (steam.unit === 'tonnes') {
-            quantityInGJ = steam.quantity * 2.5; // Approximate: 1 tonne steam = ~2.5 GJ
-          } else if (steam.unit === 'klb') {
-            quantityInGJ = steam.quantity * 1.134; // 1000 lbs steam = ~1.134 GJ
-          }
-          
-          // Calculate emissions (already in tonnes)
-          const calculatedEmissionsTonnes = quantityInGJ * factorPerGJ;
-          
-          emissions.push({
-            energy_type: 'purchased_steam',
-            state_region: steam.state || null,
-            quantity: steam.quantity,
-            unit: steam.unit,
-            emission_factor: factorPerGJ,
-            emissions_tco2e: calculatedEmissionsTonnes,
-            notes: steam.notes,
-            data_quality: 'estimated',
-            calculation_method: 'activity_data_x_emission_factor'
-          });
+        console.log("Steam entry:", steam);
+        
+        if (!steam.quantity || steam.quantity <= 0) {
+          console.log("Skipping - quantity is 0 or undefined");
+          continue;
         }
+
+        // Steam emission factor: 0.3 tCO₂e/GJ (already in tonnes per GJ)
+        const factorPerGJ = 0.3;
+        
+        // Convert to GJ based on unit
+        let quantityInGJ = steam.quantity;
+        if (steam.unit === 'MMBtu') {
+          quantityInGJ = steam.quantity * 1.055;
+        } else if (steam.unit === 'tonnes') {
+          quantityInGJ = steam.quantity * 2.5;
+        } else if (steam.unit === 'klb') {
+          quantityInGJ = steam.quantity * 1.134;
+        }
+        console.log(`Converted ${steam.quantity} ${steam.unit} to ${quantityInGJ} GJ`);
+        
+        // Calculate emissions: GJ * tCO₂e/GJ = tCO₂e (already in tonnes)
+        const emissionsTonnes = quantityInGJ * factorPerGJ;
+        
+        console.log(`Calculation: ${quantityInGJ} GJ × ${factorPerGJ} tCO₂e/GJ = ${emissionsTonnes.toFixed(4)} tCO₂e`);
+        
+        emissions.push({
+          energy_type: 'purchased_steam',
+          state_region: steam.state?.toUpperCase() || null,
+          quantity: steam.quantity,
+          unit: steam.unit,
+          emission_factor: factorPerGJ,
+          emissions_tco2e: emissionsTonnes,
+          notes: steam.notes || null,
+          data_quality: 'estimated',
+          calculation_method: 'activity_data_x_emission_factor'
+        });
       }
 
-      // Save to database - delete existing entries first for clean state
+      console.log(`=== Total emissions calculated: ${emissions.length} entries ===`);
+
+      // Save to database if we have emissions
       if (emissions.length > 0) {
-        console.log("=== Saving to database ===");
-        console.log("Emissions to save:", emissions);
+        const totalEmissions = emissions.reduce((sum, e) => sum + e.emissions_tco2e, 0);
+        console.log(`Total: ${totalEmissions.toFixed(4)} tCO₂e`);
+        console.log("Saving to database...");
         
-        // Delete existing Scope 2 entries for this project
+        // Delete existing Scope 2 entries for clean state
         const { error: deleteError } = await supabase
           .from('scope2_emissions')
           .delete()
           .eq('project_id', currentProject.id);
           
         if (deleteError) {
-          console.error("Delete error:", deleteError);
-          throw deleteError;
+          console.error("Error deleting existing entries:", deleteError);
+          throw new Error(`Database delete failed: ${deleteError.message}`);
         }
-        console.log("Previous entries deleted successfully");
+        console.log("✓ Previous entries deleted");
 
         // Insert new emissions
+        const emissionsToInsert = emissions.map(e => ({
+          ...e,
+          project_id: currentProject.id
+        }));
+        
+        console.log("Inserting emissions:", emissionsToInsert);
+        
         const { data: insertedData, error: insertError } = await supabase
           .from('scope2_emissions')
-          .insert(
-            emissions.map(emission => ({
-              ...emission,
-              project_id: currentProject.id
-            }))
-          )
+          .insert(emissionsToInsert)
           .select();
 
         if (insertError) {
-          console.error("Insert error:", insertError);
-          throw insertError;
+          console.error("Error inserting emissions:", insertError);
+          throw new Error(`Database insert failed: ${insertError.message}`);
         }
         
-        console.log("New entries inserted:", insertedData);
-
-        const totalEmissions = emissions.reduce((sum, emission) => sum + emission.emissions_tco2e, 0);
-        
-        console.log("=== Calculation Complete ===");
-        console.log("Total emissions:", totalEmissions, "tCO₂e");
+        console.log("✓ Emissions saved successfully:", insertedData?.length, "rows");
         
         toast({
-          title: "Scope 2 emissions calculated",
-          description: `Total: ${totalEmissions.toFixed(2)} tCO₂e`,
+          title: "Success",
+          description: `Scope 2 emissions saved: ${totalEmissions.toFixed(2)} tCO₂e`,
         });
+
+        // Trigger data refresh
+        if (onDataChange) {
+          setTimeout(() => onDataChange(), 500);
+        }
 
         return { emissions, total: totalEmissions };
       }
 
-      console.log("No emissions to save");
+      console.log("No emissions to save (all quantities were 0)");
       return { emissions: [], total: 0 };
+      
     } catch (error) {
-      console.error('=== Error calculating Scope 2 emissions ===', error);
+      console.error('=== Scope 2 Calculation Error ===');
+      console.error(error);
       toast({
-        title: "Calculation failed",
-        description: "Failed to calculate emissions. Please try again.",
+        title: "Calculation Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
       return null;
     } finally {
       setLoading(false);
     }
-  }, [currentProject]);
+  }, [currentProject, onDataChange]);
 
   const calculateScope3Emissions = useCallback(async (formData: any) => {
     if (!currentProject) {
