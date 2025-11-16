@@ -3,7 +3,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, Calculator, Save, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Calculator, Save, ArrowLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { NumberInputWithPresets } from "@/components/ui/number-input-with-presets";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -234,6 +235,10 @@ export default function Scope1() {
       return;
     }
 
+    console.log("=== Scope 1 Calculation Started ===");
+    console.log("Project:", currentProject.name);
+    console.log("Raw form data:", data);
+
     try {
       // Filter out empty entries and transform form data
       const transformedData = {
@@ -272,24 +277,37 @@ export default function Scope1() {
           }))
       };
 
+      console.log("Filtered valid entries:");
+      console.log("  - Fuel combustion:", transformedData.fuelCombustion.length);
+      console.log("  - Vehicles:", transformedData.vehicles.length);
+      console.log("  - Processes:", transformedData.processes.length);
+      console.log("  - Fugitive emissions:", transformedData.fugitiveEmissions.length);
       console.log("Transformed data for calculation:", transformedData);
 
       const result = await calculateScope1Emissions(transformedData);
+      
+      console.log("=== Calculation Complete ===");
+      console.log("Result:", result);
+
       if (result && result.total > 0) {
         toast({
-          title: "Success!",
-          description: `Scope 1 emissions calculated and saved: ${result.total.toFixed(2)} tCO₂e`,
+          title: "Calculation Successful",
+          description: `Total Scope 1 emissions: ${result.total.toFixed(2)} tCO₂e (${result.emissions.length} entries saved)`,
         });
-        console.log("Scope 1 Calculation Result:", result);
+        
+        console.log("✓ Successfully saved to database");
+        
         // Navigate back to dashboard after successful calculation
         setTimeout(() => navigate("/"), 2000);
       } else if (result && result.total === 0) {
+        console.warn("⚠ Calculation returned zero emissions");
         toast({
           title: "No Emissions Calculated",
           description: "Please ensure you have entered valid data with quantities greater than 0.",
           variant: "destructive",
         });
       } else {
+        console.error("✗ Calculation failed - no result returned");
         toast({
           title: "Calculation Failed",
           description: "Unable to calculate emissions. Please check your data and try again.",
@@ -297,10 +315,10 @@ export default function Scope1() {
         });
       }
     } catch (error) {
-      console.error("Calculation error:", error);
+      console.error("✗ Calculation error:", error);
       toast({
         title: "Error",
-        description: "An error occurred during calculation. Please try again.",
+        description: error instanceof Error ? error.message : "An error occurred during calculation. Please try again.",
         variant: "destructive",
       });
     }
@@ -328,6 +346,13 @@ export default function Scope1() {
       </div>
 
       <ProjectSelector />
+
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Scope 1 covers direct emissions from sources you own or control: fuel combustion, company vehicles, industrial processes, and fugitive emissions (e.g., refrigerant leaks).
+        </AlertDescription>
+      </Alert>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
