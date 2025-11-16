@@ -256,6 +256,9 @@ export default function Scope2() {
   };
 
   const onSubmit = async (data: Scope2FormData) => {
+    console.log("=== Calculate Button Clicked ===");
+    console.log("Raw form data:", data);
+    
     if (!currentProject) {
       toast({
         title: "No Project Selected",
@@ -265,51 +268,80 @@ export default function Scope2() {
       return;
     }
 
-    // Validate that at least one valid entry exists with quantity > 0
-    const validElectricity = data.electricity.filter(e => e.quantity > 0 && e.state_region && e.energy_source);
-    const validHeating = data.heating_cooling.filter(h => h.quantity > 0 && h.state_region && h.system_type && h.energy_source && h.efficiency_rating > 0 && h.operating_hours > 0);
-    const validSteam = data.purchased_steam?.filter(s => s.quantity > 0 && s.state_region && s.steam_source) || [];
+    console.log("Current project:", currentProject.name);
+
+    // Simplified validation - only check essential fields
+    const validElectricity = data.electricity.filter(e => {
+      const isValid = e.quantity > 0 && e.state_region && e.unit;
+      console.log(`Electricity entry ${data.electricity.indexOf(e)}:`, { 
+        quantity: e.quantity, 
+        state: e.state_region, 
+        unit: e.unit,
+        isValid 
+      });
+      return isValid;
+    });
+    
+    const validHeating = data.heating_cooling.filter(h => {
+      const isValid = h.quantity > 0 && h.state_region && h.unit;
+      console.log(`Heating entry ${data.heating_cooling.indexOf(h)}:`, { 
+        quantity: h.quantity, 
+        state: h.state_region, 
+        unit: h.unit,
+        isValid 
+      });
+      return isValid;
+    });
+    
+    const validSteam = data.purchased_steam?.filter(s => {
+      const isValid = s.quantity > 0 && s.state_region && s.unit;
+      console.log(`Steam entry ${data.purchased_steam!.indexOf(s)}:`, { 
+        quantity: s.quantity, 
+        state: s.state_region, 
+        unit: s.unit,
+        isValid 
+      });
+      return isValid;
+    }) || [];
     
     const totalValidEntries = validElectricity.length + validHeating.length + validSteam.length;
+    console.log(`Valid entries found: ${totalValidEntries} (Electricity: ${validElectricity.length}, Heating: ${validHeating.length}, Steam: ${validSteam.length})`);
     
     if (totalValidEntries === 0) {
       toast({
         title: "No Valid Data",
-        description: "Please add at least one complete entry with quantity greater than 0 before calculating.",
+        description: "Please add at least one entry with: state, quantity > 0, and unit selected.",
         variant: "destructive",
       });
       return;
     }
 
-    // Transform form data to match calculation hook format
+    // Transform only valid entries
     const transformedData = {
-      electricity: data.electricity.map(elec => ({
+      electricity: validElectricity.map(elec => ({
         state: elec.state_region.toUpperCase(),
         quantity: elec.quantity,
         unit: elec.unit,
-        renewablePercentage: elec.green_power_percentage,
-        notes: elec.notes
+        renewablePercentage: elec.green_power_percentage || 0,
+        notes: elec.notes || null
       })),
-      heating: data.heating_cooling.map(heat => ({
+      heating: validHeating.map(heat => ({
         state: heat.state_region.toUpperCase(),
         quantity: heat.quantity,
         unit: heat.unit,
-        notes: heat.notes
+        notes: heat.notes || null
       })),
-      steam: (data.purchased_steam || []).map(steam => ({
+      steam: validSteam.map(steam => ({
         state: steam.state_region.toUpperCase(),
         quantity: steam.quantity,
         unit: steam.unit,
-        notes: steam.notes
+        notes: steam.notes || null
       }))
     };
 
+    console.log("Transformed data for calculation:", transformedData);
+
     try {
-      console.log("=== Scope 2 Calculation Starting ===");
-      console.log("Form data:", data);
-      console.log("Valid entries:", { validElectricity, validHeating, validSteam });
-      console.log("Transformed data:", transformedData);
-      
       const result = await calculateScope2Emissions(transformedData);
       
       console.log("=== Calculation Result ===", result);
@@ -318,19 +350,21 @@ export default function Scope2() {
         if (result.total === 0) {
           toast({
             title: "Calculation Complete",
-            description: "Emissions calculated but total is 0 tCO₂e. Please verify your data entries.",
+            description: "Emissions calculated but total is 0 tCO₂e. Check the console logs for details.",
             variant: "default",
           });
         } else {
           toast({
-            title: "Emissions Calculated",
-            description: `Total Scope 2 emissions: ${result.total.toFixed(2)} tCO₂e`,
+            title: "Success!",
+            description: `Scope 2 emissions: ${result.total.toFixed(2)} tCO₂e (${result.emissions.length} entries saved)`,
           });
+          // Navigate to dashboard after success
+          setTimeout(() => navigate("/"), 2000);
         }
       } else {
         toast({
           title: "Calculation Failed",
-          description: "No valid emission data was calculated. Please check your entries and try again.",
+          description: "The calculation returned no result. Check console logs for details.",
           variant: "destructive",
         });
       }
@@ -338,7 +372,7 @@ export default function Scope2() {
       console.error("=== Calculation Error ===", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred during calculation. Please try again.",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
     }
