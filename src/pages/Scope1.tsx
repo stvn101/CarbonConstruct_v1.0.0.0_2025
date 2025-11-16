@@ -307,24 +307,22 @@ export default function Scope1() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex flex-col gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-fit">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-scope-1">Scope 1: Direct Emissions</h1>
-            <p className="text-muted-foreground text-sm md:text-base mt-1">
-              Calculate emissions from sources directly owned or controlled by your construction project
-            </p>
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              ISO 14064-1:2018 & ISO 14067:2018 Compliant
-            </p>
-          </div>
+    <div className="space-y-4 md:space-y-6 pb-6 md:pb-8">
+      <div className="flex flex-col gap-3">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-fit touch-target">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          <span className="text-xs sm:text-sm">Back</span>
+        </Button>
+        <div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-scope-1">Scope 1: Direct Emissions</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm md:text-base mt-1">
+            Calculate emissions from sources directly owned or controlled by your construction project
+          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1 hidden sm:block">
+            ISO 14064-1:2018 & ISO 14067:2018 Compliant
+          </p>
         </div>
-        <Badge variant="secondary" className="text-scope-1 border-scope-1/20 w-fit">
+        <Badge variant="secondary" className="text-scope-1 border-scope-1/20 w-fit text-xs">
           Australian NCC Compliant
         </Badge>
       </div>
@@ -358,11 +356,11 @@ export default function Scope1() {
           </Card>
 
           <Tabs defaultValue="fuel" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="fuel">Fuel Combustion</TabsTrigger>
-              <TabsTrigger value="vehicles">Company Vehicles</TabsTrigger>
-              <TabsTrigger value="processes">Industrial Processes</TabsTrigger>
-              <TabsTrigger value="fugitive">Fugitive Emissions</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1">
+              <TabsTrigger value="fuel" className="text-xs sm:text-sm px-2 py-2.5">Fuel</TabsTrigger>
+              <TabsTrigger value="vehicles" className="text-xs sm:text-sm px-2 py-2.5">Vehicles</TabsTrigger>
+              <TabsTrigger value="processes" className="text-xs sm:text-sm px-2 py-2.5">Processes</TabsTrigger>
+              <TabsTrigger value="fugitive" className="text-xs sm:text-sm px-2 py-2.5">Fugitive</TabsTrigger>
             </TabsList>
 
             <TabsContent value="fuel">

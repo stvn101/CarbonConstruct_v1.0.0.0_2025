@@ -274,24 +274,25 @@ export default function Scope3() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex flex-col gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-fit">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-scope-3">Scope 3: Value Chain Emissions</h1>
-            <p className="text-muted-foreground text-sm md:text-base mt-1">
-              Calculate upstream and downstream emissions from construction materials, transport, waste and lifecycle
-            </p>
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              ISO 14064-1:2018, ISO 21931:2022 & GHG Protocol Scope 3 Compliant
-            </p>
-          </div>
+    <div className="space-y-4 md:space-y-6 pb-6 md:pb-8">
+      <div className="flex flex-col gap-3">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="w-fit touch-target">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          <span className="text-xs sm:text-sm">Back</span>
+        </Button>
+        <div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-scope-3 flex items-center gap-2">
+            <Truck className="h-6 w-6 sm:h-8 sm:w-8" />
+            Scope 3: Value Chain Emissions
+          </h1>
+          <p className="text-muted-foreground text-xs sm:text-sm md:text-base mt-1">
+            Calculate upstream and downstream emissions from construction materials, transport, waste and lifecycle
+          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1 hidden sm:block">
+            ISO 14064-1:2018, ISO 21931:2022 & GHG Protocol Scope 3 Compliant
+          </p>
         </div>
-        <Badge variant="secondary" className="text-scope-3 border-scope-3/20 w-fit">
+        <Badge variant="secondary" className="text-scope-3 border-scope-3/20 w-fit text-xs">
           LCA Compliant • 15 Categories
         </Badge>
       </div>
@@ -335,12 +336,12 @@ export default function Scope3() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="upstream" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="upstream" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 h-auto gap-1">
+              <TabsTrigger value="upstream" className="flex items-center gap-2 text-xs sm:text-sm px-2 py-2.5">
                 <Factory className="h-4 w-4" />
                 Upstream (1-8)
               </TabsTrigger>
-              <TabsTrigger value="downstream" className="flex items-center gap-2">
+              <TabsTrigger value="downstream" className="flex items-center gap-2 text-xs sm:text-sm px-2 py-2.5">
                 <Truck className="h-4 w-4" />
                 Downstream (9-15)
               </TabsTrigger>
