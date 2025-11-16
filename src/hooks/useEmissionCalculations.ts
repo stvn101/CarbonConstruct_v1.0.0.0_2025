@@ -262,6 +262,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           
           emissions.push({
             energy_type: 'heating_cooling',
+            state_region: null,
             quantity: heating.quantity,
             unit: heating.unit,
             emission_factor: factor,
@@ -281,6 +282,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           
           emissions.push({
             energy_type: 'purchased_steam',
+            state_region: null,
             quantity: steam.quantity,
             unit: steam.unit,
             emission_factor: factor,
@@ -292,16 +294,22 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         }
       }
 
-      // Save to database
+      // Save to database - delete existing entries first for clean state
       if (emissions.length > 0) {
+        // Delete existing Scope 2 entries for this project
+        await supabase
+          .from('scope2_emissions')
+          .delete()
+          .eq('project_id', currentProject.id);
+
+        // Insert new emissions
         const { error } = await supabase
           .from('scope2_emissions')
-          .upsert(
+          .insert(
             emissions.map(emission => ({
               ...emission,
               project_id: currentProject.id
-            })),
-            { onConflict: 'project_id,energy_type,state_region' }
+            }))
           );
 
         if (error) throw error;
