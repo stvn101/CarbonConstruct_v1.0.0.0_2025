@@ -197,6 +197,7 @@ export default function Scope2() {
         notes: "" 
       }],
       heating_cooling: [{ 
+        state_region: "",
         system_type: "", 
         energy_source: "", 
         quantity: 0, 
@@ -206,6 +207,7 @@ export default function Scope2() {
         notes: "" 
       }],
       purchased_steam: [{ 
+        state_region: "",
         steam_source: "", 
         quantity: 0, 
         unit: "GJ", 
