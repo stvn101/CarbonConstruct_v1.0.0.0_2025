@@ -12,16 +12,23 @@ import { EmissionsChart } from "@/components/EmissionsChart";
 import { ComplianceCard } from "@/components/ComplianceCard";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, Package } from "lucide-react";
 import heroImage from "@/assets/hero-carbon-calc.jpg";
-
 const Index = () => {
-  const { user, signOut } = useAuth();
+  const {
+    user,
+    signOut
+  } = useAuth();
   const navigate = useNavigate();
-  const { totals, scope1Details, scope2Details, scope3Details, loading: emissionsLoading, refetch } = useEmissionTotals();
+  const {
+    totals,
+    scope1Details,
+    scope2Details,
+    scope3Details,
+    loading: emissionsLoading,
+    refetch
+  } = useEmissionTotals();
   const compliance = useComplianceCheck(totals);
-
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    return <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
         <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
@@ -29,16 +36,18 @@ const Index = () => {
                 CarbonConstruct
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-                Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
+                
+
+
+
+Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
               </p>
             </div>
             
-            <div className="relative max-w-4xl mx-auto rounded-lg overflow-hidden shadow-glow animate-scale-in" style={{ animationDelay: '0.2s' }}>
-              <img 
-                src={heroImage} 
-                alt="Carbon footprint calculation and environmental assessment" 
-                className="w-full h-48 sm:h-64 md:h-96 object-cover"
-              />
+            <div className="relative max-w-4xl mx-auto rounded-lg overflow-hidden shadow-glow animate-scale-in" style={{
+            animationDelay: '0.2s'
+          }}>
+              <img src={heroImage} alt="Carbon footprint calculation and environmental assessment" className="w-full h-48 sm:h-64 md:h-96 object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-end md:items-center justify-center p-6">
                 <div className="text-center space-y-2 md:space-y-4">
                   <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
@@ -51,12 +60,10 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="space-y-3 md:space-y-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-              <Button 
-                onClick={() => navigate("/auth")} 
-                size="lg" 
-                className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto"
-              >
+            <div className="space-y-3 md:space-y-4 animate-fade-in" style={{
+            animationDelay: '0.4s'
+          }}>
+              <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
                 Get Started
               </Button>
               <p className="text-xs md:text-sm text-muted-foreground">
@@ -65,12 +72,9 @@ const Index = () => {
             </div>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-4 md:space-y-6 lg:space-y-8 pb-6 md:pb-8">
+  return <div className="space-y-4 md:space-y-6 lg:space-y-8 pb-6 md:pb-8">
       {/* Header with user actions - Mobile Optimized */}
       <div className="flex flex-col gap-3 md:gap-4 sm:flex-row sm:justify-between sm:items-start">
         <div className="space-y-1">
@@ -80,13 +84,7 @@ const Index = () => {
           <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Welcome back! Select a project to continue.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => refetch()}
-            disabled={emissionsLoading}
-            className="hover-scale text-xs md:text-sm"
-          >
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={emissionsLoading} className="hover-scale text-xs md:text-sm">
             <RefreshCw className={`h-3 w-3 md:h-4 md:w-4 mr-1.5 md:mr-2 ${emissionsLoading ? 'animate-spin' : ''}`} />
             <span className="hidden xs:inline">Refresh</span>
             <span className="xs:hidden">↻</span>
@@ -116,7 +114,9 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope1/20" style={{ animationDelay: '0.1s' }}>
+        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope1/20" style={{
+        animationDelay: '0.1s'
+      }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Scope 1</CardTitle>
             <Factory className="h-4 w-4 md:h-5 md:w-5 text-scope1" />
@@ -126,12 +126,14 @@ const Index = () => {
               {emissionsLoading ? "..." : totals.scope1.toFixed(1)}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">
-              {emissionsLoading ? "..." : totals.total > 0 ? ((totals.scope1 / totals.total) * 100).toFixed(1) : "0"}% of total
+              {emissionsLoading ? "..." : totals.total > 0 ? (totals.scope1 / totals.total * 100).toFixed(1) : "0"}% of total
             </p>
           </CardContent>
         </Card>
 
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope2/20" style={{ animationDelay: '0.2s' }}>
+        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope2/20" style={{
+        animationDelay: '0.2s'
+      }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Scope 2</CardTitle>
             <Zap className="h-4 w-4 md:h-5 md:w-5 text-scope2" />
@@ -141,12 +143,14 @@ const Index = () => {
               {emissionsLoading ? "..." : totals.scope2.toFixed(1)}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">
-              {emissionsLoading ? "..." : totals.total > 0 ? ((totals.scope2 / totals.total) * 100).toFixed(1) : "0"}% of total
+              {emissionsLoading ? "..." : totals.total > 0 ? (totals.scope2 / totals.total * 100).toFixed(1) : "0"}% of total
             </p>
           </CardContent>
         </Card>
 
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope3/20" style={{ animationDelay: '0.3s' }}>
+        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope3/20" style={{
+        animationDelay: '0.3s'
+      }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Scope 3</CardTitle>
             <Truck className="h-4 w-4 md:h-5 md:w-5 text-scope3" />
@@ -156,7 +160,7 @@ const Index = () => {
               {emissionsLoading ? "..." : totals.scope3.toFixed(1)}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">
-              {emissionsLoading ? "..." : totals.total > 0 ? ((totals.scope3 / totals.total) * 100).toFixed(1) : "0"}% of total
+              {emissionsLoading ? "..." : totals.total > 0 ? (totals.scope3 / totals.total * 100).toFixed(1) : "0"}% of total
             </p>
           </CardContent>
         </Card>
@@ -166,32 +170,11 @@ const Index = () => {
       <div>
         <h2 className="mb-3 md:mb-4 lg:mb-6 text-lg md:text-xl lg:text-2xl font-bold">Emission Scopes</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
-          <ScopeCard
-            title="Scope 1: Direct Emissions"
-            description="Fuel combustion, company vehicles, manufacturing"
-            icon={Factory}
-            scopeNumber={1}
-            emissions={totals.scope1}
-            actionUrl="/scope-1"
-          />
+          <ScopeCard title="Scope 1: Direct Emissions" description="Fuel combustion, company vehicles, manufacturing" icon={Factory} scopeNumber={1} emissions={totals.scope1} actionUrl="/scope-1" />
           
-          <ScopeCard
-            title="Scope 2: Energy Emissions"
-            description="Purchased electricity, heating, cooling"
-            icon={Zap}
-            scopeNumber={2}
-            emissions={totals.scope2}
-            actionUrl="/scope-2"
-          />
+          <ScopeCard title="Scope 2: Energy Emissions" description="Purchased electricity, heating, cooling" icon={Zap} scopeNumber={2} emissions={totals.scope2} actionUrl="/scope-2" />
           
-          <ScopeCard
-            title="Scope 3: Value Chain"
-            description="Upstream & downstream supply chain activities"
-            icon={Truck}
-            scopeNumber={3}
-            emissions={totals.scope3}
-            actionUrl="/scope-3"
-          />
+          <ScopeCard title="Scope 3: Value Chain" description="Upstream & downstream supply chain activities" icon={Truck} scopeNumber={3} emissions={totals.scope3} actionUrl="/scope-3" />
         </div>
       </div>
 
@@ -207,11 +190,7 @@ const Index = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
-          <Button 
-            onClick={() => navigate("/lca")} 
-            className="w-full sm:w-auto hover-scale" 
-            size="default"
-          >
+          <Button onClick={() => navigate("/lca")} className="w-full sm:w-auto hover-scale" size="default">
             <Calculator className="mr-2 h-4 w-4" />
             <span className="text-sm md:text-base">Calculate LCA</span>
           </Button>
@@ -234,113 +213,61 @@ const Index = () => {
 
         <TabsContent value="charts" className="space-y-3 md:space-y-4 lg:space-y-6 mt-3 md:mt-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
-            <EmissionsChart
-              type="pie"
-              title="Emissions by Scope"
-              description="Distribution of total emissions"
-              data={[
-                { category: 'Scope 1', emissions: totals.scope1, percentage: totals.total > 0 ? (totals.scope1 / totals.total) * 100 : 0 },
-                { category: 'Scope 2', emissions: totals.scope2, percentage: totals.total > 0 ? (totals.scope2 / totals.total) * 100 : 0 },
-                { category: 'Scope 3', emissions: totals.scope3, percentage: totals.total > 0 ? (totals.scope3 / totals.total) * 100 : 0 },
-              ]}
-            />
+            <EmissionsChart type="pie" title="Emissions by Scope" description="Distribution of total emissions" data={[{
+            category: 'Scope 1',
+            emissions: totals.scope1,
+            percentage: totals.total > 0 ? totals.scope1 / totals.total * 100 : 0
+          }, {
+            category: 'Scope 2',
+            emissions: totals.scope2,
+            percentage: totals.total > 0 ? totals.scope2 / totals.total * 100 : 0
+          }, {
+            category: 'Scope 3',
+            emissions: totals.scope3,
+            percentage: totals.total > 0 ? totals.scope3 / totals.total * 100 : 0
+          }]} />
 
-            <EmissionsChart
-              type="bar"
-              title="Emissions Comparison"
-              description="Scope-by-scope breakdown"
-              data={[
-                { category: 'Scope 1', emissions: totals.scope1, percentage: totals.total > 0 ? (totals.scope1 / totals.total) * 100 : 0 },
-                { category: 'Scope 2', emissions: totals.scope2, percentage: totals.total > 0 ? (totals.scope2 / totals.total) * 100 : 0 },
-                { category: 'Scope 3', emissions: totals.scope3, percentage: totals.total > 0 ? (totals.scope3 / totals.total) * 100 : 0 },
-              ]}
-            />
+            <EmissionsChart type="bar" title="Emissions Comparison" description="Scope-by-scope breakdown" data={[{
+            category: 'Scope 1',
+            emissions: totals.scope1,
+            percentage: totals.total > 0 ? totals.scope1 / totals.total * 100 : 0
+          }, {
+            category: 'Scope 2',
+            emissions: totals.scope2,
+            percentage: totals.total > 0 ? totals.scope2 / totals.total * 100 : 0
+          }, {
+            category: 'Scope 3',
+            emissions: totals.scope3,
+            percentage: totals.total > 0 ? totals.scope3 / totals.total * 100 : 0
+          }]} />
           </div>
 
           {/* Scope 1 Breakdown */}
-          {scope1Details.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 animate-fade-in">
-              <EmissionsChart
-                type="pie"
-                title="Scope 1 Breakdown"
-                description="Direct emissions by category"
-                data={scope1Details}
-              />
-              <EmissionsChart
-                type="bar"
-                title="Scope 1 Comparison"
-                description="Direct emissions detail"
-                data={scope1Details}
-              />
-            </div>
-          )}
+          {scope1Details.length > 0 && <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 animate-fade-in">
+              <EmissionsChart type="pie" title="Scope 1 Breakdown" description="Direct emissions by category" data={scope1Details} />
+              <EmissionsChart type="bar" title="Scope 1 Comparison" description="Direct emissions detail" data={scope1Details} />
+            </div>}
 
           {/* Scope 2 Breakdown */}
-          {scope2Details.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 animate-fade-in">
-              <EmissionsChart
-                type="pie"
-                title="Scope 2 Breakdown"
-                description="Energy emissions by type"
-                data={scope2Details}
-              />
-              <EmissionsChart
-                type="bar"
-                title="Scope 2 Comparison"
-                description="Energy emissions detail"
-                data={scope2Details}
-              />
-            </div>
-          )}
+          {scope2Details.length > 0 && <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 animate-fade-in">
+              <EmissionsChart type="pie" title="Scope 2 Breakdown" description="Energy emissions by type" data={scope2Details} />
+              <EmissionsChart type="bar" title="Scope 2 Comparison" description="Energy emissions detail" data={scope2Details} />
+            </div>}
 
           {/* Scope 3 Breakdown */}
-          {scope3Details.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 animate-fade-in">
-              <EmissionsChart
-                type="pie"
-                title="Scope 3 Breakdown"
-                description="Value chain emissions"
-                data={scope3Details}
-              />
-              <EmissionsChart
-                type="bar"
-                title="Scope 3 Comparison"
-                description="Value chain detail"
-                data={scope3Details}
-              />
-            </div>
-          )}
+          {scope3Details.length > 0 && <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 animate-fade-in">
+              <EmissionsChart type="pie" title="Scope 3 Breakdown" description="Value chain emissions" data={scope3Details} />
+              <EmissionsChart type="bar" title="Scope 3 Comparison" description="Value chain detail" data={scope3Details} />
+            </div>}
         </TabsContent>
 
         <TabsContent value="compliance" className="space-y-3 md:space-y-4 lg:space-y-6 mt-3 md:mt-4">
           <div className="grid gap-3 md:gap-4 lg:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            <ComplianceCard
-              framework="NCC"
-              title="NCC Section J"
-              description="National Construction Code Energy Efficiency"
-              overallCompliance={compliance.ncc.status}
-              requirements={compliance.ncc.requirements}
-            />
+            <ComplianceCard framework="NCC" title="NCC Section J" description="National Construction Code Energy Efficiency" overallCompliance={compliance.ncc.status} requirements={compliance.ncc.requirements} />
 
-            <ComplianceCard
-              framework="GBCA"
-              title="Green Star Buildings"
-              description="GBCA Sustainability Rating"
-              overallCompliance={compliance.gbca.status}
-              requirements={compliance.gbca.requirements}
-              score={compliance.gbca.score}
-              maxScore={compliance.gbca.maxScore}
-            />
+            <ComplianceCard framework="GBCA" title="Green Star Buildings" description="GBCA Sustainability Rating" overallCompliance={compliance.gbca.status} requirements={compliance.gbca.requirements} score={compliance.gbca.score} maxScore={compliance.gbca.maxScore} />
 
-            <ComplianceCard
-              framework="NABERS"
-              title="NABERS Energy"
-              description="National Built Environment Rating"
-              overallCompliance={compliance.nabers.status}
-              requirements={compliance.nabers.requirements}
-              score={compliance.nabers.rating}
-              maxScore={compliance.nabers.maxRating}
-            />
+            <ComplianceCard framework="NABERS" title="NABERS Energy" description="National Built Environment Rating" overallCompliance={compliance.nabers.status} requirements={compliance.nabers.requirements} score={compliance.nabers.rating} maxScore={compliance.nabers.maxRating} />
           </div>
 
           <Card className="animate-fade-in bg-gradient-to-r from-success/5 to-accent/5 border-success/20">
@@ -376,17 +303,12 @@ const Index = () => {
           <CardDescription className="text-xs md:text-sm">Create comprehensive emission reports for your project</CardDescription>
         </CardHeader>
         <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
-          <Button 
-            onClick={() => navigate("/reports")} 
-            className="w-full sm:w-auto hover-scale"
-          >
+          <Button onClick={() => navigate("/reports")} className="w-full sm:w-auto hover-scale">
             <FileBarChart className="mr-2 h-4 w-4" />
             <span className="text-sm md:text-base">View Reports</span>
           </Button>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
