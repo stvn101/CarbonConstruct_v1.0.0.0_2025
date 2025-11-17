@@ -66,33 +66,33 @@ const steamSuppliers = [
   "Other"
 ];
 
-// Scope 2 schema for energy emissions
+// Scope 2 schema for energy emissions - allows empty entries, filtering happens in onSubmit
 const scope2Schema = z.object({
   electricity: z.array(z.object({
-    state_region: z.string().min(1, "State/region is required"),
+    state_region: z.string(),
     energy_source: z.string().optional(),
-    quantity: z.number().min(0.01, "Quantity must be greater than 0"),
-    unit: z.string().min(1, "Unit is required"),
-    green_power_percentage: z.number().min(0).max(100, "Must be between 0-100"),
+    quantity: z.number().min(0),
+    unit: z.string(),
+    green_power_percentage: z.number().min(0).max(100),
     supplier_name: z.string().optional(),
     tariff_type: z.string().optional(),
     notes: z.string().optional(),
   })),
   heating_cooling: z.array(z.object({
-    state_region: z.string().min(1, "State/region is required"),
+    state_region: z.string(),
     system_type: z.string().optional(),
     energy_source: z.string().optional(),
-    quantity: z.number().min(0.01, "Quantity must be greater than 0"),
-    unit: z.string().min(1, "Unit is required"),
-    efficiency_rating: z.number().min(0.01, "Efficiency must be greater than 0"),
-    operating_hours: z.number().min(0.01, "Operating hours must be greater than 0"),
+    quantity: z.number().min(0),
+    unit: z.string(),
+    efficiency_rating: z.number().min(0),
+    operating_hours: z.number().min(0),
     notes: z.string().optional(),
   })),
   purchased_steam: z.array(z.object({
-    state_region: z.string().min(1, "State/region is required"),
+    state_region: z.string(),
     steam_source: z.string().optional(),
-    quantity: z.number().min(0.01, "Quantity must be greater than 0"),
-    unit: z.string().min(1, "Unit is required"),
+    quantity: z.number().min(0),
+    unit: z.string(),
     pressure_rating: z.string().optional(),
     supplier_name: z.string().optional(),
     notes: z.string().optional(),
