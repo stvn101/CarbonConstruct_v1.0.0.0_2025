@@ -176,6 +176,26 @@ const Pricing = () => {
         </CardContent>
       </Card>
 
+      {/* Stripe Pricing Table Embed */}
+      <div className="mb-12">
+        <h2 className="text-3xl font-bold text-center mb-4">Or Choose Your Plan with Stripe</h2>
+        <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
+          Select your subscription directly through our secure Stripe checkout
+        </p>
+        <div 
+          className="w-full" 
+          dangerouslySetInnerHTML={{
+            __html: `
+              <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+              <stripe-pricing-table 
+                pricing-table-id="prctbl_1SULtHP7JT8gu0Wn7fABNU0I"
+                publishable-key="pk_live_51RKejrP7JT8gu0WngS6oEMcUaQdgGb5XaYcEy5e2kq6Dx75lgaizFV1Fk2lmpgE7nGav6F0fDlMhSYcgecftwpu800mMRyCFJz">
+              </stripe-pricing-table>
+            `
+          }}
+        />
+      </div>
+
       {/* FAQ Section */}
       <div className="max-w-3xl mx-auto">
         <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
