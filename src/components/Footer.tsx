@@ -52,6 +52,11 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/install" className="text-muted-foreground hover:text-primary transition-colors">
+                  Install App
+                </Link>
+              </li>
+              <li>
                 <Link to="/help" className="text-muted-foreground hover:text-primary transition-colors">
                   Help & Resources
                 </Link>
