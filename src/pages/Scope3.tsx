@@ -23,6 +23,7 @@ import { useUsageTracking } from "@/hooks/useUsageTracking";
 import ProjectSelector from "@/components/ProjectSelector";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { Scope3DynamicFields } from "@/components/Scope3DynamicFields";
+import { Scope3Dashboard } from "@/components/Scope3Dashboard";
 import {
   materialQuantityPresets,
   distancePresets,
@@ -417,6 +418,9 @@ export default function Scope3() {
       </div>
 
       <ProjectSelector />
+
+      {/* Dashboard Summary */}
+      {currentProject && <Scope3Dashboard />}
 
       <Card className="bg-gradient-to-r from-scope-3/5 to-scope-3/10 border-scope-3/20">
         <CardHeader>
