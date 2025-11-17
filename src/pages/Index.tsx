@@ -12,6 +12,7 @@ import { EmissionsChart } from "@/components/EmissionsChart";
 import { ComplianceCard } from "@/components/ComplianceCard";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, Package } from "lucide-react";
 import heroImage from "@/assets/hero-carbon-calc.jpg";
+import logoImage from "@/assets/carbonconstruct-logo.png";
 const Index = () => {
   const {
     user,
@@ -32,9 +33,12 @@ const Index = () => {
         <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                CarbonConstruct
-              </h1>
+              <div className="flex items-center justify-center gap-4">
+                <img src={logoImage} alt="CarbonConstruct Logo" className="w-16 h-16 md:w-24 md:h-24" />
+                <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                  CarbonConstruct
+                </h1>
+              </div>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
                 
 
