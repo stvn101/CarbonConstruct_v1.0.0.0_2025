@@ -12,6 +12,7 @@ import { EmissionsChart } from "@/components/EmissionsChart";
 import { ComplianceCard } from "@/components/ComplianceCard";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
+import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, Package } from "lucide-react";
 import heroImage from "@/assets/hero-carbon-calc.jpg";
 import logoImage from "@/assets/carbonconstruct-logo.png";
@@ -91,6 +92,7 @@ Calculate and track your project's carbon emissions across all three scopes with
       </div>;
   }
   return <div className="space-y-4 md:space-y-6 lg:space-y-8 pb-6 md:pb-8">
+      <CheckoutSuccessHandler />
       <OnboardingTutorial />
       <TrialBanner />
       {/* Header with user actions - Mobile Optimized */}

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, X, Crown, ArrowRight } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { CheckoutButton } from '@/components/CheckoutButton';
 import { useNavigate } from 'react-router-dom';
 
 interface UpgradeModalProps {
@@ -91,12 +92,21 @@ export const UpgradeModal = ({ open, onOpenChange, feature, limitType }: Upgrade
                 </li>
               ))}
             </ul>
-            <Button className="w-full" size="lg" onClick={handleUpgrade}>
-              Upgrade to Pro <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <p className="text-xs text-center text-muted-foreground mt-3">
-              14-day free trial • Cancel anytime
-            </p>
+            {proTier?.stripe_price_id && (
+              <>
+                <CheckoutButton
+                  priceId={proTier.stripe_price_id}
+                  tierName={proTier.name}
+                  className="w-full"
+                  variant="default"
+                >
+                  Upgrade to Pro <ArrowRight className="ml-2 h-4 w-4" />
+                </CheckoutButton>
+                <p className="text-xs text-center text-muted-foreground mt-3">
+                  14-day free trial • Cancel anytime
+                </p>
+              </>
+            )}
           </div>
         </div>
 

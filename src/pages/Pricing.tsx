@@ -3,11 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
+import { CheckoutButton } from '@/components/CheckoutButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const Pricing = () => {
   const { tiers, currentTier, loading } = useSubscription();
+  const { tier_name: currentTierName } = useSubscriptionStatus();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -54,10 +57,10 @@ const Pricing = () => {
 
       {/* Pricing Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {tiers?.map((tier) => {
-          const Icon = getTierIcon(tier.name);
-          const isCurrentTier = currentTier?.id === tier.id;
-          const isPro = tier.name === 'Pro';
+      {tiers?.map((tier) => {
+        const Icon = getTierIcon(tier.name);
+        const isCurrentTier = currentTierName === tier.name;
+        const isPro = tier.name === 'Pro';
 
           return (
             <Card 
@@ -106,6 +109,15 @@ const Pricing = () => {
                   <Button variant="outline" className="w-full" disabled>
                     Current Plan
                   </Button>
+                ) : tier.name === 'Free' ? (
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={() => navigate('/auth')}
+                    disabled={!!user}
+                  >
+                    {user ? 'Current Plan' : 'Get Started'}
+                  </Button>
                 ) : tier.name === 'Enterprise' ? (
                   <Button 
                     className="w-full" 
@@ -114,13 +126,22 @@ const Pricing = () => {
                   >
                     Contact Sales
                   </Button>
+                ) : tier.stripe_price_id && user ? (
+                  <CheckoutButton
+                    priceId={tier.stripe_price_id}
+                    tierName={tier.name}
+                    variant={isPro ? 'default' : 'outline'}
+                    className="w-full"
+                  >
+                    Start 14-Day Trial <ArrowRight className="ml-2 h-4 w-4" />
+                  </CheckoutButton>
                 ) : (
                   <Button 
                     className="w-full" 
                     variant={isPro ? 'default' : 'outline'}
-                    onClick={() => handleGetStarted(tier.name)}
+                    onClick={() => navigate('/auth')}
                   >
-                    Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                    Sign Up to Subscribe
                   </Button>
                 )}
               </CardFooter>
