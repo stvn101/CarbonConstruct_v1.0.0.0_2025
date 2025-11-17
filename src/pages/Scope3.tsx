@@ -22,6 +22,7 @@ import { useEmissionCalculations } from "@/hooks/useEmissionCalculations";
 import { useUsageTracking } from "@/hooks/useUsageTracking";
 import ProjectSelector from "@/components/ProjectSelector";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { Scope3DynamicFields } from "@/components/Scope3DynamicFields";
 import {
   materialQuantityPresets,
   distancePresets,
@@ -31,16 +32,61 @@ import {
   steelQuantityPresets,
 } from "@/lib/calculator-presets";
 
-// Scope 3 schema for value chain emissions - allows empty entries, filtering happens in onSubmit
+// Scope 3 schema with category-specific dynamic fields
 const scope3Schema = z.object({
   upstream: z.array(z.object({
     category: z.number().min(1).max(8),
     category_name: z.string(),
     activity_description: z.string(),
+    // Category-specific fields (all optional as not all apply to every category)
     material_type: z.string().optional(),
-    quantity: z.number().min(0),
-    unit: z.string(),
-    supplier_data: z.boolean(),
+    material_grade: z.string().optional(),
+    quantity: z.number().min(0).optional(),
+    unit: z.string().optional(),
+    supplier_location: z.string().optional(),
+    transport_distance: z.number().optional(),
+    recycled_content: z.number().optional(),
+    epd_available: z.boolean().optional(),
+    epd_reference: z.string().optional(),
+    equipment_type: z.string().optional(),
+    equipment_spec: z.string().optional(),
+    purchase_cost: z.number().optional(),
+    lifespan_years: z.number().optional(),
+    equipment_weight: z.number().optional(),
+    manufacturing_location: z.string().optional(),
+    depreciation_method: z.string().optional(),
+    energy_type: z.string().optional(),
+    production_method: z.string().optional(),
+    supplier: z.string().optional(),
+    transmission_loss: z.number().optional(),
+    transport_mode: z.string().optional(),
+    vehicle_type: z.string().optional(),
+    fuel_type: z.string().optional(),
+    load_weight: z.number().optional(),
+    distance: z.number().optional(),
+    return_empty: z.boolean().optional(),
+    waste_type: z.string().optional(),
+    disposal_method: z.string().optional(),
+    facility_location: z.string().optional(),
+    diversion_rate: z.number().optional(),
+    travel_type: z.string().optional(),
+    travel_class: z.string().optional(),
+    num_trips: z.number().optional(),
+    num_travelers: z.number().optional(),
+    accommodation_nights: z.number().optional(),
+    num_employees: z.number().optional(),
+    days_per_week: z.number().optional(),
+    commute_distance: z.number().optional(),
+    occupancy: z.number().optional(),
+    public_mode: z.string().optional(),
+    asset_type: z.string().optional(),
+    asset_description: z.string().optional(),
+    floor_area: z.number().optional(),
+    energy_consumption: z.number().optional(),
+    fuel_consumption: z.number().optional(),
+    lease_duration: z.number().optional(),
+    location: z.string().optional(),
+    supplier_data: z.boolean().optional(),
     lca_stage: z.string().optional(),
     emission_factor: z.number().min(0),
     notes: z.string().optional(),
@@ -49,10 +95,49 @@ const scope3Schema = z.object({
     category: z.number().min(9).max(15),
     category_name: z.string(),
     activity_description: z.string(),
-    quantity: z.number().min(0),
-    unit: z.string(),
+    // Category-specific fields
+    transport_mode: z.string().optional(),
+    vehicle_type: z.string().optional(),
+    fuel_type: z.string().optional(),
+    load_weight: z.number().optional(),
+    distance: z.number().optional(),
+    return_empty: z.boolean().optional(),
+    product_type: z.string().optional(),
+    processing_method: z.string().optional(),
+    energy_used: z.number().optional(),
+    fuel_used: z.number().optional(),
+    quantity_processed: z.number().optional(),
+    quantity: z.number().optional(),
+    unit: z.string().optional(),
+    processing_location: z.string().optional(),
+    useful_life: z.number().optional(),
+    annual_energy: z.number().optional(),
+    annual_fuel: z.number().optional(),
+    maintenance_freq: z.number().optional(),
+    waste_type: z.string().optional(),
+    disposal_method: z.string().optional(),
+    facility_location: z.string().optional(),
+    transport_distance: z.number().optional(),
+    diversion_rate: z.number().optional(),
+    asset_type: z.string().optional(),
+    asset_description: z.string().optional(),
+    floor_area: z.number().optional(),
+    energy_consumption: z.number().optional(),
+    fuel_consumption: z.number().optional(),
+    lease_duration: z.number().optional(),
+    location: z.string().optional(),
+    num_locations: z.number().optional(),
+    avg_floor_area: z.number().optional(),
+    avg_energy: z.number().optional(),
+    avg_fuel: z.number().optional(),
+    avg_revenue: z.number().optional(),
+    investment_type: z.string().optional(),
+    investment_amount: z.number().optional(),
+    investment_sector: z.string().optional(),
+    ownership_share: z.number().optional(),
+    investee_emissions: z.number().optional(),
     lifecycle_stage: z.string().optional(),
-    end_user_data: z.boolean(),
+    end_user_data: z.boolean().optional(),
     emission_factor: z.number().min(0),
     notes: z.string().optional(),
   })),
@@ -440,28 +525,6 @@ export default function Scope3() {
                           )}
                         />
 
-                      {/* Only show material type for categories where materials are relevant */}
-                      {[1, 2, 3, 4, 5, 8].includes(form.watch(`upstream.${index}.category`)) && (
-                        <FormField
-                          control={form.control}
-                          name={`upstream.${index}.material_type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Material Type</FormLabel>
-                              <FormControl>
-                                <Combobox
-                                  options={constructionMaterials}
-                                  value={field.value}
-                                  onValueChange={field.onChange}
-                                  placeholder="Select material"
-                                  searchPlaceholder="Search materials..."
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
                       </div>
 
                       <FormField
@@ -481,236 +544,14 @@ export default function Scope3() {
                         )}
                       />
 
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <FormField
-                          control={form.control}
-                          name={`upstream.${index}.quantity`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="flex items-center">
-                                Quantity
-                                <InfoTooltip content="Select typical quantities for construction materials (tonnes, m³) or enter your exact amount. Common values provided for concrete, steel, and other materials." />
-                              </FormLabel>
-                              <FormControl>
-                                <NumberInputWithPresets
-                                  value={field.value}
-                                  onChange={field.onChange}
-                                  presets={materialQuantityPresets}
-                                  placeholder="Select or enter quantity"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`upstream.${index}.unit`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Unit</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select unit" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="kg">Kilograms (kg)</SelectItem>
-                                  <SelectItem value="tonnes">Tonnes</SelectItem>
-                                  <SelectItem value="m3">Cubic metres (m³)</SelectItem>
-                                  <SelectItem value="m2">Square metres (m²)</SelectItem>
-                                  <SelectItem value="km">Kilometres (km)</SelectItem>
-                                  <SelectItem value="tkm">Tonne-kilometres (tkm)</SelectItem>
-                                  <SelectItem value="AUD">Australian Dollars (AUD)</SelectItem>
-                                  <SelectItem value="employees">Number of employees</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                      <FormField
+                      {/* Dynamic category-specific fields */}
+                      <Scope3DynamicFields
+                        categoryId={form.watch(`upstream.${index}.category`) || 1}
                         control={form.control}
-                        name={`upstream.${index}.lca_stage`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>LCA Stage</FormLabel>
-                            <FormControl>
-                              <Combobox
-                                options={lcaStages.map(stage => stage.label)}
-                                value={field.value}
-                                onValueChange={field.onChange}
-                                placeholder="Select stage"
-                                searchPlaceholder="Search LCA stages..."
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        watch={form.watch}
+                        fieldPrefix={`upstream.${index}`}
+                        index={index}
                       />
-
-                      <FormField
-                        control={form.control}
-                        name={`upstream.${index}.emission_factor`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center">
-                              Emission Factor
-                              <InfoTooltip content="Select typical emission factors for construction materials or enter your specific value. Values in tCO₂e per unit. Required for calculation." />
-                            </FormLabel>
-                            <FormControl>
-                              <NumberInputWithPresets
-                                value={field.value}
-                                onChange={field.onChange}
-                                presets={emissionFactorPresets}
-                                placeholder="Select or enter factor"
-                                unit="tCO₂e/unit"
-                                min={0.0001}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <FormField
-                          control={form.control}
-                          name={`upstream.${index}.supplier_data`}
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>
-                                  Supplier-specific data available
-                                </FormLabel>
-                                <FormDescription>
-                                  Check if using supplier-specific emission factors
-                                </FormDescription>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => appendUpstream({ 
-                      category: 1, 
-                      category_name: "Purchased Goods and Services",
-                      activity_description: "", 
-                      material_type: "",
-                      quantity: 0, 
-                      unit: "kg", 
-                      supplier_data: false,
-                      lca_stage: "",
-                      emission_factor: 0,
-                      notes: "" 
-                    })}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Upstream Activity
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="downstream">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Truck className="h-5 w-5" />
-                    Downstream Emissions (Categories 9-15)
-                  </CardTitle>
-                  <CardDescription>
-                    Emissions from sold products, services, and investments
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {downstreamFields.map((field, index) => (
-                    <div key={field.id} className="p-6 border rounded-lg space-y-4 bg-card/50">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-lg">Downstream Activity {index + 1}</h4>
-                        {downstreamFields.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeDownstream(index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name={`downstream.${index}.category`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Category</FormLabel>
-                              <Select onValueChange={(value) => {
-                                const cat = downstreamCategories.find(c => c.id === parseInt(value));
-                                field.onChange(parseInt(value));
-                                form.setValue(`downstream.${index}.category_name`, cat?.name || "");
-                              }} defaultValue={field.value?.toString()}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {downstreamCategories.map((cat) => (
-                                    <SelectItem key={cat.id} value={cat.id.toString()}>
-                                      {cat.id}. {cat.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`downstream.${index}.lifecycle_stage`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Lifecycle Stage</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select stage" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="distribution">Distribution</SelectItem>
-                                  <SelectItem value="use_phase">Use Phase</SelectItem>
-                                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                                  <SelectItem value="end_of_life">End-of-Life</SelectItem>
-                                  <SelectItem value="disposal">Disposal</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
 
                       <FormField
                         control={form.control}
@@ -729,84 +570,18 @@ export default function Scope3() {
                         )}
                       />
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
+                      {/* Dynamic category-specific fields for downstream */}
+                      <Scope3DynamicFields
+                        categoryId={form.watch(`downstream.${index}.category`) || 9}
                         control={form.control}
-                        name={`downstream.${index}.quantity`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center">
-                              Quantity
-                              <InfoTooltip content="Select typical quantities for downstream activities or enter your exact amount. Required for calculation." />
-                            </FormLabel>
-                            <FormControl>
-                              <NumberInputWithPresets
-                                value={field.value}
-                                onChange={field.onChange}
-                                presets={transportWeightPresets}
-                                placeholder="Select or enter quantity"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        watch={form.watch}
+                        fieldPrefix={`downstream.${index}`}
+                        index={index}
                       />
-
-                        <FormField
-                          control={form.control}
-                          name={`downstream.${index}.unit`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Unit</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select unit" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="tkm">Tonne-kilometres (tkm)</SelectItem>
-                                  <SelectItem value="years">Years of operation</SelectItem>
-                                  <SelectItem value="units">Number of units</SelectItem>
-                                  <SelectItem value="m2">Square metres (m²)</SelectItem>
-                                  <SelectItem value="tonnes">Tonnes</SelectItem>
-                                  <SelectItem value="AUD">Australian Dollars (AUD)</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
 
                       <FormField
                         control={form.control}
-                        name={`downstream.${index}.emission_factor`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center">
-                              Emission Factor
-                              <InfoTooltip content="Select typical emission factors for downstream activities or enter your specific value. Values in tCO₂e per unit. Required for calculation." />
-                            </FormLabel>
-                            <FormControl>
-                              <NumberInputWithPresets
-                                value={field.value}
-                                onChange={field.onChange}
-                                presets={emissionFactorPresets}
-                                placeholder="Select or enter factor"
-                                unit="tCO₂e/unit"
-                                min={0.0001}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <FormField
-                          control={form.control}
-                          name={`downstream.${index}.end_user_data`}
+                        name={`downstream.${index}.end_user_data`}
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                               <FormControl>
