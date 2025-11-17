@@ -1,14 +1,18 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { useProject } from '@/contexts/ProjectContext';
-import { FileText, FolderKanban, TrendingUp } from 'lucide-react';
+import { FileText, FolderKanban, TrendingUp, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { UpgradeModal } from './UpgradeModal';
+import { ManageSubscriptionButton } from './ManageSubscriptionButton';
 
 export const UsageDisplay = () => {
   const { currentTier, usageMetrics } = useSubscription();
+  const { tier_name, subscribed, trial_end, subscription_end } = useSubscriptionStatus();
   const { projects } = useProject();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
@@ -25,14 +29,27 @@ export const UsageDisplay = () => {
   const reportsLimit = limits?.reports_per_month || 2;
   const reportsPercentage = reportsLimit === -1 ? 0 : (reportsCount / reportsLimit) * 100;
 
-  const isFreeTier = currentTier.name === 'Free';
+  const isFreeTier = tier_name === 'Free';
+  const isOnTrial = trial_end ? new Date(trial_end) > new Date() : false;
 
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Usage & Limits</span>
+            <span className="flex items-center gap-2">
+              Usage & Limits
+              {subscribed && (
+                <Badge variant="default" className="gap-1">
+                  <Crown className="h-3 w-3" />
+                  {tier_name}
+                </Badge>
+              )}
+              {isOnTrial && (
+                <Badge variant="outline">Trial</Badge>
+              )}
+            </span>
+            {subscribed && <ManageSubscriptionButton size="sm" />}
             {isFreeTier && (
               <Button size="sm" onClick={() => setUpgradeModalOpen(true)}>
                 Upgrade to Pro
@@ -40,7 +57,13 @@ export const UsageDisplay = () => {
             )}
           </CardTitle>
           <CardDescription>
-            Current plan: <strong>{currentTier.name}</strong>
+            Current plan: <strong>{tier_name}</strong>
+            {isOnTrial && trial_end && (
+              <> • Trial ends {new Date(trial_end).toLocaleDateString()}</>
+            )}
+            {subscribed && !isOnTrial && subscription_end && (
+              <> • Renews {new Date(subscription_end).toLocaleDateString()}</>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
