@@ -26,7 +26,7 @@ const Index = () => {
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
               <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                Carbon Calculator
+                CarbonConstruct
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
                 Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
