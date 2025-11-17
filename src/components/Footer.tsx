@@ -79,6 +79,11 @@ export const Footer = () => {
                 </a>
               </li>
               <li>
+                <Link to="/impact" className="text-muted-foreground hover:text-primary transition-colors">
+                  Our Impact
+                </Link>
+              </li>
+              <li>
                 <a href="https://climate.stripe.com/qDm9Cw" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                   Stripe Climate
                 </a>
