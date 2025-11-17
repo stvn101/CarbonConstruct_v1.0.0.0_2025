@@ -399,7 +399,7 @@ export default function Scope3() {
                         )}
                       </div>
                       
-                      <div className={`grid grid-cols-1 ${[1, 2, 3, 4, 5, 8].includes(form.watch(`upstream.${index}.category`)) ? 'md:grid-cols-2' : ''} gap-4`}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
                           name={`upstream.${index}.category`}
@@ -429,28 +429,25 @@ export default function Scope3() {
                           )}
                         />
 
-                      {/* Only show material type for categories where materials are relevant */}
-                      {[1, 2, 3, 4, 5, 8].includes(form.watch(`upstream.${index}.category`)) && (
-                        <FormField
-                          control={form.control}
-                          name={`upstream.${index}.material_type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Material Type</FormLabel>
-                              <FormControl>
-                                <Combobox
-                                  options={constructionMaterials}
-                                  value={field.value}
-                                  onValueChange={field.onChange}
-                                  placeholder="Select material"
-                                  searchPlaceholder="Search materials..."
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
+                      <FormField
+                        control={form.control}
+                        name={`upstream.${index}.material_type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Material Type</FormLabel>
+                            <FormControl>
+                              <Combobox
+                                options={constructionMaterials}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Select material"
+                                searchPlaceholder="Search materials..."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       </div>
 
                       <FormField
