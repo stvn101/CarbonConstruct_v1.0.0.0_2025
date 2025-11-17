@@ -40,6 +40,8 @@ const Index = () => {
 
 
 
+
+
 Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
               </p>
             </div>
