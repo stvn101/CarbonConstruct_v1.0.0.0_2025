@@ -20,7 +20,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { useEmissionCalculations } from "@/hooks/useEmissionCalculations";
+import { useUsageTracking } from "@/hooks/useUsageTracking";
 import ProjectSelector from "@/components/ProjectSelector";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import {
   electricityQuantityPresets,
   greenPowerPresets,
@@ -171,6 +173,8 @@ export default function Scope2() {
   const { currentProject } = useProject();
   const { toast } = useToast();
   const { calculateScope2Emissions, loading: calculating } = useEmissionCalculations();
+  const { canPerformAction } = useUsageTracking();
+  const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
 
   // Use useEffect for navigation to prevent render-time updates
   React.useEffect(() => {
@@ -260,6 +264,13 @@ export default function Scope2() {
   const onSubmit = async (data: Scope2FormData) => {
     console.log("=== Calculate Button Clicked ===");
     console.log("Raw form data:", data);
+    
+    // Check if user can perform LCA calculations
+    const lcaCheck = canPerformAction('lca_calculations');
+    if (!lcaCheck.allowed) {
+      setShowUpgradeModal(true);
+      return;
+    }
     
     if (!currentProject) {
       toast({
@@ -1100,6 +1111,12 @@ export default function Scope2() {
           )}
         </form>
       </Form>
+
+      <UpgradeModal 
+        open={showUpgradeModal} 
+        onOpenChange={setShowUpgradeModal}
+        limitType="lca_calculations"
+      />
     </div>
   );
 }
