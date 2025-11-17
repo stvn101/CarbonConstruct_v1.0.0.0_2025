@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { QuickCarbonCalculator } from '@/components/QuickCarbonCalculator';
 
 const Impact = () => {
   const impactStats = [
@@ -129,6 +130,9 @@ const Impact = () => {
           );
         })}
       </div>
+
+      {/* Quick Carbon Calculator */}
+      <QuickCarbonCalculator />
 
       {/* Stripe Climate Partnership */}
       <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
