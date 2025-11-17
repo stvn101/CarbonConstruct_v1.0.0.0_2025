@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Progress } from '@/components/ui/progress';
 import { PDFReport } from '@/components/PDFReport';
 import { useReportData } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { UpgradeModal } from '@/components/UpgradeModal';
 import { 
   FileBarChart, 
   Download, 
@@ -18,13 +20,43 @@ import {
   Truck,
   Building2,
   Star,
-  Award
+  Award,
+  Crown
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const Reports = () => {
   const { currentProject } = useProject();
   const reportData = useReportData();
+  const { canPerformAction, trackUsage, currentUsage } = useUsageTracking();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
+  const handleDownloadReport = async () => {
+    const limitCheck = canPerformAction('reports_per_month');
+    
+    if (!limitCheck.allowed) {
+      setUpgradeModalOpen(true);
+      return;
+    }
+
+    // Track the usage
+    trackUsage({ metricType: 'reports_per_month' });
+    
+    // Generate and download the PDF
+    const element = document.getElementById('pdf-report-content');
+    if (element) {
+      const html2pdf = (await import('html2pdf.js')).default;
+      html2pdf()
+        .set({
+          margin: 10,
+          filename: `${currentProject?.name || 'project'}-carbon-report.pdf`,
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .from(element)
+        .save();
+    }
+  };
 
   if (!currentProject) {
     return (
@@ -87,7 +119,14 @@ const Reports = () => {
   ];
 
   return (
-    <div className="space-y-8">
+    <>
+      <UpgradeModal 
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        limitType="reports_per_month"
+      />
+      
+      <div className="space-y-8">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -402,7 +441,30 @@ const Reports = () => {
                 <div className="text-sm text-muted-foreground">
                   Includes executive summary, detailed breakdowns, compliance status, and methodology documentation.
                 </div>
-                <PDFReport data={reportData} />
+                
+                <Button 
+                  className="w-full"
+                  onClick={handleDownloadReport}
+                  disabled={!canPerformAction('reports_per_month').allowed}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF Report
+                  {!canPerformAction('reports_per_month').allowed && (
+                    <Crown className="ml-2 h-4 w-4" />
+                  )}
+                </Button>
+                
+                {currentUsage && (
+                  <div className="text-xs text-muted-foreground text-center">
+                    {currentUsage.reports_per_month || 0} reports generated this month
+                  </div>
+                )}
+                
+                {!canPerformAction('reports_per_month').allowed && (
+                  <div className="p-3 bg-muted rounded-lg text-sm">
+                    {canPerformAction('reports_per_month').reason}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -458,7 +520,8 @@ const Reports = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </>
   );
 };
 
