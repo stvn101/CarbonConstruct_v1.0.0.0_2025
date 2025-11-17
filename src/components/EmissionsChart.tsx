@@ -77,17 +77,18 @@ export const EmissionsChart = ({ type, title, description, data, colors = VIBRAN
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="h-[400px]">
+      <CardContent className="pb-8">
+        <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
+            <BarChart data={data} margin={{ top: 10, right: 10, bottom: 60, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis 
                 dataKey="category" 
-                className="text-xs"
-                angle={-45}
+                className="text-[10px]"
+                angle={-35}
                 textAnchor="end"
-                height={100}
+                height={80}
+                interval={0}
               />
               <YAxis 
                 className="text-xs"
