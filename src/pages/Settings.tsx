@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Settings as SettingsIcon } from "lucide-react";
 import { UsageDisplay } from "@/components/UsageDisplay";
 import { WebhookStatusCard } from "@/components/WebhookStatusCard";
+import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 
 const Settings = () => {
   return (
@@ -17,6 +18,16 @@ const Settings = () => {
 
         <div className="grid gap-6">
           <UsageDisplay />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Subscription Management</CardTitle>
+              <CardDescription>Manage your subscription, payment methods, and billing information</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ManageSubscriptionButton />
+            </CardContent>
+          </Card>
           
           <WebhookStatusCard />
           
