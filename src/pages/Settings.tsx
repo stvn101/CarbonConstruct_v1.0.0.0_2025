@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings as SettingsIcon } from "lucide-react";
 import { UsageDisplay } from "@/components/UsageDisplay";
+import { WebhookStatusCard } from "@/components/WebhookStatusCard";
 
 const Settings = () => {
   return (
@@ -16,6 +17,8 @@ const Settings = () => {
 
         <div className="grid gap-6">
           <UsageDisplay />
+          
+          <WebhookStatusCard />
           
           <Card>
             <CardHeader>
