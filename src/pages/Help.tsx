@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { HelpCircle, BookOpen, MessageCircle, ExternalLink } from "lucide-react";
+import { HelpCircle, BookOpen, MessageCircle, ExternalLink, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { restartOnboarding } from "@/components/OnboardingTutorial";
 
 const Help = () => {
   return (
@@ -32,6 +33,10 @@ const Help = () => {
                   <li><strong>Scope 2:</strong> Indirect emissions from purchased energy</li>
                   <li><strong>Scope 3:</strong> All other indirect emissions in your value chain</li>
                 </ul>
+                <Button onClick={restartOnboarding} className="w-full sm:w-auto mt-4" variant="outline">
+                  <PlayCircle className="mr-2 h-4 w-4" />
+                  Restart Tutorial
+                </Button>
               </div>
             </CardContent>
           </Card>
