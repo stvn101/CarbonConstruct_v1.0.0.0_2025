@@ -29,29 +29,29 @@ import {
   steelQuantityPresets,
 } from "@/lib/calculator-presets";
 
-// Scope 3 schema for value chain emissions
+// Scope 3 schema for value chain emissions - allows empty entries, filtering happens in onSubmit
 const scope3Schema = z.object({
   upstream: z.array(z.object({
-    category: z.number().min(1).max(8, "Must be category 1-8"),
-    category_name: z.string().min(1, "Category name is required"),
-    activity_description: z.string().min(1, "Activity description is required"),
+    category: z.number().min(1).max(8),
+    category_name: z.string(),
+    activity_description: z.string(),
     material_type: z.string().optional(),
-    quantity: z.number().min(0.01, "Quantity must be greater than 0"),
-    unit: z.string().min(1, "Unit is required"),
+    quantity: z.number().min(0),
+    unit: z.string(),
     supplier_data: z.boolean(),
     lca_stage: z.string().optional(),
-    emission_factor: z.number().min(0.0001, "Emission factor must be greater than 0"),
+    emission_factor: z.number().min(0),
     notes: z.string().optional(),
   })),
   downstream: z.array(z.object({
-    category: z.number().min(9).max(15, "Must be category 9-15"),
-    category_name: z.string().min(1, "Category name is required"),
-    activity_description: z.string().min(1, "Activity description is required"),
-    quantity: z.number().min(0.01, "Quantity must be greater than 0"),
-    unit: z.string().min(1, "Unit is required"),
+    category: z.number().min(9).max(15),
+    category_name: z.string(),
+    activity_description: z.string(),
+    quantity: z.number().min(0),
+    unit: z.string(),
     lifecycle_stage: z.string().optional(),
     end_user_data: z.boolean(),
-    emission_factor: z.number().min(0.0001, "Emission factor must be greater than 0"),
+    emission_factor: z.number().min(0),
     notes: z.string().optional(),
   })),
 });
