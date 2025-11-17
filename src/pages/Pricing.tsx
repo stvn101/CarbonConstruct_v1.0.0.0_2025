@@ -1,4 +1,4 @@
-import { Check, Zap, Building2, Crown, ArrowRight } from 'lucide-react';
+import { Check, Zap, Building2, Crown, ArrowRight, Leaf, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,6 +55,38 @@ const Pricing = () => {
         </p>
       </div>
 
+      {/* Stripe Climate Badge */}
+      <Card className="mb-12 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left">
+            <div className="flex-shrink-0">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Leaf className="h-8 w-8 text-primary" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold mb-2 flex items-center justify-center md:justify-start gap-2">
+                Climate Positive Subscriptions
+                <Badge variant="secondary" className="text-xs">Stripe Climate</Badge>
+              </h3>
+              <p className="text-muted-foreground mb-3">
+                1% of every subscription goes directly to carbon removal through Stripe Climate. 
+                We're committed to helping reverse climate change while you track emissions.
+              </p>
+              <a 
+                href="https://climate.stripe.com/qDm9Cw" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                Learn more about our impact
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Pricing Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
       {tiers?.map((tier) => {
@@ -102,6 +134,15 @@ const Pricing = () => {
                     </li>
                   ))}
                 </ul>
+                
+                {tier.price_monthly > 0 && (
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Leaf className="h-3.5 w-3.5 text-primary" />
+                      <span>1% supports carbon removal</span>
+                    </div>
+                  </div>
+                )}
               </CardContent>
 
               <CardFooter>
