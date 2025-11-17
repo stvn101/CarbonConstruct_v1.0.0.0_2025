@@ -552,6 +552,93 @@ export default function Scope3() {
                         fieldPrefix={`upstream.${index}`}
                         index={index}
                       />
+                    </div>
+                  ))}
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => appendUpstream({ 
+                      category: 1, 
+                      category_name: "Purchased Goods and Services",
+                      activity_description: "", 
+                      quantity: 0, 
+                      unit: "tonnes", 
+                      supplier_data: false,
+                      emission_factor: 0,
+                      notes: "" 
+                    })}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Upstream Activity
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="downstream">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Truck className="h-5 w-5" />
+                    Downstream Emissions (Categories 9-15)
+                    <InfoTooltip content="Enter data for product transportation, processing, use phase, end-of-life treatment, leased assets, franchises, and investments." />
+                  </CardTitle>
+                  <CardDescription>
+                    Emissions from activities after your construction projects leave your control
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {downstreamFields.map((field, index) => (
+                    <div key={field.id} className="p-6 border rounded-lg space-y-4 bg-card/50">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-lg">Downstream Activity {index + 1}</h4>
+                        {downstreamFields.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeDownstream(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`downstream.${index}.category`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Downstream Category</FormLabel>
+                              <Select
+                                onValueChange={(value) => {
+                                  field.onChange(parseInt(value));
+                                  const category = downstreamCategories.find(c => c.id === parseInt(value));
+                                  form.setValue(`downstream.${index}.category_name`, category?.name || "");
+                                }}
+                                value={field.value?.toString()}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select category" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {downstreamCategories.map((cat) => (
+                                    <SelectItem key={cat.id} value={cat.id.toString()}>
+                                      {cat.id}. {cat.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
                       <FormField
                         control={form.control}
@@ -578,30 +665,6 @@ export default function Scope3() {
                         fieldPrefix={`downstream.${index}`}
                         index={index}
                       />
-
-                      <FormField
-                        control={form.control}
-                        name={`downstream.${index}.end_user_data`}
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>
-                                  End-user specific data available
-                                </FormLabel>
-                                <FormDescription>
-                                  Check if using end-user specific emission factors
-                                </FormDescription>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
                     </div>
                   ))}
                   
@@ -614,7 +677,6 @@ export default function Scope3() {
                       activity_description: "", 
                       quantity: 0, 
                       unit: "tkm", 
-                      lifecycle_stage: "",
                       end_user_data: false,
                       emission_factor: 0,
                       notes: "" 
