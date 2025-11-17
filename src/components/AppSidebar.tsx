@@ -1,6 +1,7 @@
 import { Calculator, Factory, Zap, Truck, FileBarChart, Settings, Home, HelpCircle, Package, ChevronRight } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+import logoImage from "@/assets/carbonconstruct-logo.png";
 const calculatorItems = [{
   title: "Dashboard",
   url: "/",
@@ -55,12 +56,13 @@ export function AppSidebar() {
         {/* Brand Header */}
         <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30">
           <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center">
-            <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center shadow-glow flex-shrink-0">
-              <Calculator className="h-5 w-5 text-sidebar-primary-foreground" />
-            </div>
+            <img 
+              src={logoImage} 
+              alt="CarbonConstruct Logo" 
+              className="h-8 w-8 flex-shrink-0 object-contain" 
+            />
             <div className="group-data-[collapsible=icon]/sidebar-wrapper:hidden animate-fade-in">
-              <h1 className="font-bold text-base text-sidebar-foreground">CarbonConstruct
-            </h1>
+              <h1 className="font-bold text-base text-sidebar-foreground">CarbonConstruct</h1>
               <p className="text-xs text-sidebar-foreground/70">Pro Edition</p>
             </div>
           </div>
