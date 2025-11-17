@@ -43,8 +43,8 @@ export const EmissionsChart = ({ type, title, description, data, colors = VIBRAN
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-center">
-          <ChartContainer config={chartConfig} className="h-[350px] w-full">
+        <CardContent>
+          <ChartContainer config={chartConfig} className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -53,7 +53,7 @@ export const EmissionsChart = ({ type, title, description, data, colors = VIBRAN
                   nameKey="category"
                   cx="50%"
                   cy="50%"
-                  outerRadius={100}
+                  outerRadius={120}
                   label={({ category, percentage }) => `${category}: ${percentage.toFixed(1)}%`}
                   labelLine={true}
                 >
@@ -77,17 +77,17 @@ export const EmissionsChart = ({ type, title, description, data, colors = VIBRAN
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent className="pb-4">
-        <ChartContainer config={chartConfig} className="h-[280px] w-full">
+      <CardContent className="pb-8">
+        <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 5, right: 10, bottom: 50, left: 10 }}>
+            <BarChart data={data} margin={{ top: 10, right: 10, bottom: 60, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis 
                 dataKey="category" 
                 className="text-[10px]"
                 angle={-35}
                 textAnchor="end"
-                height={70}
+                height={80}
                 interval={0}
               />
               <YAxis 
