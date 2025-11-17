@@ -50,7 +50,8 @@ const Index = () => {
 
 
 
-Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
+
+
               </p>
             </div>
             
@@ -65,6 +66,9 @@ Calculate and track your project's carbon emissions across all three scopes with
                   </h2>
                   <p className="text-sm sm:text-base text-white/90 max-w-md">
                     Comprehensive LCA methodologies for Australian construction projects
+Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
+
+
                   </p>
                 </div>
               </div>
