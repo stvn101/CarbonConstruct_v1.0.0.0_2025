@@ -1,4 +1,4 @@
-import { Calculator, Factory, Zap, Truck, FileBarChart, Settings, Home, HelpCircle, Package, ChevronRight, DollarSign } from "lucide-react";
+import { Calculator, Factory, Zap, Truck, FileBarChart, Settings, Home, HelpCircle, Package, ChevronRight, DollarSign, Leaf } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import logoImage from "@/assets/carbonconstruct-logo.png";
@@ -43,6 +43,11 @@ const otherItems = [{
   url: "/pricing",
   icon: DollarSign,
   color: "text-muted-foreground"
+}, {
+  title: "Our Impact",
+  url: "/impact",
+  icon: Leaf,
+  color: "text-green-600"
 }, {
   title: "Help & Resources",
   url: "/help",
