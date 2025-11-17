@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useProject } from "@/contexts/ProjectContext";
+import { useUsageTracking } from "@/hooks/useUsageTracking";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -7,11 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Building } from "lucide-react";
+import { Plus, Building, Crown } from "lucide-react";
+import { UpgradeModal } from "./UpgradeModal";
+import { Badge } from "./ui/badge";
 
 const ProjectSelector = () => {
   const { currentProject, projects, createProject, selectProject } = useProject();
+  const { canPerformAction, projectCount } = useUsageTracking();
   const [isCreating, setIsCreating] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [newProject, setNewProject] = useState({
     name: "",
     description: "",
@@ -23,17 +28,20 @@ const ProjectSelector = () => {
     if (!newProject.name.trim()) return;
     
     setIsCreating(true);
-    await createProject({
+    const success = await createProject({
       ...newProject,
       status: "draft"
-    });
+    }, () => canPerformAction('projects'));
+    
+    if (success) {
+      setNewProject({
+        name: "",
+        description: "",
+        location: "",
+        project_type: "construction"
+      });
+    }
     setIsCreating(false);
-    setNewProject({
-      name: "",
-      description: "",
-      location: "",
-      project_type: "construction"
-    });
   };
 
   if (!currentProject) {
@@ -79,9 +87,12 @@ const ProjectSelector = () => {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="w-full">
+              <Button className="w-full" disabled={!canPerformAction('projects').allowed}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create New Project
+                {!canPerformAction('projects').allowed && (
+                  <Crown className="h-4 w-4 ml-2" />
+                )}
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -146,22 +157,54 @@ const ProjectSelector = () => {
               </div>
             </DialogContent>
           </Dialog>
+          
+          {!canPerformAction('projects').allowed && (
+            <div className="text-sm text-center">
+              <p className="text-muted-foreground mb-2">
+                {canPerformAction('projects').reason}
+              </p>
+              <Button 
+                variant="link" 
+                size="sm" 
+                className="gap-1"
+                onClick={() => setUpgradeModalOpen(true)}
+              >
+                <Crown className="h-3 w-3" />
+                Upgrade to Pro
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-card rounded-lg border mb-4 md:mb-6">
-      <Building className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
-      <div className="flex-1 min-w-0">
-        <p className="text-xs sm:text-sm text-muted-foreground">Current Project:</p>
-        <h3 className="font-semibold text-sm sm:text-base truncate">{currentProject.name}</h3>
-        {currentProject.description && (
-          <p className="text-xs text-muted-foreground truncate hidden sm:block">{currentProject.description}</p>
-        )}
+    <>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-card rounded-lg border mb-4 md:mb-6">
+        <Building className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-xs sm:text-sm text-muted-foreground">Current Project:</p>
+            {projectCount !== undefined && (
+              <Badge variant="secondary" className="text-xs">
+                {projectCount} projects
+              </Badge>
+            )}
+          </div>
+          <h3 className="font-semibold text-sm sm:text-base truncate">{currentProject.name}</h3>
+          {currentProject.description && (
+            <p className="text-xs text-muted-foreground truncate hidden sm:block">{currentProject.description}</p>
+          )}
+        </div>
       </div>
-    </div>
+      
+      <UpgradeModal 
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        limitType="projects"
+      />
+    </>
   );
 };
 

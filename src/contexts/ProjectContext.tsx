@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { z } from 'zod';
 
 interface Project {
   id: string;
@@ -18,10 +19,28 @@ interface ProjectContextType {
   currentProject: Project | null;
   projects: Project[];
   loading: boolean;
-  createProject: (project: Omit<Project, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  createProject: (project: Omit<Project, 'id' | 'created_at' | 'updated_at'>, checkLimits?: () => { allowed: boolean; reason?: string }) => Promise<boolean>;
   selectProject: (projectId: string) => void;
   refreshProjects: () => Promise<void>;
 }
+
+// Validation schema for project creation
+const projectSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(1, { message: "Project name is required" })
+    .max(100, { message: "Project name must be less than 100 characters" }),
+  description: z.string()
+    .max(500, { message: "Description must be less than 500 characters" })
+    .optional(),
+  location: z.string()
+    .max(200, { message: "Location must be less than 200 characters" })
+    .optional(),
+  project_type: z.string()
+    .min(1, { message: "Project type is required" }),
+  status: z.string()
+    .min(1, { message: "Status is required" }),
+});
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
@@ -68,8 +87,45 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const createProject = async (projectData: Omit<Project, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return;
+  const createProject = async (
+    projectData: Omit<Project, 'id' | 'created_at' | 'updated_at'>,
+    checkLimits?: () => { allowed: boolean; reason?: string }
+  ): Promise<boolean> => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to create projects.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Validate input
+    try {
+      projectSchema.parse(projectData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation error",
+          description: error.issues[0].message,
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+
+    // Check limits if provided
+    if (checkLimits) {
+      const limitCheck = checkLimits();
+      if (!limitCheck.allowed) {
+        toast({
+          title: "Limit reached",
+          description: limitCheck.reason || "You've reached your project limit.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
 
     try {
       const { data, error } = await supabase
@@ -90,6 +146,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         title: "Project created",
         description: `${projectData.name} has been created successfully.`,
       });
+
+      return true;
     } catch (error) {
       console.error('Error creating project:', error);
       toast({
@@ -97,6 +155,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         description: "Failed to create project. Please try again.",
         variant: "destructive",
       });
+      return false;
     }
   };
 
