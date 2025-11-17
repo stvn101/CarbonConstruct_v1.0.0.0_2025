@@ -499,24 +499,43 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
 
       // Save to database
       if (emissions.length > 0) {
-        const { error } = await supabase
+        // Delete existing Scope 3 entries for clean state
+        const { error: deleteError } = await supabase
           .from('scope3_emissions')
-          .upsert(
+          .delete()
+          .eq('project_id', currentProject.id);
+          
+        if (deleteError) {
+          console.error("Error deleting existing entries:", deleteError);
+          throw new Error(`Database delete failed: ${deleteError.message}`);
+        }
+
+        // Insert new emissions
+        const { error: insertError } = await supabase
+          .from('scope3_emissions')
+          .insert(
             emissions.map(emission => ({
               ...emission,
               project_id: currentProject.id
-            })),
-            { onConflict: 'project_id,category,subcategory,activity_description' }
+            }))
           );
 
-        if (error) throw error;
+        if (insertError) {
+          console.error("Error inserting emissions:", insertError);
+          throw new Error(`Database insert failed: ${insertError.message}`);
+        }
 
         const totalEmissions = emissions.reduce((sum, emission) => sum + emission.emissions_tco2e, 0);
         
         toast({
-          title: "Scope 3 emissions calculated",
-          description: `Total: ${totalEmissions.toFixed(2)} tCO₂e`,
+          title: "Success",
+          description: `Scope 3 emissions saved: ${totalEmissions.toFixed(2)} tCO₂e`,
         });
+
+        // Trigger data refresh
+        if (onDataChange) {
+          setTimeout(() => onDataChange(), 500);
+        }
 
         return { emissions, total: totalEmissions };
       }
