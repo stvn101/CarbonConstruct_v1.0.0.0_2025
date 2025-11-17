@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatAssistant } from "@/components/ChatAssistant";
+import { Footer } from "@/components/Footer";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -24,6 +25,8 @@ export function Layout({ children }: LayoutProps) {
           <main className="flex-1 p-3 md:p-6">
             {children}
           </main>
+          
+          <Footer />
         </div>
         <ChatAssistant />
       </div>
