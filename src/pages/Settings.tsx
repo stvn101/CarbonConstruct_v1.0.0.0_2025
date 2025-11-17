@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings as SettingsIcon } from "lucide-react";
+import { UsageDisplay } from "@/components/UsageDisplay";
 
 const Settings = () => {
   return (
@@ -14,6 +15,8 @@ const Settings = () => {
         </div>
 
         <div className="grid gap-6">
+          <UsageDisplay />
+          
           <Card>
             <CardHeader>
               <CardTitle>Project Settings</CardTitle>
