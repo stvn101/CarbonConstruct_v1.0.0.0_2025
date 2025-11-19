@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles } from "lucide-react";
 import { MATERIAL_DB, FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/calculator-presets";
 
 interface Material {
@@ -159,6 +159,8 @@ export default function Calculator() {
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>(() => loadFromStorage('transportInputs', {}));
   const [selectedMaterials, setSelectedMaterials] = useState<Material[]>(() => loadFromStorage('selectedMaterials', []));
   const [saving, setSaving] = useState(false);
+  const [aiProcessing, setAiProcessing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-save to localStorage
   useEffect(() => {
@@ -235,6 +237,97 @@ export default function Calculator() {
     setScope2Inputs({});
     setTransportInputs({});
     setSelectedMaterials([]);
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    const validTypes = [
+      'text/plain', 
+      'text/csv', 
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel'
+    ];
+    
+    if (!validTypes.includes(file.type) && !file.name.match(/\.(txt|csv|pdf|xlsx|xls)$/i)) {
+      toast({ 
+        title: "Invalid file type", 
+        description: "Please upload a text, CSV, PDF, or Excel file",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setAiProcessing(true);
+    try {
+      // Read file content
+      let text = '';
+      if (file.type === 'application/pdf') {
+        toast({ 
+          title: "PDF support coming soon", 
+          description: "For now, please convert to text or CSV",
+          variant: "destructive" 
+        });
+        setAiProcessing(false);
+        return;
+      } else {
+        text = await file.text();
+      }
+
+      // Call the AI function
+      const { data, error } = await supabase.functions.invoke('parse-boq', {
+        body: { text }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Process the materials from AI
+      const aiMaterials = data.materials || [];
+      const newMaterials: Material[] = aiMaterials.map((item: any) => {
+        const isCustom = item.isCustom || item.category === 'custom';
+        
+        return {
+          id: Date.now().toString() + Math.random(),
+          category: item.category || 'custom',
+          typeId: item.typeId || 'custom',
+          name: item.name || "Imported Item",
+          unit: item.unit || 'unit',
+          factor: item.factor || 0,
+          source: isCustom ? "AI Estimate" : "NMEF v2025.1",
+          quantity: item.quantity || 0,
+          isCustom
+        };
+      });
+
+      setSelectedMaterials(prev => [...prev, ...newMaterials]);
+      
+      toast({ 
+        title: "Import successful!", 
+        description: `Added ${newMaterials.length} materials from ${file.name}` 
+      });
+
+    } catch (error) {
+      console.error('Error processing file:', error);
+      toast({ 
+        title: "Import failed", 
+        description: error instanceof Error ? error.message : "Failed to process document",
+        variant: "destructive" 
+      });
+    } finally {
+      setAiProcessing(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const saveReport = async () => {
@@ -360,6 +453,47 @@ export default function Calculator() {
 
             {activeTab === 'inputs' && (
               <div className="space-y-6">
+                {/* AI Import Banner */}
+                <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                  <div className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-purple-600 p-2 rounded-full">
+                        <Sparkles className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-purple-900">AI-Powered BOQ Import</h4>
+                        <p className="text-sm text-purple-700">Upload your construction documents and let AI extract materials automatically</p>
+                      </div>
+                    </div>
+                    <div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".txt,.csv,.pdf,.xlsx,.xls"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={aiProcessing}
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        {aiProcessing ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload BOQ
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+
                 {/* Energy Section */}
                 <Card className="p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-700">Energy (Scope 1 & 2)</h3>
