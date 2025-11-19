@@ -107,13 +107,17 @@ class AnalyticsService {
     this.errors.push(errorEvent);
     this.pruneQueue(this.errors);
 
-    // Always log errors
-    console.error('[Error]', message, {
-      severity,
-      stack,
-      componentStack,
-      metadata,
-    });
+    // Always log errors (wrapped in try/catch to prevent recursion)
+    try {
+      console.error('[Error]', message, {
+        severity,
+        stack,
+        componentStack,
+        metadata,
+      });
+    } catch {
+      // Swallow to prevent cascading failures
+    }
 
     // TODO: Send to error tracking service in production
     // Example: Sentry.captureException(errorEvent);

@@ -1,3 +1,4 @@
+// CarbonConstruct App - Main Application Entry Point
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
