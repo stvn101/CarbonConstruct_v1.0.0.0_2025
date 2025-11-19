@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings as SettingsIcon } from "lucide-react";
 import { UsageDisplay } from "@/components/UsageDisplay";
-import { WebhookStatusCard } from "@/components/WebhookStatusCard";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 
 const Settings = () => {
@@ -28,8 +27,6 @@ const Settings = () => {
               <ManageSubscriptionButton />
             </CardContent>
           </Card>
-          
-          <WebhookStatusCard />
           
           <Card>
             <CardHeader>
