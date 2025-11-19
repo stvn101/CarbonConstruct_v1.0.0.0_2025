@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { LCAMaterialSchema } from '@/lib/schemas';
+import { logger } from '@/lib/logger';
 
 export interface LCAMaterialData {
   id: string;
@@ -52,7 +54,22 @@ export const useLCAMaterials = () => {
       if (error) throw error;
 
       if (data) {
-        setMaterials(data);
+        // Validate materials data
+        const validatedMaterials: LCAMaterialData[] = [];
+        
+        data.forEach(material => {
+          const result = LCAMaterialSchema.safeParse(material);
+          if (!result.success) {
+            logger.warn('useLCAMaterials', 'Invalid LCA material data', { 
+              material: material.material_name, 
+              issues: result.error.issues 
+            });
+          } else {
+            validatedMaterials.push(result.data as LCAMaterialData);
+          }
+        });
+
+        setMaterials(validatedMaterials);
 
         // Calculate stage breakdown totals
         const totals = data.reduce((acc, material) => ({
@@ -88,7 +105,7 @@ export const useLCAMaterials = () => {
         setCategoryBreakdown(Array.from(categoryMap.values()));
       }
     } catch (error) {
-      console.error('Error fetching LCA materials:', error);
+      logger.error('useLCAMaterials', error);
     } finally {
       setLoading(false);
     }

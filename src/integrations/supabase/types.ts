@@ -503,6 +503,7 @@ export type Database = {
           transport_inputs: Json | null
           updated_at: string | null
           user_id: string
+          version: number
         }
         Insert: {
           created_at?: string | null
@@ -516,6 +517,7 @@ export type Database = {
           transport_inputs?: Json | null
           updated_at?: string | null
           user_id: string
+          version?: number
         }
         Update: {
           created_at?: string | null
@@ -529,6 +531,7 @@ export type Database = {
           transport_inputs?: Json | null
           updated_at?: string | null
           user_id?: string
+          version?: number
         }
         Relationships: [
           {
