@@ -48,19 +48,32 @@ const Reports = () => {
     // Track the usage
     trackUsage({ metricType: 'reports_per_month' });
     
+    // Measure PDF generation performance
+    const { measurePdfGeneration, trackEvent } = await import('@/lib/analytics');
+    
+    trackEvent('report_download_started', {
+      project: currentProject?.name,
+    });
+    
     // Generate and download the PDF
     const element = document.getElementById('pdf-report-content');
     if (element) {
-      const html2pdf = (await import('html2pdf.js')).default;
-      html2pdf()
-        .set({
-          margin: 10,
-          filename: `${currentProject?.name || 'project'}-carbon-report.pdf`,
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        })
-        .from(element)
-        .save();
+      await measurePdfGeneration(async () => {
+        const html2pdf = (await import('html2pdf.js')).default;
+        await html2pdf()
+          .set({
+            margin: 10,
+            filename: `${currentProject?.name || 'project'}-carbon-report.pdf`,
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          })
+          .from(element)
+          .save();
+      });
+      
+      trackEvent('report_download_completed', {
+        project: currentProject?.name,
+      });
     }
   };
 

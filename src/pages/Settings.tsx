@@ -1,14 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings as SettingsIcon } from "lucide-react";
 import { UsageDisplay } from "@/components/UsageDisplay";
 import { WebhookStatusCard } from "@/components/WebhookStatusCard";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 import { DataMigration } from "@/components/DataMigration";
+import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 
 const Settings = () => {
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
           <SettingsIcon className="h-8 w-8 text-primary" />
           <div>
@@ -17,22 +19,28 @@ const Settings = () => {
           </div>
         </div>
 
-        <div className="grid gap-6">
-          <UsageDisplay />
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Subscription Management</CardTitle>
-              <CardDescription>Manage your subscription, payment methods, and billing information</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ManageSubscriptionButton />
-            </CardContent>
-          </Card>
-          
-          <DataMigration />
-          
-          <WebhookStatusCard />
+        <Tabs defaultValue="general" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="general" className="space-y-6">
+            <UsageDisplay />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription Management</CardTitle>
+                <CardDescription>Manage your subscription, payment methods, and billing information</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ManageSubscriptionButton />
+              </CardContent>
+            </Card>
+            
+            <DataMigration />
+            
+            <WebhookStatusCard />
           
           <Card>
             <CardHeader>
@@ -152,7 +160,12 @@ const Settings = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <AnalyticsDashboard />
+        </TabsContent>
+      </Tabs>
       </div>
     </div>
   );

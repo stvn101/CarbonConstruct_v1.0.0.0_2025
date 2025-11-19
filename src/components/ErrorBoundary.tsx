@@ -2,7 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { trackError } from '@/lib/analytics';
 
 interface Props {
   children: ReactNode;
@@ -16,7 +16,7 @@ interface State {
   errorInfo: ErrorInfo | null;
 }
 
-class ErrorBoundaryClass extends Component<Props, State> {
+export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -35,7 +35,6 @@ class ErrorBoundaryClass extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error to console for debugging
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     
     this.setState({
@@ -43,8 +42,16 @@ class ErrorBoundaryClass extends Component<Props, State> {
       errorInfo,
     });
 
-    // TODO: Send error to analytics service in production
-    // Example: sendToAnalytics({ error, errorInfo });
+    // Track error in analytics
+    trackError({
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      severity: 'critical',
+      metadata: {
+        fallbackTitle: this.props.fallbackTitle,
+      },
+    });
   }
 
   handleReset = () => {
@@ -118,9 +125,4 @@ class ErrorBoundaryClass extends Component<Props, State> {
 
     return this.props.children;
   }
-}
-
-// Wrapper component to provide navigation functionality
-export function ErrorBoundary(props: Props) {
-  return <ErrorBoundaryClass {...props} />;
 }
