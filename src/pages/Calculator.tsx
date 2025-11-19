@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Plus, Trash2, Upload, Sparkles, Save, FileText } from 'lucide-react';
+import { Loader2, Plus, Trash2, Upload, Sparkles, Save, FileText, Download, FileSpreadsheet } from 'lucide-react';
 
 interface Material {
   id: string;
@@ -343,6 +343,128 @@ export default function Calculator() {
     }
   };
 
+  const exportToCSV = () => {
+    if (materials.length === 0) {
+      toast.error('No materials to export');
+      return;
+    }
+
+    const totals = calculateTotals();
+    const projectName = currentProject?.name || 'Project';
+    const today = new Date().toISOString().split('T')[0];
+
+    // CSV Header
+    let csv = 'CarbonConstruct - Materials Export\n';
+    csv += `Project: ${projectName}\n`;
+    csv += `Date: ${today}\n`;
+    csv += `Total Emissions: ${(totals.total / 1000).toFixed(2)} tCO₂e\n\n`;
+    
+    // Materials Table
+    csv += 'Item,Category,Quantity,Unit,Emission Factor (kgCO₂e),Total Emissions (kgCO₂e),Source\n';
+    
+    materials.forEach((material) => {
+      const emissions = (material.quantity || 0) * (material.factor || 0);
+      csv += `"${material.name}","${material.category}",${material.quantity},"${material.unit}",${material.factor},${emissions.toFixed(2)},"${material.source}"\n`;
+    });
+
+    // Summary
+    csv += `\nSummary\n`;
+    csv += `Total Materials,${materials.length}\n`;
+    csv += `Total Embodied Carbon,${(totals.scope3_materials / 1000).toFixed(2)} tCO₂e\n`;
+
+    // Create and download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${projectName.replace(/\s+/g, '_')}_Materials_${today}.csv`;
+    link.click();
+    
+    toast.success('CSV exported successfully!');
+  };
+
+  const exportToBOQ = () => {
+    if (materials.length === 0) {
+      toast.error('No materials to export');
+      return;
+    }
+
+    const totals = calculateTotals();
+    const projectName = currentProject?.name || 'Project';
+    const today = new Date().toISOString().split('T')[0];
+
+    // BOQ Format (Bill of Quantities - Australian Standard)
+    let boq = '═══════════════════════════════════════════════════════════════\n';
+    boq += '                    BILL OF QUANTITIES                          \n';
+    boq += '               Carbon Assessment Schedule                       \n';
+    boq += '═══════════════════════════════════════════════════════════════\n\n';
+    
+    boq += `Project:           ${projectName}\n`;
+    boq += `Date:              ${today}\n`;
+    boq += `Location:          ${currentProject?.location || 'Australia'}\n`;
+    boq += `Status:            ${currentProject?.status || 'Active'}\n\n`;
+    
+    boq += '───────────────────────────────────────────────────────────────\n';
+    boq += '                    MATERIALS SCHEDULE                          \n';
+    boq += '───────────────────────────────────────────────────────────────\n\n';
+
+    // Group materials by category
+    const grouped = materials.reduce((acc, material) => {
+      if (!acc[material.category]) {
+        acc[material.category] = [];
+      }
+      acc[material.category].push(material);
+      return acc;
+    }, {} as Record<string, Material[]>);
+
+    let itemNo = 1;
+    Object.entries(grouped).forEach(([category, items]) => {
+      boq += `\n${category.toUpperCase()}\n`;
+      boq += '───────────────────────────────────────────────────────────────\n';
+      
+      items.forEach((material) => {
+        const emissions = (material.quantity || 0) * (material.factor || 0);
+        boq += `${itemNo.toString().padStart(3, '0')}  ${material.name}\n`;
+        boq += `     Quantity:      ${material.quantity} ${material.unit}\n`;
+        boq += `     Factor:        ${material.factor} kgCO₂e/${material.unit}\n`;
+        boq += `     Emissions:     ${emissions.toFixed(2)} kgCO₂e (${(emissions / 1000).toFixed(3)} tCO₂e)\n`;
+        boq += `     Source:        ${material.source}\n`;
+        if (material.isCustom) {
+          boq += `     Note:          Custom material - User defined\n`;
+        }
+        boq += `\n`;
+        itemNo++;
+      });
+    });
+
+    // Summary Section
+    boq += '\n═══════════════════════════════════════════════════════════════\n';
+    boq += '                    EMISSIONS SUMMARY                           \n';
+    boq += '═══════════════════════════════════════════════════════════════\n\n';
+    
+    boq += `Materials (Embodied Carbon):     ${(totals.scope3_materials / 1000).toFixed(2)} tCO₂e\n`;
+    boq += `Energy (Scope 1 & 2):            ${((totals.scope1 + totals.scope2) / 1000).toFixed(2)} tCO₂e\n`;
+    boq += `Transport (Scope 3):             ${(totals.scope3_transport / 1000).toFixed(2)} tCO₂e\n`;
+    boq += `                                 ──────────────\n`;
+    boq += `TOTAL PROJECT EMISSIONS:         ${(totals.total / 1000).toFixed(2)} tCO₂e\n\n`;
+    
+    boq += `Total Items:                     ${materials.length}\n`;
+    boq += `Custom Items:                    ${materials.filter(m => m.isCustom).length}\n\n`;
+    
+    boq += '═══════════════════════════════════════════════════════════════\n';
+    boq += '              Generated by CarbonConstruct Pro                  \n';
+    boq += '           Australian NCC 2024 / NMEF v2025.1                  \n';
+    boq += '═══════════════════════════════════════════════════════════════\n';
+
+    // Create and download
+    const blob = new Blob([boq], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${projectName.replace(/\s+/g, '_')}_BOQ_${today}.txt`;
+    link.click();
+    
+    toast.success('BOQ exported successfully!');
+  };
+
   if (loadingDb) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -535,15 +657,38 @@ export default function Calculator() {
                 </TabsContent>
               </Tabs>
 
-              <div className="flex gap-3 mt-6 pt-6 border-t">
-                <Button onClick={saveReport} disabled={saving} className="flex-1">
-                  {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                  Save Report
-                </Button>
-                <Button onClick={() => navigate('/reports')} variant="outline">
-                  <FileText className="h-4 w-4 mr-2" />
-                  View Reports
-                </Button>
+              <div className="flex flex-col gap-3 mt-6 pt-6 border-t">
+                <div className="flex gap-3">
+                  <Button onClick={saveReport} disabled={saving} className="flex-1">
+                    {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                    Save Report
+                  </Button>
+                  <Button onClick={() => navigate('/reports')} variant="outline">
+                    <FileText className="h-4 w-4 mr-2" />
+                    View Reports
+                  </Button>
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={exportToCSV} 
+                    variant="outline" 
+                    className="flex-1"
+                    disabled={materials.length === 0}
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                  <Button 
+                    onClick={exportToBOQ} 
+                    variant="outline"
+                    className="flex-1"
+                    disabled={materials.length === 0}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export BOQ
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -565,10 +710,22 @@ export default function Calculator() {
                 <span className="opacity-80">Materials</span>
                 <span className="font-bold">{(totals.scope3_materials / 1000).toFixed(2)} t</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between pb-2">
                 <span className="opacity-80">Transport</span>
                 <span className="font-bold">{(totals.scope3_transport / 1000).toFixed(2)} t</span>
               </div>
+              
+              {materials.length > 0 && (
+                <div className="pt-3 mt-3 border-t border-primary-foreground/20 text-xs opacity-70">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <FileSpreadsheet className="h-3 w-3" />
+                    <span>{materials.length} materials ready to export</span>
+                  </div>
+                  <div className="text-[10px] opacity-60">
+                    Use CSV for spreadsheets or BOQ for contractors
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
