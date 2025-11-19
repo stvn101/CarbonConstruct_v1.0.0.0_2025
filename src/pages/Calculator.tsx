@@ -7,9 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, FileText, Eraser, Leaf } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf } from "lucide-react";
 import { MATERIAL_DB, FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/calculator-presets";
 
 interface Material {
@@ -148,7 +147,6 @@ export default function Calculator() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const [activeTab, setActiveTab] = useState('inputs');
   const [scope1Inputs, setScope1Inputs] = useState<Record<string, string>>(() => loadFromStorage('scope1Inputs', {}));
   const [scope2Inputs, setScope2Inputs] = useState<Record<string, string>>(() => loadFromStorage('scope2Inputs', {}));
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>(() => loadFromStorage('transportInputs', {}));
@@ -273,171 +271,168 @@ export default function Calculator() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Carbon Calculator</h1>
-          <p className="text-muted-foreground">Calculate emissions for {currentProject?.name || 'your project'}</p>
+    <div className="min-h-screen bg-background pb-12">
+      {/* Header */}
+      <div className="bg-slate-900 text-white shadow-lg print:hidden">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="bg-emerald-500 p-2 rounded">
+              <Leaf className="text-white h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">
+                CarbonConstruct <span className="text-emerald-400">Calculator</span>
+              </h1>
+              <div className="text-xs text-slate-400">NCC 2025 • Auto-Save Enabled</div>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={resetForm} className="text-slate-400 hover:text-white">
+            <Eraser className="h-4 w-4 mr-2" />
+            Reset Form
+          </Button>
         </div>
-        <Button variant="ghost" size="sm" onClick={resetForm}>
-          <Eraser className="h-4 w-4 mr-2" />
-          Reset Form
-        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="inputs">Data Entry</TabsTrigger>
-              <TabsTrigger value="report">Summary</TabsTrigger>
-            </TabsList>
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto mt-8 px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Inputs */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Energy Section */}
+            <Card className="p-6">
+              <h3 className="font-bold text-lg mb-4 text-slate-700">Energy (Scope 1 & 2)</h3>
+              <div className="bg-slate-50 p-3 rounded border border-slate-100 mb-4">
+                <FactorRow 
+                  label={`Grid Electricity (${currentProject?.location || 'NSW'})`}
+                  unit="kWh"
+                  factor={STATE_ELEC_FACTORS[(currentProject?.location || 'NSW') as keyof typeof STATE_ELEC_FACTORS]?.factor || 0.66}
+                  value={scope2Inputs.kwh || ''}
+                  onChange={v => setScope2Inputs({ kwh: v })}
+                  total={parseFloat(scope2Inputs.kwh || '0') * (STATE_ELEC_FACTORS[(currentProject?.location || 'NSW') as keyof typeof STATE_ELEC_FACTORS]?.factor || 0.66)}
+                />
+              </div>
+              {Object.entries(FUEL_FACTORS).map(([k, f]) => (
+                <FactorRow 
+                  key={k}
+                  label={f.name}
+                  unit={f.unit}
+                  factor={f.factor}
+                  value={scope1Inputs[k] || ''}
+                  onChange={v => setScope1Inputs({ ...scope1Inputs, [k]: v })}
+                  total={parseFloat(scope1Inputs[k] || '0') * f.factor}
+                />
+              ))}
+            </Card>
 
-            <TabsContent value="inputs" className="space-y-6 mt-6">
-              {/* Energy */}
-              <Card className="p-6">
-                <h3 className="font-bold text-lg mb-4">Energy (Scope 1 & 2)</h3>
-                <div className="space-y-1">
-                  <FactorRow 
-                    label={`Grid Electricity (${currentProject?.location || 'NSW'})`}
-                    unit="kWh"
-                    factor={STATE_ELEC_FACTORS[(currentProject?.location || 'NSW') as keyof typeof STATE_ELEC_FACTORS]?.factor || 0.66}
-                    value={scope2Inputs.kwh || ''}
-                    onChange={v => setScope2Inputs({ kwh: v })}
-                    total={parseFloat(scope2Inputs.kwh || '0') * (STATE_ELEC_FACTORS[(currentProject?.location || 'NSW') as keyof typeof STATE_ELEC_FACTORS]?.factor || 0.66)}
+            {/* Materials Section */}
+            <Card className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={addCustomMaterial}
+                    className="bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create Custom
+                  </Button>
+                  <Select onValueChange={(value) => {
+                    const [cat, id] = value.split(':');
+                    addMaterial(cat, id);
+                  }}>
+                    <SelectTrigger className="w-[180px] bg-emerald-50 text-emerald-700 border-emerald-200">
+                      <SelectValue placeholder="Add From DB" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(MATERIAL_DB).map(([catKey, cat]) => (
+                        <div key={catKey}>
+                          <div className="px-2 py-1.5 text-xs font-bold text-gray-400 uppercase">{cat.label}</div>
+                          {cat.items.map(item => (
+                            <SelectItem key={item.id} value={`${catKey}:${item.id}`} className="text-sm">
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {selectedMaterials.map(m => (
+                  <MaterialRow 
+                    key={m.id}
+                    material={m}
+                    onChange={(updated) => setSelectedMaterials(prev => prev.map(mat => mat.id === m.id ? updated : mat))}
+                    onRemove={() => setSelectedMaterials(prev => prev.filter(mat => mat.id !== m.id))}
                   />
-                  {Object.entries(FUEL_FACTORS).map(([k, f]) => (
-                    <FactorRow 
-                      key={k}
-                      label={f.name}
-                      unit={f.unit}
-                      factor={f.factor}
-                      value={scope1Inputs[k] || ''}
-                      onChange={v => setScope1Inputs({ ...scope1Inputs, [k]: v })}
-                      total={parseFloat(scope1Inputs[k] || '0') * f.factor}
-                    />
-                  ))}
-                </div>
-              </Card>
-
-              {/* Materials */}
-              <Card className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold text-lg">Materials (Upfront A1-A3)</h3>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={addCustomMaterial}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Custom Item
-                    </Button>
-                    <Select onValueChange={(value) => {
-                      const [cat, id] = value.split(':');
-                      addMaterial(cat, id);
-                    }}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Add from Database" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(MATERIAL_DB).map(([catKey, cat]) => (
-                          <div key={catKey}>
-                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{cat.label}</div>
-                            {cat.items.map(item => (
-                              <SelectItem key={item.id} value={`${catKey}:${item.id}`}>
-                                {item.name}
-                              </SelectItem>
-                            ))}
-                          </div>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                ))}
+                {selectedMaterials.length === 0 && (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded text-gray-400 text-sm">
+                    No materials added.
                   </div>
-                </div>
-                <div className="space-y-2">
-                  {selectedMaterials.map(m => (
-                    <MaterialRow 
-                      key={m.id}
-                      material={m}
-                      onChange={(updated) => setSelectedMaterials(prev => prev.map(mat => mat.id === m.id ? updated : mat))}
-                      onRemove={() => setSelectedMaterials(prev => prev.filter(mat => mat.id !== m.id))}
-                    />
-                  ))}
-                  {selectedMaterials.length === 0 && (
-                    <div className="text-center py-12 border-2 border-dashed rounded text-muted-foreground text-sm">
-                      No materials added yet
-                    </div>
-                  )}
-                </div>
-              </Card>
+                )}
+              </div>
+            </Card>
 
-              {/* Transport */}
-              <Card className="p-6">
-                <h3 className="font-bold text-lg mb-4">Transport (A5)</h3>
-                <div className="space-y-1">
-                  {Object.entries(TRANSPORT_FACTORS).map(([k, f]) => (
-                    <FactorRow 
-                      key={k}
-                      label={f.name}
-                      unit={f.unit}
-                      factor={f.factor}
-                      value={transportInputs[k] || ''}
-                      onChange={v => setTransportInputs({ ...transportInputs, [k]: v })}
-                      total={parseFloat(transportInputs[k] || '0') * f.factor}
-                    />
-                  ))}
-                </div>
-              </Card>
-            </TabsContent>
+            {/* Transport Section */}
+            <Card className="p-6">
+              <h3 className="font-bold text-lg mb-4 text-slate-700">Transport (A5)</h3>
+              {Object.entries(TRANSPORT_FACTORS).map(([k, f]) => (
+                <FactorRow 
+                  key={k}
+                  label={f.name}
+                  unit={f.unit}
+                  factor={f.factor}
+                  value={transportInputs[k] || ''}
+                  onChange={v => setTransportInputs({ ...transportInputs, [k]: v })}
+                  total={parseFloat(transportInputs[k] || '0') * f.factor}
+                />
+              ))}
+            </Card>
 
-            <TabsContent value="report" className="mt-6">
-              <Card className="p-8 text-center space-y-4">
-                <div className="inline-block p-4 bg-emerald-50 rounded-full text-emerald-600 mb-4">
-                  <FileText className="h-8 w-8" />
+            {/* Action Buttons */}
+            <div className="flex gap-4 justify-center pt-4">
+              <Button onClick={saveReport} disabled={saving} size="lg">
+                {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                Save to Reports
+              </Button>
+              <Button variant="outline" size="lg" onClick={() => window.print()}>
+                Print PDF
+              </Button>
+            </div>
+          </div>
+
+          {/* Right Column - Stats Panel */}
+          <div className="lg:col-span-1">
+            <Card className="p-6 sticky top-6 bg-slate-800 text-white">
+              <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Footprint</h3>
+              <div className="text-4xl font-bold mb-6 text-emerald-400">
+                {(calculations.total / 1000).toFixed(2)} <span className="text-lg text-white">tCO₂e</span>
+              </div>
+              <div className="space-y-4 text-sm">
+                <div className="flex justify-between border-b border-slate-700 pb-2">
+                  <span className="text-slate-300">Energy</span>
+                  <span className="font-bold">{((calculations.s1 + calculations.s2) / 1000).toFixed(2)} t</span>
                 </div>
-                <h2 className="text-2xl font-bold">Calculation Complete</h2>
-                <p className="text-muted-foreground">Total: {(calculations.total / 1000).toFixed(2)} tCO₂e</p>
-                <div className="flex justify-center gap-4">
-                  <Button onClick={saveReport} disabled={saving}>
-                    {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                    Save to Reports
-                  </Button>
-                  <Button variant="outline" onClick={() => window.print()}>
-                    Print PDF
-                  </Button>
+                <div className="flex justify-between border-b border-slate-700 pb-2">
+                  <span className="text-slate-300">Materials</span>
+                  <span className="font-bold">{(calculations.s3_mat / 1000).toFixed(2)} t</span>
                 </div>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                <div className="flex justify-between">
+                  <span className="text-slate-300">Transport</span>
+                  <span className="font-bold">{(calculations.s3_trans / 1000).toFixed(2)} t</span>
+                </div>
+              </div>
+              <div className="mt-8 pt-4 border-t border-slate-700 text-xs text-center text-slate-500">
+                {user ? '✓ Auto-save active' : 'Connecting...'}
+              </div>
+            </Card>
+          </div>
         </div>
-
-        {/* Stats Panel */}
-        <div className="lg:col-span-1">
-          <Card className="p-6 sticky top-6 bg-slate-900 text-white">
-            <div className="flex items-center gap-2 mb-4">
-              <Leaf className="h-5 w-5 text-emerald-400" />
-              <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Footprint</h3>
-            </div>
-            <div className="text-4xl font-bold mb-6 text-emerald-400">
-              {(calculations.total / 1000).toFixed(2)} <span className="text-lg text-white">tCO₂e</span>
-            </div>
-            <div className="space-y-4 text-sm">
-              <div className="flex justify-between border-b border-slate-700 pb-2">
-                <span className="text-slate-300">Energy</span>
-                <span className="font-bold">{((calculations.s1 + calculations.s2) / 1000).toFixed(2)} t</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-700 pb-2">
-                <span className="text-slate-300">Materials</span>
-                <span className="font-bold">{(calculations.s3_mat / 1000).toFixed(2)} t</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-300">Transport</span>
-                <span className="font-bold">{(calculations.s3_trans / 1000).toFixed(2)} t</span>
-              </div>
-            </div>
-            <div className="mt-8 pt-4 border-t border-slate-700 text-xs text-center text-slate-500">
-              ✓ Auto-save active
-            </div>
-          </Card>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
