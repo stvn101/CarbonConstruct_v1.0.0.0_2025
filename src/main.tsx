@@ -1,14 +1,14 @@
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-// Temporarily disabled to debug React module issue
-// import { setupGlobalErrorHandlers } from "./lib/error-monitoring";
+import { setupGlobalErrorHandlers } from "./lib/error-monitoring";
 
-// Temporarily disabled to debug React module issue
-// setupGlobalErrorHandlers();
+// Initialize global error monitoring
+setupGlobalErrorHandlers();
 
-// Register Service Worker for PWA support
-if ('serviceWorker' in navigator) {
+// Register Service Worker for PWA support (production only)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(
       (registration) => {
@@ -21,4 +21,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
