@@ -83,8 +83,6 @@ export default function Calculator() {
   const [materialDb, setMaterialDb] = useState<any[]>([]);
   const [loadingDb, setLoadingDb] = useState(true);
   const [dbError, setDbError] = useState<string | null>(null);
-  const [currentVersion, setCurrentVersion] = useState<number>(1);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout>();
 
@@ -110,9 +108,8 @@ export default function Calculator() {
       clearTimeout(autoSaveTimerRef.current);
     }
 
-    autoSaveTimerRef.current = setTimeout(async () => {
-      await saveDraft();
-      setLastSaved(new Date());
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveDraft();
     }, 30000); // Auto-save every 30 seconds
 
     return () => {
@@ -169,7 +166,6 @@ export default function Calculator() {
         setFuelInputs((data.fuel_inputs as any) || {});
         setElectricityInputs((data.electricity_inputs as any) || {});
         setTransportInputs((data.transport_inputs as any) || {});
-        setCurrentVersion(data.version);
       }
     } catch (error) {
       logger.error('Calculator:loadDraft', error);
@@ -184,7 +180,7 @@ export default function Calculator() {
     try {
       const { data: existing } = await supabase
         .from('unified_calculations')
-        .select('id, version')
+        .select('id')
         .eq('project_id', currentProject.id)
         .eq('is_draft', true)
         .maybeSingle();
@@ -201,37 +197,18 @@ export default function Calculator() {
       };
 
       if (existing) {
-        const { data: updated, error } = await supabase
+        const { error } = await supabase
           .from('unified_calculations')
-          .update({
-            ...payload,
-            version: existing.version + 1
-          })
-          .eq('id', existing.id)
-          .eq('version', existing.version)
-          .select('version')
-          .single();
-
-        if (error) {
-          if (error.code === 'PGRST116') {
-            logger.warn('Calculator:saveDraft', 'Version conflict detected, reloading draft');
-            await loadDraft();
-            toast.error('Draft updated by another session. Your changes have been reloaded.');
-            return;
-          }
-          throw error;
-        }
-
-        setCurrentVersion(updated.version);
-      } else {
-        const { data: inserted, error } = await supabase
-          .from('unified_calculations')
-          .insert([{ ...payload, version: 1 }])
-          .select('version')
-          .single();
+          .update(payload)
+          .eq('id', existing.id);
 
         if (error) throw error;
-        setCurrentVersion(inserted.version);
+      } else {
+        const { error } = await supabase
+          .from('unified_calculations')
+          .insert([payload]);
+
+        if (error) throw error;
       }
     } catch (error) {
       logger.error('Calculator:saveDraft', error);
