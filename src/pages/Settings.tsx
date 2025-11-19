@@ -6,6 +6,7 @@ import { WebhookStatusCard } from "@/components/WebhookStatusCard";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 import { DataMigration } from "@/components/DataMigration";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
+import { MaterialsImporter } from "@/components/MaterialsImporter";
 
 const Settings = () => {
   return (
@@ -37,6 +38,8 @@ const Settings = () => {
                 <ManageSubscriptionButton />
               </CardContent>
             </Card>
+            
+            <MaterialsImporter />
             
             <DataMigration />
             
