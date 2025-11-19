@@ -15,6 +15,13 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    force: true, // Force re-bundling of dependencies
+    exclude: ['react', 'react-dom'], // Force fresh React modules
+    esbuildOptions: {
+      target: 'esnext'
+    }
+  },
   esbuild: {
     drop: mode === "production" ? ["console", "debugger"] : [],
   },
