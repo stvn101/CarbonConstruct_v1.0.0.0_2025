@@ -294,10 +294,8 @@ export async function importAustralianMaterials() {
       
       const { error } = await supabase
         .from('lca_materials')
-        .upsert(batch, { 
-          onConflict: 'material_name,region,data_source',
-          ignoreDuplicates: false 
-        });
+        .insert(batch);
+
       
       if (error) {
         console.error(`Error importing batch ${i / BATCH_SIZE + 1}:`, error);
