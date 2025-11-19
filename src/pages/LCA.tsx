@@ -10,9 +10,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useProject } from '@/contexts/ProjectContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Package, Truck, Building, Recycle, AlertCircle, Calculator, BarChart3, ArrowUpDown } from 'lucide-react';
+import { ArrowLeft, Package, Truck, Building, Recycle, AlertCircle, Calculator, BarChart3, ArrowUpDown, Flame } from 'lucide-react';
 import { LCADashboard } from '@/components/LCADashboard';
 import { MaterialComparison } from '@/components/MaterialComparison';
+import { HotspotAnalysis } from '@/components/HotspotAnalysis';
 
 interface MaterialEntry {
   materialName: string;
@@ -225,10 +226,14 @@ const LCA = () => {
       </Alert>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="dashboard">
             <BarChart3 className="h-4 w-4 mr-2" />
             Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="hotspots">
+            <Flame className="h-4 w-4 mr-2" />
+            Hotspots
           </TabsTrigger>
           <TabsTrigger value="comparison">
             <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -254,6 +259,10 @@ const LCA = () => {
 
         <TabsContent value="dashboard" className="space-y-4">
           <LCADashboard />
+        </TabsContent>
+
+        <TabsContent value="hotspots" className="space-y-4">
+          <HotspotAnalysis />
         </TabsContent>
 
         <TabsContent value="comparison" className="space-y-4">
