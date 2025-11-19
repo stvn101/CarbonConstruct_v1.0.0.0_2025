@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, CheckCircle, XCircle, Loader2, Database } from 'lucide-react';
+import { Upload, CheckCircle, XCircle, Loader2, Database, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ImportJob {
@@ -45,7 +45,6 @@ export function MaterialsImporter() {
   useEffect(() => {
     fetchJobs();
     
-    // Poll for updates every 3 seconds if there are active jobs
     const interval = setInterval(() => {
       const hasActiveJobs = jobs.some(j => j.status === 'pending' || j.status === 'processing');
       if (hasActiveJobs) {
@@ -60,7 +59,6 @@ export function MaterialsImporter() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file type
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls') && !file.name.endsWith('.csv')) {
       toast.error('Please upload an Excel or CSV file');
       return;
@@ -69,7 +67,6 @@ export function MaterialsImporter() {
     setUploading(true);
 
     try {
-      // Upload file to storage
       const filePath = `${user.id}/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from('materials-data')
@@ -77,7 +74,6 @@ export function MaterialsImporter() {
 
       if (uploadError) throw uploadError;
 
-      // Create import job
       const { data: job, error: jobError } = await supabase
         .from('materials_import_jobs')
         .insert({
@@ -93,7 +89,6 @@ export function MaterialsImporter() {
 
       toast.success(`File uploaded! Import started for ${file.name}`);
 
-      // Trigger import edge function
       const { error: functionError } = await supabase.functions.invoke('import-materials', {
         body: {
           jobId: job.id,
@@ -106,7 +101,6 @@ export function MaterialsImporter() {
         toast.error('Failed to start import process');
       }
 
-      // Refresh jobs list
       await fetchJobs();
 
     } catch (error) {
@@ -114,7 +108,27 @@ export function MaterialsImporter() {
       toast.error(error instanceof Error ? error.message : 'Failed to upload file');
     } finally {
       setUploading(false);
-      event.target.value = ''; // Reset file input
+      event.target.value = '';
+    }
+  };
+
+  const handleDirectImport = async () => {
+    setUploading(true);
+    try {
+      const { importAustralianMaterials } = await import('@/lib/import-australian-materials');
+      const result = await importAustralianMaterials();
+      
+      if (result.success) {
+        toast.success(`Successfully imported ${result.count} Australian materials!`);
+        await fetchJobs();
+      } else {
+        toast.error('Failed to import materials');
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('Failed to import materials');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -139,67 +153,107 @@ export function MaterialsImporter() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Database className="h-5 w-5" />
-          Materials Database Importer
-        </CardTitle>
+        <CardTitle>Materials Database Import</CardTitle>
         <CardDescription>
-          Import materials from NABERS EPD lists, ICM Database, or custom Excel files
+          Quick start with Australian materials or upload your own emission factor files
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Upload Section */}
-        <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 hover:border-primary/50 transition-colors">
-          <Upload className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-sm text-muted-foreground mb-4">
-            Upload Excel (.xlsx, .xls) or CSV files
-          </p>
-          <label htmlFor="materials-file-upload">
+        <div className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-6 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold text-lg">Quick Start: Australian Materials</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">
+                Instantly load 30+ verified Australian construction materials with carbon data
+              </p>
+              <ul className="text-xs text-muted-foreground space-y-1 mb-4">
+                <li>✓ Concrete, steel, timber & more</li>
+                <li>✓ Based on Australian standards</li>
+                <li>✓ Ready to use immediately</li>
+              </ul>
+            </div>
             <Button
+              onClick={handleDirectImport}
               disabled={uploading}
-              onClick={() => document.getElementById('materials-file-upload')?.click()}
+              size="lg"
+              className="shrink-0"
             >
               {uploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading...
+                  Importing...
                 </>
               ) : (
                 <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Choose File
+                  <Database className="mr-2 h-4 w-4" />
+                  Import Now
                 </>
               )}
             </Button>
+          </div>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">Or upload custom files</span>
+          </div>
+        </div>
+
+        <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+          <Upload className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold mb-2">Upload Your Own Data</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Excel (.xlsx, .xls) or CSV files supported
+              </p>
+            </div>
             <input
-              id="materials-file-upload"
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={handleFileUpload}
-              className="hidden"
               disabled={uploading}
+              className="hidden"
+              id="file-upload"
             />
-          </label>
+            <label htmlFor="file-upload">
+              <Button
+                disabled={uploading}
+                asChild
+                variant="outline"
+                size="lg"
+              >
+                <span className="cursor-pointer">
+                  {uploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-5 w-5" />
+                      Choose File
+                    </>
+                  )}
+                </span>
+              </Button>
+            </label>
+            <p className="text-xs text-muted-foreground mt-2">
+              Supports: ICM Database, NABERS NMEF v2025.1, EPD Lists
+            </p>
+          </div>
         </div>
 
-        {/* Supported Files Info */}
-        <Alert>
-          <AlertDescription>
-            <strong>Supported files:</strong>
-            <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-              <li>NABERS National Material Emission Factors Database (v2025.1)</li>
-              <li>NABERS EPD List (v2025.1)</li>
-              <li>ICM Database (2019)</li>
-              <li>Custom materials spreadsheets with columns: Material Name, Category, Unit, Embodied Carbon</li>
-            </ul>
-          </AlertDescription>
-        </Alert>
-
-        {/* Import Jobs List */}
         {jobs.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">Import History</h3>
+              <h3 className="text-sm font-semibold">Recent Imports</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -213,43 +267,47 @@ export function MaterialsImporter() {
                 )}
               </Button>
             </div>
-
-            <div className="space-y-3">
+            <div className="space-y-2">
               {jobs.map((job) => (
                 <div
                   key={job.id}
-                  className="flex items-center gap-3 p-4 border rounded-lg"
+                  className="border rounded-lg p-4 space-y-2"
                 >
-                  {getStatusIcon(job.status)}
-                  
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{job.file_name}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(job.status)}
+                      <span className="font-medium text-sm">{job.file_name}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
                       {new Date(job.created_at).toLocaleString()}
-                    </p>
-                    
-                    {job.status === 'processing' && job.records_total > 0 && (
-                      <div className="mt-2 space-y-1">
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{job.records_processed} / {job.records_total} records</span>
-                          <span>{getProgressPercentage(job)}%</span>
-                        </div>
-                        <Progress value={getProgressPercentage(job)} className="h-1" />
-                      </div>
-                    )}
-
-                    {job.status === 'completed' && (
-                      <p className="text-xs text-green-600 mt-1">
-                        ✓ Imported {job.records_processed} materials
-                      </p>
-                    )}
-
-                    {job.status === 'failed' && job.error_message && (
-                      <p className="text-xs text-destructive mt-1">
-                        Error: {job.error_message}
-                      </p>
-                    )}
+                    </span>
                   </div>
+
+                  {(job.status === 'processing' || job.status === 'completed') && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Progress</span>
+                        <span>
+                          {job.records_processed} / {job.records_total} records
+                        </span>
+                      </div>
+                      <Progress value={getProgressPercentage(job)} />
+                    </div>
+                  )}
+
+                  {job.error_message && (
+                    <Alert variant="destructive">
+                      <AlertDescription className="text-xs">
+                        {job.error_message}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {job.status === 'completed' && (
+                    <p className="text-xs text-green-600">
+                      ✓ Successfully imported {job.records_processed} materials
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
