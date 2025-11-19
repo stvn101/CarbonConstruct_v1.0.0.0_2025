@@ -15,6 +15,14 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    force: true,
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
+  cacheDir: `.vite-cache-${Date.now()}`,
+  clearScreen: false,
   esbuild: {
     drop: mode === "production" ? ["console", "debugger"] : [],
   },
