@@ -1,5 +1,5 @@
 import { useProject } from '@/contexts/ProjectContext';
-import { useEmissionTotals } from '@/hooks/useEmissionTotals';
+import { useUnifiedCalculations, MaterialItem, FuelInput, ElectricityInput, TransportInput } from '@/hooks/useUnifiedCalculations';
 
 export interface ReportData {
   project: {
@@ -15,9 +15,10 @@ export interface ReportData {
     total: number;
   };
   breakdown: {
-    scope1Details: Array<{ category: string; emissions: number; percentage: number }>;
-    scope2Details: Array<{ category: string; emissions: number; percentage: number }>;
-    scope3Details: Array<{ category: string; emissions: number; percentage: number }>;
+    materials: MaterialItem[];
+    fuelInputs: FuelInput[];
+    electricityInputs: ElectricityInput[];
+    transportInputs: TransportInput[];
   };
   compliance: {
     nccCompliant: boolean;
@@ -33,11 +34,17 @@ export interface ReportData {
 
 export const useReportData = (): ReportData | null => {
   const { currentProject } = useProject();
-  const { totals, scope1Details, scope2Details, scope3Details, loading } = useEmissionTotals();
+  const { data, loading } = useUnifiedCalculations();
 
   if (!currentProject || loading) {
     return null;
   }
+
+  if (!data) {
+    return null;
+  }
+
+  const scope3Total = data.totals.scope3_materials + data.totals.scope3_transport;
 
   return {
     project: {
@@ -46,16 +53,22 @@ export const useReportData = (): ReportData | null => {
       location: currentProject.location,
       project_type: currentProject.project_type,
     },
-    emissions: totals,
+    emissions: {
+      scope1: data.totals.scope1,
+      scope2: data.totals.scope2,
+      scope3: scope3Total,
+      total: data.totals.total,
+    },
     breakdown: {
-      scope1Details,
-      scope2Details,
-      scope3Details,
+      materials: data.materials,
+      fuelInputs: data.fuelInputs,
+      electricityInputs: data.electricityInputs,
+      transportInputs: data.transportInputs,
     },
     compliance: {
-      nccCompliant: totals.total > 0,
-      greenStarEligible: totals.total < 1000, // Example threshold
-      nabersReady: totals.scope2 > 0,
+      nccCompliant: data.totals.total > 0,
+      greenStarEligible: data.totals.total < 1000,
+      nabersReady: data.totals.scope2 > 0,
     },
     metadata: {
       generatedAt: new Date().toISOString(),

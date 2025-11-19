@@ -91,11 +91,26 @@ const Reports = () => {
     { name: 'Scope 3', value: reportData.emissions.scope3, color: 'hsl(var(--scope-3))' },
   ];
 
-  const categoryData = [
-    ...reportData.breakdown.scope1Details.map(item => ({ ...item, scope: 'Scope 1' })),
-    ...reportData.breakdown.scope2Details.map(item => ({ ...item, scope: 'Scope 2' })),
-    ...reportData.breakdown.scope3Details.map(item => ({ ...item, scope: 'Scope 3' })),
-  ];
+  const materialsData = reportData.breakdown.materials.map(m => ({
+    name: m.name,
+    emissions: m.totalEmissions,
+    category: m.category
+  }));
+
+  const fuelData = reportData.breakdown.fuelInputs.map(f => ({
+    name: f.fuelType,
+    emissions: f.totalEmissions
+  }));
+
+  const electricityData = reportData.breakdown.electricityInputs.map(e => ({
+    name: e.state,
+    emissions: e.totalEmissions
+  }));
+
+  const transportData = reportData.breakdown.transportInputs.map(t => ({
+    name: t.mode,
+    emissions: t.totalEmissions
+  }));
 
   const complianceProgress = [
     { 
@@ -256,11 +271,11 @@ const Reports = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px]">
+              <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={categoryData}>
+                  <BarChart data={[...materialsData, ...fuelData, ...electricityData, ...transportData]}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="category" angle={-45} textAnchor="end" height={80} />
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                     <YAxis />
                     <Tooltip formatter={(value) => `${Number(value).toFixed(2)} tCO₂e`} />
                     <Bar dataKey="emissions" fill="hsl(var(--primary))" />
@@ -270,65 +285,96 @@ const Reports = () => {
             </CardContent>
           </Card>
 
-          {/* Scope Details */}
-          <div className="grid gap-6 md:grid-cols-3">
+          {/* Materials Breakdown */}
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Materials Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-scope-3" />
+                  Materials (Embodied Carbon)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {materialsData.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No materials data available</p>
+                ) : (
+                  materialsData.map((material, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <span className="text-sm">{material.name}</span>
+                      <div className="text-right">
+                        <div className="text-sm font-medium">{material.emissions.toFixed(2)} tCO₂e</div>
+                        <div className="text-xs text-muted-foreground">{material.category}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Fuel Inputs */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Factory className="h-5 w-5 text-scope-1" />
-                  Scope 1 Details
+                  Fuel Inputs
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {reportData.breakdown.scope1Details.map((category, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span className="text-sm">{category.category}</span>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">{category.emissions.toFixed(2)} tCO₂e</div>
-                      <div className="text-xs text-muted-foreground">{category.percentage.toFixed(1)}%</div>
+                {fuelData.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No fuel data available</p>
+                ) : (
+                  fuelData.map((fuel, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <span className="text-sm">{fuel.name}</span>
+                      <div className="text-sm font-medium">{fuel.emissions.toFixed(2)} tCO₂e</div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </CardContent>
             </Card>
 
+            {/* Electricity Inputs */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="h-5 w-5 text-scope-2" />
-                  Scope 2 Details
+                  Electricity Inputs
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {reportData.breakdown.scope2Details.map((category, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span className="text-sm">{category.category}</span>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">{category.emissions.toFixed(2)} tCO₂e</div>
-                      <div className="text-xs text-muted-foreground">{category.percentage.toFixed(1)}%</div>
+                {electricityData.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No electricity data available</p>
+                ) : (
+                  electricityData.map((elec, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <span className="text-sm">{elec.name}</span>
+                      <div className="text-sm font-medium">{elec.emissions.toFixed(2)} tCO₂e</div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </CardContent>
             </Card>
 
+            {/* Transport Inputs */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Truck className="h-5 w-5 text-scope-3" />
-                  Scope 3 Details
+                  Transport
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {reportData.breakdown.scope3Details.map((category, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span className="text-sm">{category.category}</span>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">{category.emissions.toFixed(2)} tCO₂e</div>
-                      <div className="text-xs text-muted-foreground">{category.percentage.toFixed(1)}%</div>
+                {transportData.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No transport data available</p>
+                ) : (
+                  transportData.map((transport, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <span className="text-sm">{transport.name}</span>
+                      <div className="text-sm font-medium">{transport.emissions.toFixed(2)} tCO₂e</div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </CardContent>
             </Card>
           </div>

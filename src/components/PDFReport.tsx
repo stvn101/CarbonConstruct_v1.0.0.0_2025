@@ -166,43 +166,57 @@ const PDFReportDocument: React.FC<{ data: ReportData }> = ({ data }) => (
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Emissions by Scope</Text>
         
-        {/* Scope 1 */}
+        {/* Scope 1: Fuel Inputs */}
         <View style={styles.emissionCard}>
-          <Text style={styles.emissionTitle}>Scope 1: Direct Emissions</Text>
+          <Text style={styles.emissionTitle}>Scope 1: Direct Emissions (Fuel)</Text>
           <Text style={styles.emissionValue}>{data.emissions.scope1.toFixed(2)} tCO₂e</Text>
-          {data.breakdown.scope1Details.map((category, index) => (
+          {data.breakdown.fuelInputs.map((fuel, index) => (
             <View key={index} style={styles.categoryRow}>
-              <Text style={styles.categoryName}>{category.category}</Text>
+              <Text style={styles.categoryName}>{fuel.fuelType}</Text>
               <Text style={styles.categoryValue}>
-                {category.emissions.toFixed(2)} tCO₂e ({category.percentage.toFixed(1)}%)
+                {fuel.totalEmissions.toFixed(2)} tCO₂e ({fuel.quantity} {fuel.unit})
               </Text>
             </View>
           ))}
         </View>
 
-        {/* Scope 2 */}
+        {/* Scope 2: Electricity */}
         <View style={styles.emissionCard}>
-          <Text style={styles.emissionTitle}>Scope 2: Energy Indirect</Text>
+          <Text style={styles.emissionTitle}>Scope 2: Energy Indirect (Electricity)</Text>
           <Text style={styles.emissionValue}>{data.emissions.scope2.toFixed(2)} tCO₂e</Text>
-          {data.breakdown.scope2Details.map((category, index) => (
+          {data.breakdown.electricityInputs.map((elec, index) => (
             <View key={index} style={styles.categoryRow}>
-              <Text style={styles.categoryName}>{category.category}</Text>
+              <Text style={styles.categoryName}>{elec.state}</Text>
               <Text style={styles.categoryValue}>
-                {category.emissions.toFixed(2)} tCO₂e ({category.percentage.toFixed(1)}%)
+                {elec.totalEmissions.toFixed(2)} tCO₂e ({elec.quantity} {elec.unit})
               </Text>
             </View>
           ))}
         </View>
 
-        {/* Scope 3 */}
+        {/* Scope 3: Materials */}
         <View style={styles.emissionCard}>
-          <Text style={styles.emissionTitle}>Scope 3: Value Chain</Text>
-          <Text style={styles.emissionValue}>{data.emissions.scope3.toFixed(2)} tCO₂e</Text>
-          {data.breakdown.scope3Details.map((category, index) => (
+          <Text style={styles.emissionTitle}>Scope 3: Materials (Embodied Carbon)</Text>
+          <Text style={styles.emissionValue}>{data.breakdown.materials.reduce((sum, m) => sum + m.totalEmissions, 0).toFixed(2)} tCO₂e</Text>
+          {data.breakdown.materials.map((material, index) => (
             <View key={index} style={styles.categoryRow}>
-              <Text style={styles.categoryName}>{category.category}</Text>
+              <Text style={styles.categoryName}>{material.name} ({material.category})</Text>
               <Text style={styles.categoryValue}>
-                {category.emissions.toFixed(2)} tCO₂e ({category.percentage.toFixed(1)}%)
+                {material.totalEmissions.toFixed(2)} tCO₂e ({material.quantity} {material.unit})
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Scope 3: Transport */}
+        <View style={styles.emissionCard}>
+          <Text style={styles.emissionTitle}>Scope 3: Transport</Text>
+          <Text style={styles.emissionValue}>{data.breakdown.transportInputs.reduce((sum, t) => sum + t.totalEmissions, 0).toFixed(2)} tCO₂e</Text>
+          {data.breakdown.transportInputs.map((transport, index) => (
+            <View key={index} style={styles.categoryRow}>
+              <Text style={styles.categoryName}>{transport.mode}</Text>
+              <Text style={styles.categoryValue}>
+                {transport.totalEmissions.toFixed(2)} tCO₂e ({transport.distance} km, {transport.weight} kg)
               </Text>
             </View>
           ))}
