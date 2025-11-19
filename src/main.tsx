@@ -1,3 +1,4 @@
+// Force complete cache rebuild - v3
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
