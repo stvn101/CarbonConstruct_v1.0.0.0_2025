@@ -7,6 +7,7 @@ import { useEmissionTotals } from "@/hooks/useEmissionTotals";
 import { useComplianceCheck } from "@/hooks/useComplianceCheck";
 import ProjectSelector from "@/components/ProjectSelector";
 import { DemoDataButton } from "@/components/DemoDataButton";
+import { MigrationButton } from "@/components/MigrationButton";
 import { EmissionsChart } from "@/components/EmissionsChart";
 import { ComplianceCard } from "@/components/ComplianceCard";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
@@ -103,6 +104,7 @@ Calculate and track your project's carbon emissions across all three scopes with
           <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Welcome back! Select a project to continue.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <MigrationButton />
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={emissionsLoading} className="hover-scale text-xs md:text-sm">
             <RefreshCw className={`h-3 w-3 md:h-4 md:w-4 mr-1.5 md:mr-2 ${emissionsLoading ? 'animate-spin' : ''}`} />
             <span className="hidden xs:inline">Refresh</span>
