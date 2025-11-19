@@ -8,25 +8,10 @@ const calculatorItems = [{
   icon: Home,
   color: "text-chart-4"
 }, {
-  title: "Scope 1 (Direct)",
-  url: "/scope-1",
-  icon: Factory,
+  title: "Calculator",
+  url: "/calculator",
+  icon: Calculator,
   color: "text-chart-1"
-}, {
-  title: "Scope 2 (Energy)",
-  url: "/scope-2",
-  icon: Zap,
-  color: "text-chart-2"
-}, {
-  title: "Scope 3 (Value Chain)",
-  url: "/scope-3",
-  icon: Truck,
-  color: "text-chart-3"
-}, {
-  title: "LCA Calculator",
-  url: "/lca",
-  icon: Package,
-  color: "text-chart-5"
 }, {
   title: "Reports & Analysis",
   url: "/reports",
