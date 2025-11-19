@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload } from "lucide-react";
 import { MATERIAL_DB, FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/calculator-presets";
 
 interface Material {
@@ -147,6 +147,13 @@ export default function Calculator() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  const [activeTab, setActiveTab] = useState<'inputs' | 'report'>('inputs');
+  const [projectDetails, setProjectDetails] = useState(() => loadFromStorage('projectDetails', { 
+    name: '', 
+    location: 'NSW', 
+    period: '', 
+    auditor: '' 
+  }));
   const [scope1Inputs, setScope1Inputs] = useState<Record<string, string>>(() => loadFromStorage('scope1Inputs', {}));
   const [scope2Inputs, setScope2Inputs] = useState<Record<string, string>>(() => loadFromStorage('scope2Inputs', {}));
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>(() => loadFromStorage('transportInputs', {}));
@@ -155,11 +162,12 @@ export default function Calculator() {
 
   // Auto-save to localStorage
   useEffect(() => {
+    localStorage.setItem('projectDetails', JSON.stringify(projectDetails));
     localStorage.setItem('scope1Inputs', JSON.stringify(scope1Inputs));
     localStorage.setItem('scope2Inputs', JSON.stringify(scope2Inputs));
     localStorage.setItem('transportInputs', JSON.stringify(transportInputs));
     localStorage.setItem('selectedMaterials', JSON.stringify(selectedMaterials));
-  }, [scope1Inputs, scope2Inputs, transportInputs, selectedMaterials]);
+  }, [projectDetails, scope1Inputs, scope2Inputs, transportInputs, selectedMaterials]);
 
   const calculations = useMemo(() => {
     let s1 = 0, s2 = 0, s3_mat = 0, s3_trans = 0;
@@ -170,7 +178,7 @@ export default function Calculator() {
     });
 
     const s2Val = parseFloat(scope2Inputs.kwh || '0');
-    const location = currentProject?.location || 'NSW';
+    const location = projectDetails.location || 'NSW';
     const s2Factor = STATE_ELEC_FACTORS[location as keyof typeof STATE_ELEC_FACTORS]?.factor || 0.66;
     s2 = s2Val * s2Factor;
 
@@ -184,7 +192,7 @@ export default function Calculator() {
     });
 
     return { s1, s2, s3_mat, s3_trans, total: s1 + s2 + s3_mat + s3_trans };
-  }, [scope1Inputs, scope2Inputs, selectedMaterials, transportInputs, currentProject]);
+  }, [scope1Inputs, scope2Inputs, selectedMaterials, transportInputs, projectDetails.location]);
 
   const addMaterial = (category: string, typeId: string) => {
     const catData = MATERIAL_DB[category as keyof typeof MATERIAL_DB];
@@ -222,6 +230,7 @@ export default function Calculator() {
 
   const resetForm = () => {
     if (!confirm("Clear all inputs? This cannot be undone.")) return;
+    setProjectDetails({ name: '', location: 'NSW', period: '', auditor: '' });
     setScope1Inputs({});
     setScope2Inputs({});
     setTransportInputs({});
@@ -298,111 +307,174 @@ export default function Calculator() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Inputs */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Energy Section */}
-            <Card className="p-6">
-              <h3 className="font-bold text-lg mb-4 text-slate-700">Energy (Scope 1 & 2)</h3>
-              <div className="bg-slate-50 p-3 rounded border border-slate-100 mb-4">
-                <FactorRow 
-                  label={`Grid Electricity (${currentProject?.location || 'NSW'})`}
-                  unit="kWh"
-                  factor={STATE_ELEC_FACTORS[(currentProject?.location || 'NSW') as keyof typeof STATE_ELEC_FACTORS]?.factor || 0.66}
-                  value={scope2Inputs.kwh || ''}
-                  onChange={v => setScope2Inputs({ kwh: v })}
-                  total={parseFloat(scope2Inputs.kwh || '0') * (STATE_ELEC_FACTORS[(currentProject?.location || 'NSW') as keyof typeof STATE_ELEC_FACTORS]?.factor || 0.66)}
+            {/* Project Config */}
+            <div className="bg-card rounded-lg shadow-sm border p-5 relative">
+              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">Project Details</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <Input 
+                  className="text-sm" 
+                  placeholder="Project Name" 
+                  value={projectDetails.name} 
+                  onChange={e => setProjectDetails({...projectDetails, name: e.target.value})} 
+                />
+                <Select value={projectDetails.location} onValueChange={v => setProjectDetails({...projectDetails, location: v})}>
+                  <SelectTrigger className="text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(STATE_ELEC_FACTORS).map(([k,v]) => (
+                      <SelectItem key={k} value={k}>{k} - {v.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input 
+                  className="text-sm" 
+                  placeholder="Period" 
+                  value={projectDetails.period} 
+                  onChange={e => setProjectDetails({...projectDetails, period: e.target.value})} 
+                />
+                <Input 
+                  className="text-sm" 
+                  placeholder="Auditor" 
+                  value={projectDetails.auditor} 
+                  onChange={e => setProjectDetails({...projectDetails, auditor: e.target.value})} 
                 />
               </div>
-              {Object.entries(FUEL_FACTORS).map(([k, f]) => (
-                <FactorRow 
-                  key={k}
-                  label={f.name}
-                  unit={f.unit}
-                  factor={f.factor}
-                  value={scope1Inputs[k] || ''}
-                  onChange={v => setScope1Inputs({ ...scope1Inputs, [k]: v })}
-                  total={parseFloat(scope1Inputs[k] || '0') * f.factor}
-                />
-              ))}
-            </Card>
-
-            {/* Materials Section */}
-            <Card className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={addCustomMaterial}
-                    className="bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Create Custom
-                  </Button>
-                  <Select onValueChange={(value) => {
-                    const [cat, id] = value.split(':');
-                    addMaterial(cat, id);
-                  }}>
-                    <SelectTrigger className="w-[180px] bg-emerald-50 text-emerald-700 border-emerald-200">
-                      <SelectValue placeholder="Add From DB" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(MATERIAL_DB).map(([catKey, cat]) => (
-                        <div key={catKey}>
-                          <div className="px-2 py-1.5 text-xs font-bold text-gray-400 uppercase">{cat.label}</div>
-                          {cat.items.map(item => (
-                            <SelectItem key={item.id} value={`${catKey}:${item.id}`} className="text-sm">
-                              {item.name}
-                            </SelectItem>
-                          ))}
-                        </div>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                {selectedMaterials.map(m => (
-                  <MaterialRow 
-                    key={m.id}
-                    material={m}
-                    onChange={(updated) => setSelectedMaterials(prev => prev.map(mat => mat.id === m.id ? updated : mat))}
-                    onRemove={() => setSelectedMaterials(prev => prev.filter(mat => mat.id !== m.id))}
-                  />
-                ))}
-                {selectedMaterials.length === 0 && (
-                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded text-gray-400 text-sm">
-                    No materials added.
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            {/* Transport Section */}
-            <Card className="p-6">
-              <h3 className="font-bold text-lg mb-4 text-slate-700">Transport (A5)</h3>
-              {Object.entries(TRANSPORT_FACTORS).map(([k, f]) => (
-                <FactorRow 
-                  key={k}
-                  label={f.name}
-                  unit={f.unit}
-                  factor={f.factor}
-                  value={transportInputs[k] || ''}
-                  onChange={v => setTransportInputs({ ...transportInputs, [k]: v })}
-                  total={parseFloat(transportInputs[k] || '0') * f.factor}
-                />
-              ))}
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="flex gap-4 justify-center pt-4">
-              <Button onClick={saveReport} disabled={saving} size="lg">
-                {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                Save to Reports
-              </Button>
-              <Button variant="outline" size="lg" onClick={() => window.print()}>
-                Print PDF
-              </Button>
             </div>
+
+            {/* Tabs */}
+            <div className="flex border-b bg-card rounded-t-lg">
+              <button 
+                onClick={() => setActiveTab('inputs')} 
+                className={`flex-1 py-3 text-sm font-medium ${activeTab === 'inputs' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground'}`}
+              >
+                Data Entry
+              </button>
+              <button 
+                onClick={() => setActiveTab('report')} 
+                className={`flex-1 py-3 text-sm font-medium ${activeTab === 'report' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground'}`}
+              >
+                Report
+              </button>
+            </div>
+
+            {activeTab === 'inputs' && (
+              <div className="space-y-6">
+                {/* Energy Section */}
+                <Card className="p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-700">Energy (Scope 1 & 2)</h3>
+                  <div className="bg-slate-50 p-3 rounded border mb-4">
+                    <FactorRow 
+                      label={`Grid Electricity (${projectDetails.location})`}
+                      unit="kWh"
+                      factor={STATE_ELEC_FACTORS[projectDetails.location as keyof typeof STATE_ELEC_FACTORS]?.factor || 0.66}
+                      value={scope2Inputs.kwh || ''}
+                      onChange={v => setScope2Inputs({ kwh: v })}
+                      total={parseFloat(scope2Inputs.kwh || '0') * (STATE_ELEC_FACTORS[projectDetails.location as keyof typeof STATE_ELEC_FACTORS]?.factor || 0.66)}
+                    />
+                  </div>
+                  {Object.entries(FUEL_FACTORS).map(([k, f]) => (
+                    <FactorRow 
+                      key={k}
+                      label={f.name}
+                      unit={f.unit}
+                      factor={f.factor}
+                      value={scope1Inputs[k] || ''}
+                      onChange={v => setScope1Inputs({ ...scope1Inputs, [k]: v })}
+                      total={parseFloat(scope1Inputs[k] || '0') * f.factor}
+                    />
+                  ))}
+                </Card>
+
+                {/* Materials Section */}
+                <Card className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-bold text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={addCustomMaterial}
+                        className="bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Create Custom
+                      </Button>
+                      <Select onValueChange={(value) => {
+                        const [cat, id] = value.split(':');
+                        addMaterial(cat, id);
+                      }}>
+                        <SelectTrigger className="w-[180px] bg-emerald-50 text-emerald-700 border-emerald-200">
+                          <SelectValue placeholder="Add From DB" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(MATERIAL_DB).map(([catKey, cat]) => (
+                            <div key={catKey}>
+                              <div className="px-2 py-1.5 text-xs font-bold text-gray-400 uppercase">{cat.label}</div>
+                              {cat.items.map(item => (
+                                <SelectItem key={item.id} value={`${catKey}:${item.id}`} className="text-sm">
+                                  {item.name}
+                                </SelectItem>
+                              ))}
+                            </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {selectedMaterials.map(m => (
+                      <MaterialRow 
+                        key={m.id}
+                        material={m}
+                        onChange={(updated) => setSelectedMaterials(prev => prev.map(mat => mat.id === m.id ? updated : mat))}
+                        onRemove={() => setSelectedMaterials(prev => prev.filter(mat => mat.id !== m.id))}
+                      />
+                    ))}
+                    {selectedMaterials.length === 0 && (
+                      <div className="text-center py-8 border-2 border-dashed rounded text-muted-foreground text-sm">
+                        No materials added.
+                      </div>
+                    )}
+                  </div>
+                </Card>
+
+                {/* Transport Section */}
+                <Card className="p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-700">Transport (A5)</h3>
+                  {Object.entries(TRANSPORT_FACTORS).map(([k, f]) => (
+                    <FactorRow 
+                      key={k}
+                      label={f.name}
+                      unit={f.unit}
+                      factor={f.factor}
+                      value={transportInputs[k] || ''}
+                      onChange={v => setTransportInputs({ ...transportInputs, [k]: v })}
+                      total={parseFloat(transportInputs[k] || '0') * f.factor}
+                    />
+                  ))}
+                </Card>
+              </div>
+            )}
+
+            {activeTab === 'report' && (
+              <Card className="p-8 text-center">
+                <div className="inline-block p-4 bg-emerald-50 rounded-full text-emerald-600 mb-4">
+                  <CloudUpload className="h-12 w-12" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Ready to Report</h2>
+                <p className="text-muted-foreground mb-6">Your calculation is complete. Save to history or print as PDF.</p>
+                <div className="flex justify-center gap-4">
+                  <Button onClick={saveReport} disabled={saving} size="lg">
+                    {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                    Save to Reports
+                  </Button>
+                  <Button variant="outline" size="lg" onClick={() => window.print()}>
+                    Print PDF
+                  </Button>
+                </div>
+              </Card>
+            )}
           </div>
 
           {/* Right Column - Stats Panel */}
