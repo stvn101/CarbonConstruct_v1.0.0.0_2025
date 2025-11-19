@@ -3,6 +3,7 @@ import { Settings as SettingsIcon } from "lucide-react";
 import { UsageDisplay } from "@/components/UsageDisplay";
 import { WebhookStatusCard } from "@/components/WebhookStatusCard";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
+import { DataMigration } from "@/components/DataMigration";
 
 const Settings = () => {
   return (
@@ -28,6 +29,8 @@ const Settings = () => {
               <ManageSubscriptionButton />
             </CardContent>
           </Card>
+          
+          <DataMigration />
           
           <WebhookStatusCard />
           

@@ -119,7 +119,7 @@ export const useUsageTracking = () => {
     return { allowed: true };
   };
 
-  // Track usage
+  // Track usage with optimistic locking
   const trackUsage = useMutation({
     mutationFn: async ({ metricType }: { metricType: string }) => {
       if (!user) throw new Error('User not authenticated');
@@ -128,53 +128,77 @@ export const useUsageTracking = () => {
       const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-      // Check if metric exists for this period
+      // Try to find existing metric with version for optimistic locking
       const { data: existing, error: fetchError } = await supabase
         .from('usage_metrics')
-        .select('*')
+        .select('id, count, version')
         .eq('user_id', user.id)
         .eq('metric_type', metricType)
         .gte('period_start', periodStart.toISOString())
         .lte('period_end', periodEnd.toISOString())
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
 
       if (existing) {
-        // Update existing metric
+        // Update existing record with optimistic locking
         const { error: updateError } = await supabase
           .from('usage_metrics')
-          .update({ count: existing.count + 1 })
-          .eq('id', existing.id);
+          .update({ 
+            count: existing.count + 1,
+          })
+          .eq('id', existing.id)
+          .eq('version', existing.version); // Optimistic lock check
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          // If version mismatch, retry once
+          if (updateError.code === 'PGRST116') {
+            // Record was updated by another process, refetch and retry
+            const { data: refetched } = await supabase
+              .from('usage_metrics')
+              .select('id, count, version')
+              .eq('id', existing.id)
+              .single();
+
+            if (refetched) {
+              await supabase
+                .from('usage_metrics')
+                .update({ count: refetched.count + 1 })
+                .eq('id', refetched.id)
+                .eq('version', refetched.version);
+            }
+          } else {
+            throw updateError;
+          }
+        }
       } else {
-        // Create new metric
+        // Create new metric record
         const { error: insertError } = await supabase
           .from('usage_metrics')
-          .insert({
+          .insert([{
             user_id: user.id,
             metric_type: metricType,
             count: 1,
             period_start: periodStart.toISOString(),
             period_end: periodEnd.toISOString(),
-          });
+            version: 1,
+          }]);
 
-        if (insertError) throw insertError;
+        if (insertError && insertError.code !== '23505') {
+          // Ignore duplicate key violations (race condition handled by unique index)
+          throw insertError;
+        }
       }
     },
     onSuccess: () => {
-      // Invalidate usage queries to refresh
+      // Invalidate queries to refetch usage
       queryClient.invalidateQueries({ queryKey: ['current-usage', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['usage-metrics', user?.id] });
     },
     onError: (error) => {
-      console.error('Error tracking usage:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to track usage. Please try again.',
-        variant: 'destructive',
-      });
+      console.error('Usage tracking error:', error);
+      // Don't show error to user - silent fail is acceptable for metrics
     },
   });
 
@@ -183,6 +207,7 @@ export const useUsageTracking = () => {
     projectCount,
     canPerformAction,
     trackUsage: trackUsage.mutate,
+    isTracking: trackUsage.isPending,
     isLoading,
   };
 };

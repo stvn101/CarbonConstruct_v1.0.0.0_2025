@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Plus, Trash2, Upload, Sparkles, Save, FileText, Download, FileSpreadsheet } from 'lucide-react';
 import { sanitizeText, sanitizeMaterialName, sanitizeNumber, sanitizeCsvField, MAX_LENGTHS } from '@/lib/sanitize';
 import { materialItemSchema } from '@/lib/schemas';
+import { CardSkeleton } from '@/components/LoadingSkeleton';
 
 interface Material {
   id: string;
@@ -97,6 +98,19 @@ export default function Calculator() {
     loadMaterialDatabase();
     loadDraft();
   }, [user, currentProject]);
+
+  // Show loading skeleton while database loads
+  if (loadingDb) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+      </div>
+    );
+  }
 
   // Auto-save effect
   useEffect(() => {

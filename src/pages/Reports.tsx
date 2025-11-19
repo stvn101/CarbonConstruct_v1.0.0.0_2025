@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,8 @@ import { useReportData } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { UpgradeModal } from '@/components/UpgradeModal';
+import { EmptyState } from '@/components/EmptyState';
+import { DashboardSkeleton } from '@/components/LoadingSkeleton';
 import { 
   FileBarChart, 
   Download, 
@@ -21,11 +24,14 @@ import {
   Building2,
   Star,
   Award,
-  Crown
+  Crown,
+  Calculator,
+  FolderOpen
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const Reports = () => {
+  const navigate = useNavigate();
   const { currentProject } = useProject();
   const reportData = useReportData();
   const { canPerformAction, trackUsage, currentUsage } = useUsageTracking();
@@ -60,28 +66,34 @@ const Reports = () => {
 
   if (!currentProject) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <FileBarChart className="mx-auto h-12 w-12 text-muted-foreground" />
-            <CardTitle>No Project Selected</CardTitle>
-            <CardDescription>
-              Please select a project to generate reports
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <EmptyState
+        icon={FolderOpen}
+        title="No Project Selected"
+        description="Please select a project from the sidebar to generate reports and view emission data."
+        actionLabel="Go to Dashboard"
+        onAction={() => navigate('/')}
+      />
     );
   }
 
   if (!reportData) {
+    return <DashboardSkeleton />;
+  }
+
+  // Check if there's any actual data
+  const hasData = reportData.emissions.total > 0;
+
+  if (!hasData) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-4">
-          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
-          <p className="text-muted-foreground">Loading emission data...</p>
-        </div>
-      </div>
+      <EmptyState
+        icon={Calculator}
+        title="No Emission Data Yet"
+        description="Start by using the unified calculator to input your project's materials, fuel usage, electricity, and transport data."
+        actionLabel="Open Calculator"
+        onAction={() => navigate('/calculator')}
+        secondaryActionLabel="Learn More"
+        onSecondaryAction={() => navigate('/help')}
+      />
     );
   }
 
