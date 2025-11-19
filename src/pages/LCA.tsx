@@ -10,7 +10,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useProject } from '@/contexts/ProjectContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Package, Truck, Building, Recycle, AlertCircle, Calculator } from 'lucide-react';
+import { ArrowLeft, Package, Truck, Building, Recycle, AlertCircle, Calculator, BarChart3 } from 'lucide-react';
+import { LCADashboard } from '@/components/LCADashboard';
 
 interface MaterialEntry {
   materialName: string;
@@ -222,8 +223,12 @@ const LCA = () => {
         </AlertDescription>
       </Alert>
 
-      <Tabs defaultValue="materials" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="dashboard">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Dashboard
+          </TabsTrigger>
           <TabsTrigger value="materials">
             <Package className="h-4 w-4 mr-2" />
             Materials
@@ -241,6 +246,10 @@ const LCA = () => {
             End of Life
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-4">
+          <LCADashboard />
+        </TabsContent>
 
         <TabsContent value="materials" className="space-y-4">
           <Card>
