@@ -6,6 +6,9 @@ verify_jwt = true
 [functions.chat-boq-import]
 verify_jwt = true
 
+[functions.migrate-emissions]
+verify_jwt = true
+
 [functions.create-checkout]
 verify_jwt = true
 
