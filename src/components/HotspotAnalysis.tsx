@@ -7,6 +7,10 @@ import { useLCAMaterials } from '@/hooks/useLCAMaterials';
 import { useHotspotAnalysis, getSeverityColor, getSeverityLabel } from '@/hooks/useHotspotAnalysis';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertTriangle, Flame, Lightbulb, TrendingDown, Sparkles, Loader2 } from 'lucide-react';
+import { EmptyState } from '@/components/EmptyState';
+import { logger } from '@/lib/logger';
+import { DEBOUNCE } from '@/lib/constants';
+import { debounce } from '@/lib/debounce';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -80,7 +84,7 @@ export const HotspotAnalysis = () => {
         description: 'AI-powered optimization recommendations are ready',
       });
     } catch (error) {
-      console.error('Error generating recommendations:', error);
+      logger.error('HotspotAnalysis:generateRecommendations', error);
       toast({
         title: 'Generation Failed',
         description: 'Failed to generate AI recommendations',

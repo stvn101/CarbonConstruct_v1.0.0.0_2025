@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { useLCAMaterials } from '@/hooks/useLCAMaterials';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Package, TrendingUp, Factory, Truck, Building, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { EmptyState } from '@/components/EmptyState';
+import { logger } from '@/lib/logger';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
 
@@ -63,7 +65,7 @@ export const LCADashboard = () => {
         description: 'LCA data exported to CSV',
       });
     } catch (error) {
-      console.error('CSV export error:', error);
+      logger.error('LCADashboard:exportToCSV', error);
       toast({
         title: 'Export Failed',
         description: 'Failed to export CSV file',
@@ -94,7 +96,7 @@ export const LCADashboard = () => {
         });
       }
     } catch (error) {
-      console.error('PDF export error:', error);
+      logger.error('LCADashboard:exportToPDF', error);
       toast({
         title: 'Export Failed',
         description: 'Failed to export PDF file',
@@ -110,9 +112,24 @@ export const LCADashboard = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
           <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
-          <p className="text-muted-foreground">Loading LCA data...</p>
+          <p className="text-muted-foreground">Loading LCA materials...</p>
         </div>
       </div>
+    );
+  }
+
+  if (materials.length === 0) {
+    return (
+      <EmptyState
+        icon={Package}
+        title="No LCA Materials Available"
+        description="The material database is empty. Contact your administrator to import Australian construction material data, or check back later."
+        action={
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Refresh
+          </Button>
+        }
+      />
     );
   }
 

@@ -24,14 +24,17 @@ const Pricing = () => {
     }
   };
 
-  const handleGetStarted = (tierName: string) => {
+  const handleGetStarted = (tierName: string, stripePrice: string | null) => {
     if (!user) {
       navigate('/auth');
     } else if (tierName === 'Enterprise') {
       window.location.href = 'mailto:sales@carbonconstruct.com.au';
-    } else {
-      // TODO: Open checkout or upgrade modal
-      console.log('Upgrade to:', tierName);
+    } else if (tierName === 'Free') {
+      // Already on free tier, no action needed
+      return;
+    } else if (stripePrice) {
+      // Trigger checkout via CheckoutButton
+      // This is handled by the CheckoutButton component itself
     }
   };
 
@@ -163,7 +166,7 @@ const Pricing = () => {
                   <Button 
                     className="w-full" 
                     variant={isPro ? 'default' : 'outline'}
-                    onClick={() => handleGetStarted(tier.name)}
+                    onClick={() => handleGetStarted(tier.name, null)}
                   >
                     Contact Sales
                   </Button>

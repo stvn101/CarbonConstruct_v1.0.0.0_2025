@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLCAMaterials, LCAMaterialData } from '@/hooks/useLCAMaterials';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Cell } from 'recharts';
 import { Plus, X, TrendingDown, TrendingUp, Minus, ArrowUpDown } from 'lucide-react';
+import { EmptyState } from '@/components/EmptyState';
+import { LIMITS } from '@/lib/constants';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
 
@@ -35,10 +37,10 @@ export const MaterialComparison = () => {
     const material = materials.find(m => m.id === currentSelection);
     if (!material) return;
 
-    if (selectedMaterials.length >= 5) {
+    if (selectedMaterials.length >= LIMITS.MAX_MATERIALS_COMPARISON) {
       toast({
         title: 'Maximum Reached',
-        description: 'You can compare up to 5 materials at once',
+        description: `You can compare up to ${LIMITS.MAX_MATERIALS_COMPARISON} materials at once`,
         variant: 'destructive',
       });
       return;
@@ -73,6 +75,16 @@ export const MaterialComparison = () => {
           <p className="text-muted-foreground">Loading materials...</p>
         </div>
       </div>
+    );
+  }
+
+  if (materials.length === 0) {
+    return (
+      <EmptyState
+        icon={ArrowUpDown}
+        title="No Materials Available"
+        description="The material database is empty. Materials must be imported before you can use the comparison tool."
+      />
     );
   }
 

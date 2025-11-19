@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
+import { RETRY } from '@/lib/constants';
 
 interface UsageLimits {
   projects: number;
@@ -119,7 +121,7 @@ export const useUsageTracking = () => {
     return { allowed: true };
   };
 
-  // Track usage
+  // Track usage with optimistic locking to prevent race conditions
   const trackUsage = useMutation({
     mutationFn: async ({ metricType }: { metricType: string }) => {
       if (!user) throw new Error('User not authenticated');
@@ -128,39 +130,72 @@ export const useUsageTracking = () => {
       const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-      // Check if metric exists for this period
-      const { data: existing, error: fetchError } = await supabase
-        .from('usage_metrics')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('metric_type', metricType)
-        .gte('period_start', periodStart.toISOString())
-        .lte('period_end', periodEnd.toISOString())
-        .maybeSingle();
+      // Retry logic with exponential backoff for race conditions
+      let attempts = 0;
+      let delay: number = RETRY.INITIAL_DELAY;
 
-      if (fetchError) throw fetchError;
+      while (attempts < RETRY.MAX_ATTEMPTS) {
+        try {
+          // Fetch current metric with version
+          const { data: existing, error: fetchError } = await supabase
+            .from('usage_metrics')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('metric_type', metricType)
+            .gte('period_start', periodStart.toISOString())
+            .lte('period_end', periodEnd.toISOString())
+            .maybeSingle();
 
-      if (existing) {
-        // Update existing metric
-        const { error: updateError } = await supabase
-          .from('usage_metrics')
-          .update({ count: existing.count + 1 })
-          .eq('id', existing.id);
+          if (fetchError) throw fetchError;
 
-        if (updateError) throw updateError;
-      } else {
-        // Create new metric
-        const { error: insertError } = await supabase
-          .from('usage_metrics')
-          .insert({
-            user_id: user.id,
-            metric_type: metricType,
-            count: 1,
-            period_start: periodStart.toISOString(),
-            period_end: periodEnd.toISOString(),
-          });
+          if (existing) {
+            // Update existing metric with optimistic locking
+            // Update existing metric with optimistic locking
+            const { error: updateError } = await supabase
+              .from('usage_metrics')
+              .update({ 
+                count: existing.count + 1,
+                version: (existing.version + 1)
+              })
+              .eq('id', existing.id)
+              .eq('version', existing.version); // Only update if version matches
 
-        if (insertError) throw insertError;
+            if (updateError) {
+              // Version conflict - retry
+              if (attempts < RETRY.MAX_ATTEMPTS - 1) {
+                attempts++;
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay = Math.min(delay * 2, RETRY.MAX_DELAY);
+                continue;
+              }
+              throw updateError;
+            }
+            return; // Success
+          } else {
+            // Create new metric
+            const { error: insertError } = await supabase
+              .from('usage_metrics')
+              .insert({
+                user_id: user.id,
+                metric_type: metricType,
+                count: 1,
+                period_start: periodStart.toISOString(),
+                period_end: periodEnd.toISOString(),
+                version: 1 as any,
+              });
+
+            if (insertError) throw insertError;
+            return; // Success
+          }
+        } catch (error) {
+          if (attempts < RETRY.MAX_ATTEMPTS - 1) {
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay = Math.min(delay * 2, RETRY.MAX_DELAY);
+          } else {
+            throw error;
+          }
+        }
       }
     },
     onSuccess: () => {
@@ -169,7 +204,7 @@ export const useUsageTracking = () => {
       queryClient.invalidateQueries({ queryKey: ['usage-metrics', user?.id] });
     },
     onError: (error) => {
-      console.error('Error tracking usage:', error);
+      logger.error('useUsageTracking', error);
       toast({
         title: 'Error',
         description: 'Failed to track usage. Please try again.',
