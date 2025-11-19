@@ -113,6 +113,51 @@ export type Database = {
         }
         Relationships: []
       }
+      materials_import_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          file_name: string
+          file_path: string
+          id: string
+          records_processed: number | null
+          records_total: number | null
+          started_at: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          records_processed?: number | null
+          records_total?: number | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          records_processed?: number | null
+          records_total?: number | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           assessment_period_end: string | null
