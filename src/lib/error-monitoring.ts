@@ -4,48 +4,47 @@ import { trackError } from './analytics';
 export function setupGlobalErrorHandlers() {
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason);
-    
-    trackError({
-      message: event.reason?.message || 'Unhandled Promise Rejection',
-      stack: event.reason?.stack,
-      severity: 'high',
-      metadata: {
-        type: 'unhandledRejection',
-        reason: String(event.reason),
-        promise: event.promise,
-      },
-    });
-
-    // Prevent default error handling
-    event.preventDefault();
+    try {
+      if (import.meta.env.DEV) {
+        console.error('Unhandled promise rejection:', event.reason);
+      }
+      
+      trackError({
+        message: event.reason?.message || 'Unhandled Promise Rejection',
+        stack: event.reason?.stack,
+        severity: 'high',
+        metadata: {
+          type: 'unhandledRejection',
+          reason: String(event.reason),
+        },
+      });
+    } catch (err) {
+      // Fail silently to prevent recursion
+    }
   });
 
   // Handle global JavaScript errors
   window.addEventListener('error', (event) => {
-    console.error('Global error:', event.error);
-    
-    trackError({
-      message: event.message || 'Global JavaScript Error',
-      stack: event.error?.stack,
-      severity: 'high',
-      metadata: {
-        type: 'globalError',
-        filename: event.filename,
-        lineno: event.lineno,
-        colno: event.colno,
-      },
-    });
-
-    // Don't prevent default to allow normal error logging
+    try {
+      if (import.meta.env.DEV) {
+        console.error('Global error:', event.error);
+      }
+      
+      trackError({
+        message: event.message || 'Global JavaScript Error',
+        stack: event.error?.stack,
+        severity: 'high',
+        metadata: {
+          type: 'globalError',
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+        },
+      });
+    } catch (err) {
+      // Fail silently to prevent recursion
+    }
   });
-
-  // Don't override console.error - it creates infinite loops with trackError
-  // Error monitoring via window event listeners is sufficient
-
-  if (import.meta.env.DEV) {
-    console.log('[Error Monitoring] Global error handlers initialized');
-  }
 }
 
 // Error reporting utilities
