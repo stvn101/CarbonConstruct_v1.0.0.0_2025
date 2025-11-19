@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+
 // Calculator material schema (for legacy Calculator component)
 export const calculatorMaterialSchema = z.object({
   id: z.string(),
