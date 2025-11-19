@@ -20,9 +20,8 @@ export default defineConfig(({ mode }) => ({
     esbuildOptions: {
       target: 'esnext',
     },
-    exclude: ['@radix-ui/react-tooltip'],
   },
-  cacheDir: '.vite-cache-v2',
+  cacheDir: '.vite-fresh-build',
   clearScreen: false,
   build: {
     commonjsOptions: {
