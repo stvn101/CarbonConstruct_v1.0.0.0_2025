@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useProject } from '@/contexts/ProjectContext';
 import { useEmissionCalculations } from '@/hooks/useEmissionCalculations';
 import { TestTube } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export const DemoDataButton = () => {
   const { toast } = useToast();

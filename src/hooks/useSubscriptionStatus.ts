@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 export interface SubscriptionStatus {
   subscribed: boolean;
@@ -43,7 +44,7 @@ export const useSubscriptionStatus = () => {
       const { data, error } = await supabase.functions.invoke('check-subscription');
       
       if (error) {
-        console.error('Error checking subscription:', error);
+        logger.error('SubscriptionStatus:checkSubscription', error);
         toast({
           title: 'Error',
           description: 'Failed to check subscription status',
@@ -56,7 +57,7 @@ export const useSubscriptionStatus = () => {
         setStatus(data);
       }
     } catch (error) {
-      console.error('Error checking subscription:', error);
+      logger.error('SubscriptionStatus:checkSubscription', error);
     } finally {
       setLoading(false);
     }

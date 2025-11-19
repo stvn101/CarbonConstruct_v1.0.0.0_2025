@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Crown } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface CheckoutButtonProps {
   priceId: string;
@@ -40,7 +41,7 @@ export const CheckoutButton = ({
         throw new Error('No checkout URL returned');
       }
     } catch (error) {
-      console.error('Checkout error:', error);
+      logger.error('CheckoutButton:handleCheckout', error);
       toast({
         title: 'Checkout Error',
         description: error instanceof Error ? error.message : 'Failed to start checkout',

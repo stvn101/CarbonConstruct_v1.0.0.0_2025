@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProject } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface EmissionEntry {
   category: string;
@@ -39,13 +40,13 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
       const { data, error } = await query.maybeSingle();
       
       if (error) {
-        console.error('Error fetching emission factor:', error);
+        logger.error('EmissionCalculations:getEmissionFactor', error);
         return null;
       }
       
       return data?.factor_value || null;
     } catch (error) {
-      console.error('Error in getEmissionFactor:', error);
+      logger.error('EmissionCalculations:getEmissionFactor', error);
       return null;
     }
   }, []);

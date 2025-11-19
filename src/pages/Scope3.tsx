@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { useEmissionCalculations } from "@/hooks/useEmissionCalculations";
 import ProjectSelector from "@/components/ProjectSelector";
+import { logger } from "@/lib/logger";
 import {
   materialQuantityPresets,
   distancePresets,

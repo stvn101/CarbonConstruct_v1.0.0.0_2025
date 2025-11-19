@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProject } from '@/contexts/ProjectContext';
+import { logger } from '@/lib/logger';
 
 interface EmissionTotals {
   scope1: number;
@@ -110,7 +111,7 @@ export const useEmissionTotals = () => {
       setScope3Details(scope3Categories);
 
     } catch (error) {
-      console.error('Error fetching emission totals:', error);
+      logger.error('EmissionTotals:fetchEmissionTotals', error);
     } finally {
       setLoading(false);
     }
