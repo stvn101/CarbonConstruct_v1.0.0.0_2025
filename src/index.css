@@ -111,6 +111,16 @@ All colors MUST be HSL.
   button, a, input, select, textarea {
     @apply transition-colors duration-200;
   }
+  
+  /* Print styles for PDF export */
+  @media print {
+    .print\:block {
+      display: block !important;
+    }
+    .print\:hidden {
+      display: none !important;
+    }
+  }
 }
 
 /* Custom utility classes for the Carbon Calculator */

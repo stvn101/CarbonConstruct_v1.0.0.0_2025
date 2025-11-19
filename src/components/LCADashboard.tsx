@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useLCAMaterials } from '@/hooks/useLCAMaterials';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Package, TrendingUp, Factory, Truck, Building } from 'lucide-react';
+import { Package, TrendingUp, Factory, Truck, Building, Download, FileSpreadsheet, FileText } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { toast } from '@/hooks/use-toast';
 
 const STAGE_COLORS = {
   a1a3: 'hsl(var(--chart-1))',
@@ -14,6 +17,93 @@ const STAGE_COLORS = {
 
 export const LCADashboard = () => {
   const { materials, loading, stageBreakdown, categoryBreakdown } = useLCAMaterials();
+  const [exporting, setExporting] = useState(false);
+
+  const exportToCSV = () => {
+    try {
+      // Prepare CSV content
+      let csvContent = 'LCA Material Database - Embodied Carbon Report\n\n';
+      
+      // Add summary section
+      csvContent += 'LIFECYCLE STAGE SUMMARY\n';
+      csvContent += 'Stage,Emissions (kgCO2e)\n';
+      csvContent += `A1-A3: Product Stage,${stageBreakdown.a1a3.toFixed(2)}\n`;
+      csvContent += `A4: Transport,${stageBreakdown.a4.toFixed(2)}\n`;
+      csvContent += `A5: Construction,${stageBreakdown.a5.toFixed(2)}\n`;
+      csvContent += `Total,${stageBreakdown.total.toFixed(2)}\n\n`;
+      
+      // Add category breakdown
+      csvContent += 'CATEGORY BREAKDOWN\n';
+      csvContent += 'Category,A1-A3 (kgCO2e),A4 (kgCO2e),A5 (kgCO2e),Total (kgCO2e)\n';
+      categoryBreakdown.forEach(cat => {
+        csvContent += `${cat.category},${cat.a1a3.toFixed(2)},${cat.a4.toFixed(2)},${cat.a5.toFixed(2)},${cat.total.toFixed(2)}\n`;
+      });
+      csvContent += '\n';
+      
+      // Add material details
+      csvContent += 'MATERIAL DATABASE\n';
+      csvContent += 'Material Name,Category,A1-A3 (kgCO2e),A4 (kgCO2e),A5 (kgCO2e),Total (kgCO2e),Unit,Region,Data Source\n';
+      materials.forEach(material => {
+        csvContent += `"${material.material_name}",${material.material_category},${material.embodied_carbon_a1a3?.toFixed(2) || '0.00'},${material.embodied_carbon_a4?.toFixed(2) || '0.00'},${material.embodied_carbon_a5?.toFixed(2) || '0.00'},${material.embodied_carbon_total?.toFixed(2) || '0.00'},${material.unit},${material.region},"${material.data_source}"\n`;
+      });
+      
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `lca-report-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: 'Export Successful',
+        description: 'LCA data exported to CSV',
+      });
+    } catch (error) {
+      console.error('CSV export error:', error);
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export CSV file',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const exportToPDF = async () => {
+    try {
+      setExporting(true);
+      const element = document.getElementById('lca-dashboard-content');
+      if (element) {
+        const html2pdf = (await import('html2pdf.js')).default;
+        await html2pdf()
+          .set({
+            margin: 15,
+            filename: `lca-dashboard-${new Date().toISOString().split('T')[0]}.pdf`,
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          })
+          .from(element)
+          .save();
+        
+        toast({
+          title: 'Export Successful',
+          description: 'LCA dashboard exported to PDF',
+        });
+      }
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export PDF file',
+        variant: 'destructive',
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -41,6 +131,42 @@ export const LCADashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Export Controls */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>LCA Data Export</CardTitle>
+              <CardDescription>Download compliance reports for Australian standards (NCC, Green Star, NABERS)</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={exportToCSV} variant="outline" size="sm">
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+              <Button onClick={exportToPDF} disabled={exporting} size="sm">
+                <FileText className="h-4 w-4 mr-2" />
+                {exporting ? 'Exporting...' : 'Export PDF'}
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      <div id="lca-dashboard-content" className="space-y-6">
+      {/* Report Header for PDF Export */}
+      <div className="print:block hidden mb-6">
+        <div className="text-center space-y-2 pb-4 border-b-2 border-primary">
+          <h1 className="text-3xl font-bold text-primary">Life Cycle Assessment Report</h1>
+          <p className="text-lg text-muted-foreground">Embodied Carbon Analysis - Lifecycle Stages A1-A5</p>
+          <div className="flex justify-center gap-4 text-sm text-muted-foreground">
+            <span>Generated: {new Date().toLocaleDateString('en-AU')}</span>
+            <span>•</span>
+            <span>Standards: ISO 21930, AS 5377, NMEF v2025.1</span>
+          </div>
+        </div>
+      </div>
+      
       {/* Header Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -293,6 +419,7 @@ export const LCADashboard = () => {
           </p>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
