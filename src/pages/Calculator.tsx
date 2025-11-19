@@ -282,6 +282,31 @@ export default function Calculator() {
         body: { text }
       });
 
+      // Handle rate limiting error (429)
+      if (error?.message?.includes('429') || data?.error?.includes('Rate limit')) {
+        toast({ 
+          title: "🕐 Rate limit reached", 
+          description: "Too many AI requests. Please wait a moment and try again.",
+          variant: "destructive" 
+        });
+        setAiProcessing(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      // Handle payment/credits exhausted error (402)
+      if (error?.message?.includes('402') || data?.error?.includes('credits exhausted') || data?.error?.includes('Payment required')) {
+        toast({ 
+          title: "💳 AI credits exhausted", 
+          description: "Your AI usage limit has been reached. Please add credits or upgrade your plan.",
+          variant: "destructive",
+          duration: 7000
+        });
+        setAiProcessing(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
       if (error) {
         throw error;
       }
