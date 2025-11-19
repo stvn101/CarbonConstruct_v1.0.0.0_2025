@@ -445,6 +445,56 @@ export type Database = {
         }
         Relationships: []
       }
+      unified_calculations: {
+        Row: {
+          created_at: string | null
+          electricity_inputs: Json | null
+          fuel_inputs: Json | null
+          id: string
+          is_draft: boolean | null
+          materials: Json | null
+          project_id: string
+          totals: Json | null
+          transport_inputs: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          electricity_inputs?: Json | null
+          fuel_inputs?: Json | null
+          id?: string
+          is_draft?: boolean | null
+          materials?: Json | null
+          project_id: string
+          totals?: Json | null
+          transport_inputs?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          electricity_inputs?: Json | null
+          fuel_inputs?: Json | null
+          id?: string
+          is_draft?: boolean | null
+          materials?: Json | null
+          project_id?: string
+          totals?: Json | null
+          transport_inputs?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unified_calculations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usage_metrics: {
         Row: {
           count: number
