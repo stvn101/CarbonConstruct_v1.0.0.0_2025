@@ -40,33 +40,8 @@ export function setupGlobalErrorHandlers() {
     // Don't prevent default to allow normal error logging
   });
 
-  // Monitor console errors (for third-party libraries)
-  const originalConsoleError = console.error;
-  console.error = (...args: any[]) => {
-    // Call original console.error
-    originalConsoleError.apply(console, args);
-
-    // Track if it looks like a real error
-    const errorMessage = args
-      .map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg)))
-      .join(' ');
-
-    // Only track if it contains error-like keywords
-    if (
-      errorMessage.toLowerCase().includes('error') ||
-      errorMessage.toLowerCase().includes('failed') ||
-      errorMessage.toLowerCase().includes('exception')
-    ) {
-      trackError({
-        message: errorMessage,
-        severity: 'low',
-        metadata: {
-          type: 'consoleError',
-          source: 'console.error',
-        },
-      });
-    }
-  };
+  // Don't override console.error - it creates infinite loops with trackError
+  // Error monitoring via window event listeners is sufficient
 
   if (import.meta.env.DEV) {
     console.log('[Error Monitoring] Global error handlers initialized');
