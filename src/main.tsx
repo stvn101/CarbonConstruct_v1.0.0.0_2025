@@ -1,13 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
 import "./index.css";
-
-// Global error monitoring temporarily disabled due to recursion issues
-// import { setupGlobalErrorHandlers } from "./lib/error-monitoring";
-
-// // Initialize global error monitoring
-// setupGlobalErrorHandlers();
+import App from "./App.tsx";
 
 // Register Service Worker for PWA support (production only)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -23,7 +17,11 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(
+// Initialize React app
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Failed to find root element");
+
+createRoot(rootElement).render(
   <StrictMode>
     <App />
   </StrictMode>
