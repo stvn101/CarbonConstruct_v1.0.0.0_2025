@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { ScopeCard } from "@/components/ScopeCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +12,7 @@ import { ComplianceCard } from "@/components/ComplianceCard";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, Package } from "lucide-react";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
 import heroImage from "@/assets/hero-carbon-calc.jpg";
 import logoImage from "@/assets/carbonconstruct-logo.png";
 const Index = () => {
@@ -186,34 +185,63 @@ Calculate and track your project's carbon emissions across all three scopes with
         </Card>
       </div>
 
-      {/* Scope Calculation Cards - Mobile Optimized */}
-      <div>
-        <h2 className="mb-3 md:mb-4 lg:mb-6 text-lg md:text-xl lg:text-2xl font-bold">Emission Scopes</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
-          <ScopeCard title="Scope 1: Direct Emissions" description="Fuel combustion, company vehicles, manufacturing" icon={Factory} scopeNumber={1} emissions={totals.scope1} actionUrl="/scope-1" />
-          
-          <ScopeCard title="Scope 2: Energy Emissions" description="Purchased electricity, heating, cooling" icon={Zap} scopeNumber={2} emissions={totals.scope2} actionUrl="/scope-2" />
-          
-          <ScopeCard title="Scope 3: Value Chain" description="Upstream & downstream supply chain activities" icon={Truck} scopeNumber={3} emissions={totals.scope3} actionUrl="/scope-3" />
-        </div>
-      </div>
-
-      {/* LCA Section - Enhanced */}
-      <Card className="hover-scale transition-all duration-300 border-accent/30 bg-gradient-to-br from-accent/5 to-accent/10">
-        <CardHeader className="p-4 md:p-6">
-          <CardTitle className="flex items-center gap-2 text-base md:text-lg lg:text-xl">
-            <Package className="h-4 w-4 md:h-5 md:w-5 text-accent" />
-            Life Cycle Assessment (LCA)
-          </CardTitle>
-          <CardDescription className="text-xs md:text-sm">
-            Calculate embodied carbon following ISO 14040/14044 standards
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
-          <Button onClick={() => navigate("/lca")} className="w-full sm:w-auto hover-scale" size="default">
-            <Calculator className="mr-2 h-4 w-4" />
-            <span className="text-sm md:text-base">Calculate LCA</span>
-          </Button>
+      {/* Unified Calculator - Prominent CTA */}
+      <Card className="hover-scale transition-all duration-300 border-primary/40 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 shadow-glow">
+        <CardContent className="p-6 md:p-8 lg:p-10">
+          <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
+            <div className="flex-shrink-0">
+              <div className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+                <Calculator className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 text-primary-foreground" />
+              </div>
+            </div>
+            
+            <div className="flex-1 text-center lg:text-left space-y-3 md:space-y-4">
+              <div>
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Unified Carbon Calculator
+                </h2>
+                <p className="text-sm md:text-base text-muted-foreground max-w-2xl">
+                  All-in-one calculator with materials database, AI BOQ import, and auto-save. Calculate Scope 1, 2, 3 emissions and embodied carbon in one streamlined workflow.
+                </p>
+              </div>
+              
+              <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+                <Button 
+                  onClick={() => navigate("/calculator")} 
+                  size="lg"
+                  className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale shadow-lg"
+                >
+                  <Calculator className="mr-2 h-5 w-5" />
+                  Start Calculator
+                </Button>
+                
+                <Button 
+                  onClick={() => navigate("/reports")} 
+                  variant="outline"
+                  size="lg"
+                  className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale"
+                >
+                  <FileBarChart className="mr-2 h-5 w-5" />
+                  View Reports
+                </Button>
+              </div>
+              
+              <div className="flex flex-wrap gap-4 text-xs md:text-sm text-muted-foreground justify-center lg:justify-start">
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                  Australian NMEF v2025.1
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
+                  Auto-Save Enabled
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                  AI BOQ Import
+                </span>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
