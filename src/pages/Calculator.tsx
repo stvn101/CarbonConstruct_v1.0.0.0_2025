@@ -9,9 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Plus, Trash2, Upload, Sparkles, Save, FileText, Download, FileSpreadsheet } from 'lucide-react';
-import { sanitizeText, sanitizeMaterialName, sanitizeNumber, sanitizeCsvField, MAX_LENGTHS } from '@/lib/sanitize';
-import { materialItemSchema } from '@/lib/schemas';
-import { CardSkeleton } from '@/components/LoadingSkeleton';
 
 interface Material {
   id: string;
@@ -99,19 +96,6 @@ export default function Calculator() {
     loadDraft();
   }, [user, currentProject]);
 
-  // Show loading skeleton while database loads
-  if (loadingDb) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <CardSkeleton />
-          <CardSkeleton />
-          <CardSkeleton />
-        </div>
-      </div>
-    );
-  }
-
   // Auto-save effect
   useEffect(() => {
     if (!currentProject) return;
@@ -163,19 +147,7 @@ export default function Calculator() {
       if (error) throw error;
       
       if (data) {
-        // Validate and sanitize loaded data
-        const loadedMaterials = Array.isArray(data.materials) ? data.materials : [];
-        const validatedMaterials = loadedMaterials
-          .map(material => {
-            try {
-              return materialItemSchema.parse(material);
-            } catch {
-              return null;
-            }
-          })
-          .filter((m): m is Material => m !== null);
-        
-        setMaterials(validatedMaterials);
+        setMaterials((data.materials as any) || []);
         setFuelInputs((data.fuel_inputs as any) || {});
         setElectricityInputs((data.electricity_inputs as any) || {});
         setTransportInputs((data.transport_inputs as any) || {});
@@ -264,30 +236,17 @@ export default function Calculator() {
   const totals = calculateTotals();
 
   const addMaterial = (dbMaterial: any) => {
-    // Sanitize input data
-    const materialName = sanitizeMaterialName(
-      `${dbMaterial.subcategory || ''} ${dbMaterial.fuel_type || ''}`.trim()
-    );
-    
     const newMaterial: Material = {
       id: Date.now().toString() + Math.random(),
-      name: materialName,
+      name: `${dbMaterial.subcategory} ${dbMaterial.fuel_type || ''}`.trim(),
       quantity: 0,
-      unit: sanitizeText(dbMaterial.unit?.replace('kgCO2e/', '') || '', MAX_LENGTHS.UNIT),
-      factor: sanitizeNumber(dbMaterial.factor_value, 0),
-      category: sanitizeText(dbMaterial.subcategory || '', MAX_LENGTHS.CATEGORY),
-      source: sanitizeText(dbMaterial.source || '', MAX_LENGTHS.SOURCE),
+      unit: dbMaterial.unit.replace('kgCO2e/', ''),
+      factor: dbMaterial.factor_value,
+      category: dbMaterial.subcategory,
+      source: dbMaterial.source,
       isCustom: false
     };
-    
-    // Validate with schema
-    try {
-      materialItemSchema.parse(newMaterial);
-      setMaterials(prev => [...prev, newMaterial]);
-    } catch (error) {
-      console.error('Invalid material data:', error);
-      toast.error('Failed to add material - invalid data');
-    }
+    setMaterials(prev => [...prev, newMaterial]);
   };
 
   const addCustomMaterial = () => {
@@ -305,33 +264,7 @@ export default function Calculator() {
   };
 
   const updateMaterial = (id: string, updates: Partial<Material>) => {
-    setMaterials(prev => prev.map(m => {
-      if (m.id !== id) return m;
-      
-      // Sanitize updates
-      const sanitizedUpdates: Partial<Material> = {};
-      
-      if (updates.name !== undefined) {
-        sanitizedUpdates.name = sanitizeMaterialName(updates.name);
-      }
-      if (updates.quantity !== undefined) {
-        sanitizedUpdates.quantity = sanitizeNumber(updates.quantity, 0);
-      }
-      if (updates.factor !== undefined) {
-        sanitizedUpdates.factor = sanitizeNumber(updates.factor, 0);
-      }
-      if (updates.unit !== undefined) {
-        sanitizedUpdates.unit = sanitizeText(updates.unit, MAX_LENGTHS.UNIT);
-      }
-      if (updates.category !== undefined) {
-        sanitizedUpdates.category = sanitizeText(updates.category, MAX_LENGTHS.CATEGORY);
-      }
-      if (updates.source !== undefined) {
-        sanitizedUpdates.source = sanitizeText(updates.source, MAX_LENGTHS.SOURCE);
-      }
-      
-      return { ...m, ...sanitizedUpdates };
-    }));
+    setMaterials(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
   };
 
   const removeMaterial = (id: string) => {
@@ -363,12 +296,12 @@ export default function Calculator() {
 
       const importedMaterials = data.materials.map((m: any) => ({
         id: Date.now().toString() + Math.random(),
-        name: sanitizeMaterialName(m.name || ''),
-        quantity: sanitizeNumber(m.quantity, 0),
-        unit: sanitizeText(m.unit || 'kg', MAX_LENGTHS.UNIT),
-        factor: sanitizeNumber(m.factor, 0),
-        category: sanitizeText(m.category || 'Custom', MAX_LENGTHS.CATEGORY),
-        source: sanitizeText(m.isCustom ? 'AI Estimate' : 'NMEF v2025.1', MAX_LENGTHS.SOURCE),
+        name: m.name,
+        quantity: m.quantity || 0,
+        unit: m.unit || 'kg',
+        factor: m.factor || 0,
+        category: m.category || 'Custom',
+        source: m.isCustom ? 'AI Estimate' : 'NMEF v2025.1',
         isCustom: m.isCustom || false
       }));
 
@@ -417,15 +350,12 @@ export default function Calculator() {
     }
 
     const totals = calculateTotals();
-    const projectName = sanitizeText(currentProject?.name || 'Project', 100);
+    const projectName = currentProject?.name || 'Project';
     const today = new Date().toISOString().split('T')[0];
 
-    // Add BOM for Excel compatibility
-    const BOM = '\uFEFF';
-    
     // CSV Header
-    let csv = `${BOM}CarbonConstruct - Materials Export\n`;
-    csv += `Project: ${sanitizeCsvField(projectName)}\n`;
+    let csv = 'CarbonConstruct - Materials Export\n';
+    csv += `Project: ${projectName}\n`;
     csv += `Date: ${today}\n`;
     csv += `Total Emissions: ${(totals.total / 1000).toFixed(2)} tCO₂e\n\n`;
     
@@ -434,7 +364,7 @@ export default function Calculator() {
     
     materials.forEach((material) => {
       const emissions = (material.quantity || 0) * (material.factor || 0);
-      csv += `${sanitizeCsvField(material.name)},${sanitizeCsvField(material.category)},${material.quantity},${sanitizeCsvField(material.unit)},${material.factor},${emissions.toFixed(2)},${sanitizeCsvField(material.source)}\n`;
+      csv += `"${material.name}","${material.category}",${material.quantity},"${material.unit}",${material.factor},${emissions.toFixed(2)},"${material.source}"\n`;
     });
 
     // Summary

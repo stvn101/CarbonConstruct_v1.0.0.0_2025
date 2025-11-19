@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -10,8 +9,6 @@ import { useReportData } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { UpgradeModal } from '@/components/UpgradeModal';
-import { EmptyState } from '@/components/EmptyState';
-import { DashboardSkeleton } from '@/components/LoadingSkeleton';
 import { 
   FileBarChart, 
   Download, 
@@ -24,14 +21,11 @@ import {
   Building2,
   Star,
   Award,
-  Crown,
-  Calculator,
-  FolderOpen
+  Crown
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const Reports = () => {
-  const navigate = useNavigate();
   const { currentProject } = useProject();
   const reportData = useReportData();
   const { canPerformAction, trackUsage, currentUsage } = useUsageTracking();
@@ -48,65 +42,46 @@ const Reports = () => {
     // Track the usage
     trackUsage({ metricType: 'reports_per_month' });
     
-    // Measure PDF generation performance
-    const { measurePdfGeneration, trackEvent } = await import('@/lib/analytics');
-    
-    trackEvent('report_download_started', {
-      project: currentProject?.name,
-    });
-    
     // Generate and download the PDF
     const element = document.getElementById('pdf-report-content');
     if (element) {
-      await measurePdfGeneration(async () => {
-        const html2pdf = (await import('html2pdf.js')).default;
-        await html2pdf()
-          .set({
-            margin: 10,
-            filename: `${currentProject?.name || 'project'}-carbon-report.pdf`,
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-          })
-          .from(element)
-          .save();
-      });
-      
-      trackEvent('report_download_completed', {
-        project: currentProject?.name,
-      });
+      const html2pdf = (await import('html2pdf.js')).default;
+      html2pdf()
+        .set({
+          margin: 10,
+          filename: `${currentProject?.name || 'project'}-carbon-report.pdf`,
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .from(element)
+        .save();
     }
   };
 
   if (!currentProject) {
     return (
-      <EmptyState
-        icon={FolderOpen}
-        title="No Project Selected"
-        description="Please select a project from the sidebar to generate reports and view emission data."
-        actionLabel="Go to Dashboard"
-        onAction={() => navigate('/')}
-      />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <FileBarChart className="mx-auto h-12 w-12 text-muted-foreground" />
+            <CardTitle>No Project Selected</CardTitle>
+            <CardDescription>
+              Please select a project to generate reports
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
     );
   }
 
   if (!reportData) {
-    return <DashboardSkeleton />;
-  }
-
-  // Check if there's any actual data
-  const hasData = reportData.emissions.total > 0;
-
-  if (!hasData) {
     return (
-      <EmptyState
-        icon={Calculator}
-        title="No Emission Data Yet"
-        description="Start by using the unified calculator to input your project's materials, fuel usage, electricity, and transport data."
-        actionLabel="Open Calculator"
-        onAction={() => navigate('/calculator')}
-        secondaryActionLabel="Learn More"
-        onSecondaryAction={() => navigate('/help')}
-      />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
+          <p className="text-muted-foreground">Loading emission data...</p>
+        </div>
+      </div>
     );
   }
 

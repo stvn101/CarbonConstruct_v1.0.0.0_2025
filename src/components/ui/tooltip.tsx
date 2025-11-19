@@ -1,31 +1,28 @@
 import * as React from "react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+
 import { cn } from "@/lib/utils";
 
-// Lightweight, hook-free tooltip stubs to avoid Radix runtime issues.
-// These components preserve the existing API surface so current usages
-// (InfoTooltip, Sidebar, future badges) continue to work without
-// pulling in @radix-ui/react-tooltip.
+const TooltipProvider = TooltipPrimitive.Provider;
 
-const TooltipProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => <>{children}</>;
+const Tooltip = TooltipPrimitive.Root;
 
-const Tooltip: React.FC<{ children: React.ReactNode }> = ({ children }) => <>{children}</>;
+const TooltipTrigger = TooltipPrimitive.Trigger;
 
-const TooltipTrigger = React.forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement>>(
-  ({ children, ...props }, ref) => (
-    <span ref={ref} {...props}>
-      {children}
-    </span>
-  ),
-);
-TooltipTrigger.displayName = "TooltipTrigger";
-
-const TooltipContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, children, ...props }, ref) => (
-    <div ref={ref} className={cn(className)} {...props}>
-      {children}
-    </div>
-  ),
-);
-TooltipContent.displayName = "TooltipContent";
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <TooltipPrimitive.Content
+    ref={ref}
+    sideOffset={sideOffset}
+    className={cn(
+      "z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      className,
+    )}
+    {...props}
+  />
+));
+TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };

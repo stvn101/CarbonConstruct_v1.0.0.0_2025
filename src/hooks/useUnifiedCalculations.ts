@@ -1,19 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProject } from '@/contexts/ProjectContext';
-import {
-  unifiedMaterialSchema,
-  fuelInputSchema,
-  electricityInputSchema,
-  transportInputSchema,
-  totalsSchema,
-  parseJsonbArray,
-  parseJsonbField,
-  UnifiedMaterial,
-} from '@/lib/schemas';
 
-// Use the UnifiedMaterial type from schemas
-export type MaterialItem = UnifiedMaterial;
+export interface MaterialItem {
+  name: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  emissionFactor: number;
+  totalEmissions: number;
+  source?: string;
+  customNotes?: string;
+}
 
 export interface FuelInput {
   fuelType: string;
@@ -85,26 +83,19 @@ export const useUnifiedCalculations = () => {
       if (error) throw error;
 
       if (calcData) {
-        // Parse and validate JSONB fields with Zod schemas
-        const materials = parseJsonbArray(calcData.materials, unifiedMaterialSchema, 'materials');
-        const fuelInputs = parseJsonbArray(calcData.fuel_inputs, fuelInputSchema, 'fuelInputs');
-        const electricityInputs = parseJsonbArray(calcData.electricity_inputs, electricityInputSchema, 'electricityInputs');
-        const transportInputs = parseJsonbArray(calcData.transport_inputs, transportInputSchema, 'transportInputs');
-        
-        const totals = parseJsonbField<UnifiedTotals>(
-          calcData.totals,
-          totalsSchema,
-          'totals',
-          { scope1: 0, scope2: 0, scope3_materials: 0, scope3_transport: 0, total: 0 }
-        );
-
         setData({
           id: calcData.id,
-          materials,
-          fuelInputs,
-          electricityInputs,
-          transportInputs,
-          totals,
+          materials: (calcData.materials as unknown as MaterialItem[]) || [],
+          fuelInputs: (calcData.fuel_inputs as unknown as FuelInput[]) || [],
+          electricityInputs: (calcData.electricity_inputs as unknown as ElectricityInput[]) || [],
+          transportInputs: (calcData.transport_inputs as unknown as TransportInput[]) || [],
+          totals: (calcData.totals as unknown as UnifiedTotals) || {
+            scope1: 0,
+            scope2: 0,
+            scope3_materials: 0,
+            scope3_transport: 0,
+            total: 0
+          },
           createdAt: calcData.created_at,
           updatedAt: calcData.updated_at
         });

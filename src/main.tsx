@@ -1,10 +1,9 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
 import App from "./App.tsx";
+import "./index.css";
 
-// Register Service Worker for PWA support (production only)
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// Register Service Worker for PWA support
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(
       (registration) => {
@@ -17,12 +16,4 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
-// Initialize React app
-const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Failed to find root element");
-
-createRoot(rootElement).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+createRoot(document.getElementById("root")!).render(<App />);
