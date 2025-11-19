@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AlertCircle, CheckCircle, Database, Loader2 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 import {
   Dialog,
   DialogContent,
@@ -39,7 +40,7 @@ export function MigrationButton() {
         toast.info('No new data to migrate');
       }
     } catch (error: any) {
-      console.error('Migration error:', error);
+      logger.error('MigrationButton:runMigration', error);
       toast.error(error.message || 'Migration failed');
     } finally {
       setLoading(false);

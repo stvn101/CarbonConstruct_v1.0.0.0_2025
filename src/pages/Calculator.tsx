@@ -8,7 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Plus, Trash2, Upload, Sparkles, Save, FileText, Download, FileSpreadsheet } from 'lucide-react';
+import { Loader2, Plus, Trash2, Upload, Sparkles, Save, FileText, Download, FileSpreadsheet, AlertCircle, RefreshCw } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { logger } from '@/lib/logger';
+import { EmptyState } from '@/components/EmptyState';
 
 interface Material {
   id: string;
@@ -79,6 +82,9 @@ export default function Calculator() {
   const [saving, setSaving] = useState(false);
   const [materialDb, setMaterialDb] = useState<any[]>([]);
   const [loadingDb, setLoadingDb] = useState(true);
+  const [dbError, setDbError] = useState<string | null>(null);
+  const [currentVersion, setCurrentVersion] = useState<number>(1);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout>();
 
@@ -104,8 +110,9 @@ export default function Calculator() {
       clearTimeout(autoSaveTimerRef.current);
     }
 
-    autoSaveTimerRef.current = setTimeout(() => {
-      saveDraft();
+    autoSaveTimerRef.current = setTimeout(async () => {
+      await saveDraft();
+      setLastSaved(new Date());
     }, 30000); // Auto-save every 30 seconds
 
     return () => {
@@ -116,6 +123,7 @@ export default function Calculator() {
   }, [materials, fuelInputs, electricityInputs, transportInputs, currentProject]);
 
   const loadMaterialDatabase = async () => {
+    setDbError(null);
     try {
       const { data, error } = await supabase
         .from('emission_factors')
@@ -125,9 +133,19 @@ export default function Calculator() {
         .order('subcategory', { ascending: true });
 
       if (error) throw error;
-      setMaterialDb(data || []);
+      
+      if (!data || data.length === 0) {
+        setDbError('Material database is empty. Some features may be limited.');
+        toast.error('Material database not found');
+        return;
+      }
+      
+      setMaterialDb(data);
     } catch (error) {
-      console.error('Error loading material database:', error);
+      const errorMsg = 'Failed to load material database';
+      setDbError(errorMsg);
+      logger.error('Calculator:loadMaterialDatabase', error);
+      toast.error(errorMsg);
     } finally {
       setLoadingDb(false);
     }
@@ -151,9 +169,10 @@ export default function Calculator() {
         setFuelInputs((data.fuel_inputs as any) || {});
         setElectricityInputs((data.electricity_inputs as any) || {});
         setTransportInputs((data.transport_inputs as any) || {});
+        setCurrentVersion(data.version);
       }
     } catch (error) {
-      console.error('Error loading draft:', error);
+      logger.error('Calculator:loadDraft', error);
     }
   };
 
@@ -165,7 +184,7 @@ export default function Calculator() {
     try {
       const { data: existing } = await supabase
         .from('unified_calculations')
-        .select('id')
+        .select('id, version')
         .eq('project_id', currentProject.id)
         .eq('is_draft', true)
         .maybeSingle();
@@ -182,17 +201,41 @@ export default function Calculator() {
       };
 
       if (existing) {
-        await supabase
+        const { data: updated, error } = await supabase
           .from('unified_calculations')
-          .update(payload)
-          .eq('id', existing.id);
+          .update({
+            ...payload,
+            version: existing.version + 1
+          })
+          .eq('id', existing.id)
+          .eq('version', existing.version)
+          .select('version')
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            logger.warn('Calculator:saveDraft', 'Version conflict detected, reloading draft');
+            await loadDraft();
+            toast.error('Draft updated by another session. Your changes have been reloaded.');
+            return;
+          }
+          throw error;
+        }
+
+        setCurrentVersion(updated.version);
       } else {
-        await supabase
+        const { data: inserted, error } = await supabase
           .from('unified_calculations')
-          .insert([payload]);
+          .insert([{ ...payload, version: 1 }])
+          .select('version')
+          .single();
+
+        if (error) throw error;
+        setCurrentVersion(inserted.version);
       }
     } catch (error) {
-      console.error('Auto-save error:', error);
+      logger.error('Calculator:saveDraft', error);
+      toast.error('Failed to auto-save draft');
     }
   };
 

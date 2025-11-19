@@ -106,6 +106,21 @@ export const HotspotAnalysis = () => {
     );
   }
 
+  if (materials.length === 0) {
+    return (
+      <EmptyState
+        icon={AlertTriangle}
+        title="No LCA Materials Found"
+        description="Add materials to your project to view carbon hotspot analysis and receive optimization recommendations."
+        action={
+          <Button onClick={() => window.location.href = '/lca'}>
+            Add Materials
+          </Button>
+        }
+      />
+    );
+  }
+
   const hasHotspots = materialHotspots.length > 0 || categoryHotspots.length > 0;
 
   return (

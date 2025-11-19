@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Settings } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface ManageSubscriptionButtonProps {
   variant?: 'default' | 'outline';
@@ -34,7 +35,7 @@ export const ManageSubscriptionButton = ({
         throw new Error('No portal URL returned');
       }
     } catch (error) {
-      console.error('Portal error:', error);
+      logger.error('ManageSubscriptionButton:handleManage', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to open customer portal',

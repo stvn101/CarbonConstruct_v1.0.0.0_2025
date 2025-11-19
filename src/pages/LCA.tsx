@@ -14,6 +14,7 @@ import { ArrowLeft, Package, Truck, Building, Recycle, AlertCircle, Calculator, 
 import { LCADashboard } from '@/components/LCADashboard';
 import { MaterialComparison } from '@/components/MaterialComparison';
 import { HotspotAnalysis } from '@/components/HotspotAnalysis';
+import { logger } from '@/lib/logger';
 
 interface MaterialEntry {
   materialName: string;

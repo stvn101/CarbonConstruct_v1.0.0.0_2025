@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 interface Project {
   id: string;
@@ -76,7 +77,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setCurrentProject(data[0]);
       }
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      logger.error('ProjectContext:refreshProjects', error);
       toast({
         title: "Error loading projects",
         description: "Failed to load your projects. Please try again.",

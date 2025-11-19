@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProject } from '@/contexts/ProjectContext';
+import { logger } from '@/lib/logger';
 
 export interface MaterialItem {
   name: string;
@@ -103,7 +104,7 @@ export const useUnifiedCalculations = () => {
         setData(null);
       }
     } catch (error) {
-      console.error('Error fetching unified calculations:', error);
+      logger.error('UnifiedCalculations:fetchCalculations', error);
       setData(null);
     } finally {
       setLoading(false);
