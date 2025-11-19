@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, CheckCircle, XCircle, Loader2, Database, Sparkles } from 'lucide-react';
+import { Upload, CheckCircle, XCircle, Loader2, Database, Sparkles, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
+import { bulkImportMaterials } from '@/lib/bulk-materials-import';
 
 interface ImportJob {
   id: string;
@@ -132,6 +133,31 @@ export function MaterialsImporter() {
     }
   };
 
+  const handleBulkImport = async () => {
+    setUploading(true);
+    const loadingToast = toast.loading('Importing materials from uploaded files...');
+    
+    try {
+      const result = await bulkImportMaterials((current, total, message) => {
+        toast.loading(`${message} (${current}/${total})`, { id: loadingToast });
+      });
+      
+      toast.dismiss(loadingToast);
+      
+      if (result.success) {
+        toast.success(`Successfully imported ${result.imported} materials!`);
+      } else {
+        toast.warning(`Imported ${result.imported} materials with ${result.errors} errors`);
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error('Bulk import error:', error);
+      toast.error('Failed to import materials from files');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
@@ -160,39 +186,69 @@ export function MaterialsImporter() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-6 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold text-lg">Quick Start: Australian Materials</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Instantly load 30+ verified Australian construction materials with carbon data
+                </p>
+                <ul className="text-xs text-muted-foreground space-y-1 mb-4">
+                  <li>✓ Concrete, steel, timber & more</li>
+                  <li>✓ Based on Australian standards</li>
+                  <li>✓ Ready to use immediately</li>
+                </ul>
+              </div>
+              <Button
+                onClick={handleDirectImport}
+                disabled={uploading}
+                size="lg"
+                className="shrink-0"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Importing...
+                  </>
+                ) : (
+                  <>
+                    <Database className="mr-2 h-4 w-4" />
+                    Import Now
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            <div className="pt-4 border-t">
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-lg">Quick Start: Australian Materials</h3>
+                <FileSpreadsheet className="h-5 w-5 text-blue-600" />
+                <h3 className="font-semibold text-lg">Import NABERS & ICM Databases</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                Instantly load 30+ verified Australian construction materials with carbon data
+                Import thousands of materials from uploaded NABERS 2025.1 and ICM 2019 databases
               </p>
-              <ul className="text-xs text-muted-foreground space-y-1 mb-4">
-                <li>✓ Concrete, steel, timber & more</li>
-                <li>✓ Based on Australian standards</li>
-                <li>✓ Ready to use immediately</li>
-              </ul>
+              <Button
+                onClick={handleBulkImport}
+                disabled={uploading}
+                size="lg"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Import All Files Now
+                  </>
+                )}
+              </Button>
             </div>
-            <Button
-              onClick={handleDirectImport}
-              disabled={uploading}
-              size="lg"
-              className="shrink-0"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Importing...
-                </>
-              ) : (
-                <>
-                  <Database className="mr-2 h-4 w-4" />
-                  Import Now
-                </>
-              )}
-            </Button>
           </div>
         </div>
 
