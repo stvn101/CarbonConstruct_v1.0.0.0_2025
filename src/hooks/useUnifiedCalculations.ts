@@ -1,89 +1,19 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProject } from '@/contexts/ProjectContext';
-import { z } from 'zod';
+import {
+  unifiedMaterialSchema,
+  fuelInputSchema,
+  electricityInputSchema,
+  transportInputSchema,
+  totalsSchema,
+  parseJsonbArray,
+  parseJsonbField,
+  UnifiedMaterial,
+} from '@/lib/schemas';
 
-// Zod schemas for validation
-const materialItemSchema = z.object({
-  name: z.string().max(200),
-  category: z.string().max(100),
-  quantity: z.number().min(0),
-  unit: z.string().max(50),
-  emissionFactor: z.number().min(0),
-  totalEmissions: z.number().min(0),
-  source: z.string().max(200).optional(),
-  customNotes: z.string().max(500).optional(),
-});
-
-const fuelInputSchema = z.object({
-  fuelType: z.string().max(100),
-  quantity: z.number().min(0),
-  unit: z.string().max(50),
-  emissionFactor: z.number().min(0),
-  totalEmissions: z.number().min(0),
-});
-
-const electricityInputSchema = z.object({
-  state: z.string().max(50),
-  quantity: z.number().min(0),
-  unit: z.string().max(50),
-  emissionFactor: z.number().min(0),
-  totalEmissions: z.number().min(0),
-  renewablePercentage: z.number().min(0).max(100).optional(),
-});
-
-const transportInputSchema = z.object({
-  mode: z.string().max(100),
-  distance: z.number().min(0),
-  weight: z.number().min(0),
-  emissionFactor: z.number().min(0),
-  totalEmissions: z.number().min(0),
-});
-
-const totalsSchema = z.object({
-  scope1: z.number().min(0),
-  scope2: z.number().min(0),
-  scope3_materials: z.number().min(0),
-  scope3_transport: z.number().min(0),
-  total: z.number().min(0),
-});
-
-// Helper to safely parse arrays with validation
-function parseJsonbArray<T>(data: unknown, schema: z.ZodSchema<T>): T[] {
-  if (!Array.isArray(data)) return [];
-  
-  return data
-    .map((item, index) => {
-      try {
-        return schema.parse(item);
-      } catch (error) {
-        console.error(`Invalid item at index ${index}:`, error);
-        return null;
-      }
-    })
-    .filter((item): item is T => item !== null);
-}
-
-// Helper to safely parse objects
-function parseJsonbField<T>(data: unknown, schema: z.ZodSchema<T>, fallback: T): T {
-  try {
-    return schema.parse(data);
-  } catch (error) {
-    console.error('Invalid field data:', error);
-    return fallback;
-  }
-}
-
-export interface MaterialItem {
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  emissionFactor: number;
-  totalEmissions: number;
-  source?: string;
-  customNotes?: string;
-}
+// Use the UnifiedMaterial type from schemas
+export type MaterialItem = UnifiedMaterial;
 
 export interface FuelInput {
   fuelType: string;
@@ -156,14 +86,15 @@ export const useUnifiedCalculations = () => {
 
       if (calcData) {
         // Parse and validate JSONB fields with Zod schemas
-        const materials = parseJsonbArray(calcData.materials, materialItemSchema);
-        const fuelInputs = parseJsonbArray(calcData.fuel_inputs, fuelInputSchema);
-        const electricityInputs = parseJsonbArray(calcData.electricity_inputs, electricityInputSchema);
-        const transportInputs = parseJsonbArray(calcData.transport_inputs, transportInputSchema);
+        const materials = parseJsonbArray(calcData.materials, unifiedMaterialSchema, 'materials');
+        const fuelInputs = parseJsonbArray(calcData.fuel_inputs, fuelInputSchema, 'fuelInputs');
+        const electricityInputs = parseJsonbArray(calcData.electricity_inputs, electricityInputSchema, 'electricityInputs');
+        const transportInputs = parseJsonbArray(calcData.transport_inputs, transportInputSchema, 'transportInputs');
         
         const totals = parseJsonbField<UnifiedTotals>(
           calcData.totals,
           totalsSchema,
+          'totals',
           { scope1: 0, scope2: 0, scope3_materials: 0, scope3_transport: 0, total: 0 }
         );
 
