@@ -1,10 +1,11 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { setupGlobalErrorHandlers } from "./lib/error-monitoring";
+// Temporarily disabled to debug React module issue
+// import { setupGlobalErrorHandlers } from "./lib/error-monitoring";
 
-// Initialize global error monitoring
-setupGlobalErrorHandlers();
+// Temporarily disabled to debug React module issue
+// setupGlobalErrorHandlers();
 
 // Register Service Worker for PWA support
 if ('serviceWorker' in navigator) {
