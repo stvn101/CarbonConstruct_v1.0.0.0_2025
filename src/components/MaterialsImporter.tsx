@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, CheckCircle, XCircle, Loader2, Database, Sparkles, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
-import { bulkImportMaterials } from '@/lib/bulk-materials-import';
+
 
 interface ImportJob {
   id: string;
@@ -138,6 +138,8 @@ export function MaterialsImporter() {
     const loadingToast = toast.loading('Importing materials from uploaded files...');
     
     try {
+      const { bulkImportMaterials } = await import('@/lib/bulk-materials-import');
+
       const result = await bulkImportMaterials((current, total, message) => {
         toast.loading(`${message} (${current}/${total})`, { id: loadingToast });
       });
@@ -157,7 +159,6 @@ export function MaterialsImporter() {
       setUploading(false);
     }
   };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
