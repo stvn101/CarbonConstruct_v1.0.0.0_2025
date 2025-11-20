@@ -1,6 +1,7 @@
 import { PresetOption } from "@/components/ui/number-input-with-presets";
 
 // Material Database with Australian Emission Factors (v2.3)
+// Exports: MATERIAL_DB, FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS
 export const MATERIAL_DB = {
   concrete: {
     label: "Concrete (In-Situ)",
