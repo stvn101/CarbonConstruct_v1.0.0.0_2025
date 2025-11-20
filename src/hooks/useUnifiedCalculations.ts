@@ -86,10 +86,10 @@ export const useUnifiedCalculations = () => {
       if (calcData) {
         setData({
           id: calcData.id,
-          materials: (calcData.materials as unknown as MaterialItem[]) || [],
-          fuelInputs: (calcData.fuel_inputs as unknown as FuelInput[]) || [],
-          electricityInputs: (calcData.electricity_inputs as unknown as ElectricityInput[]) || [],
-          transportInputs: (calcData.transport_inputs as unknown as TransportInput[]) || [],
+          materials: Array.isArray(calcData.materials) ? (calcData.materials as unknown as MaterialItem[]) : [],
+          fuelInputs: Array.isArray(calcData.fuel_inputs) ? (calcData.fuel_inputs as unknown as FuelInput[]) : [],
+          electricityInputs: Array.isArray(calcData.electricity_inputs) ? (calcData.electricity_inputs as unknown as ElectricityInput[]) : [],
+          transportInputs: Array.isArray(calcData.transport_inputs) ? (calcData.transport_inputs as unknown as TransportInput[]) : [],
           totals: (calcData.totals as unknown as UnifiedTotals) || {
             scope1: 0,
             scope2: 0,
