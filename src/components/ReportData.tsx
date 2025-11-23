@@ -44,7 +44,7 @@ export const useReportData = (): ReportData | null => {
     return null;
   }
 
-  const scope3Total = data.totals.scope3_materials + data.totals.scope3_transport;
+  const scope3Total = (data.totals.scope3_materials || 0) + (data.totals.scope3_transport || 0);
 
   return {
     project: {
@@ -54,10 +54,10 @@ export const useReportData = (): ReportData | null => {
       project_type: currentProject.project_type,
     },
     emissions: {
-      scope1: data.totals.scope1,
-      scope2: data.totals.scope2,
+      scope1: data.totals.scope1 || 0,
+      scope2: data.totals.scope2 || 0,
       scope3: scope3Total,
-      total: data.totals.total,
+      total: data.totals.total || 0,
     },
     breakdown: {
       materials: data.materials,

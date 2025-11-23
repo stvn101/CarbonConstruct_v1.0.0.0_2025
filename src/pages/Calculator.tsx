@@ -44,7 +44,7 @@ const MaterialRow = ({ material, onChange, onRemove }: {
       <div className="col-span-4">
         {material.isCustom ? (
           <Input 
-            className="h-8 text-sm bg-background"
+            className="h-8 text-sm text-foreground bg-background"
             placeholder="Material Name"
             value={material.name}
             onChange={(e) => onChange({ ...material, name: e.target.value })}
@@ -63,14 +63,14 @@ const MaterialRow = ({ material, onChange, onRemove }: {
             type="number" 
             min="0"
             step="any"
-            className="h-8 pr-12 text-sm"
+            className="h-8 pr-12 text-sm text-foreground"
             placeholder="0"
             value={material.quantity || ''} 
             onChange={(e) => onChange({ ...material, quantity: parseFloat(e.target.value) || 0 })}
           />
           {material.isCustom ? (
             <Input 
-              className="absolute right-1 top-1 bottom-1 w-12 text-xs h-6 border-l"
+              className="absolute right-1 top-1 bottom-1 w-12 text-xs text-foreground h-6 border-l"
               placeholder="Unit"
               value={material.unit}
               onChange={(e) => onChange({ ...material, unit: e.target.value })}
@@ -88,7 +88,7 @@ const MaterialRow = ({ material, onChange, onRemove }: {
             <Input 
               type="number" 
               step="0.01"
-              className="w-20 h-8 text-xs text-right"
+              className="w-20 h-8 text-xs text-right text-foreground"
               placeholder="kgCO2"
               value={material.factor || ''} 
               onChange={(e) => onChange({ ...material, factor: parseFloat(e.target.value) || 0 })}
@@ -129,7 +129,7 @@ const FactorRow = ({ label, unit, value, onChange, factor, total }: {
         type="number"
         min="0"
         step="any"
-        className="h-8 pr-12 text-sm"
+        className="h-8 pr-12 text-sm text-foreground"
         placeholder="0"
         value={value || ''} 
         onChange={(e) => onChange(e.target.value)}
