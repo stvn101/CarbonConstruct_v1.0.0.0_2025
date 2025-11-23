@@ -86,9 +86,9 @@ const Reports = () => {
   }
 
   const scopeData = [
-    { name: 'Scope 1', value: reportData.emissions.scope1, color: 'hsl(var(--scope-1))' },
-    { name: 'Scope 2', value: reportData.emissions.scope2, color: 'hsl(var(--scope-2))' },
-    { name: 'Scope 3', value: reportData.emissions.scope3, color: 'hsl(var(--scope-3))' },
+    { name: 'Scope 1', value: reportData.emissions.scope1 || 0, color: 'hsl(var(--scope-1))' },
+    { name: 'Scope 2', value: reportData.emissions.scope2 || 0, color: 'hsl(var(--scope-2))' },
+    { name: 'Scope 3', value: reportData.emissions.scope3 || 0, color: 'hsl(var(--scope-3))' },
   ];
 
   const materialsData = reportData.breakdown.materials.map(m => ({
@@ -175,7 +175,7 @@ const Reports = () => {
                 <div className="space-y-4">
                   <div className="text-center p-6 bg-gradient-to-br from-accent/10 to-primary/10 rounded-lg">
                     <div className="text-4xl font-bold text-primary mb-2">
-                      {reportData.emissions.total.toFixed(1)}
+                      {(reportData.emissions.total || 0).toFixed(1)}
                     </div>
                     <div className="text-lg text-muted-foreground">tCO₂e Total Emissions</div>
                   </div>
@@ -183,19 +183,19 @@ const Reports = () => {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-scope-1">
-                        {reportData.emissions.scope1.toFixed(1)}
+                        {(reportData.emissions.scope1 || 0).toFixed(1)}
                       </div>
                       <div className="text-sm text-muted-foreground">Scope 1</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-scope-2">
-                        {reportData.emissions.scope2.toFixed(1)}
+                        {(reportData.emissions.scope2 || 0).toFixed(1)}
                       </div>
                       <div className="text-sm text-muted-foreground">Scope 2</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-scope-3">
-                        {reportData.emissions.scope3.toFixed(1)}
+                        {(reportData.emissions.scope3 || 0).toFixed(1)}
                       </div>
                       <div className="text-sm text-muted-foreground">Scope 3</div>
                     </div>
@@ -211,7 +211,7 @@ const Reports = () => {
                         cy="50%"
                         outerRadius={100}
                         dataKey="value"
-                        label={({ name, value }) => `${name}: ${value.toFixed(1)}`}
+                        label={({ name, value }) => `${name}: ${(value || 0).toFixed(1)}`}
                       >
                         {scopeData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
@@ -303,7 +303,7 @@ const Reports = () => {
                     <div key={index} className="flex justify-between items-center">
                       <span className="text-sm">{material.name}</span>
                       <div className="text-right">
-                        <div className="text-sm font-medium">{material.emissions.toFixed(2)} tCO₂e</div>
+                        <div className="text-sm font-medium">{(material.emissions || 0).toFixed(2)} tCO₂e</div>
                         <div className="text-xs text-muted-foreground">{material.category}</div>
                       </div>
                     </div>
@@ -327,7 +327,7 @@ const Reports = () => {
                   fuelData.map((fuel, index) => (
                     <div key={index} className="flex justify-between items-center">
                       <span className="text-sm">{fuel.name}</span>
-                      <div className="text-sm font-medium">{fuel.emissions.toFixed(2)} tCO₂e</div>
+                      <div className="text-sm font-medium">{(fuel.emissions || 0).toFixed(2)} tCO₂e</div>
                     </div>
                   ))
                 )}
@@ -349,7 +349,7 @@ const Reports = () => {
                   electricityData.map((elec, index) => (
                     <div key={index} className="flex justify-between items-center">
                       <span className="text-sm">{elec.name}</span>
-                      <div className="text-sm font-medium">{elec.emissions.toFixed(2)} tCO₂e</div>
+                      <div className="text-sm font-medium">{(elec.emissions || 0).toFixed(2)} tCO₂e</div>
                     </div>
                   ))
                 )}
@@ -371,7 +371,7 @@ const Reports = () => {
                   transportData.map((transport, index) => (
                     <div key={index} className="flex justify-between items-center">
                       <span className="text-sm">{transport.name}</span>
-                      <div className="text-sm font-medium">{transport.emissions.toFixed(2)} tCO₂e</div>
+                      <div className="text-sm font-medium">{(transport.emissions || 0).toFixed(2)} tCO₂e</div>
                     </div>
                   ))
                 )}
