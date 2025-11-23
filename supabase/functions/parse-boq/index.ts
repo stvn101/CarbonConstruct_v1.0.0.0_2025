@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,6 +12,35 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("[parse-boq] No authorization header provided");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - No authorization header" }), 
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    
+    if (userError || !userData.user) {
+      console.error("[parse-boq] Authentication failed:", userError?.message);
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - Invalid token" }), 
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const user = userData.user;
+    console.log(`[parse-boq] Authenticated user: ${user.id}`);
+
     const { text } = await req.json();
     
     if (!text || text.trim().length === 0) {
@@ -87,7 +117,7 @@ Each item must have:
 
 ${materialSchema}`;
 
-    console.log("Calling Lovable AI to parse BOQ...");
+    console.log(`[parse-boq] User ${user.id} calling Lovable AI to parse BOQ...`);
     
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -143,7 +173,7 @@ ${materialSchema}`;
       throw new Error("Invalid response format from AI");
     }
 
-    console.log(`Successfully parsed ${materials.length} materials`);
+    console.log(`[parse-boq] User ${user.id} successfully parsed ${materials.length} materials`);
 
     return new Response(
       JSON.stringify({ materials }), 
