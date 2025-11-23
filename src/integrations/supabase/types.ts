@@ -212,6 +212,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          request_count: number | null
+          updated_at: string | null
+          user_id: string
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          request_count?: number | null
+          updated_at?: string | null
+          user_id: string
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          request_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           compliance_status: string | null
@@ -641,6 +671,7 @@ export type Database = {
         Args: { action_type: string; user_id_param: string }
         Returns: boolean
       }
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       get_user_tier: {
         Args: { user_id_param: string }
         Returns: {
