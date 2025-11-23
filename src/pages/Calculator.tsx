@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles } from "lucide-react";
 import { MATERIAL_DB, FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/emission-factors";
+import { MaterialSchema } from "@/lib/validation-schemas";
 
 interface Material {
   id: string;
@@ -361,15 +362,80 @@ export default function Calculator() {
       return;
     }
 
+    // Client-side pre-validation for better UX
+    const clientErrors: string[] = [];
+    
+    // Validate materials
+    selectedMaterials.forEach((material, index) => {
+      const result = MaterialSchema.safeParse(material);
+      if (!result.success) {
+        const errors = result.error.issues.map(i => i.message).join(', ');
+        clientErrors.push(`Material ${index + 1}: ${errors}`);
+      }
+    });
+
+    // Check for negative or invalid quantities
+    if (Object.values(scope1Inputs).some(v => parseFloat(String(v)) < 0)) {
+      clientErrors.push("Fuel quantities cannot be negative");
+    }
+    if (Object.values(scope2Inputs).some(v => parseFloat(String(v)) < 0)) {
+      clientErrors.push("Electricity quantities cannot be negative");
+    }
+    if (Object.values(transportInputs).some(v => parseFloat(String(v)) < 0)) {
+      clientErrors.push("Transport quantities cannot be negative");
+    }
+
+    if (clientErrors.length > 0) {
+      toast({ 
+        title: "Invalid data", 
+        description: clientErrors.slice(0, 2).join('. '),
+        variant: "destructive",
+        duration: 7000
+      });
+      return;
+    }
+
     setSaving(true);
     try {
+      // Server-side validation
+      const validationData = {
+        projectDetails,
+        materials: selectedMaterials,
+        fuelInputs: scope1Inputs,
+        electricityInputs: scope2Inputs,
+        transportInputs
+      };
+
+      const { data: validationResult, error: validationError } = await supabase.functions.invoke(
+        'validate-calculation',
+        { body: validationData }
+      );
+
+      if (validationError) {
+        throw new Error(`Validation failed: ${validationError.message}`);
+      }
+
+      if (!validationResult?.valid) {
+        const errorMessages = validationResult?.errors || ['Unknown validation error'];
+        toast({ 
+          title: "Validation failed", 
+          description: errorMessages.slice(0, 3).join(', '),
+          variant: "destructive",
+          duration: 7000
+        });
+        return;
+      }
+
+      // Use validated data for insertion
+      const validatedData = validationResult.data;
+
       const { error } = await supabase.from('unified_calculations').insert([{
         project_id: currentProject.id,
         user_id: user.id,
-        materials: selectedMaterials as any,
-        fuel_inputs: scope1Inputs as any,
-        electricity_inputs: scope2Inputs as any,
-        transport_inputs: transportInputs as any,
+        materials: validatedData.materials as any,
+        fuel_inputs: validatedData.fuelInputs as any,
+        electricity_inputs: validatedData.electricityInputs as any,
+        transport_inputs: validatedData.transportInputs as any,
         totals: calculations as any,
         is_draft: false
       }]);
@@ -380,7 +446,11 @@ export default function Calculator() {
       navigate('/reports');
     } catch (error) {
       console.error(error);
-      toast({ title: "Failed to save", variant: "destructive" });
+      toast({ 
+        title: "Failed to save", 
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive" 
+      });
     } finally {
       setSaving(false);
     }
