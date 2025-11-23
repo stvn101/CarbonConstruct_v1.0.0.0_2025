@@ -130,13 +130,13 @@ export const Footer = () => {
               © {currentYear} CarbonConstruct. All rights reserved.
             </p>
             <div className="flex gap-6">
-              <Link to="/help" className="hover:text-primary transition-colors">
+              <Link to="/privacy" className="hover:text-primary transition-colors">
                 Privacy Policy
               </Link>
-              <Link to="/help" className="hover:text-primary transition-colors">
+              <Link to="/terms" className="hover:text-primary transition-colors">
                 Terms of Service
               </Link>
-              <Link to="/help" className="hover:text-primary transition-colors">
+              <Link to="/cookies" className="hover:text-primary transition-colors">
                 Cookie Policy
               </Link>
             </div>
