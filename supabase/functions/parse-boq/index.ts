@@ -43,12 +43,52 @@ serve(async (req) => {
 
     const { text } = await req.json();
     
-    if (!text || text.trim().length === 0) {
+    // Validate text parameter exists and is a string
+    if (!text) {
+      console.error(`[parse-boq] User ${user.id}: No text provided`);
       return new Response(
         JSON.stringify({ error: "No text provided" }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    if (typeof text !== 'string') {
+      console.error(`[parse-boq] User ${user.id}: Invalid text type - expected string, got ${typeof text}`);
+      return new Response(
+        JSON.stringify({ error: "Text must be a string" }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const trimmedText = text.trim();
+
+    // Validate minimum length
+    if (trimmedText.length < 10) {
+      console.error(`[parse-boq] User ${user.id}: Text too short (${trimmedText.length} chars)`);
+      return new Response(
+        JSON.stringify({ error: "Text too short - must be at least 10 characters for a valid BOQ document" }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate maximum length BEFORE processing (reject, don't truncate)
+    if (trimmedText.length > 15000) {
+      console.error(`[parse-boq] User ${user.id}: Text too long (${trimmedText.length} chars, max 15,000)`);
+      return new Response(
+        JSON.stringify({ error: "Text exceeds maximum length of 15,000 characters. Please split your document into smaller sections." }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Basic content validation - check for some BOQ-like indicators
+    const hasNumbers = /\d/.test(trimmedText);
+    const hasUnits = /\b(m[²³]?|tonnes?|kg|litres?|L|sqm|m2|m3)\b/i.test(trimmedText);
+    
+    if (!hasNumbers || !hasUnits) {
+      console.warn(`[parse-boq] User ${user.id}: Text may not be a valid BOQ document (hasNumbers: ${hasNumbers}, hasUnits: ${hasUnits})`);
+    }
+
+    console.log(`[parse-boq] User ${user.id}: Validated text input (${trimmedText.length} chars)`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -129,7 +169,7 @@ ${materialSchema}`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Extract all materials from this BOQ document:\n\n${text.substring(0, 15000)}` }
+          { role: "user", content: `Extract all materials from this BOQ document:\n\n${trimmedText}` }
         ],
         temperature: 0.3,
       }),

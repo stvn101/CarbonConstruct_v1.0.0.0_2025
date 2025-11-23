@@ -40,6 +40,78 @@ serve(async (req) => {
     console.log(`[chat] Authenticated user: ${user.id}`);
 
     const { messages } = await req.json();
+
+    // Validate messages is an array
+    if (!Array.isArray(messages)) {
+      console.error(`[chat] User ${user.id}: Invalid messages type - expected array, got ${typeof messages}`);
+      return new Response(
+        JSON.stringify({ error: "Messages must be an array" }), 
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate array is not empty
+    if (messages.length === 0) {
+      console.error(`[chat] User ${user.id}: Empty messages array`);
+      return new Response(
+        JSON.stringify({ error: "Messages array cannot be empty" }), 
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate array length (prevent abuse)
+    if (messages.length > 50) {
+      console.error(`[chat] User ${user.id}: Too many messages (${messages.length}, max 50)`);
+      return new Response(
+        JSON.stringify({ error: "Too many messages - maximum 50 messages per request" }), 
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate each message structure
+    const validRoles = ['user', 'assistant', 'system'];
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+
+      // Check message has required fields
+      if (!msg.role || !msg.content) {
+        console.error(`[chat] User ${user.id}: Invalid message structure at index ${i} - missing role or content`);
+        return new Response(
+          JSON.stringify({ error: `Invalid message at position ${i + 1} - must have 'role' and 'content' fields` }), 
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Validate role
+      if (!validRoles.includes(msg.role)) {
+        console.error(`[chat] User ${user.id}: Invalid role at index ${i}: ${msg.role}`);
+        return new Response(
+          JSON.stringify({ error: `Invalid role at position ${i + 1} - must be 'user', 'assistant', or 'system'` }), 
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Validate content is string
+      if (typeof msg.content !== 'string') {
+        console.error(`[chat] User ${user.id}: Invalid content type at index ${i} - expected string, got ${typeof msg.content}`);
+        return new Response(
+          JSON.stringify({ error: `Invalid content at position ${i + 1} - must be a string` }), 
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Validate content length
+      if (msg.content.length > 10000) {
+        console.error(`[chat] User ${user.id}: Content too long at index ${i} (${msg.content.length} chars, max 10,000)`);
+        return new Response(
+          JSON.stringify({ error: `Message at position ${i + 1} exceeds maximum length of 10,000 characters` }), 
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    console.log(`[chat] User ${user.id}: Validated ${messages.length} messages`);
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
