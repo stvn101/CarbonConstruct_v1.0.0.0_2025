@@ -174,7 +174,7 @@ async function handleSubscriptionUpdate(
         .eq('id', existingSub.id);
 
       if (updateError) throw updateError;
-      logStep("Subscription updated", { subscriptionId: existingSub.id });
+    logStep("Subscription updated", { subscriptionId: existingSub.id });
     } else {
       // Create new subscription
       const { error: insertError } = await supabaseClient
@@ -183,6 +183,32 @@ async function handleSubscriptionUpdate(
 
       if (insertError) throw insertError;
       logStep("Subscription created");
+    }
+
+    // Send subscription updated email
+    try {
+      const { data: tierDetails } = await supabaseClient
+        .from('subscription_tiers')
+        .select('name, features')
+        .eq('id', tierData.id)
+        .single();
+
+      await supabaseClient.functions.invoke('send-email', {
+        body: {
+          type: 'subscription_updated',
+          to: customer.email,
+          data: {
+            tierName: tierDetails?.name || tierData.name,
+            features: Array.isArray(tierDetails?.features) ? tierDetails.features : [],
+            renewalDate: new Date(subscription.current_period_end * 1000).toLocaleDateString('en-AU'),
+            appUrl: 'https://carbonconstruct.com.au'
+          }
+        }
+      });
+      logStep("Subscription email sent", { email: customer.email });
+    } catch (emailError) {
+      logStep("Failed to send subscription email", { error: emailError.message });
+      // Don't throw - email failure shouldn't block webhook
     }
   } catch (error) {
     logStep("Error in handleSubscriptionUpdate", { error: error.message });
@@ -197,6 +223,14 @@ async function handleSubscriptionDeleted(
   logStep("Handling subscription deletion", { subscriptionId: subscription.id });
 
   try {
+    // Get customer email before deletion
+    const customerId = subscription.customer as string;
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
+      apiVersion: "2025-08-27.basil" 
+    });
+    const customer = await stripe.customers.retrieve(customerId);
+    const customerEmail = customer && !customer.deleted ? customer.email : null;
+
     // Delete subscription record
     const { error } = await supabaseClient
       .from('user_subscriptions')
@@ -205,6 +239,25 @@ async function handleSubscriptionDeleted(
 
     if (error) throw error;
     logStep("Subscription deleted from database");
+
+    // Send cancellation email
+    if (customerEmail) {
+      try {
+        await supabaseClient.functions.invoke('send-email', {
+          body: {
+            type: 'subscription_cancelled',
+            to: customerEmail,
+            data: {
+              endDate: new Date(subscription.current_period_end * 1000).toLocaleDateString('en-AU'),
+              appUrl: 'https://carbonconstruct.com.au'
+            }
+          }
+        });
+        logStep("Cancellation email sent", { email: customerEmail });
+      } catch (emailError) {
+        logStep("Failed to send cancellation email", { error: emailError.message });
+      }
+    }
   } catch (error) {
     logStep("Error in handleSubscriptionDeleted", { error: error.message });
     throw error;
@@ -286,8 +339,28 @@ async function handleTrialWillEnd(
       trialEnd: subscription.trial_end 
     });
 
-    // TODO: Send email notification to user about trial ending
-    // This could be implemented with a separate email service
+    // Send trial ending email
+    if (subscription.trial_end) {
+      const trialEndDate = new Date(subscription.trial_end * 1000);
+      const daysLeft = Math.ceil((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      
+      try {
+        await supabaseClient.functions.invoke('send-email', {
+          body: {
+            type: 'trial_ending',
+            to: customer.email,
+            data: {
+              daysLeft,
+              endDate: trialEndDate.toLocaleDateString('en-AU'),
+              appUrl: 'https://carbonconstruct.com.au'
+            }
+          }
+        });
+        logStep("Trial ending email sent", { email: customer.email, daysLeft });
+      } catch (emailError) {
+        logStep("Failed to send trial ending email", { error: emailError.message });
+      }
+    }
   } catch (error) {
     logStep("Error in handleTrialWillEnd", { error: error.message });
     throw error;

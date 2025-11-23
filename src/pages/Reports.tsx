@@ -9,10 +9,11 @@ import { useReportData } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { UpgradeModal } from '@/components/UpgradeModal';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   FileBarChart, 
   Download, 
-  CheckCircle, 
+  CheckCircle,
   AlertCircle, 
   TrendingUp,
   Factory,
@@ -55,6 +56,31 @@ const Reports = () => {
         })
         .from(element)
         .save();
+
+      // Send report generated email
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email && reportData) {
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'report_generated',
+              to: user.email,
+              data: {
+                projectName: currentProject?.name || 'Project',
+                totalEmissions: reportData.emissions.total.toFixed(2),
+                scope1: reportData.emissions.scope1.toFixed(2),
+                scope2: reportData.emissions.scope2.toFixed(2),
+                scope3: reportData.emissions.scope3.toFixed(2),
+                complianceStatus: reportData.compliance.nccCompliant ? 'NCC Compliant' : 'Non-Compliant',
+                appUrl: window.location.origin
+              }
+            }
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send report email:', emailError);
+        // Don't block report download if email fails
+      }
     }
   };
 
