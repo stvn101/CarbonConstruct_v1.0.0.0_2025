@@ -86,6 +86,22 @@ const Auth = () => {
         title: "Account created successfully",
         description: "You can now sign in to start tracking emissions.",
       });
+      
+      // Send welcome email
+      try {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'welcome',
+            to: email,
+            data: {
+              appUrl: window.location.origin
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Don't block signup if email fails
+      }
     }
     setLoading(false);
   };
