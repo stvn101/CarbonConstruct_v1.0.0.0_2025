@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { checkRateLimit } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,6 +41,35 @@ serve(async (req) => {
 
     const user = userData.user;
     console.log(`[parse-boq] Authenticated user: ${user.id}`);
+
+    // Check rate limit (10 requests per 5 minutes for BOQ parsing)
+    const rateLimitResult = await checkRateLimit(
+      supabaseClient,
+      user.id,
+      'parse-boq',
+      { windowMinutes: 5, maxRequests: 10 }
+    );
+
+    if (!rateLimitResult.allowed) {
+      const resetInSeconds = Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000);
+      console.warn(`[parse-boq] User ${user.id}: Rate limit exceeded. Reset in ${resetInSeconds}s`);
+      return new Response(
+        JSON.stringify({ 
+          error: `Rate limit exceeded. Please try again in ${resetInSeconds} seconds.`,
+          retryAfter: resetInSeconds
+        }), 
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(resetInSeconds)
+          } 
+        }
+      );
+    }
+
+    console.log(`[parse-boq] User ${user.id}: Rate limit OK (${rateLimitResult.remaining} remaining)`);
 
     const { text } = await req.json();
     
