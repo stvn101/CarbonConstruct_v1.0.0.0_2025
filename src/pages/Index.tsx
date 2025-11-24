@@ -15,7 +15,9 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
 import heroImage from "@/assets/hero-carbon-calc.jpg";
+import heroImageWebP from '@/assets/hero-carbon-calc.webp';
 import logoImage from "@/assets/carbonconstruct-logo.png";
+import logoImageWebP from '@/assets/carbonconstruct-logo.webp';
 const Index = () => {
   const {
     user,
@@ -37,14 +39,17 @@ const Index = () => {
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
               <div className="flex items-center justify-center gap-4">
-                <img 
-                  src={logoImage} 
-                  alt="CarbonConstruct Logo" 
-                  className="w-16 h-16 md:w-24 md:h-24"
-                  width="96"
-                  height="96"
-                  loading="eager"
-                />
+                <picture>
+                  <source srcSet={logoImageWebP} type="image/webp" />
+                  <img 
+                    src={logoImage} 
+                    alt="CarbonConstruct Logo" 
+                    className="w-16 h-16 md:w-24 md:h-24"
+                    width="96"
+                    height="96"
+                    loading="eager"
+                  />
+                </picture>
                 <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                   CarbonConstruct
                 </h1>
@@ -68,15 +73,18 @@ const Index = () => {
             <div className="relative max-w-4xl mx-auto rounded-lg overflow-hidden shadow-glow animate-scale-in" style={{
             animationDelay: '0.2s'
           }}>
-              <img 
-                src={heroImage} 
-                alt="Carbon footprint calculation and environmental assessment" 
-                className="w-full h-48 sm:h-64 md:h-96 object-cover"
-                width="1280"
-                height="549"
-                fetchPriority="high"
-                loading="eager"
-              />
+              <picture>
+                <source srcSet={heroImageWebP} type="image/webp" />
+                <img 
+                  src={heroImage} 
+                  alt="Carbon footprint calculation and environmental assessment" 
+                  className="w-full h-48 sm:h-64 md:h-96 object-cover"
+                  width="1280"
+                  height="549"
+                  fetchPriority="high"
+                  loading="eager"
+                />
+              </picture>
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-end md:items-center justify-center p-6">
                 <div className="text-center space-y-2 md:space-y-4">
                   <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
