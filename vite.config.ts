@@ -21,8 +21,7 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     force: true,
-    exclude: ['@radix-ui/react-tooltip'],
-    include: ['react', 'react-dom'],
+    include: ['react', 'react-dom', '@radix-ui/react-tooltip'],
     esbuildOptions: {
       target: 'esnext',
     },
