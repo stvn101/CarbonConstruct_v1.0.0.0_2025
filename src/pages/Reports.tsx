@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PDFReport } from '@/components/PDFReport';
 import { useReportData, validateReportData, calculateDataCompleteness } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
@@ -24,15 +25,19 @@ import {
   Building2,
   Star,
   Award,
-  Crown
+  Crown,
+  FileText
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+
+export type ReportTemplate = 'executive' | 'technical' | 'compliance';
 
 const Reports = () => {
   const { currentProject } = useProject();
   const reportData = useReportData();
   const { canPerformAction, trackUsage, currentUsage } = useUsageTracking();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate>('technical');
 
   const handleDownloadReport = async () => {
     const limitCheck = canPerformAction('reports_per_month');
@@ -222,9 +227,49 @@ const Reports = () => {
           </p>
         </div>
         <ErrorBoundary>
-          <PDFReport data={reportData} />
+          <PDFReport data={reportData} template={selectedTemplate} />
         </ErrorBoundary>
       </div>
+
+      {/* Report Template Selector */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Report Template
+          </CardTitle>
+          <CardDescription>
+            Choose the report format that best suits your needs
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedTemplate} onValueChange={(value) => setSelectedTemplate(value as ReportTemplate)}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a template" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="executive">
+                <div className="flex flex-col items-start">
+                  <span className="font-medium">Executive Summary</span>
+                  <span className="text-sm text-muted-foreground">High-level overview with key metrics</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="technical">
+                <div className="flex flex-col items-start">
+                  <span className="font-medium">Detailed Technical</span>
+                  <span className="text-sm text-muted-foreground">Comprehensive data and breakdowns</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="compliance">
+                <div className="flex flex-col items-start">
+                  <span className="font-medium">Compliance-Focused</span>
+                  <span className="text-sm text-muted-foreground">NCC, GBCA, and NABERS compliance details</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
       {/* Data Completeness Indicator */}
       <Card>
