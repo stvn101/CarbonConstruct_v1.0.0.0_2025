@@ -25,6 +25,16 @@ export default defineConfig(({ mode }) => ({
   },
   clearScreen: false,
   build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-components': ['@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-select'],
+          'charts': ['recharts'],
+          'supabase': ['@supabase/supabase-js'],
+        },
+      },
+    },
     commonjsOptions: {
       include: [/node_modules/],
     },
