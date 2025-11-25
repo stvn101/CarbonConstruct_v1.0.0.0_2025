@@ -158,7 +158,7 @@ const PDFReportDocument: React.FC<{ data: ReportData }> = ({ data }) => (
         <Text style={styles.sectionTitle}>Executive Summary</Text>
         <View style={styles.emissionCard}>
           <Text style={styles.emissionTitle}>Total Carbon Emissions</Text>
-          <Text style={styles.emissionValue}>{data.emissions.total.toFixed(2)} tCO₂e</Text>
+          <Text style={styles.emissionValue}>{(data.emissions.total || 0).toFixed(2)} tCO₂e</Text>
         </View>
       </View>
 
@@ -169,57 +169,83 @@ const PDFReportDocument: React.FC<{ data: ReportData }> = ({ data }) => (
         {/* Scope 1: Fuel Inputs */}
         <View style={styles.emissionCard}>
           <Text style={styles.emissionTitle}>Scope 1: Direct Emissions (Fuel)</Text>
-          <Text style={styles.emissionValue}>{data.emissions.scope1.toFixed(2)} tCO₂e</Text>
-          {data.breakdown.fuelInputs.map((fuel, index) => (
-            <View key={index} style={styles.categoryRow}>
-              <Text style={styles.categoryName}>{fuel.fuelType}</Text>
-              <Text style={styles.categoryValue}>
-                {fuel.totalEmissions.toFixed(2)} tCO₂e ({fuel.quantity} {fuel.unit})
-              </Text>
-            </View>
-          ))}
+          <Text style={styles.emissionValue}>{(data.emissions.scope1 || 0).toFixed(2)} tCO₂e</Text>
+          {data.breakdown.fuelInputs && data.breakdown.fuelInputs.length > 0 ? (
+            data.breakdown.fuelInputs.map((fuel, index) => (
+              <View key={index} style={styles.categoryRow}>
+                <Text style={styles.categoryName}>{fuel.fuelType || 'Unknown'}</Text>
+                <Text style={styles.categoryValue}>
+                  {(fuel.totalEmissions || 0).toFixed(2)} tCO₂e ({fuel.quantity || 0} {fuel.unit || 'L'})
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.categoryName}>No fuel data available</Text>
+          )}
         </View>
 
         {/* Scope 2: Electricity */}
         <View style={styles.emissionCard}>
           <Text style={styles.emissionTitle}>Scope 2: Energy Indirect (Electricity)</Text>
-          <Text style={styles.emissionValue}>{data.emissions.scope2.toFixed(2)} tCO₂e</Text>
-          {data.breakdown.electricityInputs.map((elec, index) => (
-            <View key={index} style={styles.categoryRow}>
-              <Text style={styles.categoryName}>{elec.state}</Text>
-              <Text style={styles.categoryValue}>
-                {elec.totalEmissions.toFixed(2)} tCO₂e ({elec.quantity} {elec.unit})
-              </Text>
-            </View>
-          ))}
+          <Text style={styles.emissionValue}>{(data.emissions.scope2 || 0).toFixed(2)} tCO₂e</Text>
+          {data.breakdown.electricityInputs && data.breakdown.electricityInputs.length > 0 ? (
+            data.breakdown.electricityInputs.map((elec, index) => (
+              <View key={index} style={styles.categoryRow}>
+                <Text style={styles.categoryName}>{elec.state || 'Unknown'}</Text>
+                <Text style={styles.categoryValue}>
+                  {(elec.totalEmissions || 0).toFixed(2)} tCO₂e ({elec.quantity || 0} {elec.unit || 'kWh'})
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.categoryName}>No electricity data available</Text>
+          )}
         </View>
 
         {/* Scope 3: Materials */}
         <View style={styles.emissionCard}>
           <Text style={styles.emissionTitle}>Scope 3: Materials (Embodied Carbon)</Text>
-          <Text style={styles.emissionValue}>{data.breakdown.materials.reduce((sum, m) => sum + m.totalEmissions, 0).toFixed(2)} tCO₂e</Text>
-          {data.breakdown.materials.map((material, index) => (
-            <View key={index} style={styles.categoryRow}>
-              <Text style={styles.categoryName}>{material.name} ({material.category})</Text>
-              <Text style={styles.categoryValue}>
-                {material.totalEmissions.toFixed(2)} tCO₂e ({material.quantity} {material.unit})
-              </Text>
-            </View>
-          ))}
+          <Text style={styles.emissionValue}>
+            {data.breakdown.materials && data.breakdown.materials.length > 0 
+              ? data.breakdown.materials.reduce((sum, m) => sum + (m.totalEmissions || 0), 0).toFixed(2)
+              : '0.00'
+            } tCO₂e
+          </Text>
+          {data.breakdown.materials && data.breakdown.materials.length > 0 ? (
+            data.breakdown.materials.map((material, index) => (
+              <View key={index} style={styles.categoryRow}>
+                <Text style={styles.categoryName}>{material.name || 'Unknown'} ({material.category || 'N/A'})</Text>
+                <Text style={styles.categoryValue}>
+                  {(material.totalEmissions || 0).toFixed(2)} tCO₂e ({material.quantity || 0} {material.unit || 'kg'})
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.categoryName}>No materials data available</Text>
+          )}
         </View>
 
         {/* Scope 3: Transport */}
         <View style={styles.emissionCard}>
           <Text style={styles.emissionTitle}>Scope 3: Transport</Text>
-          <Text style={styles.emissionValue}>{data.breakdown.transportInputs.reduce((sum, t) => sum + t.totalEmissions, 0).toFixed(2)} tCO₂e</Text>
-          {data.breakdown.transportInputs.map((transport, index) => (
-            <View key={index} style={styles.categoryRow}>
-              <Text style={styles.categoryName}>{transport.mode}</Text>
-              <Text style={styles.categoryValue}>
-                {transport.totalEmissions.toFixed(2)} tCO₂e ({transport.distance} km, {transport.weight} kg)
-              </Text>
-            </View>
-          ))}
+          <Text style={styles.emissionValue}>
+            {data.breakdown.transportInputs && data.breakdown.transportInputs.length > 0
+              ? data.breakdown.transportInputs.reduce((sum, t) => sum + (t.totalEmissions || 0), 0).toFixed(2)
+              : '0.00'
+            } tCO₂e
+          </Text>
+          {data.breakdown.transportInputs && data.breakdown.transportInputs.length > 0 ? (
+            data.breakdown.transportInputs.map((transport, index) => (
+              <View key={index} style={styles.categoryRow}>
+                <Text style={styles.categoryName}>{transport.mode || 'Unknown'}</Text>
+                <Text style={styles.categoryValue}>
+                  {(transport.totalEmissions || 0).toFixed(2)} tCO₂e ({transport.distance || 0} km, {transport.weight || 0} kg)
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.categoryName}>No transport data available</Text>
+          )}
         </View>
       </View>
 

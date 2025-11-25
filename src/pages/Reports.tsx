@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { PDFReport } from '@/components/PDFReport';
-import { useReportData } from '@/components/ReportData';
+import { useReportData, validateReportData } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { UpgradeModal } from '@/components/UpgradeModal';
@@ -113,6 +113,40 @@ const Reports = () => {
     );
   }
 
+  // Validate report data before rendering
+  const validation = validateReportData(reportData);
+
+  if (!validation.isValid) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="w-full max-w-2xl border-destructive/50">
+          <CardHeader className="text-center">
+            <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
+            <CardTitle>Unable to Generate Report</CardTitle>
+            <CardDescription className="text-left mt-4">
+              <div className="space-y-2">
+                <p className="font-semibold text-foreground">The following issues need to be resolved:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  {validation.errors.map((error, index) => (
+                    <li key={index} className="text-destructive">{error}</li>
+                  ))}
+                </ul>
+              </div>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button 
+              onClick={() => window.location.href = '/calculator'}
+              className="mt-4"
+            >
+              Go to Calculator
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const scopeData = [
     { name: 'Scope 1', value: reportData.emissions.scope1 || 0, color: 'hsl(var(--scope-1))' },
     { name: 'Scope 2', value: reportData.emissions.scope2 || 0, color: 'hsl(var(--scope-2))' },
@@ -190,6 +224,25 @@ const Reports = () => {
           <PDFReport data={reportData} />
         </ErrorBoundary>
       </div>
+
+      {/* Data Quality Warnings */}
+      {validation.warnings.length > 0 && (
+        <Card className="border-warning/50 bg-warning/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-warning">
+              <AlertCircle className="h-5 w-5" />
+              Data Quality Warnings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              {validation.warnings.map((warning, index) => (
+                <li key={index} className="text-muted-foreground">{warning}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <ErrorBoundary>
         <Tabs defaultValue="overview" className="space-y-6">
