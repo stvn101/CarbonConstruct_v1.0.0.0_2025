@@ -117,26 +117,34 @@ const Reports = () => {
     { name: 'Scope 3', value: reportData.emissions.scope3 || 0, color: 'hsl(var(--scope-3))' },
   ];
 
-  const materialsData = reportData.breakdown.materials.map(m => ({
-    name: m.name,
-    emissions: m.totalEmissions,
-    category: m.category
-  }));
+  const materialsData = Array.isArray(reportData.breakdown.materials) 
+    ? reportData.breakdown.materials.map(m => ({
+        name: m.name,
+        emissions: m.totalEmissions,
+        category: m.category
+      }))
+    : [];
 
-  const fuelData = reportData.breakdown.fuelInputs.map(f => ({
-    name: f.fuelType,
-    emissions: f.totalEmissions
-  }));
+  const fuelData = Array.isArray(reportData.breakdown.fuelInputs)
+    ? reportData.breakdown.fuelInputs.map(f => ({
+        name: f.fuelType,
+        emissions: f.totalEmissions
+      }))
+    : [];
 
-  const electricityData = reportData.breakdown.electricityInputs.map(e => ({
-    name: e.state,
-    emissions: e.totalEmissions
-  }));
+  const electricityData = Array.isArray(reportData.breakdown.electricityInputs)
+    ? reportData.breakdown.electricityInputs.map(e => ({
+        name: e.state,
+        emissions: e.totalEmissions
+      }))
+    : [];
 
-  const transportData = reportData.breakdown.transportInputs.map(t => ({
-    name: t.mode,
-    emissions: t.totalEmissions
-  }));
+  const transportData = Array.isArray(reportData.breakdown.transportInputs)
+    ? reportData.breakdown.transportInputs.map(t => ({
+        name: t.mode,
+        emissions: t.totalEmissions
+      }))
+    : [];
 
   const complianceProgress = [
     { 
