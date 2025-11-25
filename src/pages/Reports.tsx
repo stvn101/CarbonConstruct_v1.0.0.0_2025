@@ -9,6 +9,8 @@ import { useReportData } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { UpgradeModal } from '@/components/UpgradeModal';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ReportErrorBoundary } from '@/components/ReportErrorBoundary';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   FileBarChart, 
@@ -168,7 +170,7 @@ const Reports = () => {
   ];
 
   return (
-    <>
+    <ErrorBoundary>
       <UpgradeModal 
         open={upgradeModalOpen}
         onOpenChange={setUpgradeModalOpen}
@@ -184,10 +186,13 @@ const Reports = () => {
             Comprehensive analysis for {currentProject.name}
           </p>
         </div>
-        <PDFReport data={reportData} />
+        <ErrorBoundary>
+          <PDFReport data={reportData} />
+        </ErrorBoundary>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <ErrorBoundary>
+        <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="breakdown">Detailed Breakdown</TabsTrigger>
@@ -197,7 +202,8 @@ const Reports = () => {
 
         <TabsContent value="overview" className="space-y-6">
           {/* Executive Summary */}
-          <Card className="border-primary/20">
+          <ReportErrorBoundary fallbackTitle="Executive Summary Error">
+            <Card className="border-primary/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
@@ -258,9 +264,11 @@ const Reports = () => {
               </div>
             </CardContent>
           </Card>
+          </ReportErrorBoundary>
 
           {/* Project Details */}
-          <Card>
+          <ReportErrorBoundary fallbackTitle="Project Details Error" inline>
+            <Card>
             <CardHeader>
               <CardTitle>Project Information</CardTitle>
             </CardHeader>
@@ -293,11 +301,13 @@ const Reports = () => {
               </div>
             </CardContent>
           </Card>
+          </ReportErrorBoundary>
         </TabsContent>
 
         <TabsContent value="breakdown" className="space-y-6">
           {/* Category Breakdown Chart */}
-          <Card>
+          <ReportErrorBoundary fallbackTitle="Breakdown Chart Error">
+            <Card>
             <CardHeader>
               <CardTitle>Emissions by Category</CardTitle>
               <CardDescription>
@@ -318,9 +328,11 @@ const Reports = () => {
               </div>
             </CardContent>
           </Card>
+          </ReportErrorBoundary>
 
           {/* Materials Breakdown */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <ReportErrorBoundary fallbackTitle="Materials Breakdown Error">
+            <div className="grid gap-6 md:grid-cols-2">
             {/* Materials Section */}
             <Card>
               <CardHeader>
@@ -412,11 +424,13 @@ const Reports = () => {
               </CardContent>
             </Card>
           </div>
+          </ReportErrorBoundary>
         </TabsContent>
 
         <TabsContent value="compliance" className="space-y-6">
           {/* Compliance Status */}
-          <div className="grid gap-6 md:grid-cols-3">
+          <ReportErrorBoundary fallbackTitle="Compliance Status Error">
+            <div className="grid gap-6 md:grid-cols-3">
             {complianceProgress.map((item, index) => {
               const Icon = item.icon;
               return (
@@ -450,9 +464,11 @@ const Reports = () => {
               );
             })}
           </div>
+          </ReportErrorBoundary>
 
           {/* Compliance Details */}
-          <Card>
+          <ReportErrorBoundary fallbackTitle="Compliance Details Error" inline>
+            <Card>
             <CardHeader>
               <CardTitle>Australian Standards Compliance</CardTitle>
               <CardDescription>
@@ -502,10 +518,12 @@ const Reports = () => {
               </div>
             </CardContent>
           </Card>
+          </ReportErrorBoundary>
         </TabsContent>
 
         <TabsContent value="export" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+          <ReportErrorBoundary fallbackTitle="Export Options Error">
+            <div className="grid gap-6 md:grid-cols-2">
             {/* PDF Export */}
             <Card>
               <CardHeader>
@@ -598,10 +616,12 @@ const Reports = () => {
               </div>
             </CardContent>
           </Card>
+          </ReportErrorBoundary>
         </TabsContent>
       </Tabs>
+      </ErrorBoundary>
       </div>
-    </>
+    </ErrorBoundary>
   );
 };
 
