@@ -17,7 +17,7 @@ const milestones: Milestone[] = [
     title: "Platform Foundation",
     description: "Core infrastructure and authentication system",
     status: "completed",
-    quarter: "Q4 2025",
+    quarter: "Q1 2025",
     features: [
       "User authentication with Google OAuth",
       "Project management system",
@@ -29,7 +29,7 @@ const milestones: Milestone[] = [
     title: "Carbon Calculation Engine",
     description: "Comprehensive emission tracking across all scopes",
     status: "completed",
-    quarter: "Q1 2026",
+    quarter: "Q2 2025",
     features: [
       "Scope 1, 2, and 3 emissions tracking",
       "Life Cycle Assessment (LCA) framework",
@@ -41,7 +41,7 @@ const milestones: Milestone[] = [
     title: "Data & Performance",
     description: "EPD database and platform optimization",
     status: "in-progress",
-    quarter: "Q2 2026",
+    quarter: "Q3 2025",
     features: [
       "4,000+ EPD materials database import",
       "EPD-centric schema for compliance",
@@ -53,7 +53,7 @@ const milestones: Milestone[] = [
     title: "Security Hardening",
     description: "Enterprise-grade security and validation",
     status: "in-progress",
-    quarter: "Q2 2026",
+    quarter: "Q3 2025",
     features: [
       "Server-side input validation",
       "Rate limiting across endpoints",
@@ -65,7 +65,7 @@ const milestones: Milestone[] = [
     title: "AI-Powered Features",
     description: "Intelligent automation and insights",
     status: "planned",
-    quarter: "Q3 2026",
+    quarter: "Q4 2025",
     features: [
       "AI-powered BOQ import and parsing",
       "Carbon reduction recommendations",
@@ -77,7 +77,7 @@ const milestones: Milestone[] = [
     title: "Advanced Analytics",
     description: "Deep insights and benchmarking",
     status: "planned",
-    quarter: "Q3 2026",
+    quarter: "Q4 2025",
     features: [
       "Project comparison and benchmarking",
       "Industry-specific carbon intensity metrics",
@@ -89,7 +89,7 @@ const milestones: Milestone[] = [
     title: "Compliance & Certification",
     description: "Australian building standards integration",
     status: "planned",
-    quarter: "Q4 2026",
+    quarter: "Q1 2026",
     features: [
       "NCC Section J compliance automation",
       "Green Star integration",
@@ -101,7 +101,7 @@ const milestones: Milestone[] = [
     title: "Collaboration Tools",
     description: "Team workflows and integrations",
     status: "planned",
-    quarter: "Q1 2027",
+    quarter: "Q2 2026",
     features: [
       "Multi-user project collaboration",
       "Real-time data synchronization",
