@@ -1,5 +1,5 @@
 // Service Worker for CarbonConstruct PWA
-const CACHE_NAME = 'carbonconstruct-v1';
+const CACHE_NAME = 'carbonconstruct-v2';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
@@ -31,29 +31,57 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - cache-first for hashed assets, network-first for HTML
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-      
-      return fetch(event.request).then((response) => {
-        // Don't cache if not a success response
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Cache-first strategy for hashed assets (JS, CSS, images with hashes)
+  if (
+    request.destination === 'script' ||
+    request.destination === 'style' ||
+    (request.destination === 'image' && url.pathname.match(/\.(png|jpg|jpeg|webp|svg)$/)) ||
+    url.pathname.match(/assets\/.*\.(js|css)$/)
+  ) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
         }
 
-        // Clone the response
-        const responseToCache = response.clone();
+        return fetch(request).then((response) => {
+          if (!response || response.status !== 200) {
+            return response;
+          }
 
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseToCache);
+          });
+
+          return response;
+        }).catch(() => {
+          return caches.match(request);
         });
+      })
+    );
+    return;
+  }
 
+  // Network-first strategy for HTML and API requests
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseToCache);
+          });
+        }
         return response;
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(request);
+      })
   );
 });
