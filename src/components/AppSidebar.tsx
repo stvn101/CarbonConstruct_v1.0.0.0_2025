@@ -53,14 +53,14 @@ export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const isActive = (path: string) => path === "/" ? currentPath === path : currentPath.startsWith(path);
-  return <Sidebar collapsible="icon" className="transition-all duration-300">
-      <SidebarContent className="bg-sidebar border-r border-sidebar-border">
+  return <Sidebar collapsible="icon" className="transition-all duration-500 ease-in-out">
+      <SidebarContent className="bg-sidebar border-r border-sidebar-border transition-all duration-500 ease-in-out">
         {/* Brand Header */}
-        <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30 overflow-hidden">
+        <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30 overflow-hidden transition-all duration-500 ease-in-out">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center cursor-pointer">
+                <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center cursor-pointer transition-all duration-500 ease-in-out">
                   <picture>
                     <source srcSet={logoImageWebp} type="image/webp" />
                     <img 
@@ -69,9 +69,9 @@ export function AppSidebar() {
                       className="h-8 w-8 flex-shrink-0 object-contain" 
                     />
                   </picture>
-                  <div className="group-data-[collapsible=icon]/sidebar-wrapper:hidden animate-fade-in">
-                    <h1 className="font-bold text-base text-sidebar-foreground">CarbonConstruct</h1>
-                    <p className="text-xs text-sidebar-foreground/70">Pro Edition</p>
+                  <div className="group-data-[collapsible=icon]/sidebar-wrapper:hidden group-data-[collapsible=icon]/sidebar-wrapper:opacity-0 transition-all duration-500 ease-in-out opacity-100">
+                    <h1 className="font-bold text-base text-sidebar-foreground transition-all duration-500 ease-in-out">CarbonConstruct</h1>
+                    <p className="text-xs text-sidebar-foreground/70 transition-all duration-500 ease-in-out">Pro Edition</p>
                   </div>
                 </div>
               </TooltipTrigger>
@@ -93,9 +93,9 @@ export function AppSidebar() {
               const active = isActive(item.url);
               return <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} end={item.url === "/"} className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${active ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md scale-105" : "text-sidebar-foreground hover:bg-sidebar-accent hover:scale-102"}`}>
-                        <item.icon className={`h-5 w-5 flex-shrink-0 transition-colors ${active ? "text-sidebar-primary-foreground" : item.color}`} />
-                        <span className="font-medium text-sm group-data-[collapsible=icon]/sidebar-wrapper:hidden">{item.title}</span>
+                      <NavLink to={item.url} end={item.url === "/"} className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 ease-in-out ${active ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md scale-105" : "text-sidebar-foreground hover:bg-sidebar-accent hover:scale-102"}`}>
+                        <item.icon className={`h-5 w-5 flex-shrink-0 transition-all duration-300 ease-in-out ${active ? "text-sidebar-primary-foreground" : item.color}`} />
+                        <span className="font-medium text-sm group-data-[collapsible=icon]/sidebar-wrapper:hidden group-data-[collapsible=icon]/sidebar-wrapper:opacity-0 transition-all duration-500 ease-in-out opacity-100">{item.title}</span>
                         {active && <ChevronRight className="h-4 w-4 ml-auto opacity-70 group-data-[collapsible=icon]/sidebar-wrapper:hidden" />}
                         {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-sidebar-primary-foreground rounded-r-full" />}
                       </NavLink>
@@ -120,9 +120,9 @@ export function AppSidebar() {
               const active = isActive(item.url);
               return <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${active ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md scale-105" : "text-sidebar-foreground hover:bg-sidebar-accent hover:scale-102"}`}>
-                        <item.icon className={`h-5 w-5 flex-shrink-0 ${active ? "text-sidebar-primary-foreground" : item.color}`} />
-                        <span className="font-medium text-sm group-data-[collapsible=icon]/sidebar-wrapper:hidden">{item.title}</span>
+                      <NavLink to={item.url} className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 ease-in-out ${active ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md scale-105" : "text-sidebar-foreground hover:bg-sidebar-accent hover:scale-102"}`}>
+                        <item.icon className={`h-5 w-5 flex-shrink-0 transition-all duration-300 ease-in-out ${active ? "text-sidebar-primary-foreground" : item.color}`} />
+                        <span className="font-medium text-sm group-data-[collapsible=icon]/sidebar-wrapper:hidden group-data-[collapsible=icon]/sidebar-wrapper:opacity-0 transition-all duration-500 ease-in-out opacity-100">{item.title}</span>
                         {active && <ChevronRight className="h-4 w-4 ml-auto opacity-70 group-data-[collapsible=icon]/sidebar-wrapper:hidden" />}
                         {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-sidebar-primary-foreground rounded-r-full" />}
                       </NavLink>
