@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { PDFReport } from '@/components/PDFReport';
-import { useReportData, validateReportData } from '@/components/ReportData';
+import { useReportData, validateReportData, calculateDataCompleteness } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { UpgradeModal } from '@/components/UpgradeModal';
@@ -115,6 +115,7 @@ const Reports = () => {
 
   // Validate report data before rendering
   const validation = validateReportData(reportData);
+  const completeness = calculateDataCompleteness(reportData);
 
   if (!validation.isValid) {
     return (
@@ -224,6 +225,33 @@ const Reports = () => {
           <PDFReport data={reportData} />
         </ErrorBoundary>
       </div>
+
+      {/* Data Completeness Indicator */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5" />
+            Data Completeness
+          </CardTitle>
+          <CardDescription>
+            {completeness}% of recommended data fields are filled
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Progress value={completeness} className="h-2" />
+          <p className="text-sm text-muted-foreground">
+            {completeness === 100 ? (
+              'All recommended fields are complete. Your report will be comprehensive.'
+            ) : completeness >= 75 ? (
+              'Most fields are complete. Consider adding the remaining data for a more detailed report.'
+            ) : completeness >= 50 ? (
+              'Some fields are missing. Add more data for better report quality.'
+            ) : (
+              'Many fields are incomplete. Please add more calculation data for a meaningful report.'
+            )}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Data Quality Warnings */}
       {validation.warnings.length > 0 && (

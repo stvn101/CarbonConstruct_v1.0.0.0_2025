@@ -38,6 +38,33 @@ export interface ValidationResult {
   warnings: string[];
 }
 
+export const calculateDataCompleteness = (data: ReportData): number => {
+  let filledFields = 0;
+  let totalFields = 0;
+
+  // Project fields (4 total, 2 required)
+  totalFields += 4;
+  filledFields += 2; // name and project_type are always present
+  if (data.project.description) filledFields++;
+  if (data.project.location) filledFields++;
+
+  // Emission data (4 scopes)
+  totalFields += 4;
+  if (data.emissions.scope1 > 0) filledFields++;
+  if (data.emissions.scope2 > 0) filledFields++;
+  if (data.emissions.scope3 > 0) filledFields++;
+  if (data.emissions.total > 0) filledFields++;
+
+  // Breakdown data (at least one entry in each category)
+  totalFields += 4;
+  if (data.breakdown.materials.length > 0) filledFields++;
+  if (data.breakdown.fuelInputs.length > 0) filledFields++;
+  if (data.breakdown.electricityInputs.length > 0) filledFields++;
+  if (data.breakdown.transportInputs.length > 0) filledFields++;
+
+  return Math.round((filledFields / totalFields) * 100);
+};
+
 export const validateReportData = (data: ReportData): ValidationResult => {
   const errors: string[] = [];
   const warnings: string[] = [];
