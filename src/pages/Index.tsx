@@ -63,8 +63,25 @@ const Index = () => {
             animationDelay: '0.2s'
           }}>
               <picture>
-                <source srcSet="/hero-carbon-calc.webp" type="image/webp" />
-                <img src="/hero-carbon-calc.jpg" alt="Carbon footprint calculation and environmental assessment" className="w-full h-48 sm:h-64 md:h-96 object-cover" width="1280" height="549" fetchPriority="high" loading="eager" />
+                <source 
+                  type="image/webp"
+                  srcSet="/hero-carbon-calc.webp 640w, /hero-carbon-calc.webp 1024w, /hero-carbon-calc.webp 1920w"
+                  sizes="(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px"
+                />
+                <source 
+                  type="image/jpeg"
+                  srcSet="/hero-carbon-calc.jpg 640w, /hero-carbon-calc.jpg 1024w, /hero-carbon-calc.jpg 1920w"
+                  sizes="(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px"
+                />
+                <img 
+                  src="/hero-carbon-calc.jpg" 
+                  alt="Carbon footprint calculation and environmental assessment" 
+                  className="w-full h-48 sm:h-64 md:h-96 object-cover" 
+                  width="1280" 
+                  height="549" 
+                  fetchPriority="high" 
+                  loading="eager" 
+                />
               </picture>
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-end md:items-center justify-center p-6">
                 <div className="text-center space-y-2 md:space-y-4">

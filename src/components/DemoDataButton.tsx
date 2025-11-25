@@ -139,5 +139,16 @@ export const DemoDataButton = () => {
       });
     }
   };
-  return;
+  return (
+    <Button 
+      onClick={addDemoData} 
+      variant="outline" 
+      size="sm" 
+      disabled={loading || !currentProject}
+      className="hover-scale text-xs md:text-sm"
+    >
+      <TestTube className="mr-2 h-4 w-4" />
+      Add Demo Data
+    </Button>
+  );
 };
