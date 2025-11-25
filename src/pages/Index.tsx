@@ -47,6 +47,7 @@ const Index = () => {
                     className="w-16 h-16 md:w-24 md:h-24"
                     width="96"
                     height="96"
+                    fetchPriority="high"
                     loading="eager"
                   />
                 </picture>
