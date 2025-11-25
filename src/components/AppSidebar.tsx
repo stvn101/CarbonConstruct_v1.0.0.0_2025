@@ -55,7 +55,7 @@ export function AppSidebar() {
   return <Sidebar collapsible="icon" className="transition-all duration-300">
       <SidebarContent className="bg-sidebar border-r border-sidebar-border">
         {/* Brand Header */}
-        <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30">
+        <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30 overflow-hidden">
           <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center">
             <picture>
               <source srcSet={logoImageWebp} type="image/webp" />
