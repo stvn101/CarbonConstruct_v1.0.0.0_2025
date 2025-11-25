@@ -3,7 +3,8 @@ import { Smartphone, Download, Share, MoreVertical, CheckCircle2 } from 'lucide-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import logoImage from '@/assets/carbonconstruct-logo.png';
+import logoImageWebp from '@/assets/carbonconstruct-logo.webp';
+import logoImagePng from '@/assets/carbonconstruct-logo.png';
 
 const Install = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -55,7 +56,10 @@ const Install = () => {
       <div className="text-center mb-8">
         <div className="flex justify-center mb-6">
           <div className="w-24 h-24 rounded-2xl bg-primary/10 p-4 shadow-lg">
-            <img src={logoImage} alt="CarbonConstruct" className="w-full h-full object-contain" />
+            <picture>
+              <source srcSet={logoImageWebp} type="image/webp" />
+              <img src={logoImagePng} alt="CarbonConstruct" className="w-full h-full object-contain" />
+            </picture>
           </div>
         </div>
         <h1 className="text-4xl font-bold mb-3">Install CarbonConstruct</h1>
