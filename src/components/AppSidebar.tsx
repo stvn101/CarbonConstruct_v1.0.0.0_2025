@@ -1,4 +1,4 @@
-import { Calculator, Factory, Zap, Truck, FileBarChart, Settings, Home, HelpCircle, Package, ChevronRight, DollarSign, Leaf } from "lucide-react";
+import { Calculator, Factory, Zap, Truck, FileBarChart, Settings, Home, HelpCircle, Package, ChevronRight, DollarSign, Leaf, Map } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import logoImageWebp from "@/assets/carbonconstruct-logo.webp";
@@ -34,6 +34,11 @@ const otherItems = [{
   url: "/impact",
   icon: Leaf,
   color: "text-green-600"
+}, {
+  title: "Roadmap",
+  url: "/roadmap",
+  icon: Map,
+  color: "text-blue-600"
 }, {
   title: "Help & Resources",
   url: "/help",
