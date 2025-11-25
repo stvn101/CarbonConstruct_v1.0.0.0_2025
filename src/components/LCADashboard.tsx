@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLCAMaterials } from '@/hooks/useLCAMaterials';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Package, TrendingUp, Factory, Truck, Building, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { Package, TrendingUp, Factory, Truck, Building, Download, FileSpreadsheet, FileText, Upload } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { logger } from '@/lib/logger';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,8 +18,9 @@ const STAGE_COLORS = {
 };
 
 export const LCADashboard = () => {
-  const { materials, loading, stageBreakdown, categoryBreakdown } = useLCAMaterials();
+  const { materials, loading, stageBreakdown, categoryBreakdown, refetch } = useLCAMaterials();
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const exportToCSV = () => {
     try {
@@ -107,6 +108,56 @@ export const LCADashboard = () => {
     }
   };
 
+  const importMaterials = async () => {
+    try {
+      setImporting(true);
+      
+      toast({
+        title: 'Import Started',
+        description: 'Importing materials from external database...',
+      });
+
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('import-materials', {
+        body: {
+          tableName: 'lca_materials',
+          batchSize: 100,
+        },
+      });
+
+      if (error) throw error;
+
+      const result = data as {
+        success: boolean;
+        progress: { total: number; imported: number; failed: number; status: string };
+        externalColumns: string[];
+        errors?: Array<{ row: number; error: string }>;
+      };
+
+      if (result.success) {
+        toast({
+          title: 'Import Complete',
+          description: `Successfully imported ${result.progress.imported} of ${result.progress.total} materials${result.progress.failed > 0 ? ` (${result.progress.failed} failed)` : ''}`,
+        });
+        
+        // Refresh the materials list
+        refetch();
+        
+        logger.info('LCADashboard:importMaterials', 'Import completed', result);
+      }
+    } catch (error) {
+      logger.error('LCADashboard:importMaterials', error);
+      toast({
+        title: 'Import Failed',
+        description: error instanceof Error ? error.message : 'Failed to import materials',
+        variant: 'destructive',
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -157,6 +208,10 @@ export const LCADashboard = () => {
               <CardDescription>Download compliance reports for Australian standards (NCC, Green Star, NABERS)</CardDescription>
             </div>
             <div className="flex gap-2">
+              <Button onClick={importMaterials} disabled={importing} variant="default" size="sm">
+                <Upload className="h-4 w-4 mr-2" />
+                {importing ? 'Importing...' : 'Import External DB'}
+              </Button>
               <Button onClick={exportToCSV} variant="outline" size="sm">
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
                 Export CSV
