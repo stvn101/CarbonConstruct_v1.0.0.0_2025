@@ -14,8 +14,6 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
-import heroImage from "@/assets/hero-carbon-calc.jpg";
-import heroImageWebP from '@/assets/hero-carbon-calc.webp';
 import logoImage from "@/assets/carbonconstruct-logo.png";
 import logoImageWebP from '@/assets/carbonconstruct-logo.webp';
 const Index = () => {
@@ -75,9 +73,9 @@ const Index = () => {
             animationDelay: '0.2s'
           }}>
               <picture>
-                <source srcSet={heroImageWebP} type="image/webp" />
+                <source srcSet="/hero-carbon-calc.webp" type="image/webp" />
                 <img 
-                  src={heroImage} 
+                  src="/hero-carbon-calc.jpg" 
                   alt="Carbon footprint calculation and environmental assessment" 
                   className="w-full h-48 sm:h-64 md:h-96 object-cover"
                   width="1280"
