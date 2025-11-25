@@ -32,6 +32,52 @@ export interface ReportData {
   };
 }
 
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+export const validateReportData = (data: ReportData): ValidationResult => {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // Check for critical missing data
+  if (!data.emissions.total || data.emissions.total === 0) {
+    errors.push('No emission data available. Please add calculations to your project first.');
+  }
+
+  // Check for at least some input data
+  const hasAnyData = 
+    data.breakdown.materials.length > 0 ||
+    data.breakdown.fuelInputs.length > 0 ||
+    data.breakdown.electricityInputs.length > 0 ||
+    data.breakdown.transportInputs.length > 0;
+
+  if (!hasAnyData) {
+    errors.push('No calculation data found. Please complete at least one calculation before generating a report.');
+  }
+
+  // Check for data quality warnings
+  if (data.emissions.scope1 === 0 && data.emissions.scope2 === 0 && data.emissions.scope3 === 0) {
+    warnings.push('All scopes show zero emissions. Please verify your input data.');
+  }
+
+  if (!data.project.location) {
+    warnings.push('Project location is missing. This may affect compliance assessments.');
+  }
+
+  if (!data.project.description) {
+    warnings.push('Project description is missing. Adding context improves report quality.');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings
+  };
+};
+
 export const useReportData = (): ReportData | null => {
   const { currentProject } = useProject();
   const { data, loading } = useUnifiedCalculations();
@@ -60,10 +106,10 @@ export const useReportData = (): ReportData | null => {
       total: data.totals.total || 0,
     },
     breakdown: {
-      materials: data.materials,
-      fuelInputs: data.fuelInputs,
-      electricityInputs: data.electricityInputs,
-      transportInputs: data.transportInputs,
+      materials: data.materials || [],
+      fuelInputs: data.fuelInputs || [],
+      electricityInputs: data.electricityInputs || [],
+      transportInputs: data.transportInputs || [],
     },
     compliance: {
       nccCompliant: data.totals.total > 0,
