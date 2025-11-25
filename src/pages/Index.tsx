@@ -37,15 +37,7 @@ const Index = () => {
               <div className="flex items-center justify-center gap-4">
                 <picture>
                   <source srcSet="/logo.webp" type="image/webp" />
-                  <img 
-                    src="/logo.png" 
-                    alt="CarbonConstruct Logo" 
-                    className="w-16 h-16 md:w-24 md:h-24"
-                    width="96"
-                    height="96"
-                    fetchPriority="high"
-                    loading="eager"
-                  />
+                  <img src="/logo.png" alt="CarbonConstruct Logo" className="w-16 h-16 md:w-24 md:h-24" width="96" height="96" fetchPriority="high" loading="eager" />
                 </picture>
                 <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                   CarbonConstruct
@@ -72,15 +64,7 @@ const Index = () => {
           }}>
               <picture>
                 <source srcSet="/hero-carbon-calc.webp" type="image/webp" />
-                <img 
-                  src="/hero-carbon-calc.jpg" 
-                  alt="Carbon footprint calculation and environmental assessment" 
-                  className="w-full h-48 sm:h-64 md:h-96 object-cover"
-                  width="1280"
-                  height="549"
-                  fetchPriority="high"
-                  loading="eager"
-                />
+                <img src="/hero-carbon-calc.jpg" alt="Carbon footprint calculation and environmental assessment" className="w-full h-48 sm:h-64 md:h-96 object-cover" width="1280" height="549" fetchPriority="high" loading="eager" />
               </picture>
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-end md:items-center justify-center p-6">
                 <div className="text-center space-y-2 md:space-y-4">
@@ -125,11 +109,7 @@ Calculate and track your project's carbon emissions across all three scopes with
         </div>
         <div className="flex flex-wrap gap-2">
           <MigrationButton />
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={emissionsLoading} className="hover-scale text-xs md:text-sm">
-            <RefreshCw className={`h-3 w-3 md:h-4 md:w-4 mr-1.5 md:mr-2 ${emissionsLoading ? 'animate-spin' : ''}`} />
-            <span className="hidden xs:inline">Refresh</span>
-            <span className="xs:hidden">↻</span>
-          </Button>
+          
           <DemoDataButton />
           <Button variant="outline" onClick={signOut} size="sm" className="hover-scale text-xs md:text-sm">
             Sign Out
@@ -228,21 +208,12 @@ Calculate and track your project's carbon emissions across all three scopes with
               </div>
               
               <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
-                <Button 
-                  onClick={() => navigate("/calculator")} 
-                  size="lg"
-                  className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale shadow-lg"
-                >
+                <Button onClick={() => navigate("/calculator")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale shadow-lg">
                   <Calculator className="mr-2 h-5 w-5" />
                   Start Calculator
                 </Button>
                 
-                <Button 
-                  onClick={() => navigate("/reports")} 
-                  variant="outline"
-                  size="lg"
-                  className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale"
-                >
+                <Button onClick={() => navigate("/reports")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale">
                   <FileBarChart className="mr-2 h-5 w-5" />
                   View Reports
                 </Button>
