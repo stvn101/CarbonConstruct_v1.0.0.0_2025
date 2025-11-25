@@ -1,6 +1,7 @@
 import { Calculator, Factory, Zap, Truck, FileBarChart, Settings, Home, HelpCircle, Package, ChevronRight, DollarSign, Leaf, Map } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import logoImageWebp from "@/assets/carbonconstruct-logo.webp";
 import logoImagePng from "@/assets/carbonconstruct-logo.png";
 const calculatorItems = [{
@@ -56,20 +57,29 @@ export function AppSidebar() {
       <SidebarContent className="bg-sidebar border-r border-sidebar-border">
         {/* Brand Header */}
         <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30 overflow-hidden">
-          <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center">
-            <picture>
-              <source srcSet={logoImageWebp} type="image/webp" />
-              <img 
-                src={logoImagePng} 
-                alt="CarbonConstruct Logo" 
-                className="h-8 w-8 flex-shrink-0 object-contain" 
-              />
-            </picture>
-            <div className="group-data-[collapsible=icon]/sidebar-wrapper:hidden animate-fade-in">
-              <h1 className="font-bold text-base text-sidebar-foreground">CarbonConstruct</h1>
-              <p className="text-xs text-sidebar-foreground/70">Pro Edition</p>
-            </div>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center cursor-pointer">
+                  <picture>
+                    <source srcSet={logoImageWebp} type="image/webp" />
+                    <img 
+                      src={logoImagePng} 
+                      alt="CarbonConstruct Logo" 
+                      className="h-8 w-8 flex-shrink-0 object-contain" 
+                    />
+                  </picture>
+                  <div className="group-data-[collapsible=icon]/sidebar-wrapper:hidden animate-fade-in">
+                    <h1 className="font-bold text-base text-sidebar-foreground">CarbonConstruct</h1>
+                    <p className="text-xs text-sidebar-foreground/70">Pro Edition</p>
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="group-data-[state=expanded]/sidebar-wrapper:hidden">
+                <p>CarbonConstruct Pro Edition</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         {/* Calculator Section */}
