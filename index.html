@@ -16,9 +16,8 @@
     <!-- Preload critical LCP image -->
     <link rel="preload" as="image" href="/hero-carbon-calc.webp" type="image/webp" fetchpriority="high" />
     
-    <!-- DNS Prefetch for faster external connections -->
-    <link rel="dns-prefetch" href="https://htruyldcvakkzpykfoxq.supabase.co" />
-    <link rel="preconnect" href="https://htruyldcvakkzpykfoxq.supabase.co" crossorigin />
+    <!-- Modulepreload for main JavaScript to reduce critical chain -->
+    <link rel="modulepreload" href="/src/main.tsx" />
     
     <!-- Favicon and Icons -->
     <link rel="icon" type="image/webp" href="/favicon.webp" />
