@@ -14,8 +14,6 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
-import logoImage from "@/assets/carbonconstruct-logo.png";
-import logoImageWebP from '@/assets/carbonconstruct-logo.webp';
 const Index = () => {
   const {
     user,
@@ -38,9 +36,9 @@ const Index = () => {
             <div className="space-y-3 md:space-y-4 animate-fade-in">
               <div className="flex items-center justify-center gap-4">
                 <picture>
-                  <source srcSet={logoImageWebP} type="image/webp" />
+                  <source srcSet="/logo.webp" type="image/webp" />
                   <img 
-                    src={logoImage} 
+                    src="/logo.png" 
                     alt="CarbonConstruct Logo" 
                     className="w-16 h-16 md:w-24 md:h-24"
                     width="96"
