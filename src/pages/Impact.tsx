@@ -22,16 +22,16 @@ const Impact = () => {
       color: 'text-blue-600'
     },
     {
-      value: '1000+',
-      label: 'Projects Analyzed',
-      description: 'Construction projects successfully assessed for carbon emissions',
+      value: 'New',
+      label: 'Platform Launch',
+      description: 'Helping Australian construction projects track and reduce carbon emissions',
       icon: TrendingUp,
       color: 'text-purple-600'
     },
     {
-      value: '50K+',
-      label: 'tCO2e Tracked',
-      description: 'Total emissions tracked across all projects on our platform',
+      value: '3',
+      label: 'Emission Scopes',
+      description: 'Comprehensive tracking across Scope 1, 2, and 3 emissions with LCA materials',
       icon: Globe,
       color: 'text-orange-600'
     }
