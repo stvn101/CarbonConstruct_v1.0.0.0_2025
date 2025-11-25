@@ -113,9 +113,7 @@ export const Footer = () => {
               </li>
               <li className="flex items-start gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <a href="https://carbonconstruct.com.au" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                  carbonconstruct.com.au
-                </a>
+                <span>Brisbane, QLD, Australia</span>
               </li>
             </ul>
           </div>
