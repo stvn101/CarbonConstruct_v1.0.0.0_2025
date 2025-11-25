@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, Linkedin, Twitter, Github } from "lucide-react";
+import { Mail, MapPin, Linkedin, Twitter, Github } from "lucide-react";
 import logoImage from "@/assets/carbonconstruct-logo.png";
 
 export const Footer = () => {
@@ -112,12 +112,10 @@ export const Footer = () => {
                 </a>
               </li>
               <li className="flex items-start gap-2 text-muted-foreground">
-                <Phone className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>1300 CARBON (227 266)</span>
-              </li>
-              <li className="flex items-start gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>Sydney, NSW, Australia</span>
+                <a href="https://carbonconstruct.com.au" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                  carbonconstruct.com.au
+                </a>
               </li>
             </ul>
           </div>
