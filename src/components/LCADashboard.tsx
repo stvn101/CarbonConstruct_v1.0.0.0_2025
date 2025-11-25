@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLCAMaterials } from '@/hooks/useLCAMaterials';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Package, TrendingUp, Factory, Truck, Building, Download, FileSpreadsheet, FileText, Upload } from 'lucide-react';
+import { Package, TrendingUp, Factory, Truck, Building, Download, FileSpreadsheet, FileText, Upload, Search } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { logger } from '@/lib/logger';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -21,6 +21,8 @@ export const LCADashboard = () => {
   const { materials, loading, stageBreakdown, categoryBreakdown, refetch } = useLCAMaterials();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [inspecting, setInspecting] = useState(false);
+  const [schemaInfo, setSchemaInfo] = useState<any>(null);
 
   const exportToCSV = () => {
     try {
@@ -158,6 +160,45 @@ export const LCADashboard = () => {
     }
   };
 
+  const inspectExternalSchema = async () => {
+    try {
+      setInspecting(true);
+      
+      toast({
+        title: 'Inspecting Schema',
+        description: 'Analyzing external database structure...',
+      });
+
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('inspect-external-schema', {
+        body: {
+          tableName: 'lca_materials',
+        },
+      });
+
+      if (error) throw error;
+
+      setSchemaInfo(data);
+      
+      toast({
+        title: 'Schema Analysis Complete',
+        description: `Found ${data.columnNames.length} columns in ${data.totalRows.toLocaleString()} rows`,
+      });
+      
+      logger.info('LCADashboard:inspectExternalSchema', 'Schema analyzed', data);
+    } catch (error) {
+      logger.error('LCADashboard:inspectExternalSchema', error);
+      toast({
+        title: 'Inspection Failed',
+        description: error instanceof Error ? error.message : 'Failed to inspect external schema',
+        variant: 'destructive',
+      });
+    } finally {
+      setInspecting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -204,13 +245,17 @@ export const LCADashboard = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>LCA Data Export</CardTitle>
-              <CardDescription>Download compliance reports for Australian standards (NCC, Green Star, NABERS)</CardDescription>
+              <CardTitle>LCA Data Management</CardTitle>
+              <CardDescription>Import EPD data and export compliance reports for Australian standards</CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button onClick={importMaterials} disabled={importing} variant="default" size="sm">
+              <Button onClick={inspectExternalSchema} disabled={inspecting} variant="secondary" size="sm">
+                <Search className="h-4 w-4 mr-2" />
+                {inspecting ? 'Inspecting...' : 'Inspect Schema'}
+              </Button>
+              <Button onClick={importMaterials} disabled={importing || !schemaInfo} variant="default" size="sm">
                 <Upload className="h-4 w-4 mr-2" />
-                {importing ? 'Importing...' : 'Import External DB'}
+                {importing ? 'Importing...' : 'Import Materials'}
               </Button>
               <Button onClick={exportToCSV} variant="outline" size="sm">
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
@@ -223,6 +268,43 @@ export const LCADashboard = () => {
             </div>
           </div>
         </CardHeader>
+        {schemaInfo && (
+          <CardContent>
+            <div className="space-y-2 p-4 bg-muted rounded-lg">
+              <h4 className="font-medium">External Database Info:</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Total Rows:</span>
+                  <span className="ml-2 font-medium">{schemaInfo.totalRows.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Columns:</span>
+                  <span className="ml-2 font-medium">{schemaInfo.columnNames.length}</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Data Sources:</span>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {schemaInfo.dataSources.map((source: string, i: number) => (
+                      <Badge key={i} variant="secondary">{source}</Badge>
+                    ))}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <details className="cursor-pointer">
+                    <summary className="text-muted-foreground">View All Columns ({schemaInfo.columnNames.length})</summary>
+                    <div className="mt-2 max-h-40 overflow-y-auto">
+                      <div className="flex flex-wrap gap-1">
+                        {schemaInfo.columnNames.map((col: string, i: number) => (
+                          <Badge key={i} variant="outline" className="text-xs">{col}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        )}
       </Card>
 
       <div id="lca-dashboard-content" className="space-y-6">
