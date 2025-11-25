@@ -25,6 +25,8 @@ export default defineConfig(({ mode }) => ({
   },
   clearScreen: false,
   build: {
+    cssCodeSplit: true,
+    assetsInlineLimit: 4096,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -32,6 +34,12 @@ export default defineConfig(({ mode }) => ({
           'ui-components': ['@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-select'],
           'charts': ['recharts'],
           'supabase': ['@supabase/supabase-js'],
+        },
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name?.endsWith('.css')) {
+            return 'assets/[name]-[hash][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
         },
       },
     },
