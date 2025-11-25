@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { HelpCircle, BookOpen, MessageCircle, ExternalLink, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { restartOnboarding } from "@/components/OnboardingTutorial";
+import { ContactSupportDialog } from "@/components/ContactSupportDialog";
 
 const Help = () => {
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -88,11 +91,19 @@ const Help = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => window.open('https://docs.lovable.dev/', '_blank')}
+                >
                   <ExternalLink className="h-4 w-4" />
                   Documentation
                 </Button>
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => setContactDialogOpen(true)}
+                >
                   <MessageCircle className="h-4 w-4" />
                   Contact Support
                 </Button>
@@ -104,6 +115,11 @@ const Help = () => {
           </Card>
         </div>
       </div>
+      
+      <ContactSupportDialog 
+        open={contactDialogOpen} 
+        onOpenChange={setContactDialogOpen}
+      />
     </div>
   );
 };
