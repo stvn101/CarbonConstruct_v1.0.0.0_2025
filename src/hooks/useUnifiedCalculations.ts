@@ -84,12 +84,72 @@ export const useUnifiedCalculations = () => {
       if (error) throw error;
 
       if (calcData) {
+        // Transform fuel_inputs object to array
+        const fuelInputs: FuelInput[] = [];
+        if (calcData.fuel_inputs && typeof calcData.fuel_inputs === 'object' && !Array.isArray(calcData.fuel_inputs)) {
+          Object.entries(calcData.fuel_inputs).forEach(([fuelType, quantity]) => {
+            if (typeof quantity === 'number' && quantity > 0) {
+              // Get emission factor for this fuel type (placeholder logic)
+              const emissionFactor = 2.31; // Default diesel factor
+              fuelInputs.push({
+                fuelType,
+                quantity,
+                unit: 'L',
+                emissionFactor,
+                totalEmissions: (quantity * emissionFactor) / 1000 // Convert to tonnes
+              });
+            }
+          });
+        } else if (Array.isArray(calcData.fuel_inputs)) {
+          fuelInputs.push(...(calcData.fuel_inputs as unknown as FuelInput[]));
+        }
+
+        // Transform electricity_inputs object to array
+        const electricityInputs: ElectricityInput[] = [];
+        if (calcData.electricity_inputs && typeof calcData.electricity_inputs === 'object' && !Array.isArray(calcData.electricity_inputs)) {
+          Object.entries(calcData.electricity_inputs).forEach(([key, quantity]) => {
+            if (typeof quantity === 'number' && quantity > 0) {
+              // Get emission factor (Australian average)
+              const emissionFactor = 0.00081; // kgCO2e/kWh
+              electricityInputs.push({
+                state: key === 'kwh' ? 'National Average' : key,
+                quantity,
+                unit: 'kWh',
+                emissionFactor,
+                totalEmissions: (quantity * emissionFactor) / 1000 // Convert to tonnes
+              });
+            }
+          });
+        } else if (Array.isArray(calcData.electricity_inputs)) {
+          electricityInputs.push(...(calcData.electricity_inputs as unknown as ElectricityInput[]));
+        }
+
+        // Transform transport_inputs object to array
+        const transportInputs: TransportInput[] = [];
+        if (calcData.transport_inputs && typeof calcData.transport_inputs === 'object' && !Array.isArray(calcData.transport_inputs)) {
+          Object.entries(calcData.transport_inputs).forEach(([mode, data]) => {
+            if (data && typeof data === 'object') {
+              const transportData = data as any;
+              const emissionFactor = 0.1; // Default factor
+              transportInputs.push({
+                mode,
+                distance: transportData.distance || 0,
+                weight: transportData.weight || 0,
+                emissionFactor,
+                totalEmissions: ((transportData.distance || 0) * (transportData.weight || 0) * emissionFactor) / 1000
+              });
+            }
+          });
+        } else if (Array.isArray(calcData.transport_inputs)) {
+          transportInputs.push(...(calcData.transport_inputs as unknown as TransportInput[]));
+        }
+
         setData({
           id: calcData.id,
           materials: Array.isArray(calcData.materials) ? (calcData.materials as unknown as MaterialItem[]) : [],
-          fuelInputs: Array.isArray(calcData.fuel_inputs) ? (calcData.fuel_inputs as unknown as FuelInput[]) : [],
-          electricityInputs: Array.isArray(calcData.electricity_inputs) ? (calcData.electricity_inputs as unknown as ElectricityInput[]) : [],
-          transportInputs: Array.isArray(calcData.transport_inputs) ? (calcData.transport_inputs as unknown as TransportInput[]) : [],
+          fuelInputs,
+          electricityInputs,
+          transportInputs,
           totals: (calcData.totals as unknown as UnifiedTotals) || {
             scope1: 0,
             scope2: 0,
