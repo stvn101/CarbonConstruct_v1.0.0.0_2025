@@ -139,16 +139,5 @@ export const DemoDataButton = () => {
       });
     }
   };
-  return (
-    <Button 
-      onClick={addDemoData} 
-      disabled={loading || !currentProject}
-      variant="outline"
-      size="sm"
-      className="gap-2"
-    >
-      <TestTube className="h-4 w-4" />
-      Add Demo Data
-    </Button>
-  );
+  return;
 };
