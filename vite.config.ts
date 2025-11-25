@@ -17,29 +17,19 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
   },
   optimizeDeps: {
-    force: true,
-    include: ['react', 'react-dom', 'react/jsx-runtime', '@radix-ui/react-tooltip'],
     esbuildOptions: {
-      target: 'esnext',
+      target: "esnext",
     },
-    exclude: [],
   },
   clearScreen: false,
   build: {
     commonjsOptions: {
       include: [/node_modules/],
     },
-    rollupOptions: {
-      output: {
-        manualChunks: undefined,
-      },
-    },
   },
   esbuild: {
     drop: mode === "production" ? ["console", "debugger"] : [],
   },
-  cacheDir: '.vite',
 }));
