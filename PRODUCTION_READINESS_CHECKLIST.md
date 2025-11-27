@@ -194,16 +194,21 @@ Implemented Features:
 - [ ] Google Analytics integration (optional - use built-in analytics)
 - [ ] Google Search Console setup (user action required)
 
-### 10. User Onboarding
-**Status**: Partial
-**File**: `src/components/OnboardingTutorial.tsx`
+### 10. User Onboarding ✅
+**Status**: Complete
+**Files**: 
+- `src/components/OnboardingTutorial.tsx` - Tutorial with Australian context
+- `src/pages/Help.tsx` - Enhanced FAQ with AU-specific content
+- `src/components/ScopeCard.tsx` - Scope tooltips added
+- `src/components/ui/info-tooltip.tsx` - Tooltip component
 
 - [x] Onboarding tutorial component created
-- [ ] Tutorial content review
-- [ ] Add video walkthroughs
-- [ ] Create help documentation
-- [ ] Add tooltips for complex features
-- [ ] Create user guide PDF
+- [x] Tutorial content review (Australian context, NCC, Green Star, NABERS)
+- [x] Help documentation enhanced with AU-specific FAQs
+- [x] Add tooltips for complex features (scope cards)
+- [x] Brand consistency (CarbonConstruct throughout)
+- [ ] Add video walkthroughs (optional)
+- [ ] Create user guide PDF (optional)
 
 ## Nice to Have
 
