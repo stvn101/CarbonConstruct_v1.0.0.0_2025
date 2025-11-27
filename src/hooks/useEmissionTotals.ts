@@ -64,17 +64,20 @@ export const useEmissionTotals = () => {
         const scope3Total = scope3Materials + scope3Transport + scope3A5 + scope3Commute + scope3Waste;
         const total = rawTotals.total || (scope1Total + scope2Total + scope3Total);
 
+        // Convert from kgCO2e to tCO2e (divide by 1000)
         setTotals({
-          scope1: scope1Total,
-          scope2: scope2Total,
-          scope3: scope3Total,
-          total
+          scope1: scope1Total / 1000,
+          scope2: scope2Total / 1000,
+          scope3: scope3Total / 1000,
+          total: total / 1000
         });
 
         // Build Scope 1 details from fuel_inputs
+        // Convert emissions to tCO2e for display
         const scope1Categories: EmissionDetails[] = [];
         const fuelData = unifiedData.fuel_inputs;
         const parsedFuelData = typeof fuelData === 'string' ? JSON.parse(fuelData) : fuelData;
+        const scope1TotalTonnes = scope1Total / 1000;
         
         if (parsedFuelData && typeof parsedFuelData === 'object' && !Array.isArray(parsedFuelData)) {
           const fuelFactors: Record<string, number> = {
@@ -89,11 +92,11 @@ export const useEmissionTotals = () => {
             const qty = Number(quantity);
             if (!isNaN(qty) && qty > 0) {
               const factor = fuelFactors[fuelType] || 2.31;
-              const emissions = (qty * factor) / 1000;
+              const emissions = (qty * factor) / 1000; // Convert to tCO2e
               scope1Categories.push({
                 category: fuelType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
                 emissions,
-                percentage: scope1Total > 0 ? (emissions / scope1Total) * 100 : 0
+                percentage: scope1TotalTonnes > 0 ? (emissions / scope1TotalTonnes) * 100 : 0
               });
             }
           });
@@ -101,19 +104,21 @@ export const useEmissionTotals = () => {
         setScope1Details(scope1Categories);
 
         // Build Scope 2 details from electricity_inputs
+        // Convert emissions to tCO2e for display
         const scope2Categories: EmissionDetails[] = [];
         const elecData = unifiedData.electricity_inputs;
         const parsedElecData = typeof elecData === 'string' ? JSON.parse(elecData) : elecData;
+        const scope2TotalTonnes = scope2Total / 1000;
         
         if (parsedElecData && typeof parsedElecData === 'object' && !Array.isArray(parsedElecData)) {
           Object.entries(parsedElecData).forEach(([key, quantity]) => {
             const qty = Number(quantity);
             if (!isNaN(qty) && qty > 0) {
-              const emissions = (qty * 0.72) / 1000; // Australian grid factor
+              const emissions = (qty * 0.72) / 1000; // Australian grid factor, convert to tCO2e
               scope2Categories.push({
                 category: key === 'kwh' ? 'Grid Electricity' : key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
                 emissions,
-                percentage: scope2Total > 0 ? (emissions / scope2Total) * 100 : 0
+                percentage: scope2TotalTonnes > 0 ? (emissions / scope2TotalTonnes) * 100 : 0
               });
             }
           });
@@ -121,12 +126,14 @@ export const useEmissionTotals = () => {
         setScope2Details(scope2Categories);
 
         // Build Scope 3 details from materials and transport
+        // Convert from kgCO2e to tCO2e for display
         const scope3Categories: EmissionDetails[] = [];
+        const scope3TotalTonnes = scope3Total / 1000;
         
         if (scope3Materials > 0) {
           scope3Categories.push({
             category: 'Embodied Carbon (A1-A3)',
-            emissions: scope3Materials,
+            emissions: scope3Materials / 1000,
             percentage: scope3Total > 0 ? (scope3Materials / scope3Total) * 100 : 0
           });
         }
@@ -134,7 +141,7 @@ export const useEmissionTotals = () => {
         if (scope3Transport > 0) {
           scope3Categories.push({
             category: 'Transport (A4)',
-            emissions: scope3Transport,
+            emissions: scope3Transport / 1000,
             percentage: scope3Total > 0 ? (scope3Transport / scope3Total) * 100 : 0
           });
         }
@@ -142,7 +149,7 @@ export const useEmissionTotals = () => {
         if (scope3A5 > 0) {
           scope3Categories.push({
             category: 'Construction (A5)',
-            emissions: scope3A5,
+            emissions: scope3A5 / 1000,
             percentage: scope3Total > 0 ? (scope3A5 / scope3Total) * 100 : 0
           });
         }
@@ -150,7 +157,7 @@ export const useEmissionTotals = () => {
         if (scope3Commute > 0) {
           scope3Categories.push({
             category: 'Employee Commute',
-            emissions: scope3Commute,
+            emissions: scope3Commute / 1000,
             percentage: scope3Total > 0 ? (scope3Commute / scope3Total) * 100 : 0
           });
         }
@@ -158,7 +165,7 @@ export const useEmissionTotals = () => {
         if (scope3Waste > 0) {
           scope3Categories.push({
             category: 'Construction Waste',
-            emissions: scope3Waste,
+            emissions: scope3Waste / 1000,
             percentage: scope3Total > 0 ? (scope3Waste / scope3Total) * 100 : 0
           });
         }
