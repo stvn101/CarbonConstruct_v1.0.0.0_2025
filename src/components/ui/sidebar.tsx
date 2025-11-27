@@ -231,9 +231,10 @@ const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.C
           onClick?.(event);
           toggleSidebar();
         }}
+        aria-label="Toggle Sidebar"
         {...props}
       >
-        <PanelLeft />
+        <PanelLeft aria-hidden="true" />
         <span className="sr-only">Toggle Sidebar</span>
       </Button>
     );

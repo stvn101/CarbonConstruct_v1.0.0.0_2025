@@ -46,6 +46,8 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-label={value || placeholder}
           disabled={disabled}
           className={cn(
             "w-full justify-between",
@@ -54,13 +56,13 @@ export function Combobox({
           )}
         >
           {value || placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full min-w-[200px] p-0 bg-popover" align="start">
         <Command className="bg-popover">
-          <CommandInput placeholder={searchPlaceholder} className="h-9" />
-          <CommandList>
+          <CommandInput placeholder={searchPlaceholder} className="h-9" aria-label={searchPlaceholder} />
+          <CommandList role="listbox">
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
@@ -71,6 +73,8 @@ export function Combobox({
                     onValueChange(currentValue === value ? "" : currentValue);
                     setOpen(false);
                   }}
+                  role="option"
+                  aria-selected={value === option}
                 >
                   {option}
                   <Check
@@ -78,6 +82,7 @@ export function Combobox({
                       "ml-auto h-4 w-4",
                       value === option ? "opacity-100" : "opacity-0"
                     )}
+                    aria-hidden="true"
                   />
                 </CommandItem>
               ))}
