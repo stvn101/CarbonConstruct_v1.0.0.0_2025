@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock, Scale } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
@@ -22,6 +22,8 @@ import { MaterialSearchResults } from "@/components/calculator/MaterialSearchRes
 import { MaterialRowImproved } from "@/components/calculator/MaterialRowImproved";
 import { QuickAddPanel } from "@/components/calculator/QuickAddPanel";
 import { TransportCalculator } from "@/components/calculator/TransportCalculator";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { MaterialComparison } from "@/components/MaterialComparison";
 
 interface Material {
   id: string;
@@ -916,7 +918,22 @@ export default function Calculator() {
                 <Card className="p-6">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="font-bold text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                          >
+                            <Scale className="h-4 w-4 mr-1" />
+                            Compare
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto">
+                          <MaterialComparison />
+                        </DialogContent>
+                      </Dialog>
                       <Button 
                         variant="outline" 
                         size="sm" 
