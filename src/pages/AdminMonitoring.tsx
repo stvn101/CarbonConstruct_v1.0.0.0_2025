@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload } from "lucide-react";
 import { format } from "date-fns";
-
+import { toast } from "sonner";
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -60,6 +61,16 @@ export default function AdminMonitoring() {
   const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>([]);
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
   
+  // Import states
+  const [importLoading, setImportLoading] = useState(false);
+  const [importProgress, setImportProgress] = useState<{
+    total: number;
+    imported: number;
+    failed: number;
+    status: string;
+  } | null>(null);
+  const [materialsCount, setMaterialsCount] = useState(0);
+  
   // Filters
   const [errorSearch, setErrorSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
@@ -104,8 +115,44 @@ export default function AdminMonitoring() {
       loadPerformanceMetrics(),
       loadAnalyticsEvents(),
       loadHealthStatus(),
+      loadMaterialsCount(),
     ]);
     setLoading(false);
+  };
+  
+  const loadMaterialsCount = async () => {
+    const { count } = await supabase
+      .from("lca_materials")
+      .select("*", { count: 'exact', head: true });
+    setMaterialsCount(count || 0);
+  };
+  
+  const triggerMaterialsImport = async () => {
+    setImportLoading(true);
+    setImportProgress(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("import-materials", {
+        body: { tableName: "lca_materials", batchSize: 100 }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.progress) {
+        setImportProgress(data.progress);
+        toast.success(`Imported ${data.progress.imported} materials`);
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+      
+      // Refresh materials count
+      await loadMaterialsCount();
+    } catch (err: any) {
+      console.error("Import error:", err);
+      toast.error(err.message || "Import failed");
+    } finally {
+      setImportLoading(false);
+    }
   };
 
   const loadErrorLogs = async () => {
@@ -349,7 +396,99 @@ export default function AdminMonitoring() {
             <BarChart3 className="h-4 w-4" />
             Analytics ({analyticsEvents.length})
           </TabsTrigger>
+          <TabsTrigger value="data" className="gap-2">
+            <Database className="h-4 w-4" />
+            Data Import
+          </TabsTrigger>
         </TabsList>
+
+        {/* Data Import Tab */}
+        <TabsContent value="data" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Materials Database Import
+              </CardTitle>
+              <CardDescription>
+                Import LCA materials from external database (4,000+ EPD records)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Current Materials</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl font-bold">{materialsCount.toLocaleString()}</p>
+                  </CardContent>
+                </Card>
+                
+                {importProgress && (
+                  <>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">Import Progress</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <Progress 
+                          value={importProgress.total > 0 ? (importProgress.imported / importProgress.total) * 100 : 0} 
+                          className="mb-2"
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          {importProgress.imported} / {importProgress.total} ({importProgress.status})
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">Failed</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold text-destructive">{importProgress.failed}</p>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </div>
+              
+              <div className="flex gap-4">
+                <Button 
+                  onClick={triggerMaterialsImport} 
+                  disabled={importLoading}
+                  className="gap-2"
+                >
+                  {importLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4" />
+                      Import from External DB
+                    </>
+                  )}
+                </Button>
+                <Button variant="outline" onClick={loadMaterialsCount}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Count
+                </Button>
+              </div>
+              
+              <div className="bg-muted p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Import Notes:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Imports from EXTERNAL_SUPABASE_URL configured in secrets</li>
+                  <li>• Processes in batches of 100 records</li>
+                  <li>• Maps to lca_materials schema (material_name, category, embodied carbon A1-A5, etc.)</li>
+                  <li>• Duplicate entries may occur - consider clearing table first if needed</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Error Logs Tab */}
         <TabsContent value="errors" className="space-y-4">
