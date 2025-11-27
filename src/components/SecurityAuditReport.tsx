@@ -1,6 +1,11 @@
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 import { Button } from '@/components/ui/button';
-import { Download, FileText } from 'lucide-react';
+import { Download, FileText, Mail, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // PDF Styles
 const styles = StyleSheet.create({
@@ -402,6 +407,41 @@ const SecurityAuditPDF = () => (
 
 // Export Button Component
 export const SecurityAuditReportDownload = () => {
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [recipientName, setRecipientName] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSendEmail = async () => {
+    if (!recipientEmail || !recipientName) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-audit-report', {
+        body: {
+          recipientEmail,
+          recipientName,
+          auditDate,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success(`Audit report sent to ${recipientEmail}`);
+      setShowEmailForm(false);
+      setRecipientEmail('');
+      setRecipientName('');
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      toast.error(error.message || 'Failed to send email');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 p-6 bg-card border rounded-lg">
       <div className="flex items-center gap-3">
@@ -421,17 +461,70 @@ export const SecurityAuditReportDownload = () => {
         <span className="text-muted-foreground">0 Critical | 0 High | 4 Medium | 3 Info</span>
       </div>
 
-      <PDFDownloadLink
-        document={<SecurityAuditPDF />}
-        fileName={`CarbonConstruct-Security-Audit-${new Date().toISOString().split('T')[0]}.pdf`}
-      >
-        {({ loading }) => (
-          <Button disabled={loading} className="w-full">
-            <Download className="mr-2 h-4 w-4" />
-            {loading ? 'Generating PDF...' : 'Download Security Audit Report (PDF)'}
+      <div className="flex gap-2">
+        <PDFDownloadLink
+          document={<SecurityAuditPDF />}
+          fileName={`CarbonConstruct-Security-Audit-${new Date().toISOString().split('T')[0]}.pdf`}
+          className="flex-1"
+        >
+          {({ loading }) => (
+            <Button disabled={loading} className="w-full">
+              <Download className="mr-2 h-4 w-4" />
+              {loading ? 'Generating...' : 'Download PDF'}
+            </Button>
+          )}
+        </PDFDownloadLink>
+        
+        <Button 
+          variant="outline" 
+          onClick={() => setShowEmailForm(!showEmailForm)}
+          className="flex-1"
+        >
+          <Mail className="mr-2 h-4 w-4" />
+          Email Report
+        </Button>
+      </div>
+
+      {showEmailForm && (
+        <div className="space-y-3 p-4 bg-muted/50 rounded-lg border">
+          <div className="space-y-2">
+            <Label htmlFor="recipientName">Recipient Name</Label>
+            <Input
+              id="recipientName"
+              placeholder="John Smith"
+              value={recipientName}
+              onChange={(e) => setRecipientName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="recipientEmail">Recipient Email</Label>
+            <Input
+              id="recipientEmail"
+              type="email"
+              placeholder="john@example.com"
+              value={recipientEmail}
+              onChange={(e) => setRecipientEmail(e.target.value)}
+            />
+          </div>
+          <Button 
+            onClick={handleSendEmail} 
+            disabled={isSending}
+            className="w-full"
+          >
+            {isSending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Mail className="mr-2 h-4 w-4" />
+                Send Audit Report
+              </>
+            )}
           </Button>
-        )}
-      </PDFDownloadLink>
+        </div>
+      )}
     </div>
   );
 };
