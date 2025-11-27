@@ -10,9 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload } from "lucide-react";
+import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { SecurityAuditReportDownload } from "@/components/SecurityAuditReport";
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -400,6 +401,10 @@ export default function AdminMonitoring() {
             <Database className="h-4 w-4" />
             Data Import
           </TabsTrigger>
+          <TabsTrigger value="security" className="gap-2">
+            <FileText className="h-4 w-4" />
+            Security Audit
+          </TabsTrigger>
         </TabsList>
 
         {/* Data Import Tab */}
@@ -736,6 +741,37 @@ export default function AdminMonitoring() {
                       )}
                     </TableBody>
                   </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Security Audit Tab */}
+          <TabsContent value="security" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Security Audit Report
+                </CardTitle>
+                <CardDescription>
+                  Download the comprehensive security audit report for compliance and stakeholder distribution
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <SecurityAuditReportDownload />
+                
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Report Contents:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Audit metadata and scope</li>
+                    <li>• Security scan results summary</li>
+                    <li>• Remediation actions completed (8 issues fixed)</li>
+                    <li>• Security controls verification checklist</li>
+                    <li>• Database security verification (18 tables)</li>
+                    <li>• Compliance attestation (Privacy Act, OWASP, NCC 2024)</li>
+                    <li>• Certification statement</li>
+                  </ul>
                 </div>
               </CardContent>
             </Card>
