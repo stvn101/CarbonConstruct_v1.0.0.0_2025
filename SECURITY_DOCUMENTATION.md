@@ -410,15 +410,41 @@ console.log(`[function-name] User ${user.id}: Action description`);
 | Level | Count | Notes |
 |-------|-------|-------|
 | Critical | 0 | None |
-| Error | 0 | Stripe IDs now excluded from frontend queries |
-| Warning | 4 | Design recommendations |
-| Info | 4 | Properly secured |
+| Error | 0 | All mitigated (see below) |
+| Warning | 4 | Design recommendations, acceptable risk |
+| Info | 3 | Properly secured |
 
-### Stripe ID Security Fix
+### Mitigated Security Issues
 
-**Issue:** `stripe_customer_id` and `stripe_subscription_id` were accessible via RLS when users queried their own subscription data.
+#### 1. Stripe ID Protection (Originally Error)
 
-**Resolution:** Updated `useSubscription.ts` to explicitly select only needed columns, excluding Stripe IDs from frontend queries. Backend webhook processing retains access via service role key.
+**Issue:** `stripe_customer_id` and `stripe_subscription_id` in `user_subscriptions` table.
+
+**Resolution:** 
+- Created `user_subscriptions_safe` database view excluding Stripe IDs
+- View uses `security_invoker=true` to inherit base table RLS policies
+- Updated `useSubscription.ts` to query only from secure view
+- Stripe IDs remain in base table for backend webhook processing via service role
+
+#### 2. Rate Limit Bypass Prevention (Originally Error)
+
+**Issue:** Users could delete their own rate limit records.
+
+**Resolution:** Removed DELETE policy from `rate_limits` table. Only service role can manage records.
+
+#### 3. Usage Metric Manipulation Prevention (Originally Warning)
+
+**Issue:** Users could delete their own usage records.
+
+**Resolution:** Removed DELETE policy from `usage_metrics` table. Only service role can manage records.
+
+### Accepted Design Decisions
+
+| Finding | Level | Justification |
+|---------|-------|---------------|
+| Subscription tiers read-only | Warn | Default deny applies; explicit DENY optional |
+| User roles admin-only | Warn | `has_role()` function prevents escalation |
+| Reference data auth-required | Info | Protects proprietary emission factors |
 
 ---
 
