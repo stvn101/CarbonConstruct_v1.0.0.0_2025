@@ -17,18 +17,106 @@ const STORAGE_KEY = 'carbonConstruct_favoriteMaterials';
 const MIN_USAGE_FOR_QUICK_ADD = 2;
 const MAX_QUICK_ADD_ITEMS = 8;
 
+// Default common Australian construction materials for quick-add
+const DEFAULT_MATERIALS: FavoriteMaterial[] = [
+  {
+    materialId: 'default_plasterboard',
+    materialName: 'Plasterboard',
+    category: 'Ceilings & walls',
+    unit: 'm²',
+    factor: 8.71,
+    source: 'NMEF v2025.1',
+    usageCount: 0,
+    isPinned: true,
+    isHidden: false,
+    lastUsed: new Date().toISOString()
+  },
+  {
+    materialId: 'default_concrete_32mpa',
+    materialName: 'Concrete 32MPa',
+    category: 'Concrete',
+    unit: 'm³',
+    factor: 320,
+    source: 'NMEF v2025.1',
+    usageCount: 0,
+    isPinned: true,
+    isHidden: false,
+    lastUsed: new Date().toISOString()
+  },
+  {
+    materialId: 'default_steel_rebar',
+    materialName: 'Steel Reinforcing',
+    category: 'Steel',
+    unit: 'kg',
+    factor: 1.99,
+    source: 'NMEF v2025.1',
+    usageCount: 0,
+    isPinned: true,
+    isHidden: false,
+    lastUsed: new Date().toISOString()
+  },
+  {
+    materialId: 'default_timber_softwood',
+    materialName: 'Timber Softwood',
+    category: 'Timber',
+    unit: 'm³',
+    factor: 718,
+    source: 'NMEF v2025.1',
+    usageCount: 0,
+    isPinned: true,
+    isHidden: false,
+    lastUsed: new Date().toISOString()
+  },
+  {
+    materialId: 'default_insulation_glasswool',
+    materialName: 'Insulation Glass Wool',
+    category: 'Insulation',
+    unit: 'm²',
+    factor: 2.8,
+    source: 'NMEF v2025.1',
+    usageCount: 0,
+    isPinned: true,
+    isHidden: false,
+    lastUsed: new Date().toISOString()
+  },
+  {
+    materialId: 'default_aluminium',
+    materialName: 'Aluminium',
+    category: 'Metals',
+    unit: 'kg',
+    factor: 12.5,
+    source: 'NMEF v2025.1',
+    usageCount: 0,
+    isPinned: true,
+    isHidden: false,
+    lastUsed: new Date().toISOString()
+  }
+];
+
 export function useFavoriteMaterials() {
   const [favorites, setFavorites] = useState<FavoriteMaterial[]>([]);
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount, merge with defaults
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        setFavorites(JSON.parse(stored));
+        const parsed = JSON.parse(stored) as FavoriteMaterial[];
+        // Merge defaults with stored, keeping user preferences for defaults
+        const merged = DEFAULT_MATERIALS.map(def => {
+          const userVersion = parsed.find(p => p.materialId === def.materialId);
+          return userVersion || def;
+        });
+        // Add any user materials not in defaults
+        const userOnly = parsed.filter(p => !DEFAULT_MATERIALS.some(d => d.materialId === p.materialId));
+        setFavorites([...merged, ...userOnly]);
+      } else {
+        // First time - use defaults
+        setFavorites(DEFAULT_MATERIALS);
       }
     } catch {
       console.warn('Failed to load favorite materials');
+      setFavorites(DEFAULT_MATERIALS);
     }
   }, []);
 
