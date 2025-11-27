@@ -166,6 +166,7 @@ export default function Calculator() {
   const { materials: dbMaterials, loading: materialsLoading, getUnitLabel, states, manufacturers } = useEPDMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
   const [useNewMaterialUI, setUseNewMaterialUI] = useState(() => {
     try {
       const stored = localStorage.getItem('useNewMaterialUI');
@@ -212,9 +213,14 @@ export default function Calculator() {
   const [aiProcessing, setAiProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Group database materials by category and filter by search/category
+  // Group database materials by category and filter by search/category/state
   const groupedMaterials = useMemo(() => {
     let filtered = [...dbMaterials];
+    
+    // Filter by selected state
+    if (selectedState) {
+      filtered = filtered.filter(m => m.state === selectedState);
+    }
     
     // Filter by selected category
     if (selectedCategory) {
@@ -234,7 +240,7 @@ export default function Calculator() {
     // For new UI, show results when category is selected OR search is active
     // For old UI, only show when search is active
     const shouldShow = useNewMaterialUI 
-      ? (selectedCategory || materialSearch.length >= 2)
+      ? (selectedCategory || materialSearch.length >= 2 || selectedState)
       : materialSearch.length >= 2;
     
     if (!shouldShow) return [];
@@ -254,7 +260,7 @@ export default function Calculator() {
         category: cat,
         items: items.slice(0, 50) // Higher limit for better browsing
       }));
-  }, [dbMaterials, materialSearch, selectedCategory, useNewMaterialUI]);
+  }, [dbMaterials, materialSearch, selectedCategory, selectedState, useNewMaterialUI]);
 
   // Auto-save to localStorage
   useEffect(() => {
@@ -1047,30 +1053,47 @@ export default function Calculator() {
                         totalMaterials={dbMaterials.length}
                       />
                       
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder={selectedCategory 
-                            ? `Search within ${selectedCategory}...` 
-                            : "Or search all materials..."
-                          }
-                          value={materialSearch}
-                          onChange={(e) => setMaterialSearch(e.target.value)}
-                          className="pl-10 text-foreground"
-                        />
-                        {(materialSearch || selectedCategory) && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                            onClick={() => {
-                              setMaterialSearch('');
-                              setSelectedCategory(null);
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
+                      {/* Search and State Filter Row */}
+                      <div className="flex gap-3">
+                        <div className="relative flex-1">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder={selectedCategory 
+                              ? `Search within ${selectedCategory}...` 
+                              : "Or search all materials..."
+                            }
+                            value={materialSearch}
+                            onChange={(e) => setMaterialSearch(e.target.value)}
+                            className="pl-10 text-foreground"
+                          />
+                          {(materialSearch || selectedCategory || selectedState) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                              onClick={() => {
+                                setMaterialSearch('');
+                                setSelectedCategory(null);
+                                setSelectedState(null);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                        
+                        {/* State Filter Dropdown */}
+                        <Select value={selectedState || "all"} onValueChange={(v) => setSelectedState(v === "all" ? null : v)}>
+                          <SelectTrigger className="w-[140px] bg-background">
+                            <SelectValue placeholder="All States" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-50">
+                            <SelectItem value="all">All States</SelectItem>
+                            {states.map((state) => (
+                              <SelectItem key={state} value={state}>{state}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       {/* Local database loads instantly - no loading state needed */}
