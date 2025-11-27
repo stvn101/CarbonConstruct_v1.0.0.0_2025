@@ -399,6 +399,19 @@ export default function Calculator() {
         text = await file.text();
       }
 
+      // Client-side length validation
+      if (text.length > 15000) {
+        toast({ 
+          title: "📄 Document too large", 
+          description: `Your file has ${text.length.toLocaleString()} characters (max 15,000). Please split it into smaller sections.`,
+          variant: "destructive",
+          duration: 7000
+        });
+        setAiProcessing(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
       // Call the AI function
       const { data, error } = await supabase.functions.invoke('parse-boq', {
         body: { text }
@@ -421,6 +434,19 @@ export default function Calculator() {
         toast({ 
           title: "💳 AI credits exhausted", 
           description: "Your AI usage limit has been reached. Please add credits or upgrade your plan.",
+          variant: "destructive",
+          duration: 7000
+        });
+        setAiProcessing(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      // Handle document too long error (400)
+      if (data?.error?.includes('exceeds maximum length') || data?.error?.includes('15,000 characters')) {
+        toast({ 
+          title: "📄 Document too large", 
+          description: "Your file exceeds 15,000 characters. Please split it into smaller sections or remove unnecessary content.",
           variant: "destructive",
           duration: 7000
         });
