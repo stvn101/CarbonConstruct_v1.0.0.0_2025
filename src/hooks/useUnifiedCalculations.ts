@@ -183,7 +183,27 @@ export const useUnifiedCalculations = () => {
         };
         
         if (parsedTransData && typeof parsedTransData === 'object' && !Array.isArray(parsedTransData)) {
+          // First check for A4 transport items saved from TransportCalculator
+          const a4Items = parsedTransData.a4_transport_items;
+          if (Array.isArray(a4Items)) {
+            a4Items.forEach((item: any) => {
+              if (item.emissions > 0) {
+                transportInputs.push({
+                  mode: `A4: ${item.description || item.mode || 'Material Transport'}`,
+                  distance: item.distanceKm || item.distance || 0,
+                  weight: item.materialTonnes || item.weight || 0,
+                  emissionFactor: item.emissions / Math.max((item.distanceKm || 1) * (item.materialTonnes || 1), 1),
+                  totalEmissions: item.emissions / 1000 // Convert kgCO2e to tCO2e
+                });
+              }
+            });
+          }
+          
+          // Then process commute/other transport inputs
           Object.entries(parsedTransData).forEach(([mode, value]) => {
+            // Skip the A4 transport items array and total
+            if (mode === 'a4_transport_items' || mode === 'a4_total_emissions') return;
+            
             const qty = Number(value);
             if (!isNaN(qty) && qty > 0) {
               const emissionFactor = transportFactors[mode] || 0.1;
@@ -202,27 +222,29 @@ export const useUnifiedCalculations = () => {
           transportInputs.push(...(parsedTransData as unknown as TransportInput[]));
         }
         
-        // Also load A4 transport from localStorage (TransportCalculator data)
-        try {
-          const localTransportData = localStorage.getItem('carbonConstruct_transportItems');
-          if (localTransportData) {
-            const transportItems = JSON.parse(localTransportData);
-            if (Array.isArray(transportItems)) {
-              transportItems.forEach((item: any) => {
-                if (item.emissions > 0) {
-                  transportInputs.push({
-                    mode: `A4: ${item.description || item.mode || 'Material Transport'}`,
-                    distance: item.distanceKm || item.distance || 0,
-                    weight: item.weightTonnes || item.weight || 0,
-                    emissionFactor: item.emissions / ((item.distanceKm || 1) * (item.weightTonnes || 1)),
-                    totalEmissions: item.emissions / 1000 // Convert kgCO2e to tCO2e
-                  });
-                }
-              });
+        // Fallback: Also load A4 transport from localStorage if database doesn't have it
+        if (transportInputs.filter(t => t.mode.startsWith('A4:')).length === 0) {
+          try {
+            const localTransportData = localStorage.getItem('transportCalculatorItems');
+            if (localTransportData) {
+              const transportItems = JSON.parse(localTransportData);
+              if (Array.isArray(transportItems)) {
+                transportItems.forEach((item: any) => {
+                  if (item.emissions > 0) {
+                    transportInputs.push({
+                      mode: `A4: ${item.description || item.mode || 'Material Transport'}`,
+                      distance: item.distanceKm || item.distance || 0,
+                      weight: item.materialTonnes || item.weight || 0,
+                      emissionFactor: item.emissions / Math.max((item.distanceKm || 1) * (item.materialTonnes || 1), 1),
+                      totalEmissions: item.emissions / 1000 // Convert kgCO2e to tCO2e
+                    });
+                  }
+                });
+              }
             }
+          } catch (e) {
+            // Silently fail if localStorage is unavailable
           }
-        } catch (e) {
-          // Silently fail if localStorage is unavailable
         }
 
         // Transform totals - map database structure to interface

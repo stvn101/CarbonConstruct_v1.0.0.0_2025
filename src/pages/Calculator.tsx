@@ -709,49 +709,67 @@ export default function Calculator() {
       return;
     }
 
-    // Client-side pre-validation for better UX
-    const clientErrors: string[] = [];
-    
-    // Validate materials
-    selectedMaterials.forEach((material, index) => {
-      const result = MaterialSchema.safeParse(material);
-      if (!result.success) {
-        const errors = result.error.issues.map(i => i.message).join(', ');
-        clientErrors.push(`Material ${index + 1}: ${errors}`);
-      }
-    });
-
-    // Check for negative or invalid quantities
-    if (Object.values(scope1Inputs).some(v => parseFloat(String(v)) < 0)) {
-      clientErrors.push("Fuel quantities cannot be negative");
-    }
-    if (Object.values(scope2Inputs).some(v => parseFloat(String(v)) < 0)) {
-      clientErrors.push("Electricity quantities cannot be negative");
-    }
-    if (Object.values(transportInputs).some(v => parseFloat(String(v)) < 0)) {
-      clientErrors.push("Transport quantities cannot be negative");
-    }
-
-    if (clientErrors.length > 0) {
-      toast({ 
-        title: "Invalid data", 
-        description: clientErrors.slice(0, 2).join('. '),
-        variant: "destructive",
-        duration: 7000
+      // Client-side pre-validation for better UX
+      const clientErrors: string[] = [];
+      
+      // Validate materials
+      selectedMaterials.forEach((material, index) => {
+        const result = MaterialSchema.safeParse(material);
+        if (!result.success) {
+          const errors = result.error.issues.map(i => i.message).join(', ');
+          clientErrors.push(`Material ${index + 1}: ${errors}`);
+        }
       });
-      return;
-    }
 
-    setSaving(true);
-    try {
-      // Server-side validation
-      const validationData = {
-        projectDetails,
-        materials: selectedMaterials,
-        fuelInputs: scope1Inputs,
-        electricityInputs: scope2Inputs,
-        transportInputs
+      // Check for negative or invalid quantities
+      if (Object.values(scope1Inputs).some(v => parseFloat(String(v)) < 0)) {
+        clientErrors.push("Fuel quantities cannot be negative");
+      }
+      if (Object.values(scope2Inputs).some(v => parseFloat(String(v)) < 0)) {
+        clientErrors.push("Electricity quantities cannot be negative");
+      }
+      if (Object.values(transportInputs).some(v => parseFloat(String(v)) < 0)) {
+        clientErrors.push("Transport quantities cannot be negative");
+      }
+
+      if (clientErrors.length > 0) {
+        toast({ 
+          title: "Invalid data", 
+          description: clientErrors.slice(0, 2).join('. '),
+          variant: "destructive",
+          duration: 7000
+        });
+        return;
+      }
+
+      // Load A4 transport items from localStorage (TransportCalculator data)
+      let a4TransportItems: any[] = [];
+      try {
+        const stored = localStorage.getItem('transportCalculatorItems');
+        if (stored) {
+          a4TransportItems = JSON.parse(stored);
+        }
+      } catch {
+        // Ignore localStorage errors
+      }
+
+      // Merge commute/waste transport inputs with A4 transport items
+      const mergedTransportInputs = {
+        ...transportInputs,
+        a4_transport_items: a4TransportItems,
+        a4_total_emissions: a4TransportEmissions
       };
+
+      setSaving(true);
+      try {
+        // Server-side validation
+        const validationData = {
+          projectDetails,
+          materials: selectedMaterials,
+          fuelInputs: scope1Inputs,
+          electricityInputs: scope2Inputs,
+          transportInputs: mergedTransportInputs
+        };
 
       const { data: validationResult, error: validationError } = await supabase.functions.invoke(
         'validate-calculation',
