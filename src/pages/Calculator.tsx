@@ -212,6 +212,7 @@ export default function Calculator() {
   const [selectedMaterials, setSelectedMaterials] = useState<Material[]>(() => loadFromStorage('selectedMaterials', []));
   const [saving, setSaving] = useState(false);
   const [aiProcessing, setAiProcessing] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Group database materials by category and filter by search/category/state
@@ -419,11 +420,8 @@ export default function Calculator() {
     setSelectedMaterials([]);
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Check file type
+  // File validation helper
+  const validateFile = (file: File): boolean => {
     const validTypes = [
       'text/plain', 
       'text/csv', 
@@ -435,11 +433,49 @@ export default function Calculator() {
     if (!validTypes.includes(file.type) && !file.name.match(/\.(txt|csv|pdf|xlsx|xls)$/i)) {
       toast({ 
         title: "Invalid file type", 
-        description: "Please upload a text, CSV, PDF, or Excel file",
+        description: "Please upload a TXT, CSV, PDF, or Excel file",
         variant: "destructive" 
       });
-      return;
+      return false;
     }
+    return true;
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!aiProcessing) {
+      setIsDragOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    if (aiProcessing) return;
+
+    const file = e.dataTransfer.files?.[0];
+    if (file && validateFile(file)) {
+      await processFile(file);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !validateFile(file)) return;
+    await processFile(file);
+  };
+
+  const processFile = async (file: File) => {
 
     setAiProcessing(true);
     try {
@@ -853,43 +889,70 @@ export default function Calculator() {
 
             {activeTab === 'inputs' && (
               <div className="space-y-6">
-                {/* AI Import Banner */}
-                <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
-                  <div className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-purple-600 p-2 rounded-full">
-                        <Sparkles className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-purple-900">AI-Powered BOQ Import</h4>
-                        <p className="text-sm text-purple-700">Upload your construction documents and let AI extract materials automatically</p>
+                {/* AI Import Banner with Drag & Drop */}
+                <Card 
+                  className={`relative overflow-hidden transition-all duration-200 ${
+                    isDragOver 
+                      ? 'bg-purple-100 border-purple-400 border-2 border-dashed' 
+                      : 'bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  {isDragOver && (
+                    <div className="absolute inset-0 bg-purple-200/50 flex items-center justify-center z-10">
+                      <div className="text-center">
+                        <Upload className="h-10 w-10 text-purple-600 mx-auto mb-2 animate-bounce" />
+                        <p className="font-bold text-purple-800">Drop your file here</p>
+                        <p className="text-sm text-purple-600">TXT, CSV, PDF, or Excel</p>
                       </div>
                     </div>
-                    <div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".txt,.csv,.pdf,.xlsx,.xls"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={aiProcessing}
-                        className="bg-purple-600 hover:bg-purple-700 text-white"
-                      >
-                        {aiProcessing ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="h-4 w-4 mr-2" />
-                            Upload BOQ
-                          </>
-                        )}
-                      </Button>
+                  )}
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-purple-600 p-2 rounded-full">
+                          <Sparkles className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-purple-900">AI-Powered BOQ Import</h4>
+                          <p className="text-sm text-purple-700">Drag & drop or click to upload construction documents</p>
+                        </div>
+                      </div>
+                      <div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".txt,.csv,.pdf,.xlsx,.xls"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
+                        <Button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={aiProcessing}
+                          className="bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                          {aiProcessing ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload BOQ
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-xs text-purple-600 flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-purple-100 rounded">TXT</span>
+                      <span className="px-2 py-0.5 bg-purple-100 rounded">CSV</span>
+                      <span className="px-2 py-0.5 bg-purple-100 rounded">PDF</span>
+                      <span className="px-2 py-0.5 bg-purple-100 rounded">Excel</span>
+                      <span className="text-purple-500 ml-1">• Max 50,000 characters</span>
                     </div>
                   </div>
                 </Card>
