@@ -154,3 +154,50 @@ export const useReportData = (): ReportData | null => {
     },
   };
 };
+
+// Debug hook to expose raw values for troubleshooting
+export interface DebugEmissionData {
+  raw: {
+    scope1: number;
+    scope2: number;
+    scope3_materials: number;
+    scope3_transport: number;
+    total: number;
+  };
+  converted: {
+    scope1: number;
+    scope2: number;
+    scope3: number;
+    total: number;
+  };
+  conversionFactor: number;
+}
+
+export const useDebugEmissionData = (): DebugEmissionData | null => {
+  const { data, loading } = useUnifiedCalculations();
+
+  if (loading || !data) {
+    return null;
+  }
+
+  const raw = {
+    scope1: data.totals.scope1 || 0,
+    scope2: data.totals.scope2 || 0,
+    scope3_materials: data.totals.scope3_materials || 0,
+    scope3_transport: data.totals.scope3_transport || 0,
+    total: data.totals.total || 0,
+  };
+
+  const converted = {
+    scope1: raw.scope1 / 1000,
+    scope2: raw.scope2 / 1000,
+    scope3: (raw.scope3_materials + raw.scope3_transport) / 1000,
+    total: (raw.scope1 + raw.scope2 + raw.scope3_materials + raw.scope3_transport) / 1000,
+  };
+
+  return {
+    raw,
+    converted,
+    conversionFactor: 1000,
+  };
+};
