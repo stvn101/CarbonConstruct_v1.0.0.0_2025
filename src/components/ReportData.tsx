@@ -120,7 +120,22 @@ export const useReportData = (): ReportData | null => {
   // All database values are stored in kgCO2e, convert to tCO2e for display
   const scope1Tonnes = (data.totals.scope1 || 0) / 1000;
   const scope2Tonnes = (data.totals.scope2 || 0) / 1000;
-  const scope3Total = ((data.totals.scope3_materials || 0) + (data.totals.scope3_transport || 0)) / 1000;
+  
+  // Calculate localStorage transport emissions (A4 from TransportCalculator)
+  let localStorageTransportKg = 0;
+  try {
+    const localTransportData = localStorage.getItem('carbonConstruct_transportItems');
+    if (localTransportData) {
+      const transportItems = JSON.parse(localTransportData);
+      if (Array.isArray(transportItems)) {
+        localStorageTransportKg = transportItems.reduce((sum: number, item: any) => sum + (item.emissions || 0), 0);
+      }
+    }
+  } catch (e) {
+    // Silently fail
+  }
+  
+  const scope3Total = ((data.totals.scope3_materials || 0) + (data.totals.scope3_transport || 0) + localStorageTransportKg) / 1000;
   const totalTonnes = scope1Tonnes + scope2Tonnes + scope3Total;
 
   return {
@@ -180,11 +195,25 @@ export const useDebugEmissionData = (): DebugEmissionData | null => {
     return null;
   }
 
+  // Calculate localStorage transport emissions (A4 from TransportCalculator)
+  let localStorageTransportKg = 0;
+  try {
+    const localTransportData = localStorage.getItem('carbonConstruct_transportItems');
+    if (localTransportData) {
+      const transportItems = JSON.parse(localTransportData);
+      if (Array.isArray(transportItems)) {
+        localStorageTransportKg = transportItems.reduce((sum: number, item: any) => sum + (item.emissions || 0), 0);
+      }
+    }
+  } catch (e) {
+    // Silently fail
+  }
+
   const raw = {
     scope1: data.totals.scope1 || 0,
     scope2: data.totals.scope2 || 0,
     scope3_materials: data.totals.scope3_materials || 0,
-    scope3_transport: data.totals.scope3_transport || 0,
+    scope3_transport: (data.totals.scope3_transport || 0) + localStorageTransportKg,
     total: data.totals.total || 0,
   };
 
