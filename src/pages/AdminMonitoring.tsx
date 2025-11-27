@@ -12,9 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
 
-// Admin emails - in production, use a proper role system
-const ADMIN_EMAILS = ["admin@carbonconstruct.com.au", "support@carbonconstruct.com.au"];
-
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -69,22 +66,35 @@ export default function AdminMonitoring() {
   const [metricFilter, setMetricFilter] = useState("all");
 
   useEffect(() => {
-    if (!authLoading) {
+    const checkAdminAndLoad = async () => {
+      if (authLoading) return;
+      
       if (!user) {
         navigate("/auth");
         return;
       }
       
-      // Check if user is admin
-      const userEmail = user.email?.toLowerCase() || "";
-      if (ADMIN_EMAILS.includes(userEmail)) {
+      // Check if user has admin role using security definer function
+      const { data: hasAdminRole, error } = await supabase
+        .rpc('has_role', { _user_id: user.id, _role: 'admin' });
+      
+      if (error) {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
+        setLoading(false);
+        return;
+      }
+      
+      if (hasAdminRole) {
         setIsAdmin(true);
         loadAllData();
       } else {
         setIsAdmin(false);
         setLoading(false);
       }
-    }
+    };
+    
+    checkAdminAndLoad();
   }, [user, authLoading, navigate]);
 
   const loadAllData = async () => {
