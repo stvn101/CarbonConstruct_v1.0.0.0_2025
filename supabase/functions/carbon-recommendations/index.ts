@@ -1,10 +1,26 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schemas
+const HotspotSchema = z.object({
+  name: z.string().max(200).optional(),
+  category: z.string().max(100),
+  severity: z.enum(['low', 'medium', 'high']),
+  emissions: z.number().nonnegative().max(1000000000),
+  percentageOfTotal: z.number().min(0).max(100),
+  stage: z.string().max(50),
+});
+
+const RequestSchema = z.object({
+  hotspots: z.array(HotspotSchema).min(1).max(100),
+  totalEmissions: z.number().nonnegative().max(1000000000),
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -39,15 +55,31 @@ serve(async (req) => {
 
     console.log(`[carbon-recommendations] Request from user: ${user.id}`);
 
-    const { hotspots, totalEmissions } = await req.json();
+    // Parse and validate input
+    const rawBody = await req.json();
+    const validationResult = RequestSchema.safeParse(rawBody);
+    
+    if (!validationResult.success) {
+      console.error('[carbon-recommendations] Validation failed:', validationResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input data',
+          details: validationResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { hotspots, totalEmissions } = validationResult.data;
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Build context for AI
-    const hotspotsContext = hotspots.map((h: any) => 
+    // Build context for AI with validated data
+    const hotspotsContext = hotspots.map((h) => 
       `- ${h.name || h.category} (${h.severity}): ${h.emissions.toFixed(2)} kgCO₂e (${h.percentageOfTotal.toFixed(1)}% of total) - Primary stage: ${h.stage}`
     ).join('\n');
 
