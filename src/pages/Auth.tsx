@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 import { SEOHead } from "@/components/SEOHead";
+import logoImage from "@/assets/carbonconstruct-logo-optimized.webp";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -192,7 +193,16 @@ const Auth = () => {
       />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Carbon Calculator</CardTitle>
+          <div className="flex flex-col items-center gap-3 mb-2">
+            <img 
+              src={logoImage} 
+              alt="CarbonConstruct Logo" 
+              className="h-16 w-16 object-contain"
+              width="64"
+              height="64"
+            />
+            <CardTitle className="text-2xl font-bold">CarbonConstruct</CardTitle>
+          </div>
           <CardDescription>
             Track and calculate your project's carbon emissions
           </CardDescription>
