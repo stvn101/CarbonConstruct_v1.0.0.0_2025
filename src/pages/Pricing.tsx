@@ -7,6 +7,7 @@ import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { CheckoutButton } from '@/components/CheckoutButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { SEOHead } from '@/components/SEOHead';
 
 const Pricing = () => {
   const { tiers, currentTier, loading } = useSubscription();
@@ -48,6 +49,11 @@ const Pricing = () => {
 
   return (
     <div className="container mx-auto py-12 px-4">
+      <SEOHead 
+        title="Pricing" 
+        description="Choose the right CarbonConstruct plan for your Australian construction carbon tracking needs. Free, Pro, and Enterprise options available."
+        canonicalPath="/pricing"
+      />
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">

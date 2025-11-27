@@ -12,3 +12,10 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap location
+Sitemap: https://carbonconstruct.com.au/sitemap.xml
+
+# Disallow sensitive paths
+Disallow: /admin
+Disallow: /settings

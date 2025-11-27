@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
+import { SEOHead } from "@/components/SEOHead";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -157,6 +158,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+      <SEOHead 
+        title="Sign In" 
+        description="Sign in or create an account to access CarbonConstruct carbon emissions calculator for Australian construction projects."
+        canonicalPath="/auth"
+      />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Carbon Calculator</CardTitle>

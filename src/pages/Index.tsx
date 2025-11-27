@@ -13,6 +13,7 @@ import { ComplianceCard } from "@/components/ComplianceCard";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
+import { SEOHead } from "@/components/SEOHead";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
 const Index = () => {
   const {
@@ -31,6 +32,7 @@ const Index = () => {
   const compliance = useComplianceCheck(totals);
   if (!user) {
     return <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+        <SEOHead canonicalPath="/" />
         <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
@@ -113,6 +115,7 @@ Calculate and track your project's carbon emissions across all three scopes with
       </div>;
   }
   return <div className="space-y-4 md:space-y-6 lg:space-y-8 pb-6 md:pb-8">
+      <SEOHead title="Dashboard" canonicalPath="/" />
       <CheckoutSuccessHandler />
       <OnboardingTutorial />
       <TrialBanner />
