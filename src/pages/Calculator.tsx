@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles } from "lucide-react";
-import { MATERIAL_DB, FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/emission-factors";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search } from "lucide-react";
+import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
 import { SEOHead } from "@/components/SEOHead";
+import { useLCAMaterials, LCAMaterialData } from "@/hooks/useLCAMaterials";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Material {
   id: string;
@@ -149,6 +151,10 @@ export default function Calculator() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  // Fetch materials from database
+  const { materials: dbMaterials, loading: materialsLoading } = useLCAMaterials();
+  const [materialSearch, setMaterialSearch] = useState('');
+  
   const [activeTab, setActiveTab] = useState<'inputs' | 'report'>('inputs');
   const [projectDetails, setProjectDetails] = useState(() => loadFromStorage('projectDetails', { 
     name: '', 
@@ -163,6 +169,33 @@ export default function Calculator() {
   const [saving, setSaving] = useState(false);
   const [aiProcessing, setAiProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Group database materials by category and filter by search
+  const groupedMaterials = useMemo(() => {
+    const filtered = materialSearch.length >= 2 
+      ? dbMaterials.filter(m => 
+          m.material_name.toLowerCase().includes(materialSearch.toLowerCase()) ||
+          m.material_category.toLowerCase().includes(materialSearch.toLowerCase())
+        )
+      : dbMaterials;
+    
+    const groups = new Map<string, LCAMaterialData[]>();
+    filtered.forEach(mat => {
+      if (!mat.embodied_carbon_total) return; // Skip materials without carbon values
+      const existing = groups.get(mat.material_category) || [];
+      existing.push(mat);
+      groups.set(mat.material_category, existing);
+    });
+    
+    // Sort categories and limit items per category for performance
+    return Array.from(groups.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(0, 30) // Limit to 30 categories
+      .map(([cat, items]) => ({
+        category: cat,
+        items: items.slice(0, 20) // Limit to 20 items per category
+      }));
+  }, [dbMaterials, materialSearch]);
 
   // Auto-save to localStorage
   useEffect(() => {
@@ -198,23 +231,23 @@ export default function Calculator() {
     return { s1, s2, s3_mat, s3_trans, total: s1 + s2 + s3_mat + s3_trans };
   }, [scope1Inputs, scope2Inputs, selectedMaterials, transportInputs, projectDetails.location]);
 
-  const addMaterial = (category: string, typeId: string) => {
-    const catData = MATERIAL_DB[category as keyof typeof MATERIAL_DB];
-    const matData = catData.items.find(i => i.id === typeId);
-    if (!matData) return;
+  const addMaterialFromDb = (materialId: string) => {
+    const material = dbMaterials.find(m => m.id === materialId);
+    if (!material) return;
 
     const newItem: Material = {
       id: Date.now().toString() + Math.random(),
-      category,
-      typeId,
-      name: matData.name,
-      unit: catData.unit,
-      factor: matData.factor,
-      source: matData.source,
+      category: material.material_category,
+      typeId: material.id,
+      name: material.material_name,
+      unit: material.unit,
+      factor: material.embodied_carbon_total || 0,
+      source: material.data_source || 'Database',
       quantity: 0,
       isCustom: false
     };
     setSelectedMaterials(prev => [...prev, newItem]);
+    setMaterialSearch(''); // Clear search after adding
   };
 
   const addCustomMaterial = () => {
@@ -635,27 +668,56 @@ export default function Calculator() {
                         <Plus className="h-4 w-4 mr-1" />
                         Create Custom
                       </Button>
-                      <Select onValueChange={(value) => {
-                        const [cat, id] = value.split(':');
-                        addMaterial(cat, id);
-                      }}>
-                        <SelectTrigger className="w-[180px] bg-emerald-50 text-emerald-700 border-emerald-200">
-                          <SelectValue placeholder="Add From DB" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(MATERIAL_DB).map(([catKey, cat]) => (
-                            <div key={catKey}>
-                              <div className="px-2 py-1.5 text-xs font-bold text-gray-400 uppercase">{cat.label}</div>
-                              {cat.items.map(item => (
-                                <SelectItem key={item.id} value={`${catKey}:${item.id}`} className="text-sm">
-                                  {item.name}
-                                </SelectItem>
+                    </div>
+                  </div>
+                  
+                  {/* Material Search & Selection */}
+                  <div className="mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search 4,500+ materials (type 2+ chars)..."
+                        value={materialSearch}
+                        onChange={(e) => setMaterialSearch(e.target.value)}
+                        className="pl-10 text-foreground"
+                      />
+                    </div>
+                    {materialsLoading && (
+                      <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading materials...
+                      </div>
+                    )}
+                    {materialSearch.length >= 2 && groupedMaterials.length > 0 && (
+                      <ScrollArea className="h-64 mt-2 border rounded-md">
+                        <div className="p-2">
+                          {groupedMaterials.map(({ category, items }) => (
+                            <div key={category} className="mb-3">
+                              <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground uppercase bg-muted rounded">
+                                {category} ({items.length})
+                              </div>
+                              {items.map(item => (
+                                <button
+                                  key={item.id}
+                                  onClick={() => addMaterialFromDb(item.id)}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-emerald-50 rounded flex justify-between items-center group"
+                                >
+                                  <span className="text-foreground">{item.material_name}</span>
+                                  <span className="text-xs text-muted-foreground group-hover:text-emerald-600">
+                                    {item.embodied_carbon_total?.toFixed(1)} kgCO2/{item.unit}
+                                  </span>
+                                </button>
                               ))}
                             </div>
                           ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                        </div>
+                      </ScrollArea>
+                    )}
+                    {materialSearch.length >= 2 && groupedMaterials.length === 0 && !materialsLoading && (
+                      <div className="mt-2 text-sm text-muted-foreground text-center py-4 border rounded">
+                        No materials found for "{materialSearch}"
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     {selectedMaterials.map(m => (
