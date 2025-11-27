@@ -207,28 +207,28 @@ export default function Calculator() {
   }, [projectDetails, scope1Inputs, scope2Inputs, transportInputs, selectedMaterials]);
 
   const calculations = useMemo(() => {
-    let s1 = 0, s2 = 0, s3_mat = 0, s3_trans = 0;
+    let scope1 = 0, scope2 = 0, scope3_materials = 0, scope3_transport = 0;
 
     Object.entries(FUEL_FACTORS).forEach(([k, f]) => {
       const val = parseFloat(scope1Inputs[k] || '0');
-      s1 += val * f.factor;
+      scope1 += val * f.factor;
     });
 
     const s2Val = parseFloat(scope2Inputs.kwh || '0');
     const location = projectDetails.location || 'NSW';
     const s2Factor = STATE_ELEC_FACTORS[location as keyof typeof STATE_ELEC_FACTORS]?.factor || 0.66;
-    s2 = s2Val * s2Factor;
+    scope2 = s2Val * s2Factor;
 
     selectedMaterials.forEach(m => {
-      s3_mat += m.quantity * m.factor;
+      scope3_materials += m.quantity * m.factor;
     });
 
     Object.entries(TRANSPORT_FACTORS).forEach(([k, f]) => {
       const val = parseFloat(transportInputs[k] || '0');
-      s3_trans += val * f.factor;
+      scope3_transport += val * f.factor;
     });
 
-    return { s1, s2, s3_mat, s3_trans, total: s1 + s2 + s3_mat + s3_trans };
+    return { scope1, scope2, scope3_materials, scope3_transport, total: scope1 + scope2 + scope3_materials + scope3_transport };
   }, [scope1Inputs, scope2Inputs, selectedMaterials, transportInputs, projectDetails.location]);
 
   const addMaterialFromDb = (materialId: string) => {
@@ -784,15 +784,15 @@ export default function Calculator() {
               <div className="space-y-4 text-sm">
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Energy</span>
-                  <span className="font-bold">{((calculations.s1 + calculations.s2) / 1000).toFixed(2)} t</span>
+                  <span className="font-bold">{((calculations.scope1 + calculations.scope2) / 1000).toFixed(2)} t</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Materials</span>
-                  <span className="font-bold">{(calculations.s3_mat / 1000).toFixed(2)} t</span>
+                  <span className="font-bold">{(calculations.scope3_materials / 1000).toFixed(2)} t</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-300">Transport</span>
-                  <span className="font-bold">{(calculations.s3_trans / 1000).toFixed(2)} t</span>
+                  <span className="font-bold">{(calculations.scope3_transport / 1000).toFixed(2)} t</span>
                 </div>
               </div>
               <div className="mt-8 pt-4 border-t border-slate-700 text-xs text-center text-slate-500">
