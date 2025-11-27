@@ -6,15 +6,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEmissionTotals } from "@/hooks/useEmissionTotals";
 import { useComplianceCheck } from "@/hooks/useComplianceCheck";
 import ProjectSelector from "@/components/ProjectSelector";
-import { DemoDataButton } from "@/components/DemoDataButton";
-import { MigrationButton } from "@/components/MigrationButton";
 import { EmissionsChart } from "@/components/EmissionsChart";
 import { ComplianceCard } from "@/components/ComplianceCard";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart } from "lucide-react";
 const Index = () => {
   const {
     user,
@@ -127,14 +125,9 @@ Calculate and track your project's carbon emissions across all three scopes with
           </h1>
           <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Welcome back! Select a project to continue.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <MigrationButton />
-          
-          <DemoDataButton />
-          <Button variant="outline" onClick={signOut} size="sm" className="hover-scale text-xs md:text-sm">
-            Sign Out
-          </Button>
-        </div>
+        <Button variant="outline" onClick={signOut} size="sm" className="hover-scale text-xs md:text-sm">
+          Sign Out
+        </Button>
       </div>
 
       {/* Project Selector */}
