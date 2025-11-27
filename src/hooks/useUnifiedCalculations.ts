@@ -165,22 +165,31 @@ export const useUnifiedCalculations = () => {
         const transData = calcData.transport_inputs;
         const parsedTransData = typeof transData === 'string' ? JSON.parse(transData) : transData;
         
+        // Transport emission factors (kgCO2e/km)
+        const transportFactors: Record<string, number> = {
+          commute_car: 0.21, // avg car per km
+          commute_ute: 0.27, // ute/van per km
+          commute_truck: 0.89, // truck per km
+          waste_general: 100, // per tonne of waste transported
+          road_freight: 0.089, // per tonne-km
+          rail_freight: 0.022, // per tonne-km
+          sea_freight: 0.016, // per tonne-km
+        };
+        
         if (parsedTransData && typeof parsedTransData === 'object' && !Array.isArray(parsedTransData)) {
-          Object.entries(parsedTransData).forEach(([mode, data]) => {
-            if (data && typeof data === 'object') {
-              const transportData = data as any;
-              const emissionFactor = 0.1;
-              const distance = Number(transportData.distance) || 0;
-              const weight = Number(transportData.weight) || 0;
-              if (distance > 0 || weight > 0) {
-                transportInputs.push({
-                  mode: mode.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                  distance,
-                  weight,
-                  emissionFactor,
-                  totalEmissions: (distance * weight * emissionFactor) / 1000
-                });
-              }
+          Object.entries(parsedTransData).forEach(([mode, value]) => {
+            const qty = Number(value);
+            if (!isNaN(qty) && qty > 0) {
+              const emissionFactor = transportFactors[mode] || 0.1;
+              // Mode determines if it's distance (km) or weight (tonnes)
+              const isDistanceBased = mode.startsWith('commute_');
+              transportInputs.push({
+                mode: mode.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                distance: isDistanceBased ? qty : 0,
+                weight: isDistanceBased ? 0 : qty,
+                emissionFactor,
+                totalEmissions: (qty * emissionFactor) / 1000
+              });
             }
           });
         } else if (Array.isArray(parsedTransData)) {

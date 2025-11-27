@@ -11,6 +11,7 @@ import { PDFReport, ReportBranding } from '@/components/PDFReport';
 import { useReportData, validateReportData, calculateDataCompleteness } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { useSubscription } from '@/hooks/useSubscription';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ReportErrorBoundary } from '@/components/ReportErrorBoundary';
@@ -37,20 +38,42 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 
 export type ReportTemplate = 'executive' | 'technical' | 'compliance';
 
+// Default CarbonConstruct branding for non-Pro yearly users
+const DEFAULT_BRANDING: ReportBranding = {
+  companyName: 'CarbonConstruct',
+  preparedBy: 'CarbonConstruct Platform',
+  contactEmail: 'support@carbonconstruct.com.au',
+};
+
 const Reports = () => {
   const { currentProject } = useProject();
   const reportData = useReportData();
   const { canPerformAction, trackUsage, currentUsage } = useUsageTracking();
+  const { currentTier, userSubscription } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate>('technical');
+  
+  // Check if user is Pro tier with yearly subscription (price_annual = 790)
+  const isProYearly = currentTier?.name === 'Pro' && 
+    userSubscription?.current_period_end && 
+    // Yearly subscriptions have period > 30 days
+    (new Date(userSubscription.current_period_end).getTime() - new Date().getTime()) > 30 * 24 * 60 * 60 * 1000;
+  
+  // Business/Enterprise also get custom branding
+  const canCustomBrand = isProYearly || currentTier?.name === 'Business' || currentTier?.name === 'Enterprise';
+  
   const [branding, setBranding] = useState<ReportBranding>(() => {
+    if (!canCustomBrand) return DEFAULT_BRANDING;
     try {
       const stored = localStorage.getItem('reportBranding');
-      return stored ? JSON.parse(stored) : {};
+      return stored ? JSON.parse(stored) : DEFAULT_BRANDING;
     } catch {
-      return {};
+      return DEFAULT_BRANDING;
     }
   });
+  
+  // Effective branding - use default if not allowed to customize
+  const effectiveBranding = canCustomBrand ? branding : DEFAULT_BRANDING;
 
   // Save branding to localStorage when it changes
   const updateBranding = (field: keyof ReportBranding, value: string) => {
@@ -253,7 +276,7 @@ const Reports = () => {
           </p>
         </div>
         <ErrorBoundary>
-          <PDFReport data={reportData} template={selectedTemplate} branding={branding} />
+          <PDFReport data={reportData} template={selectedTemplate} branding={effectiveBranding} />
         </ErrorBoundary>
       </div>
 
@@ -297,75 +320,93 @@ const Reports = () => {
         </CardContent>
       </Card>
 
-      {/* Company Branding */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building className="h-5 w-5" />
-            Company Branding
-          </CardTitle>
-          <CardDescription>
-            Add your company details to appear on the PDF report
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="companyName" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Company Name
-              </Label>
-              <Input
-                id="companyName"
-                placeholder="Your Company Pty Ltd"
-                value={branding.companyName || ''}
-                onChange={(e) => updateBranding('companyName', e.target.value)}
-              />
+      {/* Company Branding - Only for Pro Yearly, Business, Enterprise */}
+      {canCustomBrand ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Company Branding
+            </CardTitle>
+            <CardDescription>
+              Add your company details to appear on the PDF report
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="companyName" className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Company Name
+                </Label>
+                <Input
+                  id="companyName"
+                  placeholder="Your Company Pty Ltd"
+                  value={branding.companyName || ''}
+                  onChange={(e) => updateBranding('companyName', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="preparedBy" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Prepared By
+                </Label>
+                <Input
+                  id="preparedBy"
+                  placeholder="John Smith"
+                  value={branding.preparedBy || ''}
+                  onChange={(e) => updateBranding('preparedBy', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactEmail" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Contact Email
+                </Label>
+                <Input
+                  id="contactEmail"
+                  type="email"
+                  placeholder="contact@company.com"
+                  value={branding.contactEmail || ''}
+                  onChange={(e) => updateBranding('contactEmail', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="logoUrl" className="flex items-center gap-2">
+                  <FileBarChart className="h-4 w-4" />
+                  Logo URL (optional)
+                </Label>
+                <Input
+                  id="logoUrl"
+                  type="url"
+                  placeholder="https://example.com/logo.png"
+                  value={branding.logoUrl || ''}
+                  onChange={(e) => updateBranding('logoUrl', e.target.value)}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="preparedBy" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Prepared By
-              </Label>
-              <Input
-                id="preparedBy"
-                placeholder="John Smith"
-                value={branding.preparedBy || ''}
-                onChange={(e) => updateBranding('preparedBy', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Contact Email
-              </Label>
-              <Input
-                id="contactEmail"
-                type="email"
-                placeholder="contact@company.com"
-                value={branding.contactEmail || ''}
-                onChange={(e) => updateBranding('contactEmail', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="logoUrl" className="flex items-center gap-2">
-                <FileBarChart className="h-4 w-4" />
-                Logo URL (optional)
-              </Label>
-              <Input
-                id="logoUrl"
-                type="url"
-                placeholder="https://example.com/logo.png"
-                value={branding.logoUrl || ''}
-                onChange={(e) => updateBranding('logoUrl', e.target.value)}
-              />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            These details will be saved and appear on all future PDF reports.
-          </p>
-        </CardContent>
-      </Card>
+            <p className="text-xs text-muted-foreground">
+              These details will be saved and appear on all future PDF reports.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-muted">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Company Branding
+              <Badge variant="secondary" className="ml-2">
+                <Crown className="h-3 w-3 mr-1" />
+                Pro Yearly
+              </Badge>
+            </CardTitle>
+            <CardDescription>
+              Reports will display CarbonConstruct branding. Upgrade to Pro (yearly) to add your own company branding.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {/* Data Completeness Indicator */}
       <Card>
@@ -651,7 +692,8 @@ const Reports = () => {
                       <div>
                         <span className="text-sm font-medium">{transport.name}</span>
                         <span className="text-xs text-muted-foreground ml-2">
-                          {transport.distance?.toLocaleString()} km • {transport.weight?.toLocaleString()} t
+                          {transport.distance > 0 && `${transport.distance?.toLocaleString()} km`}
+                          {transport.weight > 0 && `${transport.weight?.toLocaleString()} t`}
                         </span>
                       </div>
                       <div className="text-sm font-medium text-scope-3">{(transport.emissions || 0).toFixed(2)} tCO₂e</div>
