@@ -3,9 +3,11 @@
  * 
  * These tests verify that emission values are consistently converted
  * from kgCO2e (database) to tCO2e (display) across all hooks and components.
+ * 
+ * NOTE: Tests are self-contained to avoid Supabase client import chain issues.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // Mock database response (simulates unified_calculations table)
 const mockDbResponse = {
@@ -44,9 +46,6 @@ const expectedDisplayValues = {
 };
 
 describe('Emission Data Integration Tests', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
 
   describe('Database to Display Conversion Pipeline', () => {
     it('should convert useEmissionTotals values from kgCO2e to tCO2e', () => {
