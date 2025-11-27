@@ -1,4 +1,4 @@
-// Force complete cache rebuild - v6
+// Force complete cache rebuild - v7 - 2025-11-28
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import App from "./App.tsx";
