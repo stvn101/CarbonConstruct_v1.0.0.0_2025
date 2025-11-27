@@ -1,17 +1,47 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface EmailRequest {
-  type: 'welcome' | 'subscription_updated' | 'subscription_cancelled' | 'trial_ending' | 'report_generated';
-  to: string;
-  data?: Record<string, any>;
-}
+// HTML escape function to prevent XSS
+const escapeHtml = (str: string): string => {
+  if (!str) return '';
+  const htmlEscapes: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return String(str).replace(/[&<>"']/g, (char) => htmlEscapes[char] || char);
+};
+
+// Input validation schemas
+const EmailDataSchema = z.object({
+  appUrl: z.string().url().max(500).optional(),
+  tierName: z.string().max(50).optional(),
+  features: z.array(z.string().max(200)).max(20).optional(),
+  renewalDate: z.string().max(50).optional(),
+  endDate: z.string().max(50).optional(),
+  daysLeft: z.number().int().min(0).max(365).optional(),
+  projectName: z.string().max(200).optional(),
+  totalEmissions: z.string().max(50).optional(),
+  scope1: z.string().max(50).optional(),
+  scope2: z.string().max(50).optional(),
+  scope3: z.string().max(50).optional(),
+  complianceStatus: z.string().max(100).optional(),
+}).passthrough();
+
+const EmailRequestSchema = z.object({
+  type: z.enum(['welcome', 'subscription_updated', 'subscription_cancelled', 'trial_ending', 'report_generated']),
+  to: z.string().email().max(255),
+  data: EmailDataSchema.optional(),
+});
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -50,7 +80,38 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { type, to, data = {} }: EmailRequest = await req.json();
+    // Parse and validate input
+    const rawBody = await req.json();
+    const validationResult = EmailRequestSchema.safeParse(rawBody);
+    
+    if (!validationResult.success) {
+      console.error('[send-email] Validation failed:', validationResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input data',
+          details: validationResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { type, to, data = {} } = validationResult.data;
+
+    // Escape user-controllable data for HTML safety
+    const safeData = {
+      appUrl: escapeHtml(data.appUrl || ''),
+      tierName: escapeHtml(data.tierName || ''),
+      features: data.features?.map((f: string) => escapeHtml(f)) || [],
+      renewalDate: escapeHtml(data.renewalDate || ''),
+      endDate: escapeHtml(data.endDate || ''),
+      daysLeft: data.daysLeft ?? 0,
+      projectName: escapeHtml(data.projectName || ''),
+      totalEmissions: escapeHtml(data.totalEmissions || ''),
+      scope1: escapeHtml(data.scope1 || ''),
+      scope2: escapeHtml(data.scope2 || ''),
+      scope3: escapeHtml(data.scope3 || ''),
+      complianceStatus: escapeHtml(data.complianceStatus || ''),
+    };
 
     let subject = "";
     let html = "";
@@ -68,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
               <li>Calculating emissions across all three scopes</li>
               <li>Generating compliance reports</li>
             </ul>
-            <p>Need help? Check our <a href="${data.appUrl}/help">Help & Resources</a> section or reply to this email.</p>
+            <p>Need help? Check our <a href="${safeData.appUrl}/help">Help & Resources</a> section or reply to this email.</p>
             <p style="margin-top: 30px; color: #666;">Best regards,<br>The CarbonConstruct Team</p>
           </div>
         `;
@@ -79,13 +140,13 @@ const handler = async (req: Request): Promise<Response> => {
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #16a34a;">Subscription Updated</h1>
-            <p>Your CarbonConstruct subscription has been successfully updated to <strong>${data.tierName}</strong>.</p>
+            <p>Your CarbonConstruct subscription has been successfully updated to <strong>${safeData.tierName}</strong>.</p>
             <p>You now have access to:</p>
             <ul>
-              ${data.features?.map((f: string) => `<li>${f}</li>`).join('') || ''}
+              ${safeData.features.map((f: string) => `<li>${f}</li>`).join('')}
             </ul>
-            <p>Your subscription will renew on <strong>${data.renewalDate}</strong>.</p>
-            <p><a href="${data.appUrl}/settings" style="display: inline-block; padding: 10px 20px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px;">Manage Subscription</a></p>
+            <p>Your subscription will renew on <strong>${safeData.renewalDate}</strong>.</p>
+            <p><a href="${safeData.appUrl}/settings" style="display: inline-block; padding: 10px 20px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px;">Manage Subscription</a></p>
             <p style="margin-top: 30px; color: #666;">Best regards,<br>The CarbonConstruct Team</p>
           </div>
         `;
@@ -96,7 +157,7 @@ const handler = async (req: Request): Promise<Response> => {
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #dc2626;">Subscription Cancelled</h1>
-            <p>Your CarbonConstruct subscription has been cancelled and will end on <strong>${data.endDate}</strong>.</p>
+            <p>Your CarbonConstruct subscription has been cancelled and will end on <strong>${safeData.endDate}</strong>.</p>
             <p>Until then, you'll continue to have access to all Pro features.</p>
             <p>After cancellation, you'll be moved to the Free tier with:</p>
             <ul>
@@ -104,7 +165,7 @@ const handler = async (req: Request): Promise<Response> => {
               <li>Basic emissions calculations</li>
               <li>Standard reports</li>
             </ul>
-            <p>Changed your mind? <a href="${data.appUrl}/pricing">Reactivate your subscription</a> anytime.</p>
+            <p>Changed your mind? <a href="${safeData.appUrl}/pricing">Reactivate your subscription</a> anytime.</p>
             <p style="margin-top: 30px; color: #666;">Best regards,<br>The CarbonConstruct Team</p>
           </div>
         `;
@@ -114,8 +175,8 @@ const handler = async (req: Request): Promise<Response> => {
         subject = "Your CarbonConstruct Trial Ends Soon";
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #f59e0b;">Your Trial Ends in ${data.daysLeft} Days</h1>
-            <p>Your 14-day Pro trial will end on <strong>${data.endDate}</strong>.</p>
+            <h1 style="color: #f59e0b;">Your Trial Ends in ${safeData.daysLeft} Days</h1>
+            <p>Your 14-day Pro trial will end on <strong>${safeData.endDate}</strong>.</p>
             <p>Continue enjoying unlimited access to:</p>
             <ul>
               <li>Unlimited projects and calculations</li>
@@ -124,27 +185,27 @@ const handler = async (req: Request): Promise<Response> => {
               <li>AI-powered recommendations</li>
               <li>Priority support</li>
             </ul>
-            <p><a href="${data.appUrl}/pricing" style="display: inline-block; padding: 10px 20px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px;">Upgrade to Pro</a></p>
+            <p><a href="${safeData.appUrl}/pricing" style="display: inline-block; padding: 10px 20px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px;">Upgrade to Pro</a></p>
             <p style="margin-top: 30px; color: #666;">Best regards,<br>The CarbonConstruct Team</p>
           </div>
         `;
         break;
 
       case 'report_generated':
-        subject = `Your CarbonConstruct Report for ${data.projectName} is Ready`;
+        subject = `Your CarbonConstruct Report for ${safeData.projectName} is Ready`;
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #16a34a;">Report Generated Successfully</h1>
-            <p>Your emissions report for <strong>${data.projectName}</strong> has been generated.</p>
+            <p>Your emissions report for <strong>${safeData.projectName}</strong> has been generated.</p>
             <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 20px 0;">
               <h3 style="margin: 0 0 10px 0;">Report Summary</h3>
-              <p><strong>Total Emissions:</strong> ${data.totalEmissions} tCO₂-e</p>
-              <p><strong>Scope 1:</strong> ${data.scope1} tCO₂-e</p>
-              <p><strong>Scope 2:</strong> ${data.scope2} tCO₂-e</p>
-              <p><strong>Scope 3:</strong> ${data.scope3} tCO₂-e</p>
-              <p><strong>Compliance Status:</strong> ${data.complianceStatus}</p>
+              <p><strong>Total Emissions:</strong> ${safeData.totalEmissions} tCO₂-e</p>
+              <p><strong>Scope 1:</strong> ${safeData.scope1} tCO₂-e</p>
+              <p><strong>Scope 2:</strong> ${safeData.scope2} tCO₂-e</p>
+              <p><strong>Scope 3:</strong> ${safeData.scope3} tCO₂-e</p>
+              <p><strong>Compliance Status:</strong> ${safeData.complianceStatus}</p>
             </div>
-            <p><a href="${data.appUrl}/reports" style="display: inline-block; padding: 10px 20px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px;">View Full Report</a></p>
+            <p><a href="${safeData.appUrl}/reports" style="display: inline-block; padding: 10px 20px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px;">View Full Report</a></p>
             <p style="margin-top: 30px; color: #666;">Best regards,<br>The CarbonConstruct Team</p>
           </div>
         `;
