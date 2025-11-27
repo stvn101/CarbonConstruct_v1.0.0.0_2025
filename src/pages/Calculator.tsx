@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock, Scale } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
+import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
 import { SEOHead } from "@/components/SEOHead";
 import { useEPDMaterials, EPDMaterial } from "@/hooks/useEPDMaterials";
@@ -205,6 +205,7 @@ export default function Calculator() {
   const [scope1Inputs, setScope1Inputs] = useState<Record<string, string>>(() => loadFromStorage('scope1Inputs', {}));
   const [scope2Inputs, setScope2Inputs] = useState<Record<string, string>>(() => loadFromStorage('scope2Inputs', {}));
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>(() => loadFromStorage('transportInputs', {}));
+  const [a4TransportEmissions, setA4TransportEmissions] = useState<number>(0); // From TransportCalculator component
   const [commuteInputs, setCommuteInputs] = useState<Record<string, string>>(() => loadFromStorage('commuteInputs', {}));
   const [wasteInputs, setWasteInputs] = useState<Record<string, { quantity: string; unit: 'kg' | 'tonne' }>>(() => loadFromStorage('wasteInputs', {}));
   const [a5Inputs, setA5Inputs] = useState<Record<string, string>>(() => loadFromStorage('a5Inputs', {}));
@@ -294,10 +295,8 @@ export default function Calculator() {
       }
     });
 
-    Object.entries(TRANSPORT_FACTORS).forEach(([k, f]) => {
-      const val = parseFloat(transportInputs[k] || '0');
-      scope3_transport += val * f.factor;
-    });
+    // A4 Transport emissions from TransportCalculator component
+    scope3_transport = a4TransportEmissions;
 
     // Employee commute emissions
     Object.entries(COMMUTE_FACTORS).forEach(([k, f]) => {
@@ -335,7 +334,7 @@ export default function Calculator() {
       scope3_a5,
       total: scope1 + scope2 + scope3_materials_net + scope3_transport + scope3_commute + scope3_waste + scope3_a5 
     };
-  }, [scope1Inputs, scope2Inputs, selectedMaterials, transportInputs, commuteInputs, wasteInputs, a5Inputs, projectDetails.location]);
+  }, [scope1Inputs, scope2Inputs, selectedMaterials, a4TransportEmissions, commuteInputs, wasteInputs, a5Inputs, projectDetails.location]);
 
   const addMaterialFromDb = (materialId: string) => {
     const material = dbMaterials.find(m => m.id === materialId);
@@ -1206,7 +1205,7 @@ export default function Calculator() {
                 </Card>
 
                 {/* A4 Transport Section - Postcode-based calculation */}
-                <TransportCalculator />
+                <TransportCalculator onTotalChange={setA4TransportEmissions} />
 
                 {/* Employee Commute Section */}
                 <Card className="p-6">
