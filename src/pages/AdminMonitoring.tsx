@@ -14,6 +14,7 @@ import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCir
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { SecurityAuditReportDownload } from "@/components/SecurityAuditReport";
+import { SecurityDashboard } from "@/components/SecurityDashboard";
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -442,8 +443,8 @@ export default function AdminMonitoring() {
             Data Import
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
-            <FileText className="h-4 w-4" />
-            Security Audit
+            <Shield className="h-4 w-4" />
+            Security
           </TabsTrigger>
         </TabsList>
 
@@ -869,12 +870,16 @@ export default function AdminMonitoring() {
             </Card>
           </TabsContent>
 
-          {/* Security Audit Tab */}
-          <TabsContent value="security" className="space-y-4">
+          {/* Security Tab */}
+          <TabsContent value="security" className="space-y-6">
+            {/* Security Dashboard */}
+            <SecurityDashboard />
+            
+            {/* Security Audit Report */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
+                  <FileText className="h-5 w-5" />
                   Security Audit Report
                 </CardTitle>
                 <CardDescription>
