@@ -112,3 +112,44 @@ export const WASTE_FACTORS = {
   plasterboard_waste: { name: "Plasterboard Waste", unit: "kg", factor: 0.35 },
   packaging_waste: { name: "Packaging/Cardboard", unit: "kg", factor: 0.21 }
 } as const;
+
+// A5 On-Site Construction Emission Factors (kgCO2e per unit)
+export const A5_EQUIPMENT_FACTORS = {
+  // Site Equipment (per operating hour)
+  excavator_small: { name: "Excavator (Small <10t)", unit: "hours", factor: 27, category: "equipment" },
+  excavator_medium: { name: "Excavator (Medium 10-20t)", unit: "hours", factor: 45, category: "equipment" },
+  excavator_large: { name: "Excavator (Large >20t)", unit: "hours", factor: 68, category: "equipment" },
+  loader_skid: { name: "Skid Steer Loader", unit: "hours", factor: 15, category: "equipment" },
+  loader_wheel: { name: "Wheel Loader", unit: "hours", factor: 35, category: "equipment" },
+  crane_mobile: { name: "Mobile Crane", unit: "hours", factor: 55, category: "equipment" },
+  crane_tower: { name: "Tower Crane", unit: "hours", factor: 25, category: "equipment" },
+  forklift: { name: "Forklift (Diesel)", unit: "hours", factor: 12, category: "equipment" },
+  forklift_electric: { name: "Forklift (Electric)", unit: "hours", factor: 3.5, category: "equipment" },
+  concrete_pump: { name: "Concrete Pump", unit: "hours", factor: 85, category: "equipment" },
+  compactor: { name: "Plate Compactor", unit: "hours", factor: 4.5, category: "equipment" },
+  roller: { name: "Vibrating Roller", unit: "hours", factor: 22, category: "equipment" },
+  
+  // Generators (per operating hour based on load)
+  generator_10kva: { name: "Generator 10 kVA", unit: "hours", factor: 7.5, category: "generator" },
+  generator_25kva: { name: "Generator 25 kVA", unit: "hours", factor: 15, category: "generator" },
+  generator_50kva: { name: "Generator 50 kVA", unit: "hours", factor: 28, category: "generator" },
+  generator_100kva: { name: "Generator 100 kVA", unit: "hours", factor: 52, category: "generator" },
+  generator_250kva: { name: "Generator 250 kVA", unit: "hours", factor: 120, category: "generator" },
+  
+  // Installation Activities (per m² or unit installed)
+  concrete_pour: { name: "Concrete Placement", unit: "m³", factor: 8.5, category: "installation" },
+  formwork_install: { name: "Formwork Install/Strip", unit: "m²", factor: 2.2, category: "installation" },
+  rebar_fix: { name: "Reinforcement Fixing", unit: "tonnes", factor: 45, category: "installation" },
+  steel_erection: { name: "Structural Steel Erection", unit: "tonnes", factor: 65, category: "installation" },
+  cladding_install: { name: "Cladding Installation", unit: "m²", factor: 3.8, category: "installation" },
+  glazing_install: { name: "Glazing Installation", unit: "m²", factor: 5.5, category: "installation" },
+  roofing_install: { name: "Roofing Installation", unit: "m²", factor: 4.2, category: "installation" },
+  mep_rough_in: { name: "M&E Rough-In", unit: "m²", factor: 6.5, category: "installation" },
+  painting: { name: "Painting/Finishing", unit: "m²", factor: 1.8, category: "installation" },
+  
+  // Site Facilities (per day)
+  site_office: { name: "Site Office (HVAC)", unit: "days", factor: 18, category: "facilities" },
+  site_lighting: { name: "Site Lighting", unit: "days", factor: 8.5, category: "facilities" },
+  welfare_facilities: { name: "Welfare Facilities", unit: "days", factor: 12, category: "facilities" },
+  dewatering_pump: { name: "Dewatering Pump", unit: "hours", factor: 8, category: "facilities" }
+} as const;
