@@ -1,3 +1,4 @@
+import React, { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -5,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectProvider } from "@/contexts/ProjectContext";
-import { lazy, Suspense, useEffect } from "react";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
@@ -60,10 +60,10 @@ const App = () => (
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/cookies" element={<CookiePolicy />} />
-                <Route path="/roadmap" element={<Roadmap />} />
-                <Route path="/admin/monitoring" element={<AdminMonitoring />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
+                  <Route path="/roadmap" element={<Roadmap />} />
+                  <Route path="/admin/monitoring" element={<AdminMonitoring />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
             </Layout>
