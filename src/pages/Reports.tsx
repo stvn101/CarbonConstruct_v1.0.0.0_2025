@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PDFReport, ReportBranding } from '@/components/PDFReport';
-import { useReportData, validateReportData, calculateDataCompleteness } from '@/components/ReportData';
+import { useReportData, validateReportData, calculateDataCompleteness, useDebugEmissionData } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -32,7 +32,10 @@ import {
   FileText,
   Building,
   User,
-  Mail
+  Mail,
+  Bug,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
@@ -48,6 +51,8 @@ const DEFAULT_BRANDING: ReportBranding = {
 const Reports = () => {
   const { currentProject } = useProject();
   const reportData = useReportData();
+  const debugData = useDebugEmissionData();
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
   const { canPerformAction, trackUsage, currentUsage } = useUsageTracking();
   const { currentTier, userSubscription } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
@@ -533,6 +538,111 @@ const Reports = () => {
             </CardContent>
           </Card>
           </ReportErrorBoundary>
+
+          {/* Debug Panel for Unit Validation */}
+          {debugData && (
+            <Card className="border-amber-500/50 bg-amber-500/5">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Bug className="h-5 w-5 text-amber-600" />
+                    <CardTitle className="text-amber-600">Data Validation Debug Panel</CardTitle>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setShowDebugPanel(!showDebugPanel)}
+                    className="text-amber-600"
+                  >
+                    {showDebugPanel ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    {showDebugPanel ? 'Hide' : 'Show'} Details
+                  </Button>
+                </div>
+                <CardDescription className="text-amber-600/80">
+                  Comparing raw database values (kgCO₂e) vs display values (tCO₂e)
+                </CardDescription>
+              </CardHeader>
+              {showDebugPanel && (
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {/* Raw DB Values */}
+                    <div className="space-y-2 p-4 bg-background rounded-lg border">
+                      <h4 className="font-semibold text-sm text-muted-foreground">Raw Database Values (kgCO₂e)</h4>
+                      <div className="space-y-1 text-sm font-mono">
+                        <div className="flex justify-between">
+                          <span>Scope 1:</span>
+                          <span className="text-amber-600">{debugData.raw.scope1.toLocaleString()} kg</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Scope 2:</span>
+                          <span className="text-amber-600">{debugData.raw.scope2.toLocaleString()} kg</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Scope 3 (Materials):</span>
+                          <span className="text-amber-600">{debugData.raw.scope3_materials.toLocaleString()} kg</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Scope 3 (Transport):</span>
+                          <span className="text-amber-600">{debugData.raw.scope3_transport.toLocaleString()} kg</span>
+                        </div>
+                        <div className="flex justify-between border-t pt-1 mt-1">
+                          <span>DB Total:</span>
+                          <span className="text-amber-600 font-bold">{debugData.raw.total.toLocaleString()} kg</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Converted Display Values */}
+                    <div className="space-y-2 p-4 bg-background rounded-lg border">
+                      <h4 className="font-semibold text-sm text-muted-foreground">Converted Display Values (÷1000 = tCO₂e)</h4>
+                      <div className="space-y-1 text-sm font-mono">
+                        <div className="flex justify-between">
+                          <span>Scope 1:</span>
+                          <span className="text-green-600">{debugData.converted.scope1.toFixed(2)} t</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Scope 2:</span>
+                          <span className="text-green-600">{debugData.converted.scope2.toFixed(2)} t</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Scope 3 (Combined):</span>
+                          <span className="text-green-600">{debugData.converted.scope3.toFixed(2)} t</span>
+                        </div>
+                        <div className="flex justify-between border-t pt-1 mt-1">
+                          <span>Calculated Total:</span>
+                          <span className="text-green-600 font-bold">{debugData.converted.total.toFixed(2)} t</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Validation Check */}
+                  <div className="mt-4 p-3 rounded-lg bg-muted/50">
+                    <h4 className="font-semibold text-sm mb-2">Validation Check</h4>
+                    <div className="text-sm space-y-1">
+                      <div className="flex items-center gap-2">
+                        {Math.abs(debugData.converted.total - (reportData?.emissions.total || 0)) < 0.01 ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span>
+                          Report Total ({(reportData?.emissions.total || 0).toFixed(2)} t) 
+                          {Math.abs(debugData.converted.total - (reportData?.emissions.total || 0)) < 0.01 
+                            ? ' matches ' 
+                            : ' DIFFERS from '}
+                          Calculated Total ({debugData.converted.total.toFixed(2)} t)
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Conversion Factor: ÷{debugData.conversionFactor} (kgCO₂e → tCO₂e)
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          )}
 
           {/* Project Details */}
           <ReportErrorBoundary fallbackTitle="Project Details Error" inline>
