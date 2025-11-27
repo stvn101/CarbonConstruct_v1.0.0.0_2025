@@ -1,6 +1,6 @@
-// Force complete cache rebuild - v4
+// Force complete cache rebuild - v5
 import React from "react";
-import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
@@ -109,8 +109,13 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(
-  <ErrorBoundary>
-    <App />
-  </ErrorBoundary>
-);
+const rootElement = document.getElementById("root");
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
+}
