@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS } from "@/lib/emission-factors";
+import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
 import { SEOHead } from "@/components/SEOHead";
 import { useLocalMaterials, Material as LocalMaterial } from "@/hooks/useLocalMaterials";
@@ -203,6 +203,7 @@ export default function Calculator() {
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>(() => loadFromStorage('transportInputs', {}));
   const [commuteInputs, setCommuteInputs] = useState<Record<string, string>>(() => loadFromStorage('commuteInputs', {}));
   const [wasteInputs, setWasteInputs] = useState<Record<string, { quantity: string; unit: 'kg' | 'tonne' }>>(() => loadFromStorage('wasteInputs', {}));
+  const [a5Inputs, setA5Inputs] = useState<Record<string, string>>(() => loadFromStorage('a5Inputs', {}));
   const [selectedMaterials, setSelectedMaterials] = useState<Material[]>(() => loadFromStorage('selectedMaterials', []));
   const [saving, setSaving] = useState(false);
   const [aiProcessing, setAiProcessing] = useState(false);
@@ -259,11 +260,12 @@ export default function Calculator() {
     localStorage.setItem('transportInputs', JSON.stringify(transportInputs));
     localStorage.setItem('commuteInputs', JSON.stringify(commuteInputs));
     localStorage.setItem('wasteInputs', JSON.stringify(wasteInputs));
+    localStorage.setItem('a5Inputs', JSON.stringify(a5Inputs));
     localStorage.setItem('selectedMaterials', JSON.stringify(selectedMaterials));
-  }, [projectDetails, scope1Inputs, scope2Inputs, transportInputs, selectedMaterials]);
+  }, [projectDetails, scope1Inputs, scope2Inputs, transportInputs, commuteInputs, wasteInputs, a5Inputs, selectedMaterials]);
 
   const calculations = useMemo(() => {
-    let scope1 = 0, scope2 = 0, scope3_materials = 0, scope3_transport = 0, scope3_commute = 0, scope3_waste = 0;
+    let scope1 = 0, scope2 = 0, scope3_materials = 0, scope3_transport = 0, scope3_commute = 0, scope3_waste = 0, scope3_a5 = 0;
 
     Object.entries(FUEL_FACTORS).forEach(([k, f]) => {
       const val = parseFloat(scope1Inputs[k] || '0');
@@ -300,6 +302,12 @@ export default function Calculator() {
       }
     });
 
+    // A5 On-site construction emissions
+    Object.entries(A5_EQUIPMENT_FACTORS).forEach(([k, f]) => {
+      const val = parseFloat(a5Inputs[k] || '0');
+      scope3_a5 += val * f.factor;
+    });
+
     return { 
       scope1, 
       scope2, 
@@ -307,9 +315,10 @@ export default function Calculator() {
       scope3_transport, 
       scope3_commute, 
       scope3_waste, 
-      total: scope1 + scope2 + scope3_materials + scope3_transport + scope3_commute + scope3_waste 
+      scope3_a5,
+      total: scope1 + scope2 + scope3_materials + scope3_transport + scope3_commute + scope3_waste + scope3_a5 
     };
-  }, [scope1Inputs, scope2Inputs, selectedMaterials, transportInputs, commuteInputs, wasteInputs, projectDetails.location]);
+  }, [scope1Inputs, scope2Inputs, selectedMaterials, transportInputs, commuteInputs, wasteInputs, a5Inputs, projectDetails.location]);
 
   const addMaterialFromDb = (materialId: string) => {
     const material = dbMaterials.find(m => m.id === materialId);
@@ -389,6 +398,7 @@ export default function Calculator() {
     setTransportInputs({});
     setCommuteInputs({});
     setWasteInputs({});
+    setA5Inputs({});
     setSelectedMaterials([]);
   };
 
@@ -1236,6 +1246,112 @@ export default function Calculator() {
                     </div>
                   </div>
                 </Card>
+
+                {/* A5 On-Site Construction Section */}
+                <Card className="p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-700">On-Site Construction (A5)</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Site equipment, generators, and installation activities emissions
+                  </p>
+                  
+                  {/* Equipment */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                      Site Equipment
+                    </h4>
+                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                      {Object.entries(A5_EQUIPMENT_FACTORS)
+                        .filter(([_, f]) => f.category === 'equipment')
+                        .map(([k, f]) => (
+                          <FactorRow 
+                            key={k}
+                            label={f.name}
+                            unit={f.unit}
+                            factor={f.factor}
+                            value={a5Inputs[k] || ''}
+                            onChange={v => setA5Inputs({ ...a5Inputs, [k]: v })}
+                            total={parseFloat(a5Inputs[k] || '0') * f.factor}
+                          />
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Generators */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                      Generators
+                    </h4>
+                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                      {Object.entries(A5_EQUIPMENT_FACTORS)
+                        .filter(([_, f]) => f.category === 'generator')
+                        .map(([k, f]) => (
+                          <FactorRow 
+                            key={k}
+                            label={f.name}
+                            unit={f.unit}
+                            factor={f.factor}
+                            value={a5Inputs[k] || ''}
+                            onChange={v => setA5Inputs({ ...a5Inputs, [k]: v })}
+                            total={parseFloat(a5Inputs[k] || '0') * f.factor}
+                          />
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Installation Activities */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      Installation Activities
+                    </h4>
+                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                      {Object.entries(A5_EQUIPMENT_FACTORS)
+                        .filter(([_, f]) => f.category === 'installation')
+                        .map(([k, f]) => (
+                          <FactorRow 
+                            key={k}
+                            label={f.name}
+                            unit={f.unit}
+                            factor={f.factor}
+                            value={a5Inputs[k] || ''}
+                            onChange={v => setA5Inputs({ ...a5Inputs, [k]: v })}
+                            total={parseFloat(a5Inputs[k] || '0') * f.factor}
+                          />
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Site Facilities */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                      Site Facilities
+                    </h4>
+                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                      {Object.entries(A5_EQUIPMENT_FACTORS)
+                        .filter(([_, f]) => f.category === 'facilities')
+                        .map(([k, f]) => (
+                          <FactorRow 
+                            key={k}
+                            label={f.name}
+                            unit={f.unit}
+                            factor={f.factor}
+                            value={a5Inputs[k] || ''}
+                            onChange={v => setA5Inputs({ ...a5Inputs, [k]: v })}
+                            total={parseFloat(a5Inputs[k] || '0') * f.factor}
+                          />
+                        ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <div className="text-sm text-orange-800">
+                      <strong>A5 On-Site Total:</strong> {(calculations.scope3_a5 / 1000).toFixed(3)} tCO2e
+                    </div>
+                  </div>
+                </Card>
               </div>
             )}
 
@@ -1272,12 +1388,16 @@ export default function Calculator() {
                   <span className="font-bold">{((calculations.scope1 + calculations.scope2) / 1000).toFixed(2)} t</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
-                  <span className="text-slate-300">Materials</span>
+                  <span className="text-slate-300">Materials (A1-A3)</span>
                   <span className="font-bold">{(calculations.scope3_materials / 1000).toFixed(2)} t</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
-                  <span className="text-slate-300">Transport</span>
+                  <span className="text-slate-300">Transport (A4)</span>
                   <span className="font-bold">{(calculations.scope3_transport / 1000).toFixed(2)} t</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-700 pb-2">
+                  <span className="text-slate-300">On-Site (A5)</span>
+                  <span className="font-bold text-orange-400">{(calculations.scope3_a5 / 1000).toFixed(2)} t</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Commute</span>
