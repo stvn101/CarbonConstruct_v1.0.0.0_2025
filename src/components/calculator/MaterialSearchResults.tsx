@@ -1,11 +1,19 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Plus, Database } from "lucide-react";
-import { LCAMaterialData } from "@/hooks/useLCAMaterials";
+
+// Simplified interface that works with local database
+interface MaterialItem {
+  id: string;
+  material_name: string;
+  unit: string;
+  embodied_carbon_total: number | null;
+  data_source?: string | null;
+}
 
 interface GroupedMaterials {
   category: string;
-  items: LCAMaterialData[];
+  items: MaterialItem[];
 }
 
 interface MaterialSearchResultsProps {
