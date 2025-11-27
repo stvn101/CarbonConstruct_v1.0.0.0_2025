@@ -2,6 +2,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
+
+const scopeTooltips = {
+  1: "Direct emissions from owned or controlled sources: on-site fuel combustion, diesel generators, LPG heaters, and company vehicles. Based on NGA Factors 2023.",
+  2: "Indirect emissions from purchased electricity. Factors vary by Australian state due to different grid mixes (e.g., Tasmania hydro vs Victoria brown coal).",
+  3: "Value chain emissions including embodied carbon in materials, transport, waste, and employee commuting. Often the largest contributor (70-80% for construction)."
+};
 
 interface ScopeCardProps {
   title: string;
@@ -44,7 +51,10 @@ export function ScopeCard({
               <Icon className={`h-5 w-5 ${scopeColorMap[scopeNumber]}`} />
             </div>
             <div>
-              <CardTitle className="text-lg">{title}</CardTitle>
+              <CardTitle className="text-lg flex items-center">
+                {title}
+                <InfoTooltip content={scopeTooltips[scopeNumber]} />
+              </CardTitle>
               <CardDescription className="text-sm">{description}</CardDescription>
             </div>
           </div>

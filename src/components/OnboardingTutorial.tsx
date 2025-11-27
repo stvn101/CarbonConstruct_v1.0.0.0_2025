@@ -18,22 +18,22 @@ interface OnboardingStep {
 const steps: OnboardingStep[] = [
   {
     title: "Welcome to CarbonConstruct",
-    description: "Your professional carbon emissions calculator for Australian construction projects. Let's take a quick tour to help you get started with calculating your project's carbon footprint.",
+    description: "Your professional carbon emissions calculator for Australian construction projects. Designed for NCC Section J compliance, Green Star ratings, and NABERS requirements. Let's take a quick tour.",
     icon: Calculator,
   },
   {
     title: "Understanding Emission Scopes",
-    description: "Carbon emissions are divided into three scopes: Scope 1 (direct emissions from your operations), Scope 2 (indirect emissions from energy), and Scope 3 (value chain emissions). You'll need to calculate all three for complete compliance.",
+    description: "Carbon emissions are divided into three scopes following ISO 14064 and the GHG Protocol. Scope 1 covers direct on-site emissions, Scope 2 covers purchased energy (varying by Australian state), and Scope 3 covers your entire value chain including embodied carbon in materials.",
     icon: Factory,
   },
   {
     title: "Create Your First Project",
-    description: "Start by creating a project using the Project Selector. Enter your project details including location, size, and assessment period. This helps us provide accurate emission factors for your region.",
+    description: "Start by creating a project with the Project Selector. Enter your location (Australian state matters for electricity factors), building size, and target compliance level. This ensures accurate calculations using NGA Factors 2023.",
     icon: FileBarChart,
   },
   {
     title: "Calculate Scope 1 Emissions",
-    description: "Navigate to Scope 1 to calculate direct emissions from fuel combustion, company vehicles, and on-site equipment. Enter quantities and select the appropriate fuel types.",
+    description: "Calculate direct emissions from diesel generators, LPG heaters, company vehicles, and on-site equipment. Australian construction often sees high Scope 1 during earthworks and wet season operations.",
     icon: Factory,
     action: {
       label: "Go to Scope 1",
@@ -42,7 +42,7 @@ const steps: OnboardingStep[] = [
   },
   {
     title: "Calculate Scope 2 Emissions",
-    description: "In Scope 2, calculate indirect emissions from purchased electricity, heating, and cooling. Select your state/region for accurate emission factors based on the local grid mix.",
+    description: "Track purchased electricity emissions. Factors vary significantly by state—Tasmania's hydro-dominated grid is much cleaner than Victoria's. Consider renewable energy certificates (LGCs) to reduce Scope 2.",
     icon: Zap,
     action: {
       label: "Go to Scope 2",
@@ -51,7 +51,7 @@ const steps: OnboardingStep[] = [
   },
   {
     title: "Calculate Scope 3 Emissions",
-    description: "Scope 3 covers your value chain emissions including purchased goods, transportation, waste, and employee commuting. This is often the largest contributor to total emissions.",
+    description: "Often 70-80% of construction emissions come from materials (embodied carbon). Track concrete, steel, aluminium, and other materials using our EPD database. Use the AI BOQ Import to automatically extract materials from your Bill of Quantities.",
     icon: Truck,
     action: {
       label: "Go to Scope 3",
@@ -59,8 +59,8 @@ const steps: OnboardingStep[] = [
     },
   },
   {
-    title: "Generate Reports",
-    description: "Once you've entered your data, generate comprehensive reports for compliance and analysis. Export as PDF for stakeholders or regulatory submissions.",
+    title: "Generate Compliance Reports",
+    description: "Generate reports for Green Star submissions, NCC compliance documentation, or stakeholder presentations. Export as PDF with full methodology notes and Australian emission factor references.",
     icon: FileBarChart,
     action: {
       label: "View Reports",
@@ -69,7 +69,7 @@ const steps: OnboardingStep[] = [
   },
   {
     title: "You're All Set!",
-    description: "You're ready to start calculating carbon emissions for your construction projects. Remember, you can access Help & Resources anytime from the sidebar for detailed guidance on emission factors and methodologies.",
+    description: "Start calculating emissions for your Australian construction projects. Remember: consider seasonal impacts (wet season logistics, hot weather concrete curing) and always verify material quantities from EPDs where available.",
     icon: CheckCircle2,
   },
 ];
