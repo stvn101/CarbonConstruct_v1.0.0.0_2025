@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Import data in batches
+    // Import data in batches with deduplication
     const progress: ImportProgress = {
       total: totalCount || 0,
       imported: 0,
@@ -116,6 +116,10 @@ Deno.serve(async (req) => {
 
     let offset = 0;
     const errors: Array<{ row: number; error: string }> = [];
+    
+    // Track seen materials to prevent duplicates (key: name+category+unit)
+    const seenMaterials = new Set<string>();
+    let skippedDuplicates = 0;
 
     while (offset < (totalCount || 0)) {
       console.log(`Fetching batch at offset ${offset}`);
@@ -133,11 +137,10 @@ Deno.serve(async (req) => {
       }
 
       if (batchData && batchData.length > 0) {
-        // Map the data to our schema - unified_materials column mapping
-        // External columns: id, name, category, subcategory, unit, a1a3_factor, a4_factor, a5_factor, 
-        // b1b5_factor, c1c4_factor, d_factor, scope1_factor, scope2_factor, scope3_factor,
-        // source, region, reliability, publish_date, expiry_date, ec3_id, ec3_category, epd_url, manufacturer
-        const mappedData = batchData.map((row: any) => {
+        // Map the data to our schema with deduplication
+        const mappedData: any[] = [];
+        
+        for (const row of batchData) {
           // Parse emission factors - handle both string and number types
           const parseNumber = (val: any): number | null => {
             if (val === null || val === undefined || val === '') return null;
@@ -155,6 +158,11 @@ Deno.serve(async (req) => {
             total = a1a3 + (a4 || 0) + (a5 || 0);
           }
 
+          // Skip if no valid emission data
+          if (total === null || total <= 0) {
+            continue;
+          }
+
           // Determine correct unit based on category/material type
           let unit = row.unit || 'kg';
           const name = (row.name || '').toLowerCase();
@@ -162,20 +170,29 @@ Deno.serve(async (req) => {
           
           // Fix common unit issues based on material type
           if (unit === 'm³' || unit === 'm3') {
-            // Steel/metals should be kg or tonne
             if (category.includes('steel') || category.includes('metal') || category.includes('alumin') ||
                 name.includes('steel') || name.includes('rebar') || name.includes('reinforc')) {
               unit = 'kg';
-            }
-            // Glass should be m²
-            else if (category.includes('glass') || category.includes('glazing') || category.includes('window')) {
+            } else if (category.includes('glass') || category.includes('glazing') || category.includes('window')) {
               unit = 'm²';
             }
           }
 
-          const mapped: any = {
-            material_name: row.name || row.material_name || 'Unknown',
-            material_category: row.category || row.material_category || 'Uncategorized',
+          const materialName = row.name || row.material_name || 'Unknown';
+          const materialCategory = row.category || row.material_category || 'Uncategorized';
+          
+          // Create unique key for deduplication
+          const dedupeKey = `${materialName}|${materialCategory}|${unit}|${total.toFixed(2)}`;
+          
+          if (seenMaterials.has(dedupeKey)) {
+            skippedDuplicates++;
+            continue;
+          }
+          seenMaterials.add(dedupeKey);
+
+          mappedData.push({
+            material_name: materialName,
+            material_category: materialCategory,
             unit: unit,
             embodied_carbon_a1a3: a1a3,
             embodied_carbon_a4: a4,
@@ -184,40 +201,33 @@ Deno.serve(async (req) => {
             data_source: row.source || row.data_source || 'External Import',
             region: row.region || 'Australia',
             year: row.publish_date ? new Date(row.publish_date).getFullYear() : null,
-          };
+          });
+        }
 
-          return mapped;
-        });
-
-        // Filter out materials with no valid emission data
-        const validData = mappedData.filter((m: any) => m.embodied_carbon_total !== null && m.embodied_carbon_total > 0);
-
-        if (validData.length > 0) {
+        if (mappedData.length > 0) {
           // Insert batch into our database
           const { error: insertError } = await supabaseAdmin
             .from('lca_materials')
-            .insert(validData);
+            .insert(mappedData);
 
           if (insertError) {
             console.error(`Error inserting batch at offset ${offset}:`, insertError);
-            progress.failed += batchData.length;
+            progress.failed += mappedData.length;
             errors.push({
               row: offset,
               error: insertError.message,
             });
           } else {
-            progress.imported += validData.length;
-            progress.failed += (batchData.length - validData.length);
-            console.log(`Successfully imported ${progress.imported}/${totalCount} records`);
+            progress.imported += mappedData.length;
+            console.log(`Imported ${progress.imported} records (skipped ${skippedDuplicates} duplicates)`);
           }
-        } else {
-          progress.failed += batchData.length;
-          console.log(`Skipped batch at offset ${offset} - no valid emission data`);
         }
       }
 
       offset += batchSize;
     }
+    
+    console.log(`Final: Imported ${progress.imported}, skipped ${skippedDuplicates} duplicates`);
 
     progress.status = progress.failed > 0 ? 'completed_with_errors' : 'completed';
 
