@@ -1,0 +1,94 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface ErrorLogRequest {
+  error_type: string;
+  error_message: string;
+  stack_trace?: string;
+  page_url?: string;
+  browser_info?: Record<string, unknown>;
+  severity?: string;
+  metadata?: Record<string, unknown>;
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get user from auth header if present
+    let userId: string | null = null;
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader) {
+      const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } }
+      });
+      const { data: { user } } = await userClient.auth.getUser();
+      userId = user?.id || null;
+    }
+
+    const body: ErrorLogRequest = await req.json();
+
+    // Validate required fields
+    if (!body.error_type || !body.error_message) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields: error_type, error_message' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Sanitize and truncate fields
+    const errorLog = {
+      user_id: userId,
+      error_type: String(body.error_type).slice(0, 100),
+      error_message: String(body.error_message).slice(0, 5000),
+      stack_trace: body.stack_trace ? String(body.stack_trace).slice(0, 10000) : null,
+      page_url: body.page_url ? String(body.page_url).slice(0, 500) : null,
+      browser_info: body.browser_info || null,
+      severity: body.severity || 'error',
+      metadata: body.metadata || null,
+    };
+
+    const { error } = await supabase
+      .from('error_logs')
+      .insert(errorLog);
+
+    if (error) {
+      console.error('Failed to insert error log:', error);
+      return new Response(
+        JSON.stringify({ error: 'Failed to log error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check for critical errors and potentially send alert
+    if (errorLog.severity === 'critical') {
+      console.log('Critical error logged:', errorLog.error_type, errorLog.error_message);
+      // Future: trigger alert email
+    }
+
+    console.log('Error logged successfully:', errorLog.error_type);
+
+    return new Response(
+      JSON.stringify({ success: true }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Error in log-error function:', error);
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});

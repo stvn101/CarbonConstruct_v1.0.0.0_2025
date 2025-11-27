@@ -3,12 +3,24 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
+import { initializeErrorTracking, trackErrorGlobal } from "./hooks/useErrorTracking";
 import "./index.css";
+
+// Initialize global error tracking
+initializeErrorTracking();
 
 // Global error handlers for async errors and promise rejections
 window.addEventListener('unhandledrejection', (event) => {
   event.preventDefault();
-  logger.error('Unhandled Promise Rejection:', event.reason);
+  logger.error('Unhandled Promise Rejection', event.reason);
+  
+  // Track globally
+  trackErrorGlobal({
+    error_type: 'unhandled_promise_rejection',
+    error_message: event.reason?.message || String(event.reason),
+    stack_trace: event.reason?.stack,
+    severity: 'error',
+  });
   
   // Show user-friendly error notification
   const errorMessage = event.reason?.message || String(event.reason) || 'An unexpected error occurred';
@@ -42,7 +54,15 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Global error handler for uncaught errors
 window.addEventListener('error', (event) => {
-  logger.error('Uncaught Error:', event.error);
+  logger.error('Uncaught Error', event.error);
+  
+  // Track globally
+  trackErrorGlobal({
+    error_type: 'uncaught_error',
+    error_message: event.error?.message || event.message,
+    stack_trace: event.error?.stack,
+    severity: 'error',
+  });
   
   // Only show notification if it's not already being handled by error boundary
   if (!event.error?.handledByBoundary) {

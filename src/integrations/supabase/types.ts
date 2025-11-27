@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          resolved: boolean
+          resolved_at: string | null
+          severity: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          resolved?: boolean
+          resolved_at?: string | null
+          severity?: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          resolved?: boolean
+          resolved_at?: string | null
+          severity?: string
+        }
+        Relationships: []
+      }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_name: string
+          id: string
+          page_url: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_name: string
+          id?: string
+          page_url?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_name?: string
+          id?: string
+          page_url?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       emission_factors: {
         Row: {
           category: string
@@ -62,6 +125,45 @@ export type Database = {
           unit?: string
           updated_at?: string
           year?: number
+        }
+        Relationships: []
+      }
+      error_logs: {
+        Row: {
+          browser_info: Json | null
+          created_at: string
+          error_message: string
+          error_type: string
+          id: string
+          metadata: Json | null
+          page_url: string | null
+          severity: string
+          stack_trace: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          created_at?: string
+          error_message: string
+          error_type: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string | null
+          severity?: string
+          stack_trace?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          created_at?: string
+          error_message?: string
+          error_type?: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string | null
+          severity?: string
+          stack_trace?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -155,6 +257,39 @@ export type Database = {
           status?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      performance_metrics: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_value: number
+          page_url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_value: number
+          page_url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_value?: number
+          page_url?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
