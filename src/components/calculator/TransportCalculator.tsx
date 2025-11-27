@@ -53,10 +53,13 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
   });
 
   const totalEmissions = useMemo(() => {
-    const total = items.reduce((sum, item) => sum + item.emissions, 0);
-    onTotalChange?.(total);
-    return total;
-  }, [items, onTotalChange]);
+    return items.reduce((sum, item) => sum + item.emissions, 0);
+  }, [items]);
+
+  // Notify parent of total emissions changes
+  useEffect(() => {
+    onTotalChange?.(totalEmissions);
+  }, [totalEmissions, onTotalChange]);
 
   // Persist items to localStorage
   useEffect(() => {
