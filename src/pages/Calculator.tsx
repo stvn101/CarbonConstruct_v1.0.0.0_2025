@@ -399,11 +399,11 @@ export default function Calculator() {
         text = await file.text();
       }
 
-      // Client-side length validation
-      if (text.length > 15000) {
+      // Client-side length validation - max 50,000 characters
+      if (text.length > 50000) {
         toast({ 
           title: "📄 Document too large", 
-          description: `Your file has ${text.length.toLocaleString()} characters (max 15,000). Please split it into smaller sections.`,
+          description: `Your file has ${text.length.toLocaleString()} characters (max 50,000). Please reduce the document size.`,
           variant: "destructive",
           duration: 7000
         });
@@ -412,60 +412,110 @@ export default function Calculator() {
         return;
       }
 
-      // Call the AI function
-      const { data, error } = await supabase.functions.invoke('parse-boq', {
-        body: { text }
-      });
+      // Split text into chunks if necessary (max 12,000 chars per chunk)
+      const CHUNK_SIZE = 12000;
+      const chunks: string[] = [];
+      
+      if (text.length <= CHUNK_SIZE) {
+        chunks.push(text);
+      } else {
+        // Split at paragraph or line breaks to preserve context
+        let remaining = text;
+        while (remaining.length > 0) {
+          if (remaining.length <= CHUNK_SIZE) {
+            chunks.push(remaining);
+            break;
+          }
+          
+          // Find a good break point (paragraph, then line, then space)
+          let breakPoint = CHUNK_SIZE;
+          const searchArea = remaining.slice(CHUNK_SIZE - 500, CHUNK_SIZE);
+          
+          const paragraphBreak = searchArea.lastIndexOf('\n\n');
+          if (paragraphBreak > 0) {
+            breakPoint = CHUNK_SIZE - 500 + paragraphBreak + 2;
+          } else {
+            const lineBreak = searchArea.lastIndexOf('\n');
+            if (lineBreak > 0) {
+              breakPoint = CHUNK_SIZE - 500 + lineBreak + 1;
+            }
+          }
+          
+          chunks.push(remaining.slice(0, breakPoint));
+          remaining = remaining.slice(breakPoint);
+        }
+      }
 
-      // Handle rate limiting error (429)
-      if (error?.message?.includes('429') || data?.error?.includes('Rate limit')) {
+      // Show progress for multi-chunk processing
+      const totalChunks = chunks.length;
+      if (totalChunks > 1) {
         toast({ 
-          title: "🕐 Rate limit reached", 
-          description: "Too many AI requests. Please wait a moment and try again.",
-          variant: "destructive" 
+          title: "🔄 Processing large document", 
+          description: `Splitting into ${totalChunks} sections for analysis...`,
+          duration: 3000
         });
-        setAiProcessing(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        return;
       }
 
-      // Handle payment/credits exhausted error (402)
-      if (error?.message?.includes('402') || data?.error?.includes('credits exhausted') || data?.error?.includes('Payment required')) {
-        toast({ 
-          title: "💳 AI credits exhausted", 
-          description: "Your AI usage limit has been reached. Please add credits or upgrade your plan.",
-          variant: "destructive",
-          duration: 7000
+      // Process each chunk sequentially
+      const allMaterials: any[] = [];
+      
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        
+        if (totalChunks > 1) {
+          toast({ 
+            title: `Processing section ${i + 1}/${totalChunks}`, 
+            description: `Analyzing ${chunk.length.toLocaleString()} characters...`,
+            duration: 2000
+          });
+        }
+
+        const { data, error } = await supabase.functions.invoke('parse-boq', {
+          body: { text: chunk }
         });
-        setAiProcessing(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        return;
+
+        // Handle rate limiting error (429)
+        if (error?.message?.includes('429') || data?.error?.includes('Rate limit')) {
+          toast({ 
+            title: "🕐 Rate limit reached", 
+            description: `Processed ${i}/${totalChunks} sections. Please wait and try again for remaining content.`,
+            variant: "destructive" 
+          });
+          break;
+        }
+
+        // Handle payment/credits exhausted error (402)
+        if (error?.message?.includes('402') || data?.error?.includes('credits exhausted') || data?.error?.includes('Payment required')) {
+          toast({ 
+            title: "💳 AI credits exhausted", 
+            description: "Your AI usage limit has been reached. Please add credits or upgrade your plan.",
+            variant: "destructive",
+            duration: 7000
+          });
+          break;
+        }
+
+        if (error) {
+          console.error(`Error processing chunk ${i + 1}:`, error);
+          continue; // Continue with other chunks
+        }
+
+        if (data?.materials && Array.isArray(data.materials)) {
+          allMaterials.push(...data.materials);
+        }
+        
+        // Small delay between chunks to avoid rate limiting
+        if (i < chunks.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
 
-      // Handle document too long error (400)
-      if (data?.error?.includes('exceeds maximum length') || data?.error?.includes('15,000 characters')) {
-        toast({ 
-          title: "📄 Document too large", 
-          description: "Your file exceeds 15,000 characters. Please split it into smaller sections or remove unnecessary content.",
-          variant: "destructive",
-          duration: 7000
-        });
-        setAiProcessing(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        return;
-      }
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
+      if (allMaterials.length === 0) {
+        throw new Error("No materials could be extracted from the document");
       }
 
       // Process the materials from AI
-      const aiMaterials = data.materials || [];
-      const newMaterials: Material[] = aiMaterials.map((item: any) => {
+      const newMaterials: Material[] = allMaterials.map((item: any) => {
         const isCustom = item.isCustom || item.category === 'custom';
         
         return {
@@ -485,7 +535,7 @@ export default function Calculator() {
       
       toast({ 
         title: "Import successful!", 
-        description: `Added ${newMaterials.length} materials from ${file.name}` 
+        description: `Added ${newMaterials.length} materials from ${file.name}${totalChunks > 1 ? ` (${totalChunks} sections processed)` : ''}` 
       });
 
     } catch (error) {
