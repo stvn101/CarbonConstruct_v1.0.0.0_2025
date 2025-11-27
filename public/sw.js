@@ -1,5 +1,5 @@
 // Service Worker for CarbonConstruct PWA
-const CACHE_NAME = 'carbonconstruct-v2';
+const CACHE_NAME = 'carbonconstruct-v3';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
