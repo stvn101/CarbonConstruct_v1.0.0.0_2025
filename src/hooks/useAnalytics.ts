@@ -7,6 +7,19 @@ interface AnalyticsEvent {
   event_data?: Record<string, unknown>;
 }
 
+// Google Analytics helper - sends events to GA4
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+function sendToGA(eventName: string, eventData?: Record<string, unknown>) {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, eventData);
+  }
+}
+
 const EVENTS_BATCH_SIZE = 20;
 const EVENTS_FLUSH_INTERVAL = 10000; // 10 seconds
 
@@ -58,10 +71,14 @@ export function useAnalytics() {
   }, [flushEvents]);
 
   const trackEvent = useCallback((eventName: string, eventData?: Record<string, unknown>) => {
+    // Send to internal analytics (Supabase)
     eventsQueue.current.push({
       event_name: eventName,
       event_data: eventData,
     });
+
+    // Also send to Google Analytics
+    sendToGA(eventName, eventData);
 
     if (eventsQueue.current.length >= EVENTS_BATCH_SIZE) {
       flushEvents();
@@ -75,6 +92,15 @@ export function useAnalytics() {
     const currentPath = location.pathname + location.search;
     if (currentPath !== lastPageView.current) {
       lastPageView.current = currentPath;
+      
+      // Send page view to GA4
+      if (window.gtag) {
+        window.gtag('config', 'G-XXXXXXXXXX', {
+          page_path: location.pathname,
+          page_location: window.location.href,
+        });
+      }
+      
       trackEvent('page_view', {
         path: location.pathname,
         search: location.search,
