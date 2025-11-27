@@ -1,37 +1,47 @@
-# Cache static assets with content hashes for 1 year
+# All assets with hashes in filename - cache for 1 year (immutable)
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
 
-# Cache images for 1 year
-*.png
+# JavaScript files
+/*.js
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
 
-*.jpg
+# CSS files
+/*.css
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
 
-*.webp
+# Images in root public folder
+/*.webp
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
 
-# Cache fonts for 1 year
-*.woff2
+/*.png
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
 
-# Cache service worker for 0 (must revalidate)
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# Fonts
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# Service worker - must revalidate
 /sw.js
   Cache-Control: public, max-age=0, must-revalidate
   X-Content-Type-Options: nosniff
 
-# Cache HTML for 1 hour with revalidation
+# HTML pages - short cache with revalidation
 /*.html
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
   X-Content-Type-Options: nosniff
 
-# Cache root HTML
+# Root path
 /
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
   X-Content-Type-Options: nosniff
@@ -39,3 +49,5 @@
 # Global security headers
 /*
   X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
