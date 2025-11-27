@@ -1524,43 +1524,47 @@ export default function Calculator() {
               <div className="text-4xl font-bold mb-6 text-emerald-400">
                 {(calculations.total / 1000).toFixed(2)} <span className="text-lg text-white">tCO₂e</span>
               </div>
+              <p className="text-[10px] text-slate-500 -mt-4 mb-4">tonnes of CO₂ equivalent</p>
               <div className="space-y-4 text-sm">
                 <div className="flex justify-between border-b border-slate-700 pb-2">
-                  <span className="text-slate-300">Energy</span>
-                  <span className="font-bold">{((calculations.scope1 + calculations.scope2) / 1000).toFixed(2)} t</span>
+                  <span className="text-slate-300">Energy (Scope 1+2)</span>
+                  <span className="font-bold">{((calculations.scope1 + calculations.scope2) / 1000).toFixed(2)} <span className="text-xs text-slate-400">tCO₂e</span></span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Materials (A1-A3)</span>
-                  <span className="font-bold">{(calculations.scope3_materials / 1000).toFixed(2)} t</span>
+                  <span className="font-bold">{(calculations.scope3_materials / 1000).toFixed(2)} <span className="text-xs text-slate-400">tCO₂e</span></span>
                 </div>
                 {calculations.scope3_sequestration > 0 && (
                   <div className="flex justify-between border-b border-slate-700 pb-2 bg-emerald-900/30 -mx-6 px-6 py-2">
                     <span className="text-emerald-300 flex items-center gap-1">
                       <Leaf className="h-3 w-3" /> Carbon Stored
                     </span>
-                    <span className="font-bold text-emerald-400">-{(calculations.scope3_sequestration / 1000).toFixed(2)} t</span>
+                    <span className="font-bold text-emerald-400">-{(calculations.scope3_sequestration / 1000).toFixed(2)} <span className="text-xs">tCO₂e</span></span>
                   </div>
                 )}
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Transport (A4)</span>
-                  <span className="font-bold">{(calculations.scope3_transport / 1000).toFixed(2)} t</span>
+                  <span className="font-bold">{(calculations.scope3_transport / 1000).toFixed(2)} <span className="text-xs text-slate-400">tCO₂e</span></span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">On-Site (A5)</span>
-                  <span className="font-bold text-orange-400">{(calculations.scope3_a5 / 1000).toFixed(2)} t</span>
+                  <span className="font-bold text-orange-400">{(calculations.scope3_a5 / 1000).toFixed(2)} <span className="text-xs">tCO₂e</span></span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Commute</span>
-                  <span className="font-bold">{(calculations.scope3_commute / 1000).toFixed(2)} t</span>
+                  <span className="font-bold">{(calculations.scope3_commute / 1000).toFixed(2)} <span className="text-xs text-slate-400">tCO₂e</span></span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-300">Waste</span>
                   <span className={`font-bold ${calculations.scope3_waste < 0 ? 'text-blue-400' : ''}`}>
-                    {(calculations.scope3_waste / 1000).toFixed(2)} t
+                    {(calculations.scope3_waste / 1000).toFixed(2)} <span className="text-xs text-slate-400">tCO₂e</span>
                   </span>
                 </div>
               </div>
-              <div className="mt-8 pt-4 border-t border-slate-700 text-xs text-center text-slate-500">
+              <div className="mt-6 pt-4 border-t border-slate-600">
+                <p className="text-[10px] text-slate-500 text-center">All values in tonnes CO₂ equivalent (tCO₂e)</p>
+              </div>
+              <div className="mt-2 pt-2 text-xs text-center text-slate-500">
                 {user ? '✓ Auto-save active' : 'Connecting...'}
               </div>
             </Card>
