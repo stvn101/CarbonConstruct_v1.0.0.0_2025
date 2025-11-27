@@ -84,6 +84,25 @@ export const useUnifiedCalculations = () => {
       if (error) throw error;
 
       if (calcData) {
+        // Transform materials array - map database structure to interface
+        const materials: MaterialItem[] = [];
+        if (Array.isArray(calcData.materials)) {
+          (calcData.materials as any[]).forEach((mat: any) => {
+            const quantity = mat.quantity || 0;
+            const factor = mat.factor || mat.emissionFactor || 0;
+            materials.push({
+              name: mat.name || 'Unknown Material',
+              category: mat.category || 'Uncategorized',
+              quantity,
+              unit: mat.unit || 'kg',
+              emissionFactor: factor,
+              totalEmissions: (quantity * factor) / 1000, // Convert kg to tonnes
+              source: mat.source || 'Database',
+              customNotes: mat.isCustom ? 'Custom material' : undefined
+            });
+          });
+        }
+
         // Transform fuel_inputs object to array
         const fuelInputs: FuelInput[] = [];
         if (calcData.fuel_inputs && typeof calcData.fuel_inputs === 'object' && !Array.isArray(calcData.fuel_inputs)) {
@@ -144,19 +163,23 @@ export const useUnifiedCalculations = () => {
           transportInputs.push(...(calcData.transport_inputs as unknown as TransportInput[]));
         }
 
+        // Transform totals - map database structure to interface
+        const rawTotals = calcData.totals as any || {};
+        const totals: UnifiedTotals = {
+          scope1: rawTotals.scope1 || rawTotals.s1 || 0,
+          scope2: rawTotals.scope2 || rawTotals.s2 || 0,
+          scope3_materials: rawTotals.scope3_materials || rawTotals.s3_mat || 0,
+          scope3_transport: rawTotals.scope3_transport || rawTotals.s3_trans || 0,
+          total: rawTotals.total || 0
+        };
+
         setData({
           id: calcData.id,
-          materials: Array.isArray(calcData.materials) ? (calcData.materials as unknown as MaterialItem[]) : [],
+          materials, // Use transformed materials array
           fuelInputs,
           electricityInputs,
           transportInputs,
-          totals: (calcData.totals as unknown as UnifiedTotals) || {
-            scope1: 0,
-            scope2: 0,
-            scope3_materials: 0,
-            scope3_transport: 0,
-            total: 0
-          },
+          totals,
           createdAt: calcData.created_at,
           updatedAt: calcData.updated_at
         });
