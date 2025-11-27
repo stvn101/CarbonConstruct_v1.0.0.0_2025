@@ -37,7 +37,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`Import started by user: ${user.id}`);
+    // Check if user has admin role
+    const { data: isAdmin, error: roleError } = await supabaseClient.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin'
+    });
+
+    if (roleError || !isAdmin) {
+      console.log(`User ${user.id} attempted import without admin role`);
+      return new Response(JSON.stringify({ error: 'Admin access required' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`Import started by admin user: ${user.id}`);
 
     // Get external Supabase credentials
     const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
