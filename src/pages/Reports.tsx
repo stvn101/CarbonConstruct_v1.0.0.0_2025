@@ -170,21 +170,27 @@ const Reports = () => {
   const fuelData = Array.isArray(reportData.breakdown.fuelInputs)
     ? reportData.breakdown.fuelInputs.map(f => ({
         name: f.fuelType,
-        emissions: f.totalEmissions
+        emissions: f.totalEmissions,
+        quantity: f.quantity,
+        unit: f.unit
       }))
     : [];
 
   const electricityData = Array.isArray(reportData.breakdown.electricityInputs)
     ? reportData.breakdown.electricityInputs.map(e => ({
         name: e.state,
-        emissions: e.totalEmissions
+        emissions: e.totalEmissions,
+        quantity: e.quantity,
+        unit: e.unit
       }))
     : [];
 
   const transportData = Array.isArray(reportData.breakdown.transportInputs)
     ? reportData.breakdown.transportInputs.map(t => ({
         name: t.mode,
-        emissions: t.totalEmissions
+        emissions: t.totalEmissions,
+        distance: t.distance,
+        weight: t.weight
       }))
     : [];
 
@@ -497,9 +503,14 @@ const Reports = () => {
                   <p className="text-sm text-muted-foreground">No fuel data available</p>
                 ) : (
                   fuelData.map((fuel, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-sm">{fuel.name}</span>
-                      <div className="text-sm font-medium">{(fuel.emissions || 0).toFixed(2)} tCO₂e</div>
+                    <div key={index} className="flex justify-between items-center py-1 border-b border-border/50 last:border-0">
+                      <div>
+                        <span className="text-sm font-medium">{fuel.name}</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {fuel.quantity?.toLocaleString()} {fuel.unit}
+                        </span>
+                      </div>
+                      <div className="text-sm font-medium text-scope-1">{(fuel.emissions || 0).toFixed(2)} tCO₂e</div>
                     </div>
                   ))
                 )}
@@ -519,9 +530,14 @@ const Reports = () => {
                   <p className="text-sm text-muted-foreground">No electricity data available</p>
                 ) : (
                   electricityData.map((elec, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-sm">{elec.name}</span>
-                      <div className="text-sm font-medium">{(elec.emissions || 0).toFixed(2)} tCO₂e</div>
+                    <div key={index} className="flex justify-between items-center py-1 border-b border-border/50 last:border-0">
+                      <div>
+                        <span className="text-sm font-medium">{elec.name}</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {elec.quantity?.toLocaleString()} {elec.unit}
+                        </span>
+                      </div>
+                      <div className="text-sm font-medium text-scope-2">{(elec.emissions || 0).toFixed(2)} tCO₂e</div>
                     </div>
                   ))
                 )}
@@ -541,9 +557,14 @@ const Reports = () => {
                   <p className="text-sm text-muted-foreground">No transport data available</p>
                 ) : (
                   transportData.map((transport, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-sm">{transport.name}</span>
-                      <div className="text-sm font-medium">{(transport.emissions || 0).toFixed(2)} tCO₂e</div>
+                    <div key={index} className="flex justify-between items-center py-1 border-b border-border/50 last:border-0">
+                      <div>
+                        <span className="text-sm font-medium">{transport.name}</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {transport.distance?.toLocaleString()} km • {transport.weight?.toLocaleString()} t
+                        </span>
+                      </div>
+                      <div className="text-sm font-medium text-scope-3">{(transport.emissions || 0).toFixed(2)} tCO₂e</div>
                     </div>
                   ))
                 )}
