@@ -276,7 +276,7 @@ const Reports = () => {
           </p>
         </div>
         <ErrorBoundary>
-          <PDFReport data={reportData} template={selectedTemplate} branding={effectiveBranding} />
+          <PDFReport data={reportData} template={selectedTemplate} branding={effectiveBranding} showWatermark={!canCustomBrand} />
         </ErrorBoundary>
       </div>
 
