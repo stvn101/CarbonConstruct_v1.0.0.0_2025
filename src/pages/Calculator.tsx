@@ -21,6 +21,7 @@ import { MaterialCategoryBrowser } from "@/components/calculator/MaterialCategor
 import { MaterialSearchResults } from "@/components/calculator/MaterialSearchResults";
 import { MaterialRowImproved } from "@/components/calculator/MaterialRowImproved";
 import { QuickAddPanel } from "@/components/calculator/QuickAddPanel";
+import { TransportCalculator } from "@/components/calculator/TransportCalculator";
 
 interface Material {
   id: string;
@@ -1114,21 +1115,8 @@ export default function Calculator() {
                   </div>
                 </Card>
 
-                {/* Transport Section */}
-                <Card className="p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-700">Transport (A5)</h3>
-                  {Object.entries(TRANSPORT_FACTORS).map(([k, f]) => (
-                    <FactorRow 
-                      key={k}
-                      label={f.name}
-                      unit={f.unit}
-                      factor={f.factor}
-                      value={transportInputs[k] || ''}
-                      onChange={v => setTransportInputs({ ...transportInputs, [k]: v })}
-                      total={parseFloat(transportInputs[k] || '0') * f.factor}
-                    />
-                  ))}
-                </Card>
+                {/* A4 Transport Section - Postcode-based calculation */}
+                <TransportCalculator />
               </div>
             )}
 
