@@ -2,32 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    
-    <!-- Google Analytics 4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW6J3XSWX2"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-LW6J3XSWX2');
-    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="CarbonConstruct" />
     <meta name="theme-color" content="#22c55e" />
     
-    <!-- DNS Prefetch for faster external connections -->
+    <!-- Critical: DNS Prefetch and Preconnect FIRST -->
     <link rel="dns-prefetch" href="https://htruyldcvakkzpykfoxq.supabase.co" />
     <link rel="preconnect" href="https://htruyldcvakkzpykfoxq.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
     
-    <!-- Preload critical LCP image -->
-    <link rel="preload" as="image" href="/hero-carbon-calc.webp?v=20251127" type="image/webp" fetchpriority="high" />
+    <!-- Preload critical LCP assets BEFORE any blocking resources -->
     <link rel="preload" as="image" href="/logo-optimized.webp?v=20251127" type="image/webp" fetchpriority="high" />
-    
-    <!-- Modulepreload for main JavaScript to reduce critical chain -->
-    <link rel="modulepreload" href="/src/main.tsx" />
+    <link rel="preload" as="image" href="/hero-carbon-calc.webp?v=20251127" type="image/webp" />
     
     <!-- Favicon and Icons -->
     <link rel="icon" type="image/webp" href="/favicon.webp" />
@@ -42,6 +28,12 @@
     <meta name="keywords" content="carbon calculator, emissions calculator, scope 1 2 3 emissions, NCC compliance, Green Star, NABERS, Australian construction, carbon footprint, sustainability, embodied carbon, LCA" />
     <meta name="geo.region" content="AU" />
     <meta name="geo.placename" content="Australia" />
+    
+    <!-- PWA Meta -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CarbonConstruct" />
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://carbonconstruct.com.au/" />
@@ -80,6 +72,23 @@
         "priceCurrency": "AUD"
       }
     }
+    </script>
+    
+    <!-- Google Analytics 4 - Deferred to not block LCP -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW6J3XSWX2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-LW6J3XSWX2', { 'send_page_view': false });
+      // Defer page view until after LCP
+      if (document.readyState === 'complete') {
+        gtag('event', 'page_view');
+      } else {
+        window.addEventListener('load', function() {
+          gtag('event', 'page_view');
+        });
+      }
     </script>
   </head>
 
