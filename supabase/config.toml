@@ -1,5 +1,8 @@
 project_id = "htruyldcvakkzpykfoxq"
 
+[functions.import-epd-materials]
+verify_jwt = false
+
 [functions.inspect-external-schema]
 verify_jwt = true
 

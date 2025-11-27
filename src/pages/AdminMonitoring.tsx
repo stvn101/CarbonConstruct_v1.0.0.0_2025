@@ -64,6 +64,7 @@ export default function AdminMonitoring() {
   
   // Import states
   const [importLoading, setImportLoading] = useState(false);
+  const [epdImportLoading, setEpdImportLoading] = useState(false);
   const [importProgress, setImportProgress] = useState<{
     total: number;
     imported: number;
@@ -71,6 +72,7 @@ export default function AdminMonitoring() {
     status: string;
   } | null>(null);
   const [materialsCount, setMaterialsCount] = useState(0);
+  const [epdMaterialsCount, setEpdMaterialsCount] = useState(0);
   
   // Filters
   const [errorSearch, setErrorSearch] = useState("");
@@ -117,6 +119,7 @@ export default function AdminMonitoring() {
       loadAnalyticsEvents(),
       loadHealthStatus(),
       loadMaterialsCount(),
+      loadEpdMaterialsCount(),
     ]);
     setLoading(false);
   };
@@ -126,6 +129,43 @@ export default function AdminMonitoring() {
       .from("lca_materials")
       .select("*", { count: 'exact', head: true });
     setMaterialsCount(count || 0);
+  };
+  
+  const loadEpdMaterialsCount = async () => {
+    const { count } = await supabase
+      .from("materials_epd")
+      .select("*", { count: 'exact', head: true });
+    setEpdMaterialsCount(count || 0);
+  };
+  
+  const triggerEpdImport = async (action: 'import' | 'clear') => {
+    setEpdImportLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("import-epd-materials", {
+        body: { action }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.success) {
+        if (action === 'import') {
+          toast.success(`Imported ${data.inserted || 0} EPD materials`);
+        } else {
+          toast.success('Cleared all EPD materials');
+        }
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+      
+      // Refresh count
+      await loadEpdMaterialsCount();
+    } catch (err: any) {
+      console.error("EPD Import error:", err);
+      toast.error(err.message || "Import failed");
+    } finally {
+      setEpdImportLoading(false);
+    }
   };
   
   const triggerMaterialsImport = async () => {
@@ -489,6 +529,89 @@ export default function AdminMonitoring() {
                   <li>• Processes in batches of 100 records</li>
                   <li>• Maps to lca_materials schema (material_name, category, embodied carbon A1-A5, etc.)</li>
                   <li>• Duplicate entries may occur - consider clearing table first if needed</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* NEW EPD Materials Import */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5 text-primary" />
+                EPD Materials Database (NEW - Clean Table)
+              </CardTitle>
+              <CardDescription>
+                Import 4,000+ regional EPD materials with manufacturer/plant-specific data
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">EPD Materials (materials_epd)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl font-bold text-primary">{epdMaterialsCount.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">Regional EPD records</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Data Sources</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="text-sm space-y-1">
+                      <li>• NABERS 2025 EPD List</li>
+                      <li>• Manufacturer plant data</li>
+                      <li>• Regional variants (NSW, VIC, QLD, WA, SA, TAS, NT, ACT)</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="flex gap-4 flex-wrap">
+                <Button 
+                  onClick={() => triggerEpdImport('import')} 
+                  disabled={epdImportLoading}
+                  className="gap-2"
+                >
+                  {epdImportLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4" />
+                      Import 4,000+ EPD Materials
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => triggerEpdImport('clear')} 
+                  disabled={epdImportLoading}
+                  className="gap-2"
+                >
+                  Clear EPD Table
+                </Button>
+                <Button variant="outline" onClick={loadEpdMaterialsCount}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Count
+                </Button>
+              </div>
+              
+              <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                <h4 className="font-medium mb-2 text-primary">EPD Import Features:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>✓ 4,000+ materials with regional manufacturer/plant data</li>
+                  <li>✓ All concrete grades (20-100MPa) from Boral, Holcim, Hanson, etc.</li>
+                  <li>✓ Steel products from BlueScope, Liberty, InfraBuild</li>
+                  <li>✓ Cement from Cement Australia, Adelaide Brighton</li>
+                  <li>✓ Full EN 15804 lifecycle stages (A1-A3, A4, A5, B1-B5, C1-C4, D)</li>
+                  <li>✓ EPD numbers for compliance tracking</li>
                 </ul>
               </div>
             </CardContent>
