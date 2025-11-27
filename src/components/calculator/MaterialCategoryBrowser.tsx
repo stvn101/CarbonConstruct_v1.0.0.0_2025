@@ -1,5 +1,6 @@
+import type { ComponentType } from "react";
 import { Button } from "@/components/ui/button";
-import { Package, Layers, Box, Hammer, TreePine, Thermometer, Square, Grid3X3 } from "lucide-react";
+import { Package, Layers, Box, Hammer, TreePine, Thermometer, Square, Grid3X3, type LucideIcon } from "lucide-react";
 
 interface CategoryCount {
   category: string;
@@ -13,7 +14,7 @@ interface MaterialCategoryBrowserProps {
   totalMaterials: number;
 }
 
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "Concrete (in-situ)": Box,
   "Steel": Layers,
   "Asphalt": Square,
