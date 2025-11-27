@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
 import { SEOHead } from "@/components/SEOHead";
@@ -160,14 +161,15 @@ export default function Calculator() {
   const { toast } = useToast();
   
   // Fetch materials from database
-  const { materials: dbMaterials, loading: materialsLoading } = useLCAMaterials();
+  const { materials: dbMaterials, loading: materialsLoading, loadedCount } = useLCAMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [useNewMaterialUI, setUseNewMaterialUI] = useState(() => {
     try {
-      return localStorage.getItem('useNewMaterialUI') === 'true';
+      const stored = localStorage.getItem('useNewMaterialUI');
+      return stored === null ? true : stored === 'true'; // Default to true if not set
     } catch {
-      return false;
+      return true;
     }
   });
   
@@ -849,9 +851,19 @@ export default function Calculator() {
                       </div>
 
                       {materialsLoading && (
-                        <div className="text-sm text-muted-foreground flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Loading materials...
+                        <div className="space-y-2">
+                          <div className="text-sm text-muted-foreground flex items-center gap-2">
+                            <Database className="h-4 w-4 animate-pulse text-primary" />
+                            Loading materials... {loadedCount > 0 && <span className="font-medium text-foreground">{loadedCount.toLocaleString()} loaded</span>}
+                          </div>
+                          <Progress value={loadedCount > 0 ? Math.min((loadedCount / 4500) * 100, 95) : 5} className="h-1.5" />
+                        </div>
+                      )}
+                      
+                      {!materialsLoading && dbMaterials.length > 0 && (
+                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Database className="h-3 w-3" />
+                          {dbMaterials.length.toLocaleString()} materials available
                         </div>
                       )}
 
@@ -877,9 +889,12 @@ export default function Calculator() {
                         />
                       </div>
                       {materialsLoading && (
-                        <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Loading materials...
+                        <div className="mt-2 space-y-2">
+                          <div className="text-sm text-muted-foreground flex items-center gap-2">
+                            <Database className="h-4 w-4 animate-pulse text-primary" />
+                            Loading materials... {loadedCount > 0 && <span className="font-medium text-foreground">{loadedCount.toLocaleString()} loaded</span>}
+                          </div>
+                          <Progress value={loadedCount > 0 ? Math.min((loadedCount / 4500) * 100, 95) : 5} className="h-1.5" />
                         </div>
                       )}
                       {materialSearch.length >= 2 && groupedMaterials.length > 0 && (
