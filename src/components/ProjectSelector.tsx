@@ -197,6 +197,102 @@ const ProjectSelector = () => {
             <p className="text-xs text-muted-foreground truncate hidden sm:block">{currentProject.description}</p>
           )}
         </div>
+        
+        {/* Project Actions */}
+        <div className="flex gap-2 w-full sm:w-auto">
+          {projects.length > 1 && (
+            <Select value={currentProject.id} onValueChange={selectProject}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Switch project" />
+              </SelectTrigger>
+              <SelectContent>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm"
+                disabled={!canPerformAction('projects').allowed}
+                className="gap-1"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New</span>
+                {!canPerformAction('projects').allowed && (
+                  <Crown className="h-3 w-3" />
+                )}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Project</DialogTitle>
+                <DialogDescription>
+                  Set up a new carbon assessment project.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="project-name-2">Project Name *</Label>
+                  <Input
+                    id="project-name-2"
+                    placeholder="Enter project name"
+                    value={newProject.name}
+                    onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="project-type-2">Project Type</Label>
+                  <Select
+                    value={newProject.project_type}
+                    onValueChange={(value) => setNewProject({ ...newProject, project_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="construction">Construction</SelectItem>
+                      <SelectItem value="renovation">Renovation</SelectItem>
+                      <SelectItem value="operation">Operation</SelectItem>
+                      <SelectItem value="infrastructure">Infrastructure</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="project-location-2">Location</Label>
+                  <Input
+                    id="project-location-2"
+                    placeholder="Enter project location"
+                    value={newProject.location}
+                    onChange={(e) => setNewProject({ ...newProject, location: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="project-description-2">Description</Label>
+                  <Textarea
+                    id="project-description-2"
+                    placeholder="Enter project description"
+                    value={newProject.description}
+                    onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                  />
+                </div>
+                <Button
+                  onClick={handleCreateProject}
+                  disabled={!newProject.name.trim() || isCreating}
+                  className="w-full"
+                >
+                  {isCreating ? "Creating..." : "Create Project"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       
       <UpgradeModal 
