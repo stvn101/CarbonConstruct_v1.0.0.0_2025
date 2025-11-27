@@ -1,5 +1,8 @@
 project_id = "htruyldcvakkzpykfoxq"
 
+[functions.log-security-event]
+verify_jwt = false
+
 [functions.import-epd-materials]
 verify_jwt = false
 

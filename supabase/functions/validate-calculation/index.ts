@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
+import { logSecurityEvent, getClientIP } from "../_shared/security-logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -69,6 +70,12 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       console.error("[validate-calculation] No authorization header provided");
+      logSecurityEvent({
+        event_type: 'auth_failure',
+        ip_address: getClientIP(req),
+        endpoint: 'validate-calculation',
+        details: 'Missing authorization header'
+      });
       return new Response(
         JSON.stringify({ error: "Unauthorized - No authorization header" }), 
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -85,6 +92,12 @@ serve(async (req) => {
     
     if (userError || !userData.user) {
       console.error("[validate-calculation] Authentication failed:", userError?.message);
+      logSecurityEvent({
+        event_type: 'invalid_token',
+        ip_address: getClientIP(req),
+        endpoint: 'validate-calculation',
+        details: userError?.message || 'Invalid or expired token'
+      });
       return new Response(
         JSON.stringify({ error: "Unauthorized - Invalid token" }), 
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -105,6 +118,16 @@ serve(async (req) => {
     if (!rateLimitResult.allowed) {
       const resetInSeconds = Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000);
       console.warn(`[validate-calculation] User ${user.id}: Rate limit exceeded. Reset in ${resetInSeconds}s`);
+      
+      // Log security event for rate limit violation
+      logSecurityEvent({
+        event_type: 'rate_limit_exceeded',
+        user_id: user.id,
+        ip_address: getClientIP(req),
+        endpoint: 'validate-calculation',
+        details: `Rate limit exceeded. Reset in ${resetInSeconds}s`
+      });
+      
       return new Response(
         JSON.stringify({ 
           error: `Rate limit exceeded. Please try again in ${resetInSeconds} seconds.`,
