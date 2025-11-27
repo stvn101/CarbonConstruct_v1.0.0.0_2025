@@ -53,34 +53,43 @@ export const useSubscription = () => {
     },
   });
 
-  // Fetch user's current subscription (excluding sensitive Stripe IDs for security)
+  // Fetch user's current subscription using secure view (excludes Stripe IDs at database level)
   const { data: userSubscription, isLoading: subscriptionLoading } = useQuery({
     queryKey: ['user-subscription', user?.id],
     enabled: !!user,
-    queryFn: async () => {
+    queryFn: async (): Promise<(UserSubscription & { subscription_tiers?: SubscriptionTier | null }) | null> => {
       if (!user) return null;
       
-      // Explicitly select only needed columns - exclude stripe_customer_id, stripe_subscription_id
+      // Use secure view that excludes stripe_customer_id, stripe_subscription_id
       const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select(`
-          id,
-          user_id,
-          tier_id,
-          status,
-          trial_end,
-          current_period_start,
-          current_period_end,
-          cancel_at_period_end,
-          created_at,
-          updated_at,
-          subscription_tiers(*)
-        `)
+        .from('user_subscriptions_safe')
+        .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
       
       if (error) throw error;
-      return data;
+      if (!data) return null;
+      
+      // Fetch tier separately since view doesn't support joins
+      const { data: tier } = await supabase
+        .from('subscription_tiers')
+        .select('*')
+        .eq('id', data.tier_id)
+        .single();
+      
+      return {
+        id: data.id,
+        tier_id: data.tier_id,
+        status: data.status,
+        trial_end: data.trial_end,
+        current_period_end: data.current_period_end,
+        cancel_at_period_end: data.cancel_at_period_end,
+        subscription_tiers: tier ? {
+          ...tier,
+          features: Array.isArray(tier.features) ? tier.features as string[] : [],
+          limits: tier.limits as SubscriptionTier['limits'],
+        } : null,
+      };
     },
   });
 
