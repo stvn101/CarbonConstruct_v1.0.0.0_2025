@@ -387,14 +387,59 @@ export default function Calculator() {
     try {
       // Read file content
       let text = '';
-      if (file.type === 'application/pdf') {
+      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+        // Extract text from PDF using edge function
         toast({ 
-          title: "PDF support coming soon", 
-          description: "For now, please convert to text or CSV",
-          variant: "destructive" 
+          title: "📄 Processing PDF", 
+          description: "Extracting text from document...",
+          duration: 5000
         });
-        setAiProcessing(false);
-        return;
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          toast({ 
+            title: "Authentication required", 
+            description: "Please log in to upload PDF files",
+            variant: "destructive" 
+          });
+          setAiProcessing(false);
+          return;
+        }
+        
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-pdf-text`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: formData
+          }
+        );
+        
+        const pdfResult = await response.json();
+        
+        if (!response.ok || pdfResult.error) {
+          toast({ 
+            title: "PDF extraction failed", 
+            description: pdfResult.error || "Could not extract text from PDF. Try converting to text format.",
+            variant: "destructive",
+            duration: 5000
+          });
+          setAiProcessing(false);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          return;
+        }
+        
+        text = pdfResult.text;
+        toast({ 
+          title: "✅ PDF text extracted", 
+          description: `Extracted ${text.length.toLocaleString()} characters. Processing...`,
+          duration: 2000
+        });
       } else {
         text = await file.text();
       }
