@@ -1,6 +1,6 @@
-// Force complete cache rebuild - v5
-import React from "react";
-import ReactDOM from "react-dom/client";
+// Force complete cache rebuild - v6
+import * as React from "react";
+import * as ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
