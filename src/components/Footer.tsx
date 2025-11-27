@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, MapPin, Linkedin, Twitter, Github } from "lucide-react";
-import logoImageWebp from "@/assets/carbonconstruct-logo.webp";
-import logoImagePng from "@/assets/carbonconstruct-logo.png";
+import logoImageWebp from "@/assets/carbonconstruct-logo-optimized.webp";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -13,10 +12,7 @@ export const Footer = () => {
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <picture>
-                <source srcSet={logoImageWebp} type="image/webp" />
-                <img src={logoImagePng} alt="CarbonConstruct Logo" className="h-8 w-8" />
-              </picture>
+              <img src={logoImageWebp} alt="CarbonConstruct Logo" className="h-8 w-8" />
               <span className="font-bold text-lg text-foreground">CarbonConstruct</span>
             </div>
             <p className="text-sm text-muted-foreground">
