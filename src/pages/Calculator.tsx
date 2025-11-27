@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/emission-factors";
+import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
 import { SEOHead } from "@/components/SEOHead";
 import { useLocalMaterials, Material as LocalMaterial } from "@/hooks/useLocalMaterials";
@@ -201,6 +201,8 @@ export default function Calculator() {
   const [scope1Inputs, setScope1Inputs] = useState<Record<string, string>>(() => loadFromStorage('scope1Inputs', {}));
   const [scope2Inputs, setScope2Inputs] = useState<Record<string, string>>(() => loadFromStorage('scope2Inputs', {}));
   const [transportInputs, setTransportInputs] = useState<Record<string, string>>(() => loadFromStorage('transportInputs', {}));
+  const [commuteInputs, setCommuteInputs] = useState<Record<string, string>>(() => loadFromStorage('commuteInputs', {}));
+  const [wasteInputs, setWasteInputs] = useState<Record<string, { quantity: string; unit: 'kg' | 'tonne' }>>(() => loadFromStorage('wasteInputs', {}));
   const [selectedMaterials, setSelectedMaterials] = useState<Material[]>(() => loadFromStorage('selectedMaterials', []));
   const [saving, setSaving] = useState(false);
   const [aiProcessing, setAiProcessing] = useState(false);
@@ -255,11 +257,13 @@ export default function Calculator() {
     localStorage.setItem('scope1Inputs', JSON.stringify(scope1Inputs));
     localStorage.setItem('scope2Inputs', JSON.stringify(scope2Inputs));
     localStorage.setItem('transportInputs', JSON.stringify(transportInputs));
+    localStorage.setItem('commuteInputs', JSON.stringify(commuteInputs));
+    localStorage.setItem('wasteInputs', JSON.stringify(wasteInputs));
     localStorage.setItem('selectedMaterials', JSON.stringify(selectedMaterials));
   }, [projectDetails, scope1Inputs, scope2Inputs, transportInputs, selectedMaterials]);
 
   const calculations = useMemo(() => {
-    let scope1 = 0, scope2 = 0, scope3_materials = 0, scope3_transport = 0;
+    let scope1 = 0, scope2 = 0, scope3_materials = 0, scope3_transport = 0, scope3_commute = 0, scope3_waste = 0;
 
     Object.entries(FUEL_FACTORS).forEach(([k, f]) => {
       const val = parseFloat(scope1Inputs[k] || '0');
@@ -280,8 +284,32 @@ export default function Calculator() {
       scope3_transport += val * f.factor;
     });
 
-    return { scope1, scope2, scope3_materials, scope3_transport, total: scope1 + scope2 + scope3_materials + scope3_transport };
-  }, [scope1Inputs, scope2Inputs, selectedMaterials, transportInputs, projectDetails.location]);
+    // Employee commute emissions
+    Object.entries(COMMUTE_FACTORS).forEach(([k, f]) => {
+      const val = parseFloat(commuteInputs[k] || '0');
+      scope3_commute += val * f.factor;
+    });
+
+    // Waste emissions (convert tonnes to kg if needed)
+    Object.entries(WASTE_FACTORS).forEach(([k, f]) => {
+      const input = wasteInputs[k];
+      if (input) {
+        const qty = parseFloat(input.quantity || '0');
+        const multiplier = input.unit === 'tonne' ? 1000 : 1; // Convert tonnes to kg
+        scope3_waste += qty * multiplier * f.factor;
+      }
+    });
+
+    return { 
+      scope1, 
+      scope2, 
+      scope3_materials, 
+      scope3_transport, 
+      scope3_commute, 
+      scope3_waste, 
+      total: scope1 + scope2 + scope3_materials + scope3_transport + scope3_commute + scope3_waste 
+    };
+  }, [scope1Inputs, scope2Inputs, selectedMaterials, transportInputs, commuteInputs, wasteInputs, projectDetails.location]);
 
   const addMaterialFromDb = (materialId: string) => {
     const material = dbMaterials.find(m => m.id === materialId);
@@ -359,6 +387,8 @@ export default function Calculator() {
     setScope1Inputs({});
     setScope2Inputs({});
     setTransportInputs({});
+    setCommuteInputs({});
+    setWasteInputs({});
     setSelectedMaterials([]);
   };
 
@@ -1117,6 +1147,95 @@ export default function Calculator() {
 
                 {/* A4 Transport Section - Postcode-based calculation */}
                 <TransportCalculator />
+
+                {/* Employee Commute Section */}
+                <Card className="p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-700">Employee Commute (Scope 3)</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Enter total km travelled by employees per commute type (e.g., daily km × working days × employees)
+                  </p>
+                  <div className="space-y-1">
+                    {Object.entries(COMMUTE_FACTORS).map(([k, f]) => (
+                      <FactorRow 
+                        key={k}
+                        label={f.name}
+                        unit={f.unit}
+                        factor={f.factor}
+                        value={commuteInputs[k] || ''}
+                        onChange={v => setCommuteInputs({ ...commuteInputs, [k]: v })}
+                        total={parseFloat(commuteInputs[k] || '0') * f.factor}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-sm text-blue-800">
+                      <strong>Commute Total:</strong> {(calculations.scope3_commute / 1000).toFixed(3)} tCO2e
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Waste Section */}
+                <Card className="p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-700">Construction Waste (Scope 3)</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Enter waste quantities in kg or tonnes. Negative factors (e.g., recycled metals) reduce emissions.
+                  </p>
+                  <div className="space-y-2">
+                    {Object.entries(WASTE_FACTORS).map(([k, f]) => {
+                      const input = wasteInputs[k] || { quantity: '', unit: 'kg' as const };
+                      const qty = parseFloat(input.quantity || '0');
+                      const multiplier = input.unit === 'tonne' ? 1000 : 1;
+                      const total = qty * multiplier * f.factor;
+                      
+                      return (
+                        <div key={k} className="grid grid-cols-12 gap-4 items-center py-3 border-b last:border-0 hover:bg-muted/50 px-2 rounded">
+                          <div className="col-span-4 font-medium text-sm">{f.name}</div>
+                          <div className="col-span-3 flex items-center gap-2">
+                            <Input 
+                              type="number"
+                              min="0"
+                              step="any"
+                              className="h-8 text-sm text-foreground"
+                              placeholder="0"
+                              value={input.quantity || ''} 
+                              onChange={(e) => setWasteInputs({ 
+                                ...wasteInputs, 
+                                [k]: { ...input, quantity: e.target.value } 
+                              })}
+                            />
+                            <Select
+                              value={input.unit}
+                              onValueChange={(v) => setWasteInputs({ 
+                                ...wasteInputs, 
+                                [k]: { ...input, unit: v as 'kg' | 'tonne' } 
+                              })}
+                            >
+                              <SelectTrigger className="w-24 h-8 text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="kg">kg</SelectItem>
+                                <SelectItem value="tonne">tonne</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="col-span-3 text-xs text-muted-foreground text-right font-mono">
+                            × {f.factor} kgCO2/kg
+                          </div>
+                          <div className={`col-span-2 text-right font-bold text-sm ${total < 0 ? 'text-blue-600' : 'text-emerald-600'}`}>
+                            {(total / 1000).toFixed(3)} t
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <div className="text-sm text-amber-800">
+                      <strong>Waste Total:</strong> {(calculations.scope3_waste / 1000).toFixed(3)} tCO2e
+                      {calculations.scope3_waste < 0 && <span className="ml-2 text-blue-600">(Credit from recycling)</span>}
+                    </div>
+                  </div>
+                </Card>
               </div>
             )}
 
@@ -1156,9 +1275,19 @@ export default function Calculator() {
                   <span className="text-slate-300">Materials</span>
                   <span className="font-bold">{(calculations.scope3_materials / 1000).toFixed(2)} t</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Transport</span>
                   <span className="font-bold">{(calculations.scope3_transport / 1000).toFixed(2)} t</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-700 pb-2">
+                  <span className="text-slate-300">Commute</span>
+                  <span className="font-bold">{(calculations.scope3_commute / 1000).toFixed(2)} t</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-300">Waste</span>
+                  <span className={`font-bold ${calculations.scope3_waste < 0 ? 'text-blue-400' : ''}`}>
+                    {(calculations.scope3_waste / 1000).toFixed(2)} t
+                  </span>
                 </div>
               </div>
               <div className="mt-8 pt-4 border-t border-slate-700 text-xs text-center text-slate-500">

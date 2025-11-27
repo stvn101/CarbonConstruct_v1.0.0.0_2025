@@ -87,3 +87,28 @@ export const TRANSPORT_FACTORS = {
   commute_ute: { name: "Staff Commute (Ute)", unit: "Total km", factor: 0.28 },
   waste_general: { name: "Waste Transport", unit: "Tonnes", factor: 1200 }
 } as const;
+
+// Employee Commute Factors (kgCO2e per km)
+export const COMMUTE_FACTORS = {
+  car_petrol: { name: "Car (Petrol)", unit: "km", factor: 0.22 },
+  car_diesel: { name: "Car (Diesel)", unit: "km", factor: 0.24 },
+  car_hybrid: { name: "Car (Hybrid)", unit: "km", factor: 0.12 },
+  car_ev: { name: "Electric Vehicle", unit: "km", factor: 0.05 },
+  ute: { name: "Ute/4WD", unit: "km", factor: 0.28 },
+  motorcycle: { name: "Motorcycle", unit: "km", factor: 0.11 },
+  bus: { name: "Bus", unit: "km", factor: 0.089 },
+  train: { name: "Train/Light Rail", unit: "km", factor: 0.041 },
+  bicycle: { name: "Bicycle/Walk", unit: "km", factor: 0 }
+} as const;
+
+// Waste Emission Factors (kgCO2e per kg of waste)
+export const WASTE_FACTORS = {
+  general_landfill: { name: "General Waste (Landfill)", unit: "kg", factor: 0.58 },
+  construction_mixed: { name: "Mixed C&D Waste", unit: "kg", factor: 0.42 },
+  concrete_waste: { name: "Concrete/Masonry Waste", unit: "kg", factor: 0.013 },
+  timber_waste: { name: "Timber Waste (Landfill)", unit: "kg", factor: 1.8 },
+  metal_waste: { name: "Metal Waste (Recycled)", unit: "kg", factor: -0.5 },
+  plastic_waste: { name: "Plastic Waste", unit: "kg", factor: 2.1 },
+  plasterboard_waste: { name: "Plasterboard Waste", unit: "kg", factor: 0.35 },
+  packaging_waste: { name: "Packaging/Cardboard", unit: "kg", factor: 0.21 }
+} as const;
