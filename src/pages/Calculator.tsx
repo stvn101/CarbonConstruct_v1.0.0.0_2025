@@ -7,8 +7,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -174,7 +172,7 @@ export default function Calculator() {
   });
   
   // Favorite materials for quick-add
-  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial } = useFavoriteMaterials();
+  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites } = useFavoriteMaterials();
   
   // Category counts for browser
   const categoryCounts = useMemo(() => {
@@ -748,14 +746,6 @@ export default function Calculator() {
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="font-bold text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
                     <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="newUI" className="text-xs text-muted-foreground">New UI</Label>
-                        <Switch 
-                          id="newUI" 
-                          checked={useNewMaterialUI} 
-                          onCheckedChange={setUseNewMaterialUI}
-                        />
-                      </div>
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -822,7 +812,18 @@ export default function Calculator() {
                           <Clock className="h-3 w-3" />
                           Recently Used
                         </span>
-                        <span className="text-xs text-blue-600">Last 10 materials you added</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-blue-600">Last 10 materials</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearAllFavorites}
+                            className="h-6 px-2 text-xs text-blue-600 hover:text-destructive hover:bg-blue-100"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Clear
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {recentlyUsedMaterials.map(recent => (
