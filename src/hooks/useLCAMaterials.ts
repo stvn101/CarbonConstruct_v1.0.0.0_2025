@@ -34,6 +34,7 @@ export interface LCACategoryBreakdown {
 export const useLCAMaterials = () => {
   const [materials, setMaterials] = useState<LCAMaterialData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadedCount, setLoadedCount] = useState(0);
   const [stageBreakdown, setStageBreakdown] = useState<LCAStageBreakdown>({
     a1a3: 0,
     a4: 0,
@@ -45,6 +46,7 @@ export const useLCAMaterials = () => {
   const fetchLCAMaterials = async () => {
     try {
       setLoading(true);
+      setLoadedCount(0);
 
       // Fetch all materials - Supabase defaults to 1000 rows, so we need to paginate
       let allData: any[] = [];
@@ -63,6 +65,7 @@ export const useLCAMaterials = () => {
         
         if (data && data.length > 0) {
           allData = [...allData, ...data];
+          setLoadedCount(allData.length);
           page++;
           hasMore = data.length === pageSize;
         } else {
@@ -137,6 +140,7 @@ export const useLCAMaterials = () => {
   return {
     materials,
     loading,
+    loadedCount,
     stageBreakdown,
     categoryBreakdown,
     refetch: fetchLCAMaterials
