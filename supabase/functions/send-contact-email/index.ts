@@ -1,10 +1,40 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Simple in-memory rate limiting for public endpoint (IP-based)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_REQUESTS_PER_WINDOW = 5; // 5 contact emails per hour per IP
+
+function checkIpRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: Date } {
+  const now = Date.now();
+  const existing = rateLimitMap.get(ip);
+  
+  // Clean up old entries
+  if (existing && existing.resetAt < now) {
+    rateLimitMap.delete(ip);
+  }
+  
+  const current = rateLimitMap.get(ip);
+  
+  if (!current) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1, resetAt: new Date(now + RATE_LIMIT_WINDOW_MS) };
+  }
+  
+  if (current.count >= MAX_REQUESTS_PER_WINDOW) {
+    return { allowed: false, remaining: 0, resetAt: new Date(current.resetAt) };
+  }
+  
+  current.count++;
+  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - current.count, resetAt: new Date(current.resetAt) };
+}
 
 interface ContactEmailRequest {
   name: string;
@@ -31,6 +61,24 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Get client IP for rate limiting
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+    
+    // Check rate limit
+    const rateLimitResult = checkIpRateLimit(clientIp);
+    if (!rateLimitResult.allowed) {
+      console.log(`[send-contact-email] Rate limit exceeded for IP ${clientIp}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many requests. Please try again later.',
+          resetAt: rateLimitResult.resetAt.toISOString()
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
       throw new Error("RESEND_API_KEY is not configured");
