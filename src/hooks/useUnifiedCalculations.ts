@@ -167,7 +167,7 @@ export const useUnifiedCalculations = () => {
         const transData = calcData.transport_inputs;
         const parsedTransData = typeof transData === 'string' ? JSON.parse(transData) : transData;
         
-        // Transport emission factors (kgCO2e/km)
+        // Transport emission factors (kgCO2e/km or kgCO2e/t-km)
         const transportFactors: Record<string, number> = {
           commute_car: 0.21, // avg car per km
           commute_ute: 0.27, // ute/van per km
@@ -176,6 +176,10 @@ export const useUnifiedCalculations = () => {
           road_freight: 0.089, // per tonne-km
           rail_freight: 0.022, // per tonne-km
           sea_freight: 0.016, // per tonne-km
+          articulated_truck: 0.0875, // per tonne-km
+          rigid_truck_large: 0.1126, // per tonne-km
+          rigid_truck_medium: 0.1876, // per tonne-km
+          light_commercial: 0.2496, // per tonne-km
         };
         
         if (parsedTransData && typeof parsedTransData === 'object' && !Array.isArray(parsedTransData)) {
@@ -196,6 +200,29 @@ export const useUnifiedCalculations = () => {
           });
         } else if (Array.isArray(parsedTransData)) {
           transportInputs.push(...(parsedTransData as unknown as TransportInput[]));
+        }
+        
+        // Also load A4 transport from localStorage (TransportCalculator data)
+        try {
+          const localTransportData = localStorage.getItem('carbonConstruct_transportItems');
+          if (localTransportData) {
+            const transportItems = JSON.parse(localTransportData);
+            if (Array.isArray(transportItems)) {
+              transportItems.forEach((item: any) => {
+                if (item.emissions > 0) {
+                  transportInputs.push({
+                    mode: `A4: ${item.description || item.mode || 'Material Transport'}`,
+                    distance: item.distanceKm || item.distance || 0,
+                    weight: item.weightTonnes || item.weight || 0,
+                    emissionFactor: item.emissions / ((item.distanceKm || 1) * (item.weightTonnes || 1)),
+                    totalEmissions: item.emissions / 1000 // Convert kgCO2e to tCO2e
+                  });
+                }
+              });
+            }
+          }
+        } catch (e) {
+          // Silently fail if localStorage is unavailable
         }
 
         // Transform totals - map database structure to interface
