@@ -1,4 +1,4 @@
-// Force clean module - v2
+// Force clean module - v3 - 2025-11-28
 import * as React from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
