@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLCAMaterials, LCAMaterialData } from '@/hooks/useLCAMaterials';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Cell } from 'recharts';
-import { Plus, X, TrendingDown, TrendingUp, Minus, ArrowUpDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { useLocalMaterials, Material } from '@/hooks/useLocalMaterials';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { Plus, X, TrendingDown, TrendingUp, Minus, ArrowUpDown, Search, Leaf, CheckCircle2 } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { LIMITS } from '@/lib/constants';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const COMPARISON_COLORS = [
   'hsl(var(--chart-1))',
@@ -19,24 +20,34 @@ const COMPARISON_COLORS = [
   'hsl(var(--chart-5))',
 ];
 
+// Preset comparisons for common construction scenarios
+const PRESET_COMPARISONS = [
+  { name: 'CLT vs Concrete (Structural)', ids: ['clt_panel', 'concrete_32mpa'] },
+  { name: 'Steel vs Timber (Framing)', ids: ['steel_reinforcing', 'softwood_framing'] },
+  { name: 'Brick vs AAC Block', ids: ['clay_brick', 'concrete_aac_block'] },
+  { name: 'Standard vs Low-Carbon Concrete', ids: ['concrete_32mpa', 'concrete_low_carbon'] },
+];
+
 export const MaterialComparison = () => {
-  const { materials, loading } = useLCAMaterials();
-  const [selectedMaterials, setSelectedMaterials] = useState<LCAMaterialData[]>([]);
-  const [currentSelection, setCurrentSelection] = useState<string>('');
+  const { allMaterials: materials, loading, getCategoryLabel } = useLocalMaterials();
+  const [selectedMaterials, setSelectedMaterials] = useState<Material[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
 
-  const addMaterialToComparison = () => {
-    if (!currentSelection) {
-      toast({
-        title: 'No Material Selected',
-        description: 'Please select a material to add to comparison',
-        variant: 'destructive',
-      });
-      return;
-    }
+  // Filter materials by search term
+  const filteredMaterials = useMemo(() => {
+    if (searchTerm.length < 2) return [];
+    const term = searchTerm.toLowerCase();
+    return materials
+      .filter(m => 
+        m.name.toLowerCase().includes(term) ||
+        m.category.toLowerCase().includes(term) ||
+        m.subcategory.toLowerCase().includes(term)
+      )
+      .slice(0, 15);
+  }, [materials, searchTerm]);
 
-    const material = materials.find(m => m.id === currentSelection);
-    if (!material) return;
-
+  const addMaterial = (material: Material) => {
     if (selectedMaterials.length >= LIMITS.MAX_MATERIALS_COMPARISON) {
       toast({
         title: 'Maximum Reached',
@@ -56,7 +67,8 @@ export const MaterialComparison = () => {
     }
 
     setSelectedMaterials([...selectedMaterials, material]);
-    setCurrentSelection('');
+    setSearchTerm('');
+    setShowSearch(false);
   };
 
   const removeMaterial = (id: string) => {
@@ -65,6 +77,21 @@ export const MaterialComparison = () => {
 
   const clearAll = () => {
     setSelectedMaterials([]);
+  };
+
+  const loadPreset = (ids: string[]) => {
+    const presetMaterials = ids
+      .map(id => materials.find(m => m.id === id))
+      .filter(Boolean) as Material[];
+    if (presetMaterials.length > 0) {
+      setSelectedMaterials(presetMaterials);
+    } else {
+      toast({
+        title: 'Preset Not Available',
+        description: 'Some materials in this preset are not in the database',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (loading) {
@@ -88,83 +115,149 @@ export const MaterialComparison = () => {
     );
   }
 
+  // Calculate comparison metrics including sequestration
+  const comparisonMetrics = useMemo(() => {
+    return selectedMaterials.map(mat => {
+      const grossCarbon = mat.ef_total;
+      const sequestration = mat.carbon_sequestration_kg ? Math.abs(mat.carbon_sequestration_kg) : 0;
+      const netCarbon = grossCarbon - sequestration;
+      
+      return {
+        material: mat,
+        grossCarbon,
+        sequestration,
+        netCarbon,
+        hasSequestration: sequestration > 0,
+        a1a3: mat.ef_a1a3 || 0,
+        a4: mat.ef_a4 || 0,
+        a5: mat.ef_a5 || 0,
+      };
+    });
+  }, [selectedMaterials]);
+
   // Prepare comparison chart data
   const comparisonData = [
     {
       stage: 'A1-A3: Product',
-      ...selectedMaterials.reduce((acc, mat, idx) => ({
+      ...selectedMaterials.reduce((acc, mat) => ({
         ...acc,
-        [mat.material_name]: mat.embodied_carbon_a1a3
+        [mat.name]: mat.ef_a1a3 || 0
       }), {})
     },
     {
       stage: 'A4: Transport',
-      ...selectedMaterials.reduce((acc, mat, idx) => ({
+      ...selectedMaterials.reduce((acc, mat) => ({
         ...acc,
-        [mat.material_name]: mat.embodied_carbon_a4
+        [mat.name]: mat.ef_a4 || 0
       }), {})
     },
     {
       stage: 'A5: Construction',
-      ...selectedMaterials.reduce((acc, mat, idx) => ({
+      ...selectedMaterials.reduce((acc, mat) => ({
         ...acc,
-        [mat.material_name]: mat.embodied_carbon_a5
+        [mat.name]: mat.ef_a5 || 0
       }), {})
     },
   ];
 
-  // Prepare radar chart data for total comparison
-  const radarData = selectedMaterials.map(mat => ({
-    material: mat.material_name,
-    'A1-A3': mat.embodied_carbon_a1a3,
-    'A4': mat.embodied_carbon_a4,
-    'A5': mat.embodied_carbon_a5,
-  }));
+  // Net carbon comparison data (including sequestration)
+  const netCarbonData = comparisonMetrics
+    .map((m, idx) => ({
+      name: m.material.name,
+      gross: m.grossCarbon,
+      sequestration: -m.sequestration,
+      net: m.netCarbon,
+      fill: COMPARISON_COLORS[idx],
+      hasSequestration: m.hasSequestration,
+    }))
+    .sort((a, b) => a.net - b.net);
 
-  // Calculate savings potential (compare to highest)
+  // Calculate savings potential
   const calculateSavings = () => {
-    if (selectedMaterials.length < 2) return [];
+    if (comparisonMetrics.length < 2) return [];
     
-    const maxTotal = Math.max(...selectedMaterials.map(m => m.embodied_carbon_total));
-    return selectedMaterials.map(mat => ({
-      material: mat,
-      savings: maxTotal - mat.embodied_carbon_total,
-      percentageSavings: ((maxTotal - mat.embodied_carbon_total) / maxTotal) * 100
-    }));
+    const maxNet = Math.max(...comparisonMetrics.map(m => m.netCarbon));
+    return comparisonMetrics.map(m => ({
+      ...m,
+      savings: maxNet - m.netCarbon,
+      percentageSavings: maxNet > 0 ? ((maxNet - m.netCarbon) / maxNet) * 100 : 0
+    })).sort((a, b) => b.savings - a.savings);
   };
 
   const savingsData = calculateSavings();
+  const bestOption = savingsData[0];
+  const worstOption = savingsData[savingsData.length - 1];
 
   return (
     <div className="space-y-6">
       {/* Material Selection */}
       <Card>
         <CardHeader>
-          <CardTitle>Material Comparison Tool</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <ArrowUpDown className="h-5 w-5" />
+            Material Carbon Comparison
+          </CardTitle>
           <CardDescription>
-            Compare embodied carbon across different material alternatives to identify lower-impact options
+            Compare embodied carbon across different material alternatives. Timber materials show carbon sequestration benefits.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Select value={currentSelection} onValueChange={setCurrentSelection}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a material to compare..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {materials.map(material => (
-                    <SelectItem key={material.id} value={material.id}>
-                      {material.material_name} ({material.material_category})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Quick Presets */}
+          <div className="flex flex-wrap gap-2">
+            <span className="text-sm text-muted-foreground mr-2">Quick compare:</span>
+            {PRESET_COMPARISONS.map((preset, i) => (
+              <Button 
+                key={i} 
+                variant="outline" 
+                size="sm" 
+                onClick={() => loadPreset(preset.ids)}
+                className="text-xs"
+              >
+                {preset.name}
+              </Button>
+            ))}
+          </div>
+
+          {/* Search Input */}
+          <div className="relative">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search materials to compare (e.g., concrete, timber, steel)..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setShowSearch(true);
+                }}
+                onFocus={() => setShowSearch(true)}
+                className="pl-10"
+              />
             </div>
-            <Button onClick={addMaterialToComparison} size="default">
-              <Plus className="h-4 w-4 mr-2" />
-              Add to Comparison
-            </Button>
+            
+            {showSearch && filteredMaterials.length > 0 && (
+              <Card className="absolute z-20 w-full mt-1 p-2 shadow-lg">
+                <ScrollArea className="max-h-60">
+                  {filteredMaterials.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => addMaterial(m)}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded flex justify-between items-center"
+                      disabled={selectedMaterials.find(sm => sm.id === m.id) !== undefined}
+                    >
+                      <span className="flex items-center gap-2">
+                        {m.name}
+                        {m.carbon_sequestration_kg && (
+                          <Leaf className="h-3 w-3 text-emerald-500" />
+                        )}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {m.ef_total.toFixed(1)} kgCO₂/{m.unit}
+                      </span>
+                    </button>
+                  ))}
+                </ScrollArea>
+              </Card>
+            )}
           </div>
 
           {/* Selected Materials */}
@@ -181,10 +274,11 @@ export const MaterialComparison = () => {
                   <Badge
                     key={material.id}
                     variant="secondary"
-                    className="pr-1 text-sm"
+                    className="pr-1 text-sm flex items-center gap-1"
                     style={{ backgroundColor: COMPARISON_COLORS[idx] + '20', color: COMPARISON_COLORS[idx] }}
                   >
-                    {material.material_name}
+                    {material.carbon_sequestration_kg && <Leaf className="h-3 w-3" />}
+                    {material.name}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -206,25 +300,86 @@ export const MaterialComparison = () => {
         <>
           {/* Quick Stats Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {selectedMaterials.map((material, idx) => (
-              <Card key={material.id}>
+            {comparisonMetrics.map((m, idx) => (
+              <Card key={m.material.id} className={bestOption?.material.id === m.material.id && savingsData.length > 1 ? 'ring-2 ring-emerald-500' : ''}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">{material.material_name}</CardTitle>
-                    <div 
-                      className="h-3 w-3 rounded-full" 
-                      style={{ backgroundColor: COMPARISON_COLORS[idx] }}
-                    />
+                    <CardTitle className="text-base flex items-center gap-2">
+                      {m.material.name}
+                      {m.hasSequestration && <Leaf className="h-4 w-4 text-emerald-500" />}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      {bestOption?.material.id === m.material.id && savingsData.length > 1 && (
+                        <Badge className="bg-emerald-500 text-xs">Best</Badge>
+                      )}
+                      <div 
+                        className="h-3 w-3 rounded-full" 
+                        style={{ backgroundColor: COMPARISON_COLORS[idx] }}
+                      />
+                    </div>
                   </div>
-                  <CardDescription className="capitalize">{material.material_category}</CardDescription>
+                  <CardDescription className="capitalize">{getCategoryLabel(m.material.category)}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{material.embodied_carbon_total.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">kgCO₂e per {material.unit}</p>
+                  <div className="space-y-1">
+                    <div className="text-2xl font-bold">{m.grossCarbon.toFixed(1)}</div>
+                    <p className="text-xs text-muted-foreground">kgCO₂e per {m.material.unit} (gross)</p>
+                    {m.hasSequestration && (
+                      <>
+                        <div className="text-sm text-emerald-600 flex items-center gap-1">
+                          <Leaf className="h-3 w-3" />
+                          -{m.sequestration.toFixed(1)} stored
+                        </div>
+                        <div className={`text-lg font-bold ${m.netCarbon <= 0 ? 'text-blue-600' : 'text-foreground'}`}>
+                          = {m.netCarbon.toFixed(1)} net
+                          {m.netCarbon <= 0 && ' 🌱'}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
+
+          {/* Net Carbon Comparison (with sequestration) */}
+          {comparisonMetrics.some(m => m.hasSequestration) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Leaf className="h-5 w-5 text-emerald-500" />
+                  Net Carbon Comparison (Including Sequestration)
+                </CardTitle>
+                <CardDescription>
+                  Timber materials store carbon during growth, reducing their net carbon impact
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={netCarbonData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" label={{ value: 'kgCO₂e per unit', position: 'insideBottom', offset: -5 }} />
+                      <YAxis type="category" dataKey="name" width={150} />
+                      <Tooltip 
+                        formatter={(value: number, name: string) => [
+                          `${value.toFixed(1)} kgCO₂e`,
+                          name === 'gross' ? 'Gross Emissions' : name === 'sequestration' ? 'Carbon Stored' : 'Net Carbon'
+                        ]}
+                      />
+                      <Legend />
+                      <Bar dataKey="gross" name="Gross Emissions" fill="hsl(var(--chart-1))" stackId="a" />
+                      <Bar dataKey="sequestration" name="Carbon Stored" fill="hsl(142 76% 36%)" stackId="a" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-sm text-emerald-800">
+                  <strong>Note:</strong> Carbon sequestration values represent CO₂ absorbed during tree growth. 
+                  Net carbon = Gross emissions − Carbon stored. Negative values indicate carbon-negative materials.
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Side-by-Side Comparison Charts */}
           <div className="grid gap-6 md:grid-cols-2">
@@ -246,9 +401,9 @@ export const MaterialComparison = () => {
                       {selectedMaterials.map((material, idx) => (
                         <Bar
                           key={material.id}
-                          dataKey={material.material_name}
+                          dataKey={material.name}
                           fill={COMPARISON_COLORS[idx]}
-                          name={material.material_name}
+                          name={material.name}
                         />
                       ))}
                     </BarChart>
@@ -260,7 +415,7 @@ export const MaterialComparison = () => {
             {/* Total Comparison */}
             <Card>
               <CardHeader>
-                <CardTitle>Total Embodied Carbon Comparison</CardTitle>
+                <CardTitle>Total Embodied Carbon</CardTitle>
                 <CardDescription>Overall carbon impact per unit</CardDescription>
               </CardHeader>
               <CardContent>
@@ -268,11 +423,11 @@ export const MaterialComparison = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={selectedMaterials.map((m, idx) => ({
-                        name: m.material_name,
-                        total: m.embodied_carbon_total,
+                        name: m.name,
+                        total: m.ef_total,
                         fill: COMPARISON_COLORS[idx]
                       }))}
-                      layout="horizontal"
+                      layout="vertical"
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" label={{ value: 'kgCO₂e', position: 'insideBottom', offset: -5 }} />
@@ -295,58 +450,61 @@ export const MaterialComparison = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <ArrowUpDown className="h-5 w-5" />
+                  <TrendingDown className="h-5 w-5 text-emerald-500" />
                   Carbon Savings Potential
                 </CardTitle>
                 <CardDescription>
-                  Comparison against highest-carbon material option
+                  Comparison against highest net carbon material (accounts for sequestration)
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {savingsData
-                    .sort((a, b) => b.savings - a.savings)
-                    .map((item, idx) => {
-                      const Icon = item.savings > 0 ? TrendingDown : item.savings < 0 ? TrendingUp : Minus;
-                      const color = item.savings > 0 ? 'text-success' : item.savings < 0 ? 'text-destructive' : 'text-muted-foreground';
-                      
-                      return (
-                        <div key={item.material.id} className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div 
-                                className="h-3 w-3 rounded-full" 
-                                style={{ backgroundColor: COMPARISON_COLORS[selectedMaterials.indexOf(item.material)] }}
-                              />
-                              <span className="font-medium">{item.material.material_name}</span>
-                              <Badge variant={item.savings > 0 ? 'default' : 'secondary'}>
-                                {item.material.embodied_carbon_total.toFixed(2)} kgCO₂e/{item.material.unit}
-                              </Badge>
-                            </div>
-                            <div className={`flex items-center gap-2 ${color}`}>
-                              <Icon className="h-4 w-4" />
-                              <span className="font-semibold">
-                                {item.savings > 0 ? '-' : item.savings < 0 ? '+' : ''}
-                                {Math.abs(item.savings).toFixed(2)} kgCO₂e
-                              </span>
-                              <span className="text-sm">
-                                ({item.percentageSavings > 0 ? '-' : ''}
-                                {Math.abs(item.percentageSavings).toFixed(1)}%)
-                              </span>
-                            </div>
-                          </div>
-                          <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
+                  {savingsData.map((item, idx) => {
+                    const Icon = item.savings > 0 ? TrendingDown : item.savings < 0 ? TrendingUp : Minus;
+                    const color = item.savings > 0 ? 'text-emerald-600' : item.savings < 0 ? 'text-destructive' : 'text-muted-foreground';
+                    const materialIdx = selectedMaterials.findIndex(m => m.id === item.material.id);
+                    
+                    return (
+                      <div key={item.material.id} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
                             <div 
-                              className="absolute h-full transition-all"
-                              style={{ 
-                                width: `${(item.material.embodied_carbon_total / Math.max(...selectedMaterials.map(m => m.embodied_carbon_total))) * 100}%`,
-                                backgroundColor: COMPARISON_COLORS[selectedMaterials.indexOf(item.material)]
-                              }}
+                              className="h-3 w-3 rounded-full" 
+                              style={{ backgroundColor: COMPARISON_COLORS[materialIdx] }}
                             />
+                            <span className="font-medium flex items-center gap-2">
+                              {item.material.name}
+                              {item.hasSequestration && <Leaf className="h-3 w-3 text-emerald-500" />}
+                            </span>
+                            <Badge variant={item.savings > 0 ? 'default' : 'secondary'}>
+                              {item.netCarbon.toFixed(1)} kgCO₂e/{item.material.unit} net
+                            </Badge>
+                            {idx === 0 && <Badge className="bg-emerald-500"><CheckCircle2 className="h-3 w-3 mr-1" />Best</Badge>}
+                          </div>
+                          <div className={`flex items-center gap-2 ${color}`}>
+                            <Icon className="h-4 w-4" />
+                            <span className="font-semibold">
+                              {item.savings > 0 ? '-' : item.savings < 0 ? '+' : ''}
+                              {Math.abs(item.savings).toFixed(1)} kgCO₂e
+                            </span>
+                            <span className="text-sm">
+                              ({item.percentageSavings > 0 ? '-' : ''}
+                              {Math.abs(item.percentageSavings).toFixed(1)}%)
+                            </span>
                           </div>
                         </div>
-                      );
-                    })}
+                        <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
+                          <div 
+                            className="absolute h-full transition-all"
+                            style={{ 
+                              width: `${Math.max(0, (item.netCarbon / Math.max(...comparisonMetrics.map(m => m.netCarbon), 1)) * 100)}%`,
+                              backgroundColor: COMPARISON_COLORS[materialIdx]
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -356,40 +514,49 @@ export const MaterialComparison = () => {
           <Card>
             <CardHeader>
               <CardTitle>Detailed Comparison</CardTitle>
-              <CardDescription>Side-by-side breakdown of all lifecycle stages</CardDescription>
+              <CardDescription>Side-by-side breakdown including carbon sequestration</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Material</TableHead>
                       <TableHead>Category</TableHead>
-                      <TableHead className="text-right">A1-A3 (Product)</TableHead>
-                      <TableHead className="text-right">A4 (Transport)</TableHead>
-                      <TableHead className="text-right">A5 (Construction)</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-right">A1-A3</TableHead>
+                      <TableHead className="text-right">A4</TableHead>
+                      <TableHead className="text-right">A5</TableHead>
+                      <TableHead className="text-right">Gross Total</TableHead>
+                      <TableHead className="text-right text-emerald-600">Sequestration</TableHead>
+                      <TableHead className="text-right font-bold">Net Total</TableHead>
                       <TableHead>Unit</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {selectedMaterials.map((material, idx) => (
-                      <TableRow key={material.id}>
+                    {comparisonMetrics.map((m, idx) => (
+                      <TableRow key={m.material.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <div 
                               className="h-3 w-3 rounded-full" 
                               style={{ backgroundColor: COMPARISON_COLORS[idx] }}
                             />
-                            {material.material_name}
+                            {m.material.name}
+                            {m.hasSequestration && <Leaf className="h-3 w-3 text-emerald-500" />}
                           </div>
                         </TableCell>
-                        <TableCell className="capitalize">{material.material_category}</TableCell>
-                        <TableCell className="text-right">{material.embodied_carbon_a1a3.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">{material.embodied_carbon_a4.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">{material.embodied_carbon_a5.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-semibold">{material.embodied_carbon_total.toFixed(2)}</TableCell>
-                        <TableCell>{material.unit}</TableCell>
+                        <TableCell className="capitalize">{getCategoryLabel(m.material.category)}</TableCell>
+                        <TableCell className="text-right">{m.a1a3.toFixed(1)}</TableCell>
+                        <TableCell className="text-right">{m.a4.toFixed(1)}</TableCell>
+                        <TableCell className="text-right">{m.a5.toFixed(1)}</TableCell>
+                        <TableCell className="text-right">{m.grossCarbon.toFixed(1)}</TableCell>
+                        <TableCell className="text-right text-emerald-600">
+                          {m.hasSequestration ? `-${m.sequestration.toFixed(1)}` : '—'}
+                        </TableCell>
+                        <TableCell className={`text-right font-bold ${m.netCarbon <= 0 ? 'text-blue-600' : ''}`}>
+                          {m.netCarbon.toFixed(1)}
+                        </TableCell>
+                        <TableCell>{m.material.unit}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -399,45 +566,44 @@ export const MaterialComparison = () => {
           </Card>
 
           {/* Recommendations */}
-          {selectedMaterials.length >= 2 && (
-            <Card className="border-primary/50 bg-primary/5">
+          {selectedMaterials.length >= 2 && bestOption && worstOption && (
+            <Card className="border-emerald-200 bg-emerald-50/50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingDown className="h-5 w-5 text-success" />
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                   Recommendation
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {(() => {
-                    const lowest = savingsData.reduce((min, item) => 
-                      item.material.embodied_carbon_total < min.material.embodied_carbon_total ? item : min
-                    );
-                    const highest = savingsData.reduce((max, item) => 
-                      item.material.embodied_carbon_total > max.material.embodied_carbon_total ? item : max
-                    );
-                    
-                    return (
-                      <>
-                        <p className="text-sm">
-                          <strong className="text-success">{lowest.material.material_name}</strong> has the lowest embodied carbon at{' '}
-                          <strong>{lowest.material.embodied_carbon_total.toFixed(2)} kgCO₂e/{lowest.material.unit}</strong>.
-                        </p>
-                        {lowest.material.id !== highest.material.id && (
-                          <p className="text-sm">
-                            Choosing <strong>{lowest.material.material_name}</strong> over{' '}
-                            <strong>{highest.material.material_name}</strong> could reduce embodied carbon by{' '}
-                            <strong className="text-success">
-                              {(highest.material.embodied_carbon_total - lowest.material.embodied_carbon_total).toFixed(2)} kgCO₂e/{lowest.material.unit}
-                            </strong> ({((highest.material.embodied_carbon_total - lowest.material.embodied_carbon_total) / highest.material.embodied_carbon_total * 100).toFixed(1)}% reduction).
-                          </p>
-                        )}
-                        <p className="text-xs text-muted-foreground mt-3">
-                          Consider material performance, cost, availability, and structural requirements alongside carbon impact for optimal material selection.
-                        </p>
-                      </>
-                    );
-                  })()}
+                <div className="space-y-3 text-sm">
+                  <p>
+                    <strong className="text-emerald-700">{bestOption.material.name}</strong> has the lowest net embodied carbon at{' '}
+                    <strong>{bestOption.netCarbon.toFixed(1)} kgCO₂e/{bestOption.material.unit}</strong>
+                    {bestOption.hasSequestration && (
+                      <span className="text-emerald-600"> (including {bestOption.sequestration.toFixed(1)} kgCO₂e of carbon storage)</span>
+                    )}.
+                  </p>
+                  {bestOption.material.id !== worstOption.material.id && (
+                    <p>
+                      Choosing <strong>{bestOption.material.name}</strong> over{' '}
+                      <strong>{worstOption.material.name}</strong> could reduce net embodied carbon by{' '}
+                      <strong className="text-emerald-700">
+                        {(worstOption.netCarbon - bestOption.netCarbon).toFixed(1)} kgCO₂e/{bestOption.material.unit}
+                      </strong> ({((worstOption.netCarbon - bestOption.netCarbon) / worstOption.netCarbon * 100).toFixed(1)}% reduction).
+                    </p>
+                  )}
+                  {comparisonMetrics.some(m => m.hasSequestration) && (
+                    <p className="text-emerald-700 flex items-center gap-2 mt-4 p-3 bg-emerald-100 rounded-lg">
+                      <Leaf className="h-4 w-4" />
+                      <span>
+                        <strong>Carbon storage benefit:</strong> Timber materials sequester CO₂ during tree growth. 
+                        This stored carbon reduces their net climate impact compared to materials like concrete and steel.
+                      </span>
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Consider material performance, cost, availability, structural requirements, and durability alongside carbon impact for optimal material selection.
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -451,9 +617,21 @@ export const MaterialComparison = () => {
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <ArrowUpDown className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No Materials Selected</h3>
-            <p className="text-sm text-muted-foreground max-w-md">
-              Select materials from the dropdown above to begin comparing their embodied carbon values across lifecycle stages
+            <p className="text-sm text-muted-foreground max-w-md mb-4">
+              Search for materials or use a quick preset above to compare their embodied carbon values
             </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {PRESET_COMPARISONS.slice(0, 2).map((preset, i) => (
+                <Button 
+                  key={i} 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => loadPreset(preset.ids)}
+                >
+                  Try: {preset.name}
+                </Button>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
