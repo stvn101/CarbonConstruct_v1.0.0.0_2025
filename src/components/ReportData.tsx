@@ -117,8 +117,11 @@ export const useReportData = (): ReportData | null => {
     return null;
   }
 
-  // Database stores values in kgCO2e, convert to tCO2e for display
+  // All database values are stored in kgCO2e, convert to tCO2e for display
+  const scope1Tonnes = (data.totals.scope1 || 0) / 1000;
+  const scope2Tonnes = (data.totals.scope2 || 0) / 1000;
   const scope3Total = ((data.totals.scope3_materials || 0) + (data.totals.scope3_transport || 0)) / 1000;
+  const totalTonnes = scope1Tonnes + scope2Tonnes + scope3Total;
 
   return {
     project: {
@@ -128,11 +131,10 @@ export const useReportData = (): ReportData | null => {
       project_type: currentProject.project_type,
     },
     emissions: {
-      // Convert from kgCO2e to tCO2e (divide by 1000)
-      scope1: (data.totals.scope1 || 0) / 1000,
-      scope2: (data.totals.scope2 || 0) / 1000,
+      scope1: scope1Tonnes,
+      scope2: scope2Tonnes,
       scope3: scope3Total,
-      total: (data.totals.total || 0) / 1000,
+      total: totalTonnes,
     },
     breakdown: {
       materials: data.materials || [],
