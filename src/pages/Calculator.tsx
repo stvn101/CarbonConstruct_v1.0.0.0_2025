@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin } from "lucide-react";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
 import { SEOHead } from "@/components/SEOHead";
 import { useLCAMaterials, LCAMaterialData } from "@/hooks/useLCAMaterials";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useFavoriteMaterials } from "@/hooks/useFavoriteMaterials";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Material {
   id: string;
@@ -155,6 +157,9 @@ export default function Calculator() {
   const { materials: dbMaterials, loading: materialsLoading } = useLCAMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
   
+  // Favorite materials for quick-add
+  const { quickAddMaterials, trackMaterialUsage, hideMaterial } = useFavoriteMaterials();
+  
   const [activeTab, setActiveTab] = useState<'inputs' | 'report'>('inputs');
   const [projectDetails, setProjectDetails] = useState(() => loadFromStorage('projectDetails', { 
     name: '', 
@@ -248,6 +253,42 @@ export default function Calculator() {
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     setMaterialSearch(''); // Clear search after adding
+    
+    // Track usage for quick-add
+    trackMaterialUsage({
+      id: material.id,
+      name: material.material_name,
+      category: material.material_category,
+      unit: material.unit,
+      factor: material.embodied_carbon_total || 0,
+      source: material.data_source || 'Database'
+    });
+  };
+
+  // Quick add from favorites
+  const addFromQuickAdd = (fav: typeof quickAddMaterials[0]) => {
+    const newItem: Material = {
+      id: Date.now().toString() + Math.random(),
+      category: fav.category,
+      typeId: fav.materialId,
+      name: fav.materialName,
+      unit: fav.unit,
+      factor: fav.factor,
+      source: fav.source,
+      quantity: 0,
+      isCustom: false
+    };
+    setSelectedMaterials(prev => [...prev, newItem]);
+    
+    // Track usage
+    trackMaterialUsage({
+      id: fav.materialId,
+      name: fav.materialName,
+      category: fav.category,
+      unit: fav.unit,
+      factor: fav.factor,
+      source: fav.source
+    });
   };
 
   const addCustomMaterial = () => {
@@ -671,6 +712,44 @@ export default function Calculator() {
                     </div>
                   </div>
                   
+                  {/* Quick-Add Materials (auto-learned from usage) */}
+                  {quickAddMaterials.length > 0 && (
+                    <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Quick Add</span>
+                        <span className="text-xs text-emerald-600">Your frequently used materials</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {quickAddMaterials.map(fav => (
+                          <Tooltip key={fav.materialId}>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => addFromQuickAdd(fav)}
+                                className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white border border-emerald-300 rounded-full hover:bg-emerald-100 hover:border-emerald-400 transition-colors"
+                              >
+                                <span className="text-foreground truncate max-w-[150px]">{fav.materialName}</span>
+                                <span className="text-xs text-emerald-600">{fav.factor.toFixed(1)}</span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    hideMaterial(fav.materialId);
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 ml-1 text-muted-foreground hover:text-destructive transition-opacity"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{fav.materialName}</p>
+                              <p className="text-xs text-muted-foreground">{fav.factor} kgCO2/{fav.unit} • Used {fav.usageCount}x</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Material Search & Selection */}
                   <div className="mb-4">
                     <div className="relative">
