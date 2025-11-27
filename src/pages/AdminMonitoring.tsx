@@ -133,7 +133,7 @@ export default function AdminMonitoring() {
     
     try {
       const { data, error } = await supabase.functions.invoke("import-materials", {
-        body: { tableName: "lca_materials", batchSize: 100 }
+        body: { tableName: "unified_materials", batchSize: 100 }
       });
       
       if (error) throw error;
