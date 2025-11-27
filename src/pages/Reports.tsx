@@ -481,6 +481,7 @@ const Reports = () => {
                       {(reportData.emissions.total || 0).toFixed(1)}
                     </div>
                     <div className="text-lg text-muted-foreground">tCO₂e Total Emissions</div>
+                    <div className="text-xs text-muted-foreground mt-1">tonnes of CO₂ equivalent</div>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4">
@@ -489,20 +490,24 @@ const Reports = () => {
                         {(reportData.emissions.scope1 || 0).toFixed(1)}
                       </div>
                       <div className="text-sm text-muted-foreground">Scope 1</div>
+                      <div className="text-xs text-muted-foreground">tCO₂e</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-scope-2">
                         {(reportData.emissions.scope2 || 0).toFixed(1)}
                       </div>
                       <div className="text-sm text-muted-foreground">Scope 2</div>
+                      <div className="text-xs text-muted-foreground">tCO₂e</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-scope-3">
                         {(reportData.emissions.scope3 || 0).toFixed(1)}
                       </div>
                       <div className="text-sm text-muted-foreground">Scope 3</div>
+                      <div className="text-xs text-muted-foreground">tCO₂e</div>
                     </div>
                   </div>
+                  <p className="text-[10px] text-center text-muted-foreground pt-2 border-t">All values displayed in tonnes CO₂ equivalent (tCO₂e)</p>
                 </div>
 
                 <div className="h-[300px]">
@@ -514,7 +519,7 @@ const Reports = () => {
                         cy="50%"
                         outerRadius={100}
                         dataKey="value"
-                        label={({ name, value }) => `${name}: ${(value || 0).toFixed(1)}`}
+                        label={({ name, value }) => `${name}: ${(value || 0).toFixed(1)} t`}
                       >
                         {scopeData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
@@ -574,7 +579,7 @@ const Reports = () => {
             <CardHeader>
               <CardTitle>Emissions by Category</CardTitle>
               <CardDescription>
-                Detailed breakdown of emissions across all categories
+                Detailed breakdown of emissions across all categories (values in tCO₂e - tonnes CO₂ equivalent)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -583,9 +588,9 @@ const Reports = () => {
                   <BarChart data={[...materialsData, ...fuelData, ...electricityData, ...transportData]}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                    <YAxis />
+                    <YAxis label={{ value: 'tCO₂e', angle: -90, position: 'insideLeft' }} />
                     <Tooltip formatter={(value) => `${Number(value).toFixed(2)} tCO₂e`} />
-                    <Bar dataKey="emissions" fill="hsl(var(--primary))" />
+                    <Bar dataKey="emissions" fill="hsl(var(--primary))" name="Emissions (tCO₂e)" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -595,6 +600,7 @@ const Reports = () => {
 
           {/* Materials Breakdown */}
           <ReportErrorBoundary fallbackTitle="Materials Breakdown Error">
+            <p className="text-xs text-muted-foreground text-center mb-4">All emission values displayed in tonnes CO₂ equivalent (tCO₂e)</p>
             <div className="grid gap-6 md:grid-cols-2">
             {/* Materials Section */}
             <Card>
