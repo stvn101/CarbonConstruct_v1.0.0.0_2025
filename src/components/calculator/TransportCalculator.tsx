@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,8 +32,19 @@ interface TransportCalculatorProps {
   onTotalChange?: (totalEmissions: number) => void;
 }
 
+const STORAGE_KEY = 'transportCalculatorItems';
+
+const loadFromStorage = (): TransportItem[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
 export function TransportCalculator({ onTotalChange }: TransportCalculatorProps) {
-  const [items, setItems] = useState<TransportItem[]>([]);
+  const [items, setItems] = useState<TransportItem[]>(() => loadFromStorage());
   const [quickCalc, setQuickCalc] = useState({
     tonnes: '',
     fromPostcode: '',
@@ -46,6 +57,11 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
     onTotalChange?.(total);
     return total;
   }, [items, onTotalChange]);
+
+  // Persist items to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }, [items]);
 
   const handleQuickCalc = () => {
     const tonnes = parseFloat(quickCalc.tonnes) || 0;
