@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,6 +22,89 @@ const ALERT_THRESHOLDS = {
   rate_limit_violations_per_hour: 20,
   suspicious_activity_per_hour: 5,
 };
+
+// Admin email for security alerts
+const ADMIN_EMAIL = 'contact@carbonconstruct.net';
+
+// Send security alert email
+async function sendSecurityAlertEmail(alert: { type: string; message: string; count: number }): Promise<void> {
+  const resendApiKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendApiKey) {
+    console.error('[log-security-event] RESEND_API_KEY not configured, skipping email notification');
+    return;
+  }
+
+  const resend = new Resend(resendApiKey);
+  
+  const severityColor = alert.count >= 20 ? '#dc2626' : alert.count >= 10 ? '#f59e0b' : '#eab308';
+  const severityLabel = alert.count >= 20 ? 'CRITICAL' : alert.count >= 10 ? 'HIGH' : 'WARNING';
+
+  try {
+    await resend.emails.send({
+      from: 'CarbonConstruct Security <onboarding@resend.dev>',
+      to: [ADMIN_EMAIL],
+      subject: `🚨 [${severityLabel}] Security Alert: ${alert.type.replace(/_/g, ' ').toUpperCase()}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f5;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="background: ${severityColor}; padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 24px;">🛡️ Security Alert</h1>
+              <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">${severityLabel} Priority</p>
+            </div>
+            <div style="padding: 30px;">
+              <h2 style="color: #1f2937; margin: 0 0 16px 0;">Alert Type: ${alert.type.replace(/_/g, ' ').toUpperCase()}</h2>
+              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px 0;">${alert.message}</p>
+              
+              <div style="background: #f9fafb; border-radius: 6px; padding: 16px; margin: 20px 0;">
+                <h3 style="color: #374151; margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase;">Event Details</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Event Count:</td>
+                    <td style="padding: 8px 0; color: #1f2937; font-weight: 600; text-align: right;">${alert.count} events</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Time Period:</td>
+                    <td style="padding: 8px 0; color: #1f2937; font-weight: 600; text-align: right;">Last hour</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Detected At:</td>
+                    <td style="padding: 8px 0; color: #1f2937; font-weight: 600; text-align: right;">${new Date().toISOString()}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 16px; margin: 20px 0;">
+                <p style="color: #92400e; margin: 0; font-size: 14px;">
+                  <strong>Recommended Action:</strong> Review the Admin Monitoring dashboard for detailed logs and consider implementing additional security measures if attacks persist.
+                </p>
+              </div>
+
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="https://carbonconstruct.com.au/admin" style="display: inline-block; background: #059669; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">View Admin Dashboard</a>
+              </div>
+            </div>
+            <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                This is an automated security alert from CarbonConstruct.<br>
+                Please do not reply to this email.
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+    console.log(`[log-security-event] Security alert email sent for: ${alert.type}`);
+  } catch (error) {
+    console.error('[log-security-event] Failed to send security alert email:', error);
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -137,6 +221,8 @@ serve(async (req) => {
             console.error('[log-security-event] Failed to create alert:', alertError);
           } else {
             console.log(`[log-security-event] Created security alert: ${alert.type}`);
+            // Send email notification for new security alerts
+            await sendSecurityAlertEmail(alert);
           }
         }
       }
