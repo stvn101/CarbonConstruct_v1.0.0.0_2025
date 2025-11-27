@@ -2,8 +2,7 @@ import { Calculator, Factory, Zap, Truck, FileBarChart, Settings, Home, HelpCirc
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import logoImageWebp from "@/assets/carbonconstruct-logo.webp";
-import logoImagePng from "@/assets/carbonconstruct-logo.png";
+import logoImageWebp from "@/assets/carbonconstruct-logo-optimized.webp";
 const calculatorItems = [{
   title: "Dashboard",
   url: "/",
@@ -61,14 +60,13 @@ export function AppSidebar() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center cursor-pointer transition-all duration-500 ease-in-out">
-                  <picture>
-                    <source srcSet={logoImageWebp} type="image/webp" />
-                    <img 
-                      src={logoImagePng} 
-                      alt="CarbonConstruct Logo" 
-                      className="h-8 w-8 flex-shrink-0 object-contain" 
-                    />
-                  </picture>
+                  <img 
+                    src={logoImageWebp} 
+                    alt="CarbonConstruct Logo" 
+                    className="h-8 w-8 flex-shrink-0 object-contain"
+                    width="32"
+                    height="32"
+                  />
                   <div className="group-data-[collapsible=icon]/sidebar-wrapper:hidden group-data-[collapsible=icon]/sidebar-wrapper:opacity-0 transition-all duration-500 ease-in-out opacity-100">
                     <h1 className="font-bold text-base text-sidebar-foreground transition-all duration-500 ease-in-out">CarbonConstruct</h1>
                     <p className="text-xs text-sidebar-foreground/70 transition-all duration-500 ease-in-out">Pro Edition</p>
