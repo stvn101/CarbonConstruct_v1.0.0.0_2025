@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
 import { SEOHead } from "@/components/SEOHead";
-import { useLCAMaterials, LCAMaterialData } from "@/hooks/useLCAMaterials";
+import { useLocalMaterials, Material as LocalMaterial } from "@/hooks/useLocalMaterials";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFavoriteMaterials } from "@/hooks/useFavoriteMaterials";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -158,8 +158,8 @@ export default function Calculator() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Fetch materials from database
-  const { materials: dbMaterials, loading: materialsLoading, loadedCount } = useLCAMaterials();
+  // Fetch materials from LOCAL database (no Supabase)
+  const { materials: dbMaterials, loading: materialsLoading, getUnitLabel } = useLocalMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [useNewMaterialUI, setUseNewMaterialUI] = useState(() => {
@@ -174,12 +174,11 @@ export default function Calculator() {
   // Favorite materials for quick-add
   const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites } = useFavoriteMaterials();
   
-  // Category counts for browser
+  // Category counts for browser - using local database
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
     dbMaterials.forEach(m => {
-      if (!m.embodied_carbon_total) return;
-      counts.set(m.material_category, (counts.get(m.material_category) || 0) + 1);
+      counts.set(m.category, (counts.get(m.category) || 0) + 1);
     });
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
@@ -208,18 +207,19 @@ export default function Calculator() {
   
   // Group database materials by category and filter by search/category
   const groupedMaterials = useMemo(() => {
-    let filtered = dbMaterials.filter(m => m.embodied_carbon_total); // Must have carbon values
+    let filtered = [...dbMaterials]; // Local materials already have valid data
     
     // Filter by selected category
     if (selectedCategory) {
-      filtered = filtered.filter(m => m.material_category === selectedCategory);
+      filtered = filtered.filter(m => m.category === selectedCategory);
     }
     
     // Filter by search term
     if (materialSearch.length >= 2) {
       filtered = filtered.filter(m => 
-        m.material_name.toLowerCase().includes(materialSearch.toLowerCase()) ||
-        m.material_category.toLowerCase().includes(materialSearch.toLowerCase())
+        m.name.toLowerCase().includes(materialSearch.toLowerCase()) ||
+        m.category.toLowerCase().includes(materialSearch.toLowerCase()) ||
+        m.subcategory.toLowerCase().includes(materialSearch.toLowerCase())
       );
     }
     
@@ -231,11 +231,11 @@ export default function Calculator() {
     
     if (!shouldShow) return [];
     
-    const groups = new Map<string, LCAMaterialData[]>();
+    const groups = new Map<string, LocalMaterial[]>();
     filtered.forEach(mat => {
-      const existing = groups.get(mat.material_category) || [];
+      const existing = groups.get(mat.category) || [];
       existing.push(mat);
-      groups.set(mat.material_category, existing);
+      groups.set(mat.category, existing);
     });
     
     // Sort categories and limit items per category for performance
@@ -288,12 +288,12 @@ export default function Calculator() {
 
     const newItem: Material = {
       id: Date.now().toString() + Math.random(),
-      category: material.material_category,
+      category: material.category,
       typeId: material.id,
-      name: material.material_name,
+      name: material.name,
       unit: material.unit,
-      factor: material.embodied_carbon_total || 0,
-      source: material.data_source || 'Database',
+      factor: material.ef_total,
+      source: material.data_source,
       quantity: 0,
       isCustom: false
     };
@@ -303,11 +303,11 @@ export default function Calculator() {
     // Track usage for quick-add
     trackMaterialUsage({
       id: material.id,
-      name: material.material_name,
-      category: material.material_category,
+      name: material.name,
+      category: material.category,
       unit: material.unit,
-      factor: material.embodied_carbon_total || 0,
-      source: material.data_source || 'Database'
+      factor: material.ef_total,
+      source: material.data_source
     });
   };
 
@@ -976,7 +976,7 @@ export default function Calculator() {
                         categories={categoryCounts}
                         selectedCategory={selectedCategory}
                         onSelectCategory={setSelectedCategory}
-                        totalMaterials={dbMaterials.filter(m => m.embodied_carbon_total).length}
+                        totalMaterials={dbMaterials.length}
                       />
                       
                       <div className="relative">
@@ -1005,15 +1005,7 @@ export default function Calculator() {
                         )}
                       </div>
 
-                      {materialsLoading && (
-                        <div className="space-y-2">
-                          <div className="text-sm text-muted-foreground flex items-center gap-2">
-                            <Database className="h-4 w-4 animate-pulse text-primary" />
-                            Loading materials... {loadedCount > 0 && <span className="font-medium text-foreground">{loadedCount.toLocaleString()} loaded</span>}
-                          </div>
-                          <Progress value={loadedCount > 0 ? Math.min((loadedCount / 4500) * 100, 95) : 5} className="h-1.5" />
-                        </div>
-                      )}
+                      {/* Local database loads instantly - no loading state needed */}
                       
                       {!materialsLoading && dbMaterials.length > 0 && (
                         <div className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -1023,7 +1015,20 @@ export default function Calculator() {
                       )}
 
                       <MaterialSearchResults
-                        groupedMaterials={groupedMaterials}
+                        groupedMaterials={groupedMaterials.map(g => ({ 
+                          category: g.category, 
+                          items: g.items.map(i => ({
+                            id: i.id,
+                            material_name: i.name,
+                            material_category: i.category,
+                            unit: i.unit,
+                            embodied_carbon_total: i.ef_total,
+                            embodied_carbon_a1a3: i.ef_a1a3,
+                            embodied_carbon_a4: i.ef_a4 || null,
+                            embodied_carbon_a5: i.ef_a5 || null,
+                            data_source: i.data_source
+                          }))
+                        }))}
                         onAddMaterial={addMaterialFromDb}
                         searchTerm={materialSearch}
                         selectedCategory={selectedCategory}
@@ -1043,15 +1048,7 @@ export default function Calculator() {
                           className="pl-10 text-foreground"
                         />
                       </div>
-                      {materialsLoading && (
-                        <div className="mt-2 space-y-2">
-                          <div className="text-sm text-muted-foreground flex items-center gap-2">
-                            <Database className="h-4 w-4 animate-pulse text-primary" />
-                            Loading materials... {loadedCount > 0 && <span className="font-medium text-foreground">{loadedCount.toLocaleString()} loaded</span>}
-                          </div>
-                          <Progress value={loadedCount > 0 ? Math.min((loadedCount / 4500) * 100, 95) : 5} className="h-1.5" />
-                        </div>
-                      )}
+                      {/* Local database loads instantly - no loading state needed */}
                       {materialSearch.length >= 2 && groupedMaterials.length > 0 && (
                         <ScrollArea className="h-64 mt-2 border rounded-md">
                           <div className="p-2">
@@ -1066,9 +1063,9 @@ export default function Calculator() {
                                     onClick={() => addMaterialFromDb(item.id)}
                                     className="w-full text-left px-3 py-2 text-sm hover:bg-emerald-50 rounded flex justify-between items-center group"
                                   >
-                                    <span className="text-foreground">{item.material_name}</span>
+                                    <span className="text-foreground">{item.name}</span>
                                     <span className="text-xs text-muted-foreground group-hover:text-emerald-600">
-                                      {item.embodied_carbon_total?.toFixed(1)} kgCO2/{item.unit}
+                                      {item.ef_total.toFixed(1)} kgCO2/{item.unit}
                                     </span>
                                   </button>
                                 ))}
