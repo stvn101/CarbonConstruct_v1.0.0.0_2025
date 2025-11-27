@@ -5,7 +5,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectProvider } from "@/contexts/ProjectContext";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 // Eager load only the index page for faster initial render
 import Index from "./pages/Index";
@@ -27,6 +29,13 @@ const Roadmap = lazy(() => import("./pages/Roadmap"));
 
 const queryClient = new QueryClient();
 
+// Monitoring wrapper component
+function MonitoringProvider({ children }: { children: React.ReactNode }) {
+  usePerformanceMonitor();
+  useAnalytics();
+  return <>{children}</>;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -34,27 +43,29 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Layout>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/calculator" element={<Calculator />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/help" element={<Help />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/impact" element={<Impact />} />
-                <Route path="/install" element={<Install />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<TermsOfService />} />
-                <Route path="/cookies" element={<CookiePolicy />} />
-                <Route path="/roadmap" element={<Roadmap />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </Layout>
+          <MonitoringProvider>
+            <Layout>
+              <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/calculator" element={<Calculator />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/help" element={<Help />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/impact" element={<Impact />} />
+                  <Route path="/install" element={<Install />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                  <Route path="/cookies" element={<CookiePolicy />} />
+                  <Route path="/roadmap" element={<Roadmap />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </Layout>
+          </MonitoringProvider>
         </BrowserRouter>
       </ProjectProvider>
     </AuthProvider>
