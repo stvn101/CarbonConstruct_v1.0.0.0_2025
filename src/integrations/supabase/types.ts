@@ -215,6 +215,111 @@ export type Database = {
         }
         Relationships: []
       }
+      materials_epd: {
+        Row: {
+          carbon_sequestration: number | null
+          created_at: string | null
+          data_quality_tier: string | null
+          data_source: string
+          ef_a1a3: number | null
+          ef_a4: number | null
+          ef_a5: number | null
+          ef_b1b5: number | null
+          ef_c1c4: number | null
+          ef_d: number | null
+          ef_total: number
+          epd_number: string | null
+          epd_url: string | null
+          expiry_date: string | null
+          id: string
+          manufacturer: string | null
+          material_category: string
+          material_name: string
+          notes: string | null
+          plant_location: string | null
+          publish_date: string | null
+          recycled_content: number | null
+          region: string | null
+          scope1_factor: number | null
+          scope2_factor: number | null
+          scope3_factor: number | null
+          state: string | null
+          subcategory: string | null
+          uncertainty_percent: number | null
+          unit: string
+          updated_at: string | null
+          year: number | null
+        }
+        Insert: {
+          carbon_sequestration?: number | null
+          created_at?: string | null
+          data_quality_tier?: string | null
+          data_source: string
+          ef_a1a3?: number | null
+          ef_a4?: number | null
+          ef_a5?: number | null
+          ef_b1b5?: number | null
+          ef_c1c4?: number | null
+          ef_d?: number | null
+          ef_total: number
+          epd_number?: string | null
+          epd_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          manufacturer?: string | null
+          material_category: string
+          material_name: string
+          notes?: string | null
+          plant_location?: string | null
+          publish_date?: string | null
+          recycled_content?: number | null
+          region?: string | null
+          scope1_factor?: number | null
+          scope2_factor?: number | null
+          scope3_factor?: number | null
+          state?: string | null
+          subcategory?: string | null
+          uncertainty_percent?: number | null
+          unit: string
+          updated_at?: string | null
+          year?: number | null
+        }
+        Update: {
+          carbon_sequestration?: number | null
+          created_at?: string | null
+          data_quality_tier?: string | null
+          data_source?: string
+          ef_a1a3?: number | null
+          ef_a4?: number | null
+          ef_a5?: number | null
+          ef_b1b5?: number | null
+          ef_c1c4?: number | null
+          ef_d?: number | null
+          ef_total?: number
+          epd_number?: string | null
+          epd_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          manufacturer?: string | null
+          material_category?: string
+          material_name?: string
+          notes?: string | null
+          plant_location?: string | null
+          publish_date?: string | null
+          recycled_content?: number | null
+          region?: string | null
+          scope1_factor?: number | null
+          scope2_factor?: number | null
+          scope3_factor?: number | null
+          state?: string | null
+          subcategory?: string | null
+          uncertainty_percent?: number | null
+          unit?: string
+          updated_at?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
       materials_import_jobs: {
         Row: {
           completed_at: string | null
