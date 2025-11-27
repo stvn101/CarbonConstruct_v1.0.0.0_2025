@@ -119,17 +119,17 @@ const Pricing = () => {
                   <Icon className="h-6 w-6 text-primary" />
                   <CardTitle>{tier.name}</CardTitle>
                 </div>
-                <CardDescription>
-                  <div className="text-3xl font-bold text-foreground">
+                <CardDescription className="space-y-1">
+                  <span className="block text-3xl font-bold text-foreground">
                     {tier.price_monthly === 0 ? 'Free' : `$${tier.price_monthly}`}
                     {tier.price_monthly > 0 && (
                       <span className="text-sm font-normal text-muted-foreground">/month</span>
                     )}
-                  </div>
+                  </span>
                   {tier.price_annual && tier.price_annual > 0 && (
-                    <div className="text-sm text-muted-foreground mt-1">
+                    <span className="block text-sm text-muted-foreground">
                       or ${tier.price_annual}/year (save ${(tier.price_monthly * 12 - tier.price_annual).toFixed(0)})
-                    </div>
+                    </span>
                   )}
                 </CardDescription>
               </CardHeader>
