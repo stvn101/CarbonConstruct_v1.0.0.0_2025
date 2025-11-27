@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
+import { logSecurityEvent, getClientIP } from "../_shared/security-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,6 +38,12 @@ serve(async (req) => {
     // Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      logSecurityEvent({
+        event_type: 'auth_failure',
+        ip_address: getClientIP(req),
+        endpoint: 'carbon-recommendations',
+        details: 'Missing authorization header'
+      });
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -48,6 +55,12 @@ serve(async (req) => {
 
     if (authError || !user) {
       console.error('Authentication failed:', authError);
+      logSecurityEvent({
+        event_type: 'invalid_token',
+        ip_address: getClientIP(req),
+        endpoint: 'carbon-recommendations',
+        details: authError?.message || 'Invalid or expired token'
+      });
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -67,6 +80,16 @@ serve(async (req) => {
     if (!rateLimitResult.allowed) {
       const resetInSeconds = Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000);
       console.warn(`[carbon-recommendations] User ${user.id}: Rate limit exceeded. Reset in ${resetInSeconds}s`);
+      
+      // Log security event for rate limit violation
+      logSecurityEvent({
+        event_type: 'rate_limit_exceeded',
+        user_id: user.id,
+        ip_address: getClientIP(req),
+        endpoint: 'carbon-recommendations',
+        details: `Rate limit exceeded. Reset in ${resetInSeconds}s`
+      });
+      
       return new Response(
         JSON.stringify({ 
           error: `Rate limit exceeded. Please try again in ${Math.ceil(resetInSeconds / 60)} minutes.`,

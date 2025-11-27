@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
+import { logSecurityEvent, getClientIP } from "../_shared/security-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,13 +28,29 @@ serve(async (req) => {
     logStep("Function started");
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader) {
+      logSecurityEvent({
+        event_type: 'auth_failure',
+        ip_address: getClientIP(req),
+        endpoint: 'create-checkout',
+        details: 'Missing authorization header'
+      });
+      throw new Error("No authorization header provided");
+    }
     
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     
-    if (!user?.email) throw new Error("User not authenticated or email not available");
+    if (!user?.email) {
+      logSecurityEvent({
+        event_type: 'invalid_token',
+        ip_address: getClientIP(req),
+        endpoint: 'create-checkout',
+        details: 'Invalid or expired token'
+      });
+      throw new Error("User not authenticated or email not available");
+    }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Check rate limit (10 checkout attempts per 15 minutes)
@@ -47,6 +64,16 @@ serve(async (req) => {
     if (!rateLimitResult.allowed) {
       const resetInSeconds = Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000);
       logStep("Rate limit exceeded", { userId: user.id, resetInSeconds });
+      
+      // Log security event for rate limit violation
+      logSecurityEvent({
+        event_type: 'rate_limit_exceeded',
+        user_id: user.id,
+        ip_address: getClientIP(req),
+        endpoint: 'create-checkout',
+        details: `Rate limit exceeded. Reset in ${resetInSeconds}s`
+      });
+      
       return new Response(
         JSON.stringify({ 
           error: `Too many checkout attempts. Please try again in ${Math.ceil(resetInSeconds / 60)} minutes.`,
