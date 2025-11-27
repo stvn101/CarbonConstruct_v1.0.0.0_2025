@@ -53,16 +53,29 @@ export const useSubscription = () => {
     },
   });
 
-  // Fetch user's current subscription
+  // Fetch user's current subscription (excluding sensitive Stripe IDs for security)
   const { data: userSubscription, isLoading: subscriptionLoading } = useQuery({
     queryKey: ['user-subscription', user?.id],
     enabled: !!user,
     queryFn: async () => {
       if (!user) return null;
       
+      // Explicitly select only needed columns - exclude stripe_customer_id, stripe_subscription_id
       const { data, error } = await supabase
         .from('user_subscriptions')
-        .select('*, subscription_tiers(*)')
+        .select(`
+          id,
+          user_id,
+          tier_id,
+          status,
+          trial_end,
+          current_period_start,
+          current_period_end,
+          cancel_at_period_end,
+          created_at,
+          updated_at,
+          subscription_tiers(*)
+        `)
         .eq('user_id', user.id)
         .maybeSingle();
       

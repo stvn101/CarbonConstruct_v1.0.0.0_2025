@@ -410,9 +410,15 @@ console.log(`[function-name] User ${user.id}: Action description`);
 | Level | Count | Notes |
 |-------|-------|-------|
 | Critical | 0 | None |
-| Error | 1 | Architectural consideration (Stripe IDs) |
+| Error | 0 | Stripe IDs now excluded from frontend queries |
 | Warning | 4 | Design recommendations |
 | Info | 4 | Properly secured |
+
+### Stripe ID Security Fix
+
+**Issue:** `stripe_customer_id` and `stripe_subscription_id` were accessible via RLS when users queried their own subscription data.
+
+**Resolution:** Updated `useSubscription.ts` to explicitly select only needed columns, excluding Stripe IDs from frontend queries. Backend webhook processing retains access via service role key.
 
 ---
 
