@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PDFReport } from '@/components/PDFReport';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PDFReport, ReportBranding } from '@/components/PDFReport';
 import { useReportData, validateReportData, calculateDataCompleteness } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
@@ -26,7 +28,10 @@ import {
   Star,
   Award,
   Crown,
-  FileText
+  FileText,
+  Building,
+  User,
+  Mail
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
@@ -38,6 +43,21 @@ const Reports = () => {
   const { canPerformAction, trackUsage, currentUsage } = useUsageTracking();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate>('technical');
+  const [branding, setBranding] = useState<ReportBranding>(() => {
+    try {
+      const stored = localStorage.getItem('reportBranding');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Save branding to localStorage when it changes
+  const updateBranding = (field: keyof ReportBranding, value: string) => {
+    const updated = { ...branding, [field]: value };
+    setBranding(updated);
+    localStorage.setItem('reportBranding', JSON.stringify(updated));
+  };
 
   const handleDownloadReport = async () => {
     const limitCheck = canPerformAction('reports_per_month');
@@ -233,7 +253,7 @@ const Reports = () => {
           </p>
         </div>
         <ErrorBoundary>
-          <PDFReport data={reportData} template={selectedTemplate} />
+          <PDFReport data={reportData} template={selectedTemplate} branding={branding} />
         </ErrorBoundary>
       </div>
 
@@ -274,6 +294,76 @@ const Reports = () => {
               </SelectItem>
             </SelectContent>
           </Select>
+        </CardContent>
+      </Card>
+
+      {/* Company Branding */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building className="h-5 w-5" />
+            Company Branding
+          </CardTitle>
+          <CardDescription>
+            Add your company details to appear on the PDF report
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="companyName" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Company Name
+              </Label>
+              <Input
+                id="companyName"
+                placeholder="Your Company Pty Ltd"
+                value={branding.companyName || ''}
+                onChange={(e) => updateBranding('companyName', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="preparedBy" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Prepared By
+              </Label>
+              <Input
+                id="preparedBy"
+                placeholder="John Smith"
+                value={branding.preparedBy || ''}
+                onChange={(e) => updateBranding('preparedBy', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactEmail" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Contact Email
+              </Label>
+              <Input
+                id="contactEmail"
+                type="email"
+                placeholder="contact@company.com"
+                value={branding.contactEmail || ''}
+                onChange={(e) => updateBranding('contactEmail', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="logoUrl" className="flex items-center gap-2">
+                <FileBarChart className="h-4 w-4" />
+                Logo URL (optional)
+              </Label>
+              <Input
+                id="logoUrl"
+                type="url"
+                placeholder="https://example.com/logo.png"
+                value={branding.logoUrl || ''}
+                onChange={(e) => updateBranding('logoUrl', e.target.value)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            These details will be saved and appear on all future PDF reports.
+          </p>
         </CardContent>
       </Card>
 

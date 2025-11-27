@@ -1,10 +1,17 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Image } from '@react-pdf/renderer';
 import { Button } from '@/components/ui/button';
 import { FileDown } from 'lucide-react';
 import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
 import { useComplianceCheck } from '@/hooks/useComplianceCheck';
+
+export interface ReportBranding {
+  companyName?: string;
+  logoUrl?: string;
+  contactEmail?: string;
+  preparedBy?: string;
+}
 
 const styles = StyleSheet.create({
   page: {
@@ -17,6 +24,28 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     borderBottom: '2px solid #2d5a27',
     paddingBottom: 20,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    objectFit: 'contain',
+  },
+  companyName: {
+    fontSize: 12,
+    color: '#333333',
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  preparedBy: {
+    fontSize: 10,
+    color: '#666666',
+    marginTop: 8,
   },
   title: {
     fontSize: 24,
@@ -144,9 +173,10 @@ const styles = StyleSheet.create({
 interface PDFReportDocumentProps {
   data: ReportData;
   template: ReportTemplate;
+  branding?: ReportBranding;
 }
 
-const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template }) => {
+const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, branding }) => {
   const formatNumber = (num: number) => (num || 0).toFixed(2);
 
   const renderExecutiveSummary = () => (
@@ -496,6 +526,21 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template })
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          {(branding?.logoUrl || branding?.companyName) && (
+            <View style={styles.headerRow}>
+              <View>
+                {branding?.companyName && (
+                  <Text style={styles.companyName}>{branding.companyName}</Text>
+                )}
+                {branding?.preparedBy && (
+                  <Text style={styles.preparedBy}>Prepared by: {branding.preparedBy}</Text>
+                )}
+              </View>
+              {branding?.logoUrl && (
+                <Image src={branding.logoUrl} style={styles.logo} />
+              )}
+            </View>
+          )}
           <Text style={styles.title}>{getReportTitle()}</Text>
           <Text style={styles.subtitle}>{data.project.name}</Text>
           <Text style={styles.subtitle}>Generated: {new Date(data.metadata.generatedAt).toLocaleDateString()}</Text>
@@ -508,7 +553,14 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template })
         {/* Footer */}
         <View style={styles.footer}>
           <Text>This report was generated using Australian NCC 2024 emission factors and methodologies.</Text>
-          <Text>For questions about this assessment, please contact your carbon consultant.</Text>
+          {branding?.contactEmail ? (
+            <Text>For questions about this assessment, contact: {branding.contactEmail}</Text>
+          ) : (
+            <Text>For questions about this assessment, please contact your carbon consultant.</Text>
+          )}
+          {branding?.companyName && (
+            <Text style={{ marginTop: 5 }}>© {new Date().getFullYear()} {branding.companyName}</Text>
+          )}
         </View>
       </Page>
     </Document>
@@ -519,16 +571,18 @@ interface PDFReportProps {
   data: ReportData;
   template?: ReportTemplate;
   filename?: string;
+  branding?: ReportBranding;
 }
 
 export const PDFReport: React.FC<PDFReportProps> = ({ 
   data,
   template = 'technical',
-  filename = `carbon-report-${data.project.name.replace(/\s+/g, '-').toLowerCase()}.pdf` 
+  filename = `carbon-report-${data.project.name.replace(/\s+/g, '-').toLowerCase()}.pdf`,
+  branding
 }) => {
   return (
     <PDFDownloadLink
-      document={<PDFReportDocument data={data} template={template} />}
+      document={<PDFReportDocument data={data} template={template} branding={branding} />}
       fileName={filename}
     >
       {({ loading }) => (
