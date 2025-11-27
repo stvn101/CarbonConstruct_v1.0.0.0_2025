@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
+import { useUsageTracking } from "@/hooks/useUsageTracking";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock, Scale } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock, Scale, Crown } from "lucide-react";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { Progress } from "@/components/ui/progress";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
@@ -161,6 +163,8 @@ export default function Calculator() {
   const { currentProject } = useProject();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { canPerformAction, trackUsage } = useUsageTracking();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   
   // Fetch materials from EPD database (Supabase materials_epd table)
   const { materials: dbMaterials, loading: materialsLoading, getUnitLabel, states, manufacturers } = useEPDMaterials();
@@ -695,6 +699,13 @@ export default function Calculator() {
   const saveReport = async () => {
     if (!user || !currentProject) {
       toast({ title: "Please select a project first", variant: "destructive" });
+      return;
+    }
+
+    // Check usage limits for LCA calculations
+    const limitCheck = canPerformAction('lca_calculations');
+    if (!limitCheck.allowed) {
+      setUpgradeModalOpen(true);
       return;
     }
 
@@ -1474,14 +1485,33 @@ export default function Calculator() {
                 </div>
                 <h2 className="text-2xl font-bold mb-2">Ready to Report</h2>
                 <p className="text-muted-foreground mb-6">Your calculation is complete. Save to history or print as PDF.</p>
+                
+                {!canPerformAction('lca_calculations').allowed && (
+                  <div className="p-4 mb-6 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                    <Crown className="h-4 w-4 inline mr-2" />
+                    {canPerformAction('lca_calculations').reason}
+                  </div>
+                )}
+                
                 <div className="flex justify-center gap-4">
-                  <Button onClick={saveReport} disabled={saving} size="lg">
+                  <Button 
+                    onClick={saveReport} 
+                    disabled={saving || !canPerformAction('lca_calculations').allowed} 
+                    size="lg"
+                  >
                     {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                     Save to Reports
+                    {!canPerformAction('lca_calculations').allowed && <Crown className="h-4 w-4 ml-2" />}
                   </Button>
                   <Button variant="outline" size="lg" onClick={() => window.print()}>
                     Print PDF
                   </Button>
+                  {!canPerformAction('lca_calculations').allowed && (
+                    <Button variant="default" size="lg" onClick={() => setUpgradeModalOpen(true)}>
+                      <Crown className="h-4 w-4 mr-2" />
+                      Upgrade to Pro
+                    </Button>
+                  )}
                 </div>
               </Card>
             )}
@@ -1537,6 +1567,11 @@ export default function Calculator() {
           </div>
         </div>
       </main>
+      
+      <UpgradeModal 
+        open={upgradeModalOpen} 
+        onOpenChange={setUpgradeModalOpen} 
+      />
     </div>
   );
 }
