@@ -103,64 +103,88 @@ export const useUnifiedCalculations = () => {
           });
         }
 
-        // Transform fuel_inputs object to array
+        // Transform fuel_inputs object to array - with better parsing
         const fuelInputs: FuelInput[] = [];
-        if (calcData.fuel_inputs && typeof calcData.fuel_inputs === 'object' && !Array.isArray(calcData.fuel_inputs)) {
-          Object.entries(calcData.fuel_inputs).forEach(([fuelType, quantity]) => {
-            if (typeof quantity === 'number' && quantity > 0) {
-              // Get emission factor for this fuel type (placeholder logic)
-              const emissionFactor = 2.31; // Default diesel factor
+        const fuelData = calcData.fuel_inputs;
+        const parsedFuelData = typeof fuelData === 'string' ? JSON.parse(fuelData) : fuelData;
+        
+        if (parsedFuelData && typeof parsedFuelData === 'object' && !Array.isArray(parsedFuelData)) {
+          // Emission factors for different fuel types (kgCO2e/L)
+          const fuelFactors: Record<string, number> = {
+            diesel_transport: 2.68,
+            diesel_stationary: 2.68,
+            petrol: 2.31,
+            lpg: 1.51,
+            natural_gas: 2.04,
+          };
+          
+          Object.entries(parsedFuelData).forEach(([fuelType, quantity]) => {
+            const qty = Number(quantity);
+            if (!isNaN(qty) && qty > 0) {
+              const emissionFactor = fuelFactors[fuelType] || 2.31;
               fuelInputs.push({
-                fuelType,
-                quantity,
+                fuelType: fuelType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                quantity: qty,
                 unit: 'L',
                 emissionFactor,
-                totalEmissions: (quantity * emissionFactor) / 1000 // Convert to tonnes
+                totalEmissions: (qty * emissionFactor) / 1000
               });
             }
           });
-        } else if (Array.isArray(calcData.fuel_inputs)) {
-          fuelInputs.push(...(calcData.fuel_inputs as unknown as FuelInput[]));
+        } else if (Array.isArray(parsedFuelData)) {
+          fuelInputs.push(...(parsedFuelData as unknown as FuelInput[]));
         }
 
-        // Transform electricity_inputs object to array
+        // Transform electricity_inputs object to array - with better parsing
         const electricityInputs: ElectricityInput[] = [];
-        if (calcData.electricity_inputs && typeof calcData.electricity_inputs === 'object' && !Array.isArray(calcData.electricity_inputs)) {
-          Object.entries(calcData.electricity_inputs).forEach(([key, quantity]) => {
-            if (typeof quantity === 'number' && quantity > 0) {
-              // Get emission factor (Australian average)
-              const emissionFactor = 0.00081; // kgCO2e/kWh
+        const elecData = calcData.electricity_inputs;
+        const parsedElecData = typeof elecData === 'string' ? JSON.parse(elecData) : elecData;
+        
+        if (parsedElecData && typeof parsedElecData === 'object' && !Array.isArray(parsedElecData)) {
+          // Australian grid emission factor (kgCO2e/kWh)
+          const emissionFactor = 0.72;
+          
+          Object.entries(parsedElecData).forEach(([key, quantity]) => {
+            const qty = Number(quantity);
+            if (!isNaN(qty) && qty > 0) {
               electricityInputs.push({
-                state: key === 'kwh' ? 'National Average' : key,
-                quantity,
+                state: key === 'kwh' ? 'Grid Electricity' : key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                quantity: qty,
                 unit: 'kWh',
                 emissionFactor,
-                totalEmissions: (quantity * emissionFactor) / 1000 // Convert to tonnes
+                totalEmissions: (qty * emissionFactor) / 1000
               });
             }
           });
-        } else if (Array.isArray(calcData.electricity_inputs)) {
-          electricityInputs.push(...(calcData.electricity_inputs as unknown as ElectricityInput[]));
+        } else if (Array.isArray(parsedElecData)) {
+          electricityInputs.push(...(parsedElecData as unknown as ElectricityInput[]));
         }
 
-        // Transform transport_inputs object to array
+        // Transform transport_inputs object to array - with better parsing
         const transportInputs: TransportInput[] = [];
-        if (calcData.transport_inputs && typeof calcData.transport_inputs === 'object' && !Array.isArray(calcData.transport_inputs)) {
-          Object.entries(calcData.transport_inputs).forEach(([mode, data]) => {
+        const transData = calcData.transport_inputs;
+        const parsedTransData = typeof transData === 'string' ? JSON.parse(transData) : transData;
+        
+        if (parsedTransData && typeof parsedTransData === 'object' && !Array.isArray(parsedTransData)) {
+          Object.entries(parsedTransData).forEach(([mode, data]) => {
             if (data && typeof data === 'object') {
               const transportData = data as any;
-              const emissionFactor = 0.1; // Default factor
-              transportInputs.push({
-                mode,
-                distance: transportData.distance || 0,
-                weight: transportData.weight || 0,
-                emissionFactor,
-                totalEmissions: ((transportData.distance || 0) * (transportData.weight || 0) * emissionFactor) / 1000
-              });
+              const emissionFactor = 0.1;
+              const distance = Number(transportData.distance) || 0;
+              const weight = Number(transportData.weight) || 0;
+              if (distance > 0 || weight > 0) {
+                transportInputs.push({
+                  mode: mode.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                  distance,
+                  weight,
+                  emissionFactor,
+                  totalEmissions: (distance * weight * emissionFactor) / 1000
+                });
+              }
             }
           });
-        } else if (Array.isArray(calcData.transport_inputs)) {
-          transportInputs.push(...(calcData.transport_inputs as unknown as TransportInput[]));
+        } else if (Array.isArray(parsedTransData)) {
+          transportInputs.push(...(parsedTransData as unknown as TransportInput[]));
         }
 
         // Transform totals - map database structure to interface
