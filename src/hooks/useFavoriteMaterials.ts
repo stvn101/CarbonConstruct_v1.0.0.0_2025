@@ -85,6 +85,12 @@ export function useFavoriteMaterials() {
     })
     .slice(0, MAX_QUICK_ADD_ITEMS);
 
+  // Get recently used materials (last 10, sorted by lastUsed)
+  const recentlyUsedMaterials = favorites
+    .filter(f => f.usageCount > 0)
+    .sort((a, b) => new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime())
+    .slice(0, 10);
+
   // Pin a material manually
   const pinMaterial = useCallback((materialId: string, material?: {
     name: string;
@@ -146,6 +152,7 @@ export function useFavoriteMaterials() {
   return {
     favorites,
     quickAddMaterials,
+    recentlyUsedMaterials,
     trackMaterialUsage,
     pinMaterial,
     unpinMaterial,

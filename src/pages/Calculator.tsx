@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
@@ -174,7 +174,7 @@ export default function Calculator() {
   });
   
   // Favorite materials for quick-add
-  const { quickAddMaterials, trackMaterialUsage, hideMaterial } = useFavoriteMaterials();
+  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial } = useFavoriteMaterials();
   
   // Category counts for browser
   const categoryCounts = useMemo(() => {
@@ -807,6 +807,39 @@ export default function Calculator() {
                             <TooltipContent>
                               <p>{fav.materialName}</p>
                               <p className="text-xs text-muted-foreground">{fav.factor} kgCO2/{fav.unit} • Used {fav.usageCount}x</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recently Used Materials */}
+                  {recentlyUsedMaterials.length > 0 && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-blue-700 uppercase tracking-wide flex items-center gap-1.5">
+                          <Clock className="h-3 w-3" />
+                          Recently Used
+                        </span>
+                        <span className="text-xs text-blue-600">Last 10 materials you added</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {recentlyUsedMaterials.map(recent => (
+                          <Tooltip key={recent.materialId}>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => addFromQuickAdd(recent)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white border border-blue-300 rounded-full hover:bg-blue-100 hover:border-blue-400 transition-colors"
+                              >
+                                <span className="text-foreground truncate max-w-[150px]">{recent.materialName}</span>
+                                <span className="text-xs text-blue-600">{recent.unit}</span>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{recent.materialName}</p>
+                              <p className="text-xs text-muted-foreground">{recent.factor} kgCO2/{recent.unit}</p>
+                              <p className="text-xs text-muted-foreground">Last used: {new Date(recent.lastUsed).toLocaleDateString()}</p>
                             </TooltipContent>
                           </Tooltip>
                         ))}
