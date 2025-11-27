@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles } from "lucide-react";
 import { MATERIAL_DB, FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
+import { SEOHead } from "@/components/SEOHead";
 
 interface Material {
   id: string;
@@ -469,6 +470,11 @@ export default function Calculator() {
 
   return (
     <div className="min-h-screen bg-background pb-12">
+      <SEOHead 
+        title="Carbon Calculator" 
+        description="Calculate Scope 1, 2, and 3 carbon emissions for Australian construction projects. NCC compliant with AI-powered BOQ import."
+        canonicalPath="/calculator"
+      />
       {/* Header */}
       <div className="bg-slate-900 text-white shadow-lg print:hidden">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
