@@ -38,13 +38,19 @@ export const useCalculationHistory = (limit = 5) => {
 
       const formattedHistory: CalculationHistory[] = (data || []).map((calc) => {
         const totals = calc.totals as any || {};
+        // Convert from kgCO2e (database) to tCO2e (display) by dividing by 1000
+        const scope1Raw = totals.scope1 || 0;
+        const scope2Raw = totals.scope2 || 0;
+        const scope3Raw = (totals.scope3_materials || 0) + (totals.scope3_transport || 0) + (totals.scope3_a5 || 0) + (totals.scope3_commute || 0) + (totals.scope3_waste || 0);
+        const totalRaw = totals.total || 0;
+        
         return {
           id: calc.id,
           updatedAt: new Date(calc.updated_at || ''),
-          totalEmissions: totals.total || 0,
-          scope1: totals.scope1 || 0,
-          scope2: totals.scope2 || 0,
-          scope3: (totals.scope3_materials || 0) + (totals.scope3_transport || 0) + (totals.scope3_a5 || 0) + (totals.scope3_commute || 0) + (totals.scope3_waste || 0),
+          totalEmissions: totalRaw / 1000,
+          scope1: scope1Raw / 1000,
+          scope2: scope2Raw / 1000,
+          scope3: scope3Raw / 1000,
           isDraft: calc.is_draft || false,
         };
       });
