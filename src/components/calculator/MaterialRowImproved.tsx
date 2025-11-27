@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Leaf } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Material {
   id: string;
@@ -12,6 +13,7 @@ interface Material {
   source: string;
   quantity: number;
   isCustom: boolean;
+  sequestration?: number; // kgCO2 stored per unit (negative = carbon stored)
 }
 
 interface MaterialRowImprovedProps {
@@ -21,13 +23,20 @@ interface MaterialRowImprovedProps {
 }
 
 export function MaterialRowImproved({ material, onChange, onRemove }: MaterialRowImprovedProps) {
-  const emissions = (material.quantity * material.factor) / 1000;
+  const grossEmissions = (material.quantity * material.factor) / 1000;
+  const sequestration = material.sequestration 
+    ? (material.quantity * material.sequestration) / 1000 
+    : 0;
+  const netEmissions = grossEmissions - sequestration;
+  const hasSequestration = material.sequestration && material.sequestration > 0;
 
   return (
     <div className={`rounded-lg border p-4 mb-3 transition-all ${
       material.isCustom 
         ? 'bg-purple-50/50 border-purple-200' 
-        : 'bg-card hover:shadow-sm'
+        : hasSequestration 
+          ? 'bg-emerald-50/30 border-emerald-200'
+          : 'bg-card hover:shadow-sm'
     }`}>
       {/* Header: Material name and source */}
       <div className="flex items-start justify-between mb-3">
@@ -41,7 +50,22 @@ export function MaterialRowImproved({ material, onChange, onRemove }: MaterialRo
             />
           ) : (
             <>
-              <div className="font-medium text-foreground">{material.name}</div>
+              <div className="font-medium text-foreground flex items-center gap-2">
+                {material.name}
+                {hasSequestration && (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">
+                        <Leaf className="h-3 w-3" />
+                        Carbon Store
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-sm">This timber material stores {material.sequestration?.toFixed(1)} kgCO₂/{material.unit}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
               <div className="text-xs text-muted-foreground mt-0.5">🏷️ {material.source}</div>
             </>
           )}
@@ -57,7 +81,7 @@ export function MaterialRowImproved({ material, onChange, onRemove }: MaterialRo
       </div>
 
       {/* Data row: Quantity | Factor | Emissions */}
-      <div className="grid grid-cols-3 gap-4 items-end">
+      <div className={`grid ${hasSequestration ? 'grid-cols-4' : 'grid-cols-3'} gap-4 items-end`}>
         {/* Quantity Input */}
         <div>
           <label className="text-xs text-muted-foreground mb-1.5 block">Quantity</label>
@@ -107,16 +131,43 @@ export function MaterialRowImproved({ material, onChange, onRemove }: MaterialRo
           )}
         </div>
 
-        {/* Emissions Result */}
+        {/* Sequestration (only for timber) */}
+        {hasSequestration && (
+          <div>
+            <label className="text-xs text-emerald-600 mb-1.5 block flex items-center gap-1">
+              <Leaf className="h-3 w-3" /> Stored
+            </label>
+            <div className="h-10 flex items-center justify-center px-3 bg-emerald-100 rounded-md border border-emerald-200 font-bold text-emerald-700">
+              -{sequestration.toFixed(3)} t
+            </div>
+          </div>
+        )}
+
+        {/* Net Emissions Result */}
         <div>
-          <label className="text-xs text-muted-foreground mb-1.5 block">Emissions</label>
+          <label className="text-xs text-muted-foreground mb-1.5 block">
+            {hasSequestration ? 'Net Carbon' : 'Emissions'}
+          </label>
           <div className={`h-10 flex items-center justify-center px-3 rounded-md font-bold text-lg ${
-            emissions > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'
+            netEmissions <= 0 
+              ? 'bg-blue-100 text-blue-700' 
+              : grossEmissions > 0 
+                ? 'bg-emerald-100 text-emerald-700' 
+                : 'bg-muted text-muted-foreground'
           }`}>
-            {emissions.toFixed(3)} t
+            {netEmissions <= 0 && hasSequestration && '🌱 '}
+            {netEmissions.toFixed(3)} t
           </div>
         </div>
       </div>
+
+      {/* Carbon benefit summary for timber */}
+      {hasSequestration && material.quantity > 0 && (
+        <div className="mt-3 p-2 bg-emerald-50 rounded border border-emerald-200 text-xs text-emerald-700">
+          <strong>Carbon Benefit:</strong> Gross emissions {grossEmissions.toFixed(3)}t - {sequestration.toFixed(3)}t stored = <strong>{netEmissions.toFixed(3)}t net</strong>
+          {netEmissions <= 0 && ' (Carbon negative! 🌲)'}
+        </div>
+      )}
     </div>
   );
 }

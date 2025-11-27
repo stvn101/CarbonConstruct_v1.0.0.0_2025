@@ -33,6 +33,7 @@ interface Material {
   source: string;
   quantity: number;
   isCustom: boolean;
+  sequestration?: number; // kgCO2 stored per unit for timber
 }
 
 const loadFromStorage = (key: string, fallback: any) => {
@@ -265,7 +266,7 @@ export default function Calculator() {
   }, [projectDetails, scope1Inputs, scope2Inputs, transportInputs, commuteInputs, wasteInputs, a5Inputs, selectedMaterials]);
 
   const calculations = useMemo(() => {
-    let scope1 = 0, scope2 = 0, scope3_materials = 0, scope3_transport = 0, scope3_commute = 0, scope3_waste = 0, scope3_a5 = 0;
+    let scope1 = 0, scope2 = 0, scope3_materials_gross = 0, scope3_sequestration = 0, scope3_transport = 0, scope3_commute = 0, scope3_waste = 0, scope3_a5 = 0;
 
     Object.entries(FUEL_FACTORS).forEach(([k, f]) => {
       const val = parseFloat(scope1Inputs[k] || '0');
@@ -278,7 +279,10 @@ export default function Calculator() {
     scope2 = s2Val * s2Factor;
 
     selectedMaterials.forEach(m => {
-      scope3_materials += m.quantity * m.factor;
+      scope3_materials_gross += m.quantity * m.factor;
+      if (m.sequestration) {
+        scope3_sequestration += m.quantity * m.sequestration;
+      }
     });
 
     Object.entries(TRANSPORT_FACTORS).forEach(([k, f]) => {
@@ -308,15 +312,19 @@ export default function Calculator() {
       scope3_a5 += val * f.factor;
     });
 
+    const scope3_materials_net = scope3_materials_gross - scope3_sequestration;
+
     return { 
       scope1, 
       scope2, 
-      scope3_materials, 
+      scope3_materials: scope3_materials_net, // Net materials (after sequestration)
+      scope3_materials_gross,
+      scope3_sequestration,
       scope3_transport, 
       scope3_commute, 
       scope3_waste, 
       scope3_a5,
-      total: scope1 + scope2 + scope3_materials + scope3_transport + scope3_commute + scope3_waste + scope3_a5 
+      total: scope1 + scope2 + scope3_materials_net + scope3_transport + scope3_commute + scope3_waste + scope3_a5 
     };
   }, [scope1Inputs, scope2Inputs, selectedMaterials, transportInputs, commuteInputs, wasteInputs, a5Inputs, projectDetails.location]);
 
@@ -333,7 +341,8 @@ export default function Calculator() {
       factor: material.ef_total,
       source: material.data_source,
       quantity: 0,
-      isCustom: false
+      isCustom: false,
+      sequestration: material.carbon_sequestration_kg ? Math.abs(material.carbon_sequestration_kg) : undefined
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     setMaterialSearch(''); // Clear search after adding
@@ -1391,6 +1400,14 @@ export default function Calculator() {
                   <span className="text-slate-300">Materials (A1-A3)</span>
                   <span className="font-bold">{(calculations.scope3_materials / 1000).toFixed(2)} t</span>
                 </div>
+                {calculations.scope3_sequestration > 0 && (
+                  <div className="flex justify-between border-b border-slate-700 pb-2 bg-emerald-900/30 -mx-6 px-6 py-2">
+                    <span className="text-emerald-300 flex items-center gap-1">
+                      <Leaf className="h-3 w-3" /> Carbon Stored
+                    </span>
+                    <span className="font-bold text-emerald-400">-{(calculations.scope3_sequestration / 1000).toFixed(2)} t</span>
+                  </div>
+                )}
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Transport (A4)</span>
                   <span className="font-bold">{(calculations.scope3_transport / 1000).toFixed(2)} t</span>
