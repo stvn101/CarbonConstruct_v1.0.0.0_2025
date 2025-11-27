@@ -95,7 +95,7 @@ export function useAnalytics() {
       
       // Send page view to GA4
       if (window.gtag) {
-        window.gtag('config', 'G-XXXXXXXXXX', {
+        window.gtag('config', 'G-PN7JGFZ74E', {
           page_path: location.pathname,
           page_location: window.location.href,
         });
