@@ -7,6 +7,10 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     setupFiles: ['./src/lib/__tests__/setup.ts'],
+    deps: {
+      inline: [/@supabase/]
+    },
+    cache: false,
   },
   resolve: {
     alias: {
