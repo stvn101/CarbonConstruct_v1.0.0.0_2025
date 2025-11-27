@@ -12,7 +12,7 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart } from "lucide-react";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
 const Index = () => {
   const {
     user,
@@ -130,9 +130,21 @@ Calculate and track your project's carbon emissions across all three scopes with
           </h1>
           <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Welcome back! Select a project to continue.</p>
         </div>
-        <Button variant="outline" onClick={signOut} size="sm" className="hover-scale text-xs md:text-sm">
-          Sign Out
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={refetch} 
+            size="sm" 
+            className="hover-scale text-xs md:text-sm"
+            disabled={emissionsLoading}
+          >
+            <RefreshCw className={`h-3 w-3 md:h-4 md:w-4 mr-1.5 ${emissionsLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button variant="outline" onClick={signOut} size="sm" className="hover-scale text-xs md:text-sm">
+            Sign Out
+          </Button>
+        </div>
       </div>
 
       {/* Project Selector */}
