@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { checkRateLimit } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,6 +55,35 @@ serve(async (req) => {
     }
 
     console.log(`[carbon-recommendations] Request from user: ${user.id}`);
+
+    // Check rate limit (20 recommendations per 10 minutes)
+    const rateLimitResult = await checkRateLimit(
+      supabase,
+      user.id,
+      'carbon-recommendations',
+      { windowMinutes: 10, maxRequests: 20 }
+    );
+
+    if (!rateLimitResult.allowed) {
+      const resetInSeconds = Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000);
+      console.warn(`[carbon-recommendations] User ${user.id}: Rate limit exceeded. Reset in ${resetInSeconds}s`);
+      return new Response(
+        JSON.stringify({ 
+          error: `Rate limit exceeded. Please try again in ${Math.ceil(resetInSeconds / 60)} minutes.`,
+          retryAfter: resetInSeconds
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(resetInSeconds)
+          } 
+        }
+      );
+    }
+
+    console.log(`[carbon-recommendations] User ${user.id}: Rate limit OK (${rateLimitResult.remaining} remaining)`);
 
     // Parse and validate input
     const rawBody = await req.json();

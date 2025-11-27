@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { checkRateLimit } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,6 +35,35 @@ serve(async (req) => {
     
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
+
+    // Check rate limit (10 checkout attempts per 15 minutes)
+    const rateLimitResult = await checkRateLimit(
+      supabaseClient,
+      user.id,
+      'create-checkout',
+      { windowMinutes: 15, maxRequests: 10 }
+    );
+
+    if (!rateLimitResult.allowed) {
+      const resetInSeconds = Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000);
+      logStep("Rate limit exceeded", { userId: user.id, resetInSeconds });
+      return new Response(
+        JSON.stringify({ 
+          error: `Too many checkout attempts. Please try again in ${Math.ceil(resetInSeconds / 60)} minutes.`,
+          retryAfter: resetInSeconds
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "Retry-After": String(resetInSeconds)
+          } 
+        }
+      );
+    }
+
+    logStep("Rate limit OK", { remaining: rateLimitResult.remaining });
 
     // Get the price_id from request body
     const { price_id, tier_name } = await req.json();
