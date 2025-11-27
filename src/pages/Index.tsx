@@ -36,8 +36,8 @@ const Index = () => {
             <div className="space-y-3 md:space-y-4 animate-fade-in">
               <div className="flex items-center justify-center gap-4">
               <img 
-                  src="/logo-optimized.webp?v=3" 
-                  alt="CarbonConstruct Logo" 
+                  src="/logo-optimized.webp?v=4" 
+                  alt="CarbonConstruct Logo"
                   className="w-16 h-16 md:w-24 md:h-24" 
                   width="96" 
                   height="96" 
