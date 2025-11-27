@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProject } from '@/contexts/ProjectContext';
 import { logger } from '@/lib/logger';
+import { validateCalculationData, UnitValidationResult } from '@/lib/unit-validation';
 
 export interface MaterialItem {
   name: string;
@@ -61,6 +62,7 @@ export interface UnifiedCalculationData {
 export const useUnifiedCalculations = () => {
   const [data, setData] = useState<UnifiedCalculationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [validationResult, setValidationResult] = useState<UnitValidationResult | null>(null);
   const { currentProject } = useProject();
 
   const fetchUnifiedCalculations = async () => {
@@ -206,18 +208,37 @@ export const useUnifiedCalculations = () => {
           total: rawTotals.total || 0
         };
 
-        setData({
+        const calculationData = {
           id: calcData.id,
-          materials, // Use transformed materials array
+          materials,
           fuelInputs,
           electricityInputs,
           transportInputs,
           totals,
           createdAt: calcData.created_at,
           updatedAt: calcData.updated_at
+        };
+
+        // Validate unit consistency
+        const validation = validateCalculationData({
+          materials,
+          fuelInputs,
+          electricityInputs,
+          transportInputs,
+          totals
         });
+        setValidationResult(validation);
+        
+        if (validation.warnings.length > 0) {
+          logger.warn('UnifiedCalculations:unitValidation', 
+            `Project ${currentProject.id}: ${validation.warnings.join('; ')}`
+          );
+        }
+
+        setData(calculationData);
       } else {
         setData(null);
+        setValidationResult(null);
       }
     } catch (error) {
       logger.error('UnifiedCalculations:fetchCalculations', error);
@@ -234,6 +255,7 @@ export const useUnifiedCalculations = () => {
   return {
     data,
     loading,
+    validationResult,
     refetch: fetchUnifiedCalculations
   };
 };
