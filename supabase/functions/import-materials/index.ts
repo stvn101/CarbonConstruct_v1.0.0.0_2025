@@ -119,23 +119,31 @@ Deno.serve(async (req) => {
       }
 
       if (batchData && batchData.length > 0) {
-        // Map the data to our schema
+        // Map the data to our schema - unified_materials column mapping
         const mappedData = batchData.map((row: any) => {
-          // Map common columns
-          const mapped: any = {
-            material_name: row.material_name || row.name || 'Unknown',
-            material_category: row.material_category || row.category || 'Uncategorized',
-            unit: row.unit || 'kg',
-            embodied_carbon_a1a3: row.embodied_carbon_a1a3 || row.a1a3 || null,
-            embodied_carbon_a4: row.embodied_carbon_a4 || row.a4 || null,
-            embodied_carbon_a5: row.embodied_carbon_a5 || row.a5 || null,
-            embodied_carbon_total: row.embodied_carbon_total || row.total || null,
-            data_source: row.data_source || row.source || 'External Import',
-            region: row.region || 'Australia',
-          };
+          // Calculate total from LCA stages
+          const a1a3 = parseFloat(row.a1a3_factor) || null;
+          const a4 = parseFloat(row.a4_factor) || null;
+          const a5 = parseFloat(row.a5_factor) || null;
+          
+          // Calculate total if we have at least a1a3
+          let total = null;
+          if (a1a3 !== null) {
+            total = a1a3 + (a4 || 0) + (a5 || 0);
+          }
 
-          // Remove the id to let Supabase generate new UUIDs
-          delete mapped.id;
+          const mapped: any = {
+            material_name: row.name || 'Unknown',
+            material_category: row.category || 'Uncategorized',
+            unit: row.unit || 'kg',
+            embodied_carbon_a1a3: a1a3,
+            embodied_carbon_a4: a4,
+            embodied_carbon_a5: a5,
+            embodied_carbon_total: total,
+            data_source: row.source || 'External Import',
+            region: row.region || 'Australia',
+            year: row.publish_date ? new Date(row.publish_date).getFullYear() : null,
+          };
 
           return mapped;
         });
