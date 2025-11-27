@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, TRANSPORT_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
 import { SEOHead } from "@/components/SEOHead";
-import { useLocalMaterials, Material as LocalMaterial } from "@/hooks/useLocalMaterials";
+import { useEPDMaterials, EPDMaterial } from "@/hooks/useEPDMaterials";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFavoriteMaterials } from "@/hooks/useFavoriteMaterials";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -162,8 +162,8 @@ export default function Calculator() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Fetch materials from LOCAL database (no Supabase)
-  const { materials: dbMaterials, loading: materialsLoading, getUnitLabel } = useLocalMaterials();
+  // Fetch materials from EPD database (Supabase materials_epd table)
+  const { materials: dbMaterials, loading: materialsLoading, getUnitLabel, states, manufacturers } = useEPDMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [useNewMaterialUI, setUseNewMaterialUI] = useState(() => {
@@ -178,11 +178,11 @@ export default function Calculator() {
   // Favorite materials for quick-add
   const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites } = useFavoriteMaterials();
   
-  // Category counts for browser - using local database
+  // Category counts for browser - using EPD database
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
     dbMaterials.forEach(m => {
-      counts.set(m.category, (counts.get(m.category) || 0) + 1);
+      counts.set(m.material_category, (counts.get(m.material_category) || 0) + 1);
     });
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
@@ -214,19 +214,20 @@ export default function Calculator() {
   
   // Group database materials by category and filter by search/category
   const groupedMaterials = useMemo(() => {
-    let filtered = [...dbMaterials]; // Local materials already have valid data
+    let filtered = [...dbMaterials];
     
     // Filter by selected category
     if (selectedCategory) {
-      filtered = filtered.filter(m => m.category === selectedCategory);
+      filtered = filtered.filter(m => m.material_category === selectedCategory);
     }
     
     // Filter by search term
     if (materialSearch.length >= 2) {
       filtered = filtered.filter(m => 
-        m.name.toLowerCase().includes(materialSearch.toLowerCase()) ||
-        m.category.toLowerCase().includes(materialSearch.toLowerCase()) ||
-        m.subcategory.toLowerCase().includes(materialSearch.toLowerCase())
+        m.material_name.toLowerCase().includes(materialSearch.toLowerCase()) ||
+        m.material_category.toLowerCase().includes(materialSearch.toLowerCase()) ||
+        (m.subcategory?.toLowerCase().includes(materialSearch.toLowerCase()) ?? false) ||
+        (m.manufacturer?.toLowerCase().includes(materialSearch.toLowerCase()) ?? false)
       );
     }
     
@@ -238,11 +239,11 @@ export default function Calculator() {
     
     if (!shouldShow) return [];
     
-    const groups = new Map<string, LocalMaterial[]>();
+    const groups = new Map<string, EPDMaterial[]>();
     filtered.forEach(mat => {
-      const existing = groups.get(mat.category) || [];
+      const existing = groups.get(mat.material_category) || [];
       existing.push(mat);
-      groups.set(mat.category, existing);
+      groups.set(mat.material_category, existing);
     });
     
     // Sort categories and limit items per category for performance
@@ -336,15 +337,15 @@ export default function Calculator() {
 
     const newItem: Material = {
       id: Date.now().toString() + Math.random(),
-      category: material.category,
+      category: material.material_category,
       typeId: material.id,
-      name: material.name,
+      name: material.material_name,
       unit: material.unit,
       factor: material.ef_total,
       source: material.data_source,
       quantity: 0,
       isCustom: false,
-      sequestration: material.carbon_sequestration_kg ? Math.abs(material.carbon_sequestration_kg) : undefined
+      sequestration: material.recycled_content ? undefined : undefined // EPD doesn't have sequestration field
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     setMaterialSearch(''); // Clear search after adding
@@ -352,8 +353,8 @@ export default function Calculator() {
     // Track usage for quick-add
     trackMaterialUsage({
       id: material.id,
-      name: material.name,
-      category: material.category,
+      name: material.material_name,
+      category: material.material_category,
       unit: material.unit,
       factor: material.ef_total,
       source: material.data_source
@@ -1086,8 +1087,8 @@ export default function Calculator() {
                           category: g.category, 
                           items: g.items.map(i => ({
                             id: i.id,
-                            material_name: i.name,
-                            material_category: i.category,
+                            material_name: i.material_name,
+                            material_category: i.material_category,
                             unit: i.unit,
                             embodied_carbon_total: i.ef_total,
                             embodied_carbon_a1a3: i.ef_a1a3,
@@ -1124,13 +1125,13 @@ export default function Calculator() {
                                 <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground uppercase bg-muted rounded">
                                   {category} ({items.length})
                                 </div>
-                                {items.map(item => (
+                            {items.map(item => (
                                   <button
                                     key={item.id}
                                     onClick={() => addMaterialFromDb(item.id)}
                                     className="w-full text-left px-3 py-2 text-sm hover:bg-emerald-50 rounded flex justify-between items-center group"
                                   >
-                                    <span className="text-foreground">{item.name}</span>
+                                    <span className="text-foreground">{item.material_name}</span>
                                     <span className="text-xs text-muted-foreground group-hover:text-emerald-600">
                                       {item.ef_total.toFixed(1)} kgCO2/{item.unit}
                                     </span>
