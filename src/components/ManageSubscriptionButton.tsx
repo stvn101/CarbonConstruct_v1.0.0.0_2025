@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Settings } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ManageSubscriptionButtonProps {
   variant?: 'default' | 'outline';
@@ -17,8 +18,18 @@ export const ManageSubscriptionButton = ({
   className 
 }: ManageSubscriptionButtonProps) => {
   const [loading, setLoading] = useState(false);
+  const { user, session } = useAuth();
 
   const handleManage = async () => {
+    if (!user || !session) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to manage your subscription',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
