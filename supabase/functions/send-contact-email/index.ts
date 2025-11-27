@@ -13,6 +13,18 @@ interface ContactEmailRequest {
   message: string;
 }
 
+// HTML escape function to prevent XSS attacks
+const escapeHtml = (str: string): string => {
+  const htmlEscapes: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return str.replace(/[&<>"']/g, (char) => htmlEscapes[char] || char);
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -38,19 +50,25 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Escape user inputs to prevent XSS
+    const safeName = escapeHtml(name.trim());
+    const safeEmail = escapeHtml(email.trim());
+    const safeSubject = escapeHtml(subject.trim());
+    const safeMessage = escapeHtml(message.trim());
+
     // Send email to support team
     const emailResponse = await resend.emails.send({
       from: "CarbonConstruct <onboarding@resend.dev>",
       to: ["support@carbonconstruct.com.au"],
       replyTo: email,
-      subject: `Support Request: ${subject}`,
+      subject: `Support Request: ${safeSubject}`,
       html: `
         <h2>New Support Request</h2>
-        <p><strong>From:</strong> ${name} (${email})</p>
-        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>From:</strong> ${safeName} (${safeEmail})</p>
+        <p><strong>Subject:</strong> ${safeSubject}</p>
         <hr />
         <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, "<br>")}</p>
+        <p>${safeMessage.replace(/\n/g, "<br>")}</p>
       `,
     });
 
@@ -60,12 +78,12 @@ const handler = async (req: Request): Promise<Response> => {
       to: [email],
       subject: "We received your message",
       html: `
-        <h1>Thank you for contacting us, ${name}!</h1>
-        <p>We have received your message about: <strong>${subject}</strong></p>
+        <h1>Thank you for contacting us, ${safeName}!</h1>
+        <p>We have received your message about: <strong>${safeSubject}</strong></p>
         <p>Our support team will get back to you as soon as possible.</p>
         <hr />
         <p><em>Your message:</em></p>
-        <p>${message.replace(/\n/g, "<br>")}</p>
+        <p>${safeMessage.replace(/\n/g, "<br>")}</p>
         <br />
         <p>Best regards,<br>The CarbonConstruct Team</p>
       `,
