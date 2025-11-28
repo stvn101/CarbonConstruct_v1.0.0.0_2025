@@ -8,8 +8,8 @@ import { logger } from '@/lib/logger';
 interface Project {
   id: string;
   name: string;
-  description?: string;
-  location?: string;
+  description?: string | null;
+  location?: string | null;
   project_type: string;
   status: string;
   created_at: string;

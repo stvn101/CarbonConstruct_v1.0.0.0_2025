@@ -1,16 +1,6 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { X, Zap } from "lucide-react";
-
-interface FavoriteMaterial {
-  materialId: string;
-  materialName: string;
-  category: string;
-  unit: string;
-  factor: number;
-  source: string;
-  usageCount: number;
-  isPinned: boolean;
-}
+import { FavoriteMaterial } from "@/hooks/useFavoriteMaterials";
 
 interface QuickAddPanelProps {
   materials: FavoriteMaterial[];

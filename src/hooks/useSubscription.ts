@@ -20,12 +20,12 @@ export interface SubscriptionTier {
 }
 
 export interface UserSubscription {
-  id: string;
-  tier_id: string;
-  status: string;
+  id: string | null;
+  tier_id: string | null;
+  status: string | null;
   trial_end: string | null;
   current_period_end: string | null;
-  cancel_at_period_end: boolean;
+  cancel_at_period_end: boolean | null;
 }
 
 export const useSubscription = () => {
@@ -71,11 +71,25 @@ export const useSubscription = () => {
       if (!data) return null;
       
       // Fetch tier separately since view doesn't support joins
-      const { data: tier } = await supabase
-        .from('subscription_tiers')
-        .select('*')
-        .eq('id', data.tier_id)
-        .single();
+      let tierData: {
+        id: string;
+        name: string;
+        stripe_price_id: string | null;
+        price_monthly: number;
+        price_annual: number | null;
+        features: unknown;
+        limits: unknown;
+        display_order: number;
+      } | null = null;
+      
+      if (data.tier_id) {
+        const { data: fetchedTier } = await supabase
+          .from('subscription_tiers')
+          .select('*')
+          .eq('id', data.tier_id)
+          .single();
+        tierData = fetchedTier;
+      }
       
       return {
         id: data.id,
@@ -84,10 +98,10 @@ export const useSubscription = () => {
         trial_end: data.trial_end,
         current_period_end: data.current_period_end,
         cancel_at_period_end: data.cancel_at_period_end,
-        subscription_tiers: tier ? {
-          ...tier,
-          features: Array.isArray(tier.features) ? tier.features as string[] : [],
-          limits: tier.limits as SubscriptionTier['limits'],
+        subscription_tiers: tierData ? {
+          ...tierData,
+          features: Array.isArray(tierData.features) ? tierData.features as string[] : [],
+          limits: tierData.limits as SubscriptionTier['limits'],
         } : null,
       };
     },

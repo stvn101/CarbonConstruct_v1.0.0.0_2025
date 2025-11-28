@@ -1,5 +1,5 @@
 import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
-import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import { SEMRESATTRS_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
@@ -13,21 +13,20 @@ export function initTracing() {
       [SEMRESATTRS_SERVICE_NAME]: "loval-carbon-compass",
     });
 
-    const provider = new WebTracerProvider({
-      resource,
-    });
-
     // Use the AI Toolkit's OTLP endpoint
     const exporter = new OTLPTraceExporter({
       url: "http://localhost:4318/v1/traces",
     });
 
-    provider.addSpanProcessor(new BatchSpanProcessor(exporter));
+    const provider = new WebTracerProvider({
+      resource,
+      spanProcessors: [new SimpleSpanProcessor(exporter)],
+    });
 
     provider.register();
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const propagateTraceHeaderCorsUrls = [];
+    const propagateTraceHeaderCorsUrls: RegExp[] = [];
 
     if (supabaseUrl) {
       propagateTraceHeaderCorsUrls.push(

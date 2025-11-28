@@ -55,8 +55,8 @@ export interface UnifiedCalculationData {
   electricityInputs: ElectricityInput[];
   transportInputs: TransportInput[];
   totals: UnifiedTotals;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 export const useUnifiedCalculations = () => {

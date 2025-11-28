@@ -16,12 +16,12 @@ export interface EPDMaterial {
   region: string | null;
   state: string | null;
   unit: string;
-  ef_a1a3: number;
-  ef_a4: number;
-  ef_a5: number;
-  ef_b1b5: number;
-  ef_c1c4: number;
-  ef_d: number;
+  ef_a1a3: number | null;
+  ef_a4: number | null;
+  ef_a5: number | null;
+  ef_b1b5: number | null;
+  ef_c1c4: number | null;
+  ef_d: number | null;
   ef_total: number;
   data_source: string;
   epd_url: string | null;
