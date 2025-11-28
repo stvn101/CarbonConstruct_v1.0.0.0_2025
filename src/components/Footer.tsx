@@ -125,7 +125,7 @@ export const Footer = () => {
             <p>
               © {currentYear} CarbonConstruct. All rights reserved.
             </p>
-            <div className="flex gap-6">
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
               <Link to="/privacy" className="hover:text-primary transition-colors">
                 Privacy Policy
               </Link>
@@ -134,6 +134,9 @@ export const Footer = () => {
               </Link>
               <Link to="/cookies" className="hover:text-primary transition-colors">
                 Cookie Policy
+              </Link>
+              <Link to="/accessibility" className="hover:text-primary transition-colors">
+                Accessibility
               </Link>
               <a 
                 href="https://rattle-houseboat-ff1.notion.site/Ethical-Sourcing-Declaration-2424caf9a8c1800e9555d56f1a1e915e?pvs=143" 
