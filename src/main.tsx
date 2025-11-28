@@ -5,7 +5,11 @@ import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
 import { initializeErrorTracking, trackErrorGlobal } from "./hooks/useErrorTracking";
+import { initTracing } from "./lib/tracing";
 import "./index.css";
+
+// Initialize tracing
+initTracing();
 
 // Initialize global error tracking
 initializeErrorTracking();
