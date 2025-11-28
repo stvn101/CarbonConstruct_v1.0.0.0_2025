@@ -135,6 +135,14 @@ export const Footer = () => {
               <Link to="/cookies" className="hover:text-primary transition-colors">
                 Cookie Policy
               </Link>
+              <a 
+                href="https://rattle-houseboat-ff1.notion.site/Ethical-Sourcing-Declaration-2424caf9a8c1800e9555d56f1a1e915e?pvs=143" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="hover:text-primary transition-colors"
+              >
+                Modern Slavery Statement
+              </a>
             </div>
           </div>
         </div>

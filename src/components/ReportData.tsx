@@ -4,8 +4,8 @@ import { useUnifiedCalculations, MaterialItem, FuelInput, ElectricityInput, Tran
 export interface ReportData {
   project: {
     name: string;
-    description?: string;
-    location?: string;
+    description?: string | null;
+    location?: string | null;
     project_type: string;
   };
   emissions: {

@@ -224,7 +224,18 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
     console.log("Input data:", JSON.stringify(formData, null, 2));
     
     try {
-      const emissions = [];
+      const emissions: Array<{
+        energy_type: string;
+        state_region: string | null;
+        quantity: number;
+        unit: string;
+        emission_factor: number;
+        renewable_percentage?: number;
+        emissions_tco2e: number;
+        notes: string | null;
+        data_quality: string;
+        calculation_method: string;
+      }> = [];
 
       // Process electricity with detailed logging
       console.log("Processing electricity entries:", formData.electricity?.length || 0);
@@ -448,7 +459,21 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
 
     setLoading(true);
     try {
-      const emissions = [];
+      const emissions: Array<{
+        category: number;
+        category_name: string;
+        subcategory: string;
+        activity_description: string;
+        lca_stage: string;
+        quantity: number;
+        unit: string;
+        emission_factor: number;
+        emissions_tco2e: number;
+        supplier_data: boolean;
+        notes: string;
+        data_quality: string;
+        calculation_method: string;
+      }> = [];
 
       // Process upstream activities
       for (const activity of formData.upstreamActivities || []) {
