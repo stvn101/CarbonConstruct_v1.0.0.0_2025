@@ -35,6 +35,7 @@ export const useSubscription = () => {
   // Fetch all available tiers
   const { data: tiers, isLoading: tiersLoading } = useQuery({
     queryKey: ['subscription-tiers'],
+    staleTime: 30 * 60 * 1000, // 30 minutes - tiers rarely change
     queryFn: async () => {
       const { data, error } = await supabase
         .from('subscription_tiers')
@@ -57,6 +58,7 @@ export const useSubscription = () => {
   const { data: userSubscription, isLoading: subscriptionLoading } = useQuery({
     queryKey: ['user-subscription', user?.id],
     enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes - subscription doesn't change often
     queryFn: async (): Promise<(UserSubscription & { subscription_tiers?: SubscriptionTier | null }) | null> => {
       if (!user) return null;
       
@@ -132,6 +134,7 @@ export const useSubscription = () => {
   const { data: usageMetrics } = useQuery({
     queryKey: ['usage-metrics', user?.id],
     enabled: !!user,
+    staleTime: 1 * 60 * 1000, // 1 minute - usage changes more frequently
     queryFn: async () => {
       if (!user) return [];
       

@@ -29,7 +29,16 @@ const Roadmap = lazy(() => import("./pages/Roadmap"));
 const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
 const AccessibilityStatement = lazy(() => import("./pages/AccessibilityStatement"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60, // 1 minute - data considered fresh
+      gcTime: 1000 * 60 * 5, // 5 minutes - cache garbage collection
+      refetchOnWindowFocus: false, // Don't refetch when tab focused
+      retry: 1, // Only retry once on failure
+    },
+  },
+});
 
 // Monitoring wrapper component
 function MonitoringProvider({ children }: { children: React.ReactNode }) {
