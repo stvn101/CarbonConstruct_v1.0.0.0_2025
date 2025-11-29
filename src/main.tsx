@@ -4,11 +4,18 @@ import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
 import { initializeErrorTracking, trackErrorGlobal } from "./hooks/useErrorTracking";
-import { initTracing } from "./lib/tracing";
 import "./index.css";
 
-// Initialize tracing
-initTracing();
+// Initialize tracing only in local development (wrapped in try-catch)
+try {
+  import("./lib/tracing").then(({ initTracing }) => {
+    initTracing();
+  }).catch(() => {
+    // Silently fail - tracing is optional
+  });
+} catch {
+  // Silently fail - tracing is optional
+}
 
 // Initialize global error tracking
 initializeErrorTracking();
