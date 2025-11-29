@@ -1,5 +1,5 @@
 // Service Worker for CarbonConstruct PWA
-const CACHE_NAME = 'carbonconstruct-v3';
+const CACHE_NAME = 'carbonconstruct-v4';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
@@ -31,9 +31,44 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Helper to check if request is cacheable
+function isCacheableRequest(request) {
+  const url = new URL(request.url);
+  
+  // Skip non-GET requests (POST, PUT, DELETE, etc.)
+  if (request.method !== 'GET') {
+    return false;
+  }
+  
+  // Skip chrome-extension:// and other non-http(s) URLs
+  if (!url.protocol.startsWith('http')) {
+    return false;
+  }
+  
+  // Skip localhost tracing endpoints
+  if (url.hostname === 'localhost' && url.pathname.includes('/v1/traces')) {
+    return false;
+  }
+  
+  // Skip analytics and tracking URLs
+  if (url.hostname.includes('analytics') || 
+      url.hostname.includes('facebook') || 
+      url.hostname.includes('tiktok')) {
+    return false;
+  }
+  
+  return true;
+}
+
 // Fetch event - cache-first for hashed assets, network-first for HTML
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  
+  // Skip non-cacheable requests
+  if (!isCacheableRequest(request)) {
+    return;
+  }
+  
   const url = new URL(request.url);
 
   // Cache-first strategy for hashed assets (JS, CSS, images with hashes)
@@ -50,13 +85,15 @@ self.addEventListener('fetch', (event) => {
         }
 
         return fetch(request).then((response) => {
-          if (!response || response.status !== 200) {
+          if (!response || response.status !== 200 || response.type === 'opaque') {
             return response;
           }
 
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
+            cache.put(request, responseToCache).catch(() => {
+              // Silently fail cache put errors
+            });
           });
 
           return response;
@@ -72,10 +109,12 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        if (response && response.status === 200) {
+        if (response && response.status === 200 && response.type !== 'opaque') {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
+            cache.put(request, responseToCache).catch(() => {
+              // Silently fail cache put errors
+            });
           });
         }
         return response;

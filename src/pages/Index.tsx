@@ -36,13 +36,12 @@ const Index = () => {
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
               <div className="flex items-center justify-center gap-4">
-              <img 
+                <img 
                   src="/logo-optimized.webp?v=20251127" 
                   alt="CarbonConstruct Logo"
                   className="w-16 h-16 md:w-24 md:h-24" 
                   width="96" 
                   height="96" 
-                  fetchPriority="high" 
                   loading="eager" 
                 />
                 <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-primary [background:linear-gradient(to_right,hsl(var(--primary)),hsl(var(--accent)),hsl(var(--primary)))] bg-clip-text [-webkit-background-clip:text] [-webkit-text-fill-color:transparent] [text-fill-color:transparent]">
@@ -85,7 +84,6 @@ const Index = () => {
                   className="w-full h-48 sm:h-64 md:h-96 object-cover" 
                   width="1280" 
                   height="549" 
-                  fetchPriority="high" 
                   loading="eager" 
                 />
               </picture>
