@@ -1,5 +1,6 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
+// Force rebuild: 2025-11-29T10:20 - Fix React duplicate instances
+import * as React from "react";
+import * as ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
