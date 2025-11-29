@@ -280,7 +280,7 @@ const Reports = () => {
         </div>
         <ErrorBoundary>
           <Suspense fallback={<Button disabled>Loading PDF...</Button>}>
-            <PDFReport data={reportData} template={selectedTemplate} branding={effectiveBranding} showWatermark={!canCustomBrand} />
+            <PDFReport data={reportData} template={selectedTemplate} branding={effectiveBranding} options={{ showWatermark: !canCustomBrand }} />
           </Suspense>
         </ErrorBoundary>
       </div>

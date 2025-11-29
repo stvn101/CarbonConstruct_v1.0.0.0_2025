@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Force rebuild: 2025-11-29T10:25 - Fix ALL React duplicate instances (next-themes, sonner)
+// Force rebuild: 2025-11-29T10:30 - Removed @react-pdf/renderer, using html2pdf.js
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -26,8 +26,7 @@ export default defineConfig(({ mode }) => ({
       'react-dom', 
       'react/jsx-runtime', 
       'react/jsx-dev-runtime', 
-      'react-router-dom', 
-      '@react-pdf/renderer',
+      'react-router-dom',
       'next-themes',
       'sonner',
     ],
@@ -38,8 +37,7 @@ export default defineConfig(({ mode }) => ({
       'react-dom', 
       'react/jsx-runtime', 
       'react/jsx-dev-runtime', 
-      'react-router-dom', 
-      '@react-pdf/renderer',
+      'react-router-dom',
       'next-themes',
       'sonner',
     ],
