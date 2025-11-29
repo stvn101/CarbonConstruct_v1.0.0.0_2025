@@ -42,7 +42,7 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/lca" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link to="/calculator" className="text-muted-foreground hover:text-primary transition-colors">
                   LCA Calculator
                 </Link>
               </li>
