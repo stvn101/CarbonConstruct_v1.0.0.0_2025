@@ -45,7 +45,7 @@ const Index = () => {
                   fetchPriority="high" 
                   loading="eager" 
                 />
-                <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-primary" style={{ WebkitBackgroundClip: 'text', backgroundClip: 'text', backgroundImage: 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))', WebkitTextFillColor: 'transparent' }}>
                   CarbonConstruct
                 </h1>
               </div>
