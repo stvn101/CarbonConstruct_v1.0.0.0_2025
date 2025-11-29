@@ -55,9 +55,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="relative max-w-4xl mx-auto rounded-lg overflow-hidden shadow-glow animate-scale-in" style={{
-            animationDelay: '0.2s'
-          }}>
+            <div className="relative max-w-4xl mx-auto rounded-lg overflow-hidden shadow-glow animate-scale-in" style={{ animationDelay: '0.2s' }}>
               <picture>
                 <source 
                   type="image/webp"
@@ -85,18 +83,13 @@ const Index = () => {
                     Professional Carbon Assessment
                   </h2>
                   <p className="text-sm sm:text-base text-white/90 max-w-md">
-                    Comprehensive LCA methodologies for Australian construction projects
-Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
-
-
+                    Comprehensive LCA methodologies for Australian construction projects. Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-3 md:space-y-4 animate-fade-in" style={{
-            animationDelay: '0.4s'
-          }}>
+            <div className="space-y-3 md:space-y-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
               <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
                 Get Started
               </Button>
