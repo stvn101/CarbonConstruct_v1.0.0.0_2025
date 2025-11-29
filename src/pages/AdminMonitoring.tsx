@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,8 +13,10 @@ import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { SecurityAuditReportDownload } from "@/components/SecurityAuditReport";
 import { SecurityDashboard } from "@/components/SecurityDashboard";
+
+// Lazy load SecurityAuditReportDownload to isolate @react-pdf/renderer
+const SecurityAuditReportDownload = React.lazy(() => import("@/components/SecurityAuditReport").then(m => ({ default: m.SecurityAuditReportDownload })));
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -887,7 +889,9 @@ export default function AdminMonitoring() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <SecurityAuditReportDownload />
+                <Suspense fallback={<Button disabled>Loading...</Button>}>
+                  <SecurityAuditReportDownload />
+                </Suspense>
                 
                 <div className="bg-muted p-4 rounded-lg">
                   <h4 className="font-medium mb-2">Report Contents:</h4>

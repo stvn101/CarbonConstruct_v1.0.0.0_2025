@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Cache bust: 2025-11-29T09:52 - Force React deduplication rebuild
+// Cache bust: 2025-11-29T10:15 - Fix @react-pdf/renderer React duplicate
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -21,10 +21,10 @@ export default defineConfig(({ mode }) => ({
       "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
       "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
     },
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-router-dom'],
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-router-dom', '@react-pdf/renderer'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-router-dom', '@react-pdf/renderer'],
     force: true,
     esbuildOptions: {
       target: "esnext",
