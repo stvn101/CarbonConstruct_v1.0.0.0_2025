@@ -1,5 +1,4 @@
-// Force rebuild: 2025-11-29T10:20 - React deduplication fix
-import * as React from "react";
+// Force rebuild: 2025-11-29T11:00 - Fixed mixed React imports
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import type { User, Session } from "@supabase/supabase-js";
