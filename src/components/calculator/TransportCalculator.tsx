@@ -4,16 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Truck, MapPin, Calculator, Plus, Trash2, Info } from "lucide-react";
+import { Truck, MapPin, Plus, Trash2, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   TRANSPORT_MODES,
-  REGIONS,
   MATERIAL_TRANSPORT_DEFAULTS,
   calculateA4Emissions,
   estimateDistanceByPostcodes,
   getTransportMode,
-  getMaterialTransportDefault
 } from "@/data/transport-matrix";
 
 interface TransportItem {
@@ -124,11 +122,11 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
   const selectedMode = getTransportMode(quickCalc.modeId);
 
   return (
-    <Card className="p-5">
+    <Card className="p-4 md:p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Truck className="h-5 w-5 text-blue-600" />
-          <h3 className="font-bold text-lg text-slate-700">A4 Transport Emissions</h3>
+          <h3 className="font-bold text-base md:text-lg text-slate-700">A4 Transport Emissions</h3>
         </div>
         <Tooltip>
           <TooltipTrigger>
@@ -140,58 +138,59 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
         </Tooltip>
       </div>
 
-      {/* Quick Add Form */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+      {/* Quick Add Form - Mobile-first stacked layout */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4 mb-4">
         <div className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-3">Add Transport Leg</div>
         
-        <div className="grid grid-cols-12 gap-3">
+        {/* Mobile: stacked layout, Desktop: grid */}
+        <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-12 md:gap-3">
           {/* Weight */}
-          <div className="col-span-2">
-            <label className="text-xs text-muted-foreground mb-1 block">Weight</label>
-            <div className="relative">
-              <Input
-                type="number"
-                placeholder="0"
-                value={quickCalc.tonnes}
-                onChange={(e) => setQuickCalc(prev => ({ ...prev, tonnes: e.target.value }))}
-                className="pr-8 text-foreground"
-              />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">t</span>
-            </div>
+          <div className="md:col-span-2">
+            <label className="text-xs text-muted-foreground mb-1 block">Weight (tonnes)</label>
+            <Input
+              type="number"
+              placeholder="0"
+              value={quickCalc.tonnes}
+              onChange={(e) => setQuickCalc(prev => ({ ...prev, tonnes: e.target.value }))}
+              className="text-foreground"
+            />
           </div>
 
-          {/* From Postcode */}
-          <div className="col-span-2">
-            <label className="text-xs text-muted-foreground mb-1 block">From (Postcode)</label>
-            <div className="relative">
-              <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-              <Input
-                placeholder="2000"
-                value={quickCalc.fromPostcode}
-                onChange={(e) => setQuickCalc(prev => ({ ...prev, fromPostcode: e.target.value }))}
-                className="pl-7 text-foreground"
-                maxLength={4}
-              />
+          {/* Postcodes row on mobile */}
+          <div className="grid grid-cols-2 gap-3 md:contents">
+            {/* From Postcode */}
+            <div className="md:col-span-2">
+              <label className="text-xs text-muted-foreground mb-1 block">From</label>
+              <div className="relative">
+                <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                <Input
+                  placeholder="2000"
+                  value={quickCalc.fromPostcode}
+                  onChange={(e) => setQuickCalc(prev => ({ ...prev, fromPostcode: e.target.value }))}
+                  className="pl-7 text-foreground"
+                  maxLength={4}
+                />
+              </div>
             </div>
-          </div>
 
-          {/* To Postcode */}
-          <div className="col-span-2">
-            <label className="text-xs text-muted-foreground mb-1 block">To (Postcode)</label>
-            <div className="relative">
-              <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-              <Input
-                placeholder="2150"
-                value={quickCalc.toPostcode}
-                onChange={(e) => setQuickCalc(prev => ({ ...prev, toPostcode: e.target.value }))}
-                className="pl-7 text-foreground"
-                maxLength={4}
-              />
+            {/* To Postcode */}
+            <div className="md:col-span-2">
+              <label className="text-xs text-muted-foreground mb-1 block">To</label>
+              <div className="relative">
+                <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                <Input
+                  placeholder="2150"
+                  value={quickCalc.toPostcode}
+                  onChange={(e) => setQuickCalc(prev => ({ ...prev, toPostcode: e.target.value }))}
+                  className="pl-7 text-foreground"
+                  maxLength={4}
+                />
+              </div>
             </div>
           </div>
 
           {/* Transport Mode */}
-          <div className="col-span-4">
+          <div className="md:col-span-4">
             <label className="text-xs text-muted-foreground mb-1 block">Transport Mode</label>
             <Select 
               value={quickCalc.modeId} 
@@ -203,12 +202,7 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
               <SelectContent>
                 {TRANSPORT_MODES.map(mode => (
                   <SelectItem key={mode.id} value={mode.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{mode.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        ({mode.co2e_kg_per_tkm} kg/t·km)
-                      </span>
-                    </div>
+                    <span>{mode.name}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -216,7 +210,7 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
           </div>
 
           {/* Add Button */}
-          <div className="col-span-2 flex items-end">
+          <div className="md:col-span-2 md:flex md:items-end">
             <Button 
               onClick={handleQuickCalc}
               disabled={!quickCalc.tonnes}
@@ -250,74 +244,78 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
         </div>
       </details>
 
-      {/* Items List */}
+      {/* Items List - Card based for mobile */}
       {items.length > 0 ? (
-        <div className="space-y-2">
-          <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase px-2">
-            <div className="col-span-3">Route</div>
-            <div className="col-span-2 text-right">Weight</div>
-            <div className="col-span-2 text-right">Distance</div>
-            <div className="col-span-3">Mode</div>
-            <div className="col-span-2 text-right">Emissions</div>
-          </div>
-          
+        <div className="space-y-3">
           {items.map(item => {
             const mode = getTransportMode(item.modeId);
             return (
-              <div key={item.id} className="grid grid-cols-12 gap-2 items-center py-2 px-2 bg-muted/30 rounded group">
-                <div className="col-span-3 flex items-center gap-1">
-                  <span className="text-sm font-medium">{item.description}</span>
-                  {item.isEstimated && (
-                    <Badge variant="outline" className="text-xs">Est.</Badge>
-                  )}
-                </div>
-                
-                <div className="col-span-2 text-right">
-                  <Input
-                    type="number"
-                    value={item.materialTonnes || ''}
-                    onChange={(e) => updateItem(item.id, { materialTonnes: parseFloat(e.target.value) || 0 })}
-                    className="h-7 text-sm text-right w-20 ml-auto"
-                  />
-                </div>
-                
-                <div className="col-span-2 text-right">
-                  <Input
-                    type="number"
-                    value={item.distanceKm || ''}
-                    onChange={(e) => updateItem(item.id, { distanceKm: parseFloat(e.target.value) || 0 })}
-                    className="h-7 text-sm text-right w-20 ml-auto"
-                  />
-                </div>
-                
-                <div className="col-span-3">
-                  <Select
-                    value={item.modeId}
-                    onValueChange={(v) => updateItem(item.id, { modeId: v })}
-                  >
-                    <SelectTrigger className="h-7 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TRANSPORT_MODES.map(m => (
-                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="col-span-2 text-right flex items-center justify-end gap-2">
-                  <span className="font-bold text-blue-600 text-sm">
-                    {(item.emissions / 1000).toFixed(3)} t
-                  </span>
+              <div key={item.id} className="p-3 bg-muted/30 rounded-lg border border-border/50">
+                {/* Header row with route and delete */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm">{item.description}</span>
+                    {item.isEstimated && (
+                      <Badge variant="outline" className="text-xs">Est.</Badge>
+                    )}
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => removeItem(item.id)}
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                    className="h-7 w-7 p-0"
                   >
-                    <Trash2 className="h-3 w-3 text-destructive" />
+                    <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
+                </div>
+                
+                {/* Data grid - 2x2 on mobile, inline on desktop */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">Weight (t)</label>
+                    <Input
+                      type="number"
+                      value={item.materialTonnes || ''}
+                      onChange={(e) => updateItem(item.id, { materialTonnes: parseFloat(e.target.value) || 0 })}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">Distance (km)</label>
+                    <Input
+                      type="number"
+                      value={item.distanceKm || ''}
+                      onChange={(e) => updateItem(item.id, { distanceKm: parseFloat(e.target.value) || 0 })}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">Mode</label>
+                    <Select
+                      value={item.modeId}
+                      onValueChange={(v) => updateItem(item.id, { modeId: v })}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TRANSPORT_MODES.map(m => (
+                          <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">Emissions</label>
+                    <div className="h-8 flex items-center">
+                      <span className="font-bold text-emerald-500 text-sm">
+                        {(item.emissions / 1000).toFixed(3)} t
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             );
@@ -341,12 +339,11 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
 
       {/* Quick Reference */}
       <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-        <div className="text-xs text-muted-foreground">
-          <strong>Emission Factors (NGA 2024):</strong>{' '}
-          Rigid truck: 0.089-0.207 kg/t·km | 
-          Semi: 0.062 kg/t·km | 
-          B-Double: 0.048 kg/t·km | 
-          Rail: 0.021 kg/t·km
+        <div className="text-xs text-muted-foreground leading-relaxed">
+          <strong>Emission Factors (NGA 2024):</strong>
+          <br className="md:hidden" />
+          <span className="hidden md:inline"> </span>
+          Rigid: 0.089-0.207 | Semi: 0.062 | B-Double: 0.048 | Rail: 0.021 kg/t·km
         </div>
       </div>
     </Card>
