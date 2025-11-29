@@ -89,16 +89,13 @@ const Index = () => {
                   loading="eager" 
                 />
               </picture>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-end md:items-center justify-center p-6">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-black/30 flex items-end md:items-center justify-center p-6">
                 <div className="text-center space-y-2 md:space-y-4">
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
                     Professional Carbon Assessment
                   </h2>
-                  <p className="text-sm sm:text-base text-white/90 max-w-md">
-                    Comprehensive LCA methodologies for Australian construction projects
-Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
-
-
+                  <p className="text-sm sm:text-base text-white max-w-md drop-shadow-md">
+                    Comprehensive LCA methodologies for Australian construction projects. Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
                   </p>
                 </div>
               </div>
