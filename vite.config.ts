@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Force rebuild: 2025-11-29T10:20 - Fix React duplicate instances completely
+// Force rebuild: 2025-11-29T10:25 - Fix ALL React duplicate instances (next-themes, sonner)
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -21,10 +21,28 @@ export default defineConfig(({ mode }) => ({
       "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
       "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
     },
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-router-dom', '@react-pdf/renderer'],
+    dedupe: [
+      'react', 
+      'react-dom', 
+      'react/jsx-runtime', 
+      'react/jsx-dev-runtime', 
+      'react-router-dom', 
+      '@react-pdf/renderer',
+      'next-themes',
+      'sonner',
+    ],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-router-dom', '@react-pdf/renderer'],
+    include: [
+      'react', 
+      'react-dom', 
+      'react/jsx-runtime', 
+      'react/jsx-dev-runtime', 
+      'react-router-dom', 
+      '@react-pdf/renderer',
+      'next-themes',
+      'sonner',
+    ],
     force: true,
     esbuildOptions: {
       target: "esnext",
