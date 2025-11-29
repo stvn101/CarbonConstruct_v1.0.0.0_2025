@@ -44,7 +44,7 @@ const Index = () => {
                   height="96" 
                   loading="eager" 
                 />
-                <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-primary [background:linear-gradient(to_right,hsl(var(--primary)),hsl(var(--accent)),hsl(var(--primary)))] bg-clip-text [-webkit-background-clip:text] [-webkit-text-fill-color:transparent] [text-fill-color:transparent]">
+                <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                   CarbonConstruct
                 </h1>
               </div>
