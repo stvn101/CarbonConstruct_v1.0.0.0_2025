@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Force rebuild: 2025-11-29T10:30 - Removed @react-pdf/renderer, using html2pdf.js
+// Force rebuild: 2025-11-29T11:00 - Fixed React deduplication, removed next-themes from sonner
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
