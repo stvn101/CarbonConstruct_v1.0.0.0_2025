@@ -1,6 +1,6 @@
-import React, { lazy, Suspense, useEffect } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import * as React from "react";
+import { lazy, Suspense } from "react";
+import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
@@ -43,7 +43,6 @@ const App = () => (
     <AuthProvider>
       <ProjectProvider>
         <Toaster />
-        <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <MonitoringProvider>
             <Layout>
