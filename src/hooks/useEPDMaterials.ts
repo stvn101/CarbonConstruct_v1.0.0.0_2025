@@ -45,21 +45,41 @@ export function useEPDMaterials() {
   const [selectedState, setSelectedState] = useState<string>('all');
   const [selectedManufacturer, setSelectedManufacturer] = useState<string>('all');
 
-  // Fetch materials from Supabase
+  // Fetch all materials from Supabase (handles pagination for large datasets)
   const fetchMaterials = useCallback(async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const { data, error: fetchError } = await supabase
-        .from('materials_epd')
-        .select('*')
-        .order('material_category')
-        .order('material_name');
+      const allMaterials: EPDMaterial[] = [];
+      const pageSize = 1000;
+      let page = 0;
+      let hasMore = true;
 
-      if (fetchError) throw fetchError;
+      // Fetch in batches to overcome Supabase's 1000 row default limit
+      while (hasMore) {
+        const from = page * pageSize;
+        const to = from + pageSize - 1;
 
-      setMaterials(data || []);
+        const { data, error: fetchError } = await supabase
+          .from('materials_epd')
+          .select('*')
+          .order('material_category')
+          .order('material_name')
+          .range(from, to);
+
+        if (fetchError) throw fetchError;
+
+        if (data && data.length > 0) {
+          allMaterials.push(...data);
+          hasMore = data.length === pageSize;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      setMaterials(allMaterials);
     } catch (err) {
       console.error('Error fetching EPD materials:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch materials');
