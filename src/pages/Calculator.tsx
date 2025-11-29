@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,14 +81,14 @@ const MaterialRow = ({ material, onChange, onRemove }: {
             type="number" 
             min="0"
             step="any"
-            className="h-8 pr-12 text-sm text-foreground"
+            className="h-8 pr-12 text-sm text-foreground bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             placeholder="0"
             value={material.quantity || ''} 
             onChange={(e) => onChange({ ...material, quantity: parseFloat(e.target.value) || 0 })}
           />
           {material.isCustom ? (
             <Input 
-              className="absolute right-1 top-1 bottom-1 w-12 text-xs text-foreground h-6 border-l"
+              className="absolute right-1 top-1 bottom-1 w-12 text-xs text-foreground bg-background h-6 border-l"
               placeholder="Unit"
               value={material.unit}
               onChange={(e) => onChange({ ...material, unit: e.target.value })}
