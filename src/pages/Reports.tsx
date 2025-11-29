@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,11 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PDFReport, ReportBranding } from '@/components/PDFReport';
+import type { ReportBranding } from '@/components/PDFReport';
 import { useReportData, validateReportData, calculateDataCompleteness } from '@/components/ReportData';
+
+// Lazy load PDFReport to isolate @react-pdf/renderer
+const PDFReport = React.lazy(() => import('@/components/PDFReport').then(m => ({ default: m.PDFReport })));
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -276,7 +279,9 @@ const Reports = () => {
           </p>
         </div>
         <ErrorBoundary>
-          <PDFReport data={reportData} template={selectedTemplate} branding={effectiveBranding} showWatermark={!canCustomBrand} />
+          <Suspense fallback={<Button disabled>Loading PDF...</Button>}>
+            <PDFReport data={reportData} template={selectedTemplate} branding={effectiveBranding} showWatermark={!canCustomBrand} />
+          </Suspense>
         </ErrorBoundary>
       </div>
 
