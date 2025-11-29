@@ -1,139 +1,11 @@
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+import { useRef, useState } from 'react';
+import html2pdf from 'html2pdf.js';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, Mail, Loader2 } from 'lucide-react';
-import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-// PDF Styles
-const styles = StyleSheet.create({
-  page: {
-    padding: 40,
-    fontSize: 10,
-    fontFamily: 'Helvetica',
-    backgroundColor: '#ffffff',
-  },
-  header: {
-    marginBottom: 20,
-    borderBottom: '2px solid #16a34a',
-    paddingBottom: 15,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#166534',
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: '#4b5563',
-    marginBottom: 3,
-  },
-  badge: {
-    backgroundColor: '#16a34a',
-    color: '#ffffff',
-    padding: '4 8',
-    borderRadius: 4,
-    fontSize: 10,
-    alignSelf: 'flex-start',
-    marginTop: 8,
-  },
-  section: {
-    marginBottom: 15,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#166534',
-    marginBottom: 8,
-    borderBottom: '1px solid #e5e7eb',
-    paddingBottom: 4,
-  },
-  table: {
-    width: '100%',
-    marginBottom: 10,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#f3f4f6',
-    borderBottom: '1px solid #d1d5db',
-    padding: 6,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottom: '1px solid #e5e7eb',
-    padding: 6,
-  },
-  tableCell: {
-    flex: 1,
-    fontSize: 9,
-  },
-  tableCellSmall: {
-    width: 60,
-    fontSize: 9,
-  },
-  tableCellMedium: {
-    width: 80,
-    fontSize: 9,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
-  summaryBox: {
-    backgroundColor: '#f0fdf4',
-    border: '1px solid #16a34a',
-    borderRadius: 4,
-    padding: 12,
-    marginBottom: 15,
-  },
-  summaryTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#166534',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  checkmark: {
-    color: '#16a34a',
-    fontWeight: 'bold',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    fontSize: 8,
-    color: '#6b7280',
-    borderTop: '1px solid #e5e7eb',
-    paddingTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  pageNumber: {
-    fontSize: 8,
-    color: '#6b7280',
-  },
-  certificationBox: {
-    backgroundColor: '#fef3c7',
-    border: '1px solid #f59e0b',
-    borderRadius: 4,
-    padding: 12,
-    marginTop: 15,
-  },
-  certificationText: {
-    fontSize: 9,
-    fontStyle: 'italic',
-    color: '#92400e',
-    lineHeight: 1.5,
-  },
-});
 
 const auditDate = '27 November 2025';
 
@@ -169,248 +41,36 @@ const databaseTables = [
   { table: 'analytics_events', rls: 'Yes', policies: '3', pattern: 'Service role' },
 ];
 
-// PDF Document Component
-const SecurityAuditPDF = () => (
-  <Document>
-    {/* Page 1 - Summary */}
-    <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Text style={styles.title}>CarbonConstruct Security Audit Report</Text>
-        <Text style={styles.subtitle}>Pre-Production Security Review</Text>
-        <Text style={styles.subtitle}>Audit Date: {auditDate}</Text>
-        <Text style={styles.badge}>AUDIT PASSED ✓</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Audit Metadata</Text>
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, styles.bold]}>Audit Type</Text>
-            <Text style={styles.tableCell}>Pre-Production Security Review</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, styles.bold]}>Platform</Text>
-            <Text style={styles.tableCell}>CarbonConstruct v1.0</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, styles.bold]}>Environment</Text>
-            <Text style={styles.tableCell}>Production (carbonconstruct.com.au)</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, styles.bold]}>Auditor</Text>
-            <Text style={styles.tableCell}>Automated Scanner + Manual Review</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.summaryBox}>
-        <Text style={styles.summaryTitle}>SECURITY AUDIT RESULTS</Text>
-        <View style={styles.summaryRow}>
-          <Text>Critical Vulnerabilities:</Text>
-          <Text style={styles.checkmark}>0 ✓</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text>High-Risk Issues:</Text>
-          <Text style={styles.checkmark}>0 (all remediated) ✓</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text>Medium-Risk Issues:</Text>
-          <Text>4 (acceptable design choices)</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text>Low-Risk / Informational:</Text>
-          <Text>3 (documented)</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text>Supabase Linter:</Text>
-          <Text style={styles.checkmark}>No issues ✓</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text>RLS Coverage:</Text>
-          <Text style={styles.checkmark}>100% (18/18 tables) ✓</Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Audit Scope</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableCell, styles.bold]}>Component</Text>
-            <Text style={[styles.tableCell, styles.bold]}>Scope</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Database</Text>
-            <Text style={styles.tableCell}>18 tables, RLS policies, functions, views</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Edge Functions</Text>
-            <Text style={styles.tableCell}>16 serverless functions</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Authentication</Text>
-            <Text style={styles.tableCell}>Email/password, Google OAuth, sessions</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Authorization</Text>
-            <Text style={styles.tableCell}>Role-based access control (RBAC)</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>API Security</Text>
-            <Text style={styles.tableCell}>JWT validation, rate limiting, input validation</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        <Text>CarbonConstruct Security Audit Report</Text>
-        <Text style={styles.pageNumber}>Page 1 of 3</Text>
-      </View>
-    </Page>
-
-    {/* Page 2 - Remediation Actions */}
-    <Page size="A4" style={styles.page}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Remediation Actions Completed</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableCellSmall, styles.bold]}>ID</Text>
-            <Text style={[styles.tableCellSmall, styles.bold]}>Severity</Text>
-            <Text style={[styles.tableCell, styles.bold]}>Issue</Text>
-            <Text style={[styles.tableCell, styles.bold]}>Remediation</Text>
-            <Text style={[styles.tableCellSmall, styles.bold]}>Status</Text>
-          </View>
-          {remediationActions.map((action, index) => (
-            <View style={styles.tableRow} key={index}>
-              <Text style={styles.tableCellSmall}>{action.id}</Text>
-              <Text style={styles.tableCellSmall}>{action.severity}</Text>
-              <Text style={styles.tableCell}>{action.issue}</Text>
-              <Text style={styles.tableCell}>{action.remediation}</Text>
-              <Text style={[styles.tableCellSmall, styles.checkmark]}>✓ {action.status}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Security Controls Verified</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableCell, styles.bold]}>Control Category</Text>
-            <Text style={[styles.tableCell, styles.bold]}>Controls Implemented</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Authentication</Text>
-            <Text style={styles.tableCell}>Supabase Auth, bcrypt, OAuth 2.0, JWT, auto-refresh</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Authorization</Text>
-            <Text style={styles.tableCell}>RBAC, has_role() function, security definer</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Data Protection</Text>
-            <Text style={styles.tableCell}>AES-256 at rest, TLS 1.3, Supabase Vault</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>API Security</Text>
-            <Text style={styles.tableCell}>CORS, JWT validation, Stripe signatures</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Input Validation</Text>
-            <Text style={styles.tableCell}>Zod schemas, HTML escaping, length limits</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Rate Limiting</Text>
-            <Text style={styles.tableCell}>DB-backed limits, user/IP based, auto-cleanup</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        <Text>CarbonConstruct Security Audit Report</Text>
-        <Text style={styles.pageNumber}>Page 2 of 3</Text>
-      </View>
-    </Page>
-
-    {/* Page 3 - Database & Compliance */}
-    <Page size="A4" style={styles.page}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Database Security Verification (18 Tables)</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableCell, styles.bold]}>Table</Text>
-            <Text style={[styles.tableCellSmall, styles.bold]}>RLS</Text>
-            <Text style={[styles.tableCellSmall, styles.bold]}>Policies</Text>
-            <Text style={[styles.tableCellMedium, styles.bold]}>Access Pattern</Text>
-          </View>
-          {databaseTables.map((table, index) => (
-            <View style={styles.tableRow} key={index}>
-              <Text style={styles.tableCell}>{table.table}</Text>
-              <Text style={[styles.tableCellSmall, styles.checkmark]}>✓ {table.rls}</Text>
-              <Text style={styles.tableCellSmall}>{table.policies}</Text>
-              <Text style={styles.tableCellMedium}>{table.pattern}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Compliance Attestation</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableCell, styles.bold]}>Standard</Text>
-            <Text style={[styles.tableCellMedium, styles.bold]}>Status</Text>
-            <Text style={[styles.tableCell, styles.bold]}>Notes</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Privacy Act 1988 (Cth)</Text>
-            <Text style={[styles.tableCellMedium, styles.checkmark]}>✓ Compliant</Text>
-            <Text style={styles.tableCell}>Data minimization, access controls</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>OWASP Top 10 2021</Text>
-            <Text style={[styles.tableCellMedium, styles.checkmark]}>✓ Addressed</Text>
-            <Text style={styles.tableCell}>Injection, auth, XSS, misconfig</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>NCC 2024 Section J</Text>
-            <Text style={[styles.tableCellMedium, styles.checkmark]}>✓ Supported</Text>
-            <Text style={styles.tableCell}>Australian emission standards</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>ISO 27001 Controls</Text>
-            <Text style={styles.tableCellMedium}>⚡ Partial</Text>
-            <Text style={styles.tableCell}>Access, crypto, operations</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.certificationBox}>
-        <Text style={styles.sectionTitle}>Certification Statement</Text>
-        <Text style={styles.certificationText}>
-          This document certifies that CarbonConstruct has undergone a comprehensive security audit 
-          on {auditDate}. All critical and high-risk vulnerabilities have been remediated. 
-          The platform implements defense-in-depth security controls appropriate for handling 
-          Australian construction industry carbon emissions data.
-        </Text>
-        <Text style={[styles.certificationText, styles.bold, { marginTop: 8 }]}>
-          The application is cleared for production deployment.
-        </Text>
-      </View>
-
-      <View style={styles.footer}>
-        <Text>CarbonConstruct Security Audit Report | Contact: security@carbonconstruct.com.au</Text>
-        <Text style={styles.pageNumber}>Page 3 of 3</Text>
-      </View>
-    </Page>
-  </Document>
-);
-
 // Export Button Component
 export const SecurityAuditReportDownload = () => {
+  const reportRef = useRef<HTMLDivElement>(null);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleDownload = async () => {
+    if (!reportRef.current) return;
+    
+    setIsGenerating(true);
+    try {
+      const opt = {
+        margin: 10,
+        filename: `CarbonConstruct-Security-Audit-${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+      
+      await html2pdf().set(opt).from(reportRef.current).save();
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      toast.error('Failed to generate PDF');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleSendEmail = async () => {
     if (!recipientEmail || !recipientName) {
@@ -420,7 +80,7 @@ export const SecurityAuditReportDownload = () => {
 
     setIsSending(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-audit-report', {
+      const { error } = await supabase.functions.invoke('send-audit-report', {
         body: {
           recipientEmail,
           recipientName,
@@ -434,9 +94,9 @@ export const SecurityAuditReportDownload = () => {
       setShowEmailForm(false);
       setRecipientEmail('');
       setRecipientName('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending email:', error);
-      toast.error(error.message || 'Failed to send email');
+      toast.error(error instanceof Error ? error.message : 'Failed to send email');
     } finally {
       setIsSending(false);
     }
@@ -462,18 +122,19 @@ export const SecurityAuditReportDownload = () => {
       </div>
 
       <div className="flex gap-2">
-        <PDFDownloadLink
-          document={<SecurityAuditPDF />}
-          fileName={`CarbonConstruct-Security-Audit-${new Date().toISOString().split('T')[0]}.pdf`}
-          className="flex-1"
-        >
-          {({ loading }) => (
-            <Button disabled={loading} className="w-full">
+        <Button onClick={handleDownload} disabled={isGenerating} className="flex-1">
+          {isGenerating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
               <Download className="mr-2 h-4 w-4" />
-              {loading ? 'Generating...' : 'Download PDF'}
-            </Button>
+              Download PDF
+            </>
           )}
-        </PDFDownloadLink>
+        </Button>
         
         <Button 
           variant="outline" 
@@ -525,6 +186,114 @@ export const SecurityAuditReportDownload = () => {
           </Button>
         </div>
       )}
+
+      {/* Hidden PDF content */}
+      <div className="absolute left-[-9999px]">
+        <div 
+          ref={reportRef}
+          className="bg-white text-black p-10"
+          style={{ width: '210mm', fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '10px' }}
+        >
+          {/* Page 1 - Summary */}
+          <div className="mb-5 border-b-2 border-[#16a34a] pb-4">
+            <h1 className="text-2xl font-bold text-[#166534] mb-1">CarbonConstruct Security Audit Report</h1>
+            <p className="text-xs text-gray-600 mb-0.5">Pre-Production Security Review</p>
+            <p className="text-xs text-gray-600 mb-2">Audit Date: {auditDate}</p>
+            <span className="bg-[#16a34a] text-white px-2 py-1 rounded text-xs">AUDIT PASSED ✓</span>
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-sm font-bold text-[#166534] border-b border-gray-300 pb-1 mb-2">Audit Metadata</h2>
+            <table className="w-full text-xs">
+              <tbody>
+                <tr><td className="font-bold py-1 w-32">Audit Type</td><td>Pre-Production Security Review</td></tr>
+                <tr><td className="font-bold py-1">Platform</td><td>CarbonConstruct v1.0</td></tr>
+                <tr><td className="font-bold py-1">Environment</td><td>Production (carbonconstruct.com.au)</td></tr>
+                <tr><td className="font-bold py-1">Auditor</td><td>Automated Scanner + Manual Review</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="bg-[#f0fdf4] border border-[#16a34a] rounded p-3 mb-4">
+            <h3 className="text-xs font-bold text-[#166534] mb-2 text-center">SECURITY AUDIT RESULTS</h3>
+            <div className="text-xs space-y-1">
+              <div className="flex justify-between"><span>Critical Vulnerabilities:</span><span className="text-[#16a34a] font-bold">0 ✓</span></div>
+              <div className="flex justify-between"><span>High-Risk Issues:</span><span className="text-[#16a34a] font-bold">0 (all remediated) ✓</span></div>
+              <div className="flex justify-between"><span>Medium-Risk Issues:</span><span>4 (acceptable design choices)</span></div>
+              <div className="flex justify-between"><span>Low-Risk / Informational:</span><span>3 (documented)</span></div>
+              <div className="flex justify-between"><span>Supabase Linter:</span><span className="text-[#16a34a] font-bold">No issues ✓</span></div>
+              <div className="flex justify-between"><span>RLS Coverage:</span><span className="text-[#16a34a] font-bold">100% (18/18 tables) ✓</span></div>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-sm font-bold text-[#166534] border-b border-gray-300 pb-1 mb-2">Remediation Actions Completed</h2>
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border border-gray-300 p-1 text-left">ID</th>
+                  <th className="border border-gray-300 p-1 text-left">Severity</th>
+                  <th className="border border-gray-300 p-1 text-left">Issue</th>
+                  <th className="border border-gray-300 p-1 text-left">Remediation</th>
+                  <th className="border border-gray-300 p-1 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {remediationActions.map((action, i) => (
+                  <tr key={i}>
+                    <td className="border border-gray-300 p-1">{action.id}</td>
+                    <td className="border border-gray-300 p-1">{action.severity}</td>
+                    <td className="border border-gray-300 p-1">{action.issue}</td>
+                    <td className="border border-gray-300 p-1">{action.remediation}</td>
+                    <td className="border border-gray-300 p-1 text-[#16a34a] font-bold">✓ {action.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-sm font-bold text-[#166534] border-b border-gray-300 pb-1 mb-2">Database Security Verification (18 Tables)</h2>
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border border-gray-300 p-1 text-left">Table</th>
+                  <th className="border border-gray-300 p-1 text-left">RLS</th>
+                  <th className="border border-gray-300 p-1 text-left">Policies</th>
+                  <th className="border border-gray-300 p-1 text-left">Access Pattern</th>
+                </tr>
+              </thead>
+              <tbody>
+                {databaseTables.map((table, i) => (
+                  <tr key={i}>
+                    <td className="border border-gray-300 p-1">{table.table}</td>
+                    <td className="border border-gray-300 p-1 text-[#16a34a] font-bold">✓ {table.rls}</td>
+                    <td className="border border-gray-300 p-1">{table.policies}</td>
+                    <td className="border border-gray-300 p-1">{table.pattern}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="bg-[#fef3c7] border border-[#f59e0b] rounded p-3 mt-4">
+            <h3 className="text-xs font-bold text-[#92400e] mb-2">Certification Statement</h3>
+            <p className="text-xs italic text-[#92400e] leading-relaxed">
+              This document certifies that CarbonConstruct has undergone a comprehensive security audit 
+              on {auditDate}. All critical and high-risk vulnerabilities have been remediated. 
+              The platform implements defense-in-depth security controls appropriate for handling 
+              Australian construction industry carbon emissions data.
+            </p>
+            <p className="text-xs font-bold text-[#92400e] mt-2">
+              The application is cleared for production deployment.
+            </p>
+          </div>
+
+          <div className="mt-6 pt-3 border-t border-gray-300 text-xs text-gray-500 flex justify-between">
+            <span>CarbonConstruct Security Audit Report | Contact: security@carbonconstruct.com.au</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

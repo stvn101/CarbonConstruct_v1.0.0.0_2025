@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { SecurityDashboard } from "@/components/SecurityDashboard";
 
-// Lazy load SecurityAuditReportDownload to isolate @react-pdf/renderer
+// Lazy load SecurityAuditReportDownload for code splitting
 const SecurityAuditReportDownload = React.lazy(() => import("@/components/SecurityAuditReport").then(m => ({ default: m.SecurityAuditReportDownload })));
 interface ErrorLog {
   id: string;
