@@ -50,18 +50,8 @@ const Index = () => {
                 </h1>
               </div>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-                
-
-
-
-
-
-
-
-
-
-
-
+                Professional carbon emissions calculator for Australian construction projects.
+                NCC Section J compliant with Green Star and NABERS integration.
               </p>
             </div>
             
