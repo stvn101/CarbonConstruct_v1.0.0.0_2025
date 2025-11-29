@@ -38,31 +38,31 @@ export const EmissionsChart = ({ type, title, description, data, colors = VIBRAN
 
   if (type === 'pie') {
     return (
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[400px]">
+        <CardContent className="px-2 sm:px-6">
+          <ChartContainer config={chartConfig} className="h-[280px] sm:h-[350px] w-full max-w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                 <Pie
                   data={data}
                   dataKey="emissions"
                   nameKey="category"
                   cx="50%"
-                  cy="50%"
-                  outerRadius={120}
-                  label={({ category, percentage }) => `${category}: ${percentage.toFixed(1)}%`}
-                  labelLine={true}
+                  cy="45%"
+                  outerRadius="70%"
+                  label={({ percentage }) => `${percentage.toFixed(1)}%`}
+                  labelLine={false}
                 >
                   {data.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                   ))}
                 </Pie>
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
