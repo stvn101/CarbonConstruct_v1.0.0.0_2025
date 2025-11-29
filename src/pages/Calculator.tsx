@@ -50,88 +50,100 @@ const loadFromStorage = (key: string, fallback: any) => {
   }
 };
 
+// Mobile-optimized MaterialRow - card layout on mobile
 const MaterialRow = ({ material, onChange, onRemove }: { 
   material: Material; 
   onChange: (m: Material) => void; 
   onRemove: () => void;
 }) => {
   return (
-    <div className={`grid grid-cols-12 gap-4 items-center py-3 border-b last:border-0 px-2 rounded group ${
+    <div className={`rounded-lg border p-3 mb-2 ${
       material.isCustom ? 'bg-purple-50 border-purple-200' : 'hover:bg-muted/50'
     }`}>
-      <div className="col-span-4">
-        {material.isCustom ? (
-          <Input 
-            className="h-8 text-sm text-foreground bg-background"
-            placeholder="Material Name"
-            value={material.name}
-            onChange={(e) => onChange({ ...material, name: e.target.value })}
-          />
-        ) : (
-          <div>
-            <div className="font-medium text-sm">{material.name}</div>
-            <div className="text-xs text-muted-foreground">{material.source}</div>
-          </div>
-        )}
-      </div>
-
-      <div className="col-span-3">
-        <div className="flex items-center relative">
-          <Input 
-            type="number" 
-            min="0"
-            step="any"
-            className="h-8 pr-12 text-sm text-foreground bg-background [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            placeholder="0"
-            value={material.quantity || ''} 
-            onChange={(e) => onChange({ ...material, quantity: parseFloat(e.target.value) || 0 })}
-          />
+      {/* Header: name and delete */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex-1 min-w-0">
           {material.isCustom ? (
             <Input 
-              className="absolute right-1 top-1 bottom-1 w-12 text-xs text-foreground bg-background h-6 border-l"
-              placeholder="Unit"
-              value={material.unit}
-              onChange={(e) => onChange({ ...material, unit: e.target.value })}
+              className="h-8 text-sm text-foreground bg-background"
+              placeholder="Material Name"
+              value={material.name}
+              onChange={(e) => onChange({ ...material, name: e.target.value })}
             />
           ) : (
-            <span className="absolute right-2 text-xs text-muted-foreground pointer-events-none">{material.unit}</span>
+            <div>
+              <div className="font-medium text-sm break-words">{material.name}</div>
+              <div className="text-xs text-muted-foreground">{material.source}</div>
+            </div>
           )}
         </div>
-      </div>
-
-      <div className="col-span-3 text-right">
-        {material.isCustom ? (
-          <div className="flex items-center justify-end gap-2">
-            <span className="text-xs text-muted-foreground">Factor:</span>
-            <Input 
-              type="number" 
-              step="0.01"
-              className="w-20 h-8 text-xs text-right text-foreground"
-              placeholder="kgCO2"
-              value={material.factor || ''} 
-              onChange={(e) => onChange({ ...material, factor: parseFloat(e.target.value) || 0 })}
-            />
-          </div>
-        ) : (
-          <div className="text-xs text-muted-foreground font-mono">× {material.factor}</div>
-        )}
-      </div>
-
-      <div className="col-span-2 text-right font-bold text-sm flex justify-end items-center gap-2">
-        <span className="text-emerald-600">{((material.quantity * material.factor) / 1000).toFixed(3)} t</span>
         <Button 
           variant="ghost" 
           size="sm"
           onClick={onRemove}
-          className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive flex-shrink-0"
         >
-          <Trash2 className="h-3 w-3" />
+          <Trash2 className="h-4 w-4" />
         </Button>
+      </div>
+
+      {/* Data: quantity, factor, result - 2x2 grid on mobile */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Quantity</label>
+          <div className="relative">
+            <Input 
+              type="number" 
+              min="0"
+              step="any"
+              className="h-9 pr-10 text-sm text-foreground bg-background"
+              placeholder="0"
+              value={material.quantity || ''} 
+              onChange={(e) => onChange({ ...material, quantity: parseFloat(e.target.value) || 0 })}
+            />
+            {material.isCustom ? (
+              <Input 
+                className="absolute right-1 top-1 bottom-1 w-10 text-xs text-foreground bg-background h-7 border-l text-center"
+                placeholder="unit"
+                value={material.unit}
+                onChange={(e) => onChange({ ...material, unit: e.target.value })}
+              />
+            ) : (
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{material.unit}</span>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Factor</label>
+          {material.isCustom ? (
+            <Input 
+              type="number" 
+              step="0.01"
+              className="h-9 text-sm text-foreground"
+              placeholder="kgCO2"
+              value={material.factor || ''} 
+              onChange={(e) => onChange({ ...material, factor: parseFloat(e.target.value) || 0 })}
+            />
+          ) : (
+            <div className="h-9 flex items-center px-2 bg-muted/50 rounded-md border text-xs font-mono text-muted-foreground">
+              × {material.factor}
+            </div>
+          )}
+        </div>
+
+        <div className="col-span-2 md:col-span-1">
+          <label className="text-xs text-muted-foreground mb-1 block">Emissions</label>
+          <div className="h-9 flex items-center justify-center px-2 bg-emerald-100 rounded-md font-bold text-emerald-700 text-sm">
+            {((material.quantity * material.factor) / 1000).toFixed(3)} t
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
+// Mobile-optimized FactorRow - stacks on mobile, grid on desktop
 const FactorRow = ({ label, unit, value, onChange, factor, total }: {
   label: string;
   unit: string;
@@ -140,22 +152,32 @@ const FactorRow = ({ label, unit, value, onChange, factor, total }: {
   factor: number;
   total: number;
 }) => (
-  <div className="grid grid-cols-12 gap-4 items-center py-3 border-b last:border-0 hover:bg-muted/50 px-2 rounded">
-    <div className="col-span-5 font-medium text-sm">{label}</div>
-    <div className="col-span-3 flex items-center relative">
-      <Input 
-        type="number"
-        min="0"
-        step="any"
-        className="h-8 pr-12 text-sm text-foreground"
-        placeholder="0"
-        value={value || ''} 
-        onChange={(e) => onChange(e.target.value)}
-      />
-      <span className="absolute right-2 text-xs text-muted-foreground pointer-events-none">{unit}</span>
+  <div className="py-2.5 md:py-3 border-b last:border-0 hover:bg-muted/50 px-2 rounded">
+    <div className="flex flex-col md:grid md:grid-cols-12 md:gap-4 md:items-center gap-2">
+      <div className="md:col-span-5 font-medium text-sm">{label}</div>
+      <div className="flex items-center gap-2 md:col-span-3">
+        <div className="relative flex-1 md:flex-none md:w-full">
+          <Input 
+            type="number"
+            min="0"
+            step="any"
+            className="h-9 pr-12 text-sm text-foreground"
+            placeholder="0"
+            value={value || ''} 
+            onChange={(e) => onChange(e.target.value)}
+          />
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">{unit}</span>
+        </div>
+        {/* Mobile: show factor and total inline */}
+        <div className="flex items-center gap-2 md:hidden">
+          <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">× {factor}</span>
+          <span className="font-bold text-emerald-600 text-sm whitespace-nowrap">{(total / 1000).toFixed(3)} t</span>
+        </div>
+      </div>
+      {/* Desktop-only columns */}
+      <div className="hidden md:block md:col-span-2 text-xs text-muted-foreground text-right font-mono">× {factor}</div>
+      <div className="hidden md:block md:col-span-2 text-right font-bold text-emerald-600 text-sm">{(total / 1000).toFixed(3)} t</div>
     </div>
-    <div className="col-span-2 text-xs text-muted-foreground text-right font-mono">× {factor}</div>
-    <div className="col-span-2 text-right font-bold text-emerald-600 text-sm">{(total / 1000).toFixed(3)} t</div>
   </div>
 );
 
@@ -842,34 +864,34 @@ export default function Calculator() {
       />
       {/* Header */}
       <div className="bg-slate-900 text-white shadow-lg print:hidden">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="bg-emerald-500 p-2 rounded">
-              <Leaf className="text-white h-5 w-5" />
+        <div className="max-w-6xl mx-auto px-3 md:px-4 py-3 md:py-4 flex justify-between items-center gap-2">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
+            <div className="bg-emerald-500 p-1.5 md:p-2 rounded flex-shrink-0">
+              <Leaf className="text-white h-4 w-4 md:h-5 md:w-5" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold">
+            <div className="min-w-0">
+              <h1 className="text-base md:text-xl font-bold truncate">
                 CarbonConstruct <span className="text-emerald-400">Calculator</span>
               </h1>
-              <div className="text-xs text-slate-400">NCC 2025 • Auto-Save Enabled</div>
+              <div className="text-xs text-slate-400 hidden sm:block">NCC 2025 • Auto-Save Enabled</div>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={resetForm} className="text-slate-400 hover:text-white">
-            <Eraser className="h-4 w-4 mr-2" />
-            Reset Form
+          <Button variant="ghost" size="sm" onClick={resetForm} className="text-slate-400 hover:text-white flex-shrink-0">
+            <Eraser className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Reset Form</span>
           </Button>
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto mt-8 px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-6xl mx-auto mt-4 md:mt-8 px-3 md:px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
           {/* Left Column - Inputs */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Project Config */}
-            <div className="bg-card rounded-lg shadow-sm border p-5 relative">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">Project Details</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="bg-card rounded-lg shadow-sm border p-3 md:p-5 relative">
+              <h3 className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 md:mb-4">Project Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 <Input 
                   className="text-sm" 
                   placeholder="Project Name" 
@@ -895,7 +917,7 @@ export default function Calculator() {
                 <Input 
                   className="text-sm" 
                   placeholder="Auditor" 
-                  value={projectDetails.auditor} 
+                  value={projectDetails.auditor}
                   onChange={e => setProjectDetails({...projectDetails, auditor: e.target.value})} 
                 />
               </div>
@@ -988,9 +1010,9 @@ export default function Calculator() {
                 </Card>
 
                 {/* Energy Section */}
-                <Card className="p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-700">Energy (Scope 1 & 2)</h3>
-                  <div className="bg-slate-50 p-3 rounded border mb-4">
+                <Card className="p-4 md:p-6">
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">Energy (Scope 1 & 2)</h3>
+                  <div className="bg-slate-50 p-2 md:p-3 rounded border mb-3 md:mb-4">
                     <FactorRow 
                       label={`Grid Electricity (${projectDetails.location})`}
                       unit="kWh"
@@ -1014,18 +1036,18 @@ export default function Calculator() {
                 </Card>
 
                 {/* Materials Section */}
-                <Card className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
+                <Card className="p-4 md:p-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 md:mb-4">
+                    <h3 className="font-bold text-base md:text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
                     <div className="flex items-center gap-2">
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
                             size="sm"
-                            className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                            className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 text-xs md:text-sm"
                           >
-                            <Scale className="h-4 w-4 mr-1" />
+                            <Scale className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                             Compare
                           </Button>
                         </DialogTrigger>
@@ -1037,10 +1059,10 @@ export default function Calculator() {
                         variant="outline" 
                         size="sm" 
                         onClick={addCustomMaterial}
-                        className="bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                        className="bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 text-xs md:text-sm"
                       >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Create Custom
+                        <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                        Custom
                       </Button>
                     </div>
                   </div>
@@ -1301,10 +1323,10 @@ export default function Calculator() {
                 <TransportCalculator onTotalChange={setA4TransportEmissions} />
 
                 {/* Employee Commute Section */}
-                <Card className="p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-700">Employee Commute (Scope 3)</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Enter total km travelled by employees per commute type (e.g., daily km × working days × employees)
+                <Card className="p-4 md:p-6">
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">Employee Commute (Scope 3)</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
+                    Enter total km travelled by employees per commute type
                   </p>
                   <div className="space-y-1">
                     {Object.entries(COMMUTE_FACTORS).map(([k, f]) => (
@@ -1319,17 +1341,17 @@ export default function Calculator() {
                       />
                     ))}
                   </div>
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-sm text-blue-800">
+                  <div className="mt-3 md:mt-4 p-2 md:p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-xs md:text-sm text-blue-800">
                       <strong>Commute Total:</strong> {(calculations.scope3_commute / 1000).toFixed(3)} tCO2e
                     </div>
                   </div>
                 </Card>
 
                 {/* Waste Section */}
-                <Card className="p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-700">Construction Waste (Scope 3)</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
+                <Card className="p-4 md:p-6">
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">Construction Waste (Scope 3)</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Enter waste quantities in kg or tonnes. Negative factors (e.g., recycled metals) reduce emissions.
                   </p>
                   <div className="space-y-2">
@@ -1340,49 +1362,54 @@ export default function Calculator() {
                       const total = qty * multiplier * f.factor;
                       
                       return (
-                        <div key={k} className="grid grid-cols-12 gap-4 items-center py-3 border-b last:border-0 hover:bg-muted/50 px-2 rounded">
-                          <div className="col-span-4 font-medium text-sm">{f.name}</div>
-                          <div className="col-span-3 flex items-center gap-2">
-                            <Input 
-                              type="number"
-                              min="0"
-                              step="any"
-                              className="h-8 text-sm text-foreground"
-                              placeholder="0"
-                              value={input.quantity || ''} 
-                              onChange={(e) => setWasteInputs({ 
-                                ...wasteInputs, 
-                                [k]: { ...input, quantity: e.target.value } 
-                              })}
-                            />
-                            <Select
-                              value={input.unit}
-                              onValueChange={(v) => setWasteInputs({ 
-                                ...wasteInputs, 
-                                [k]: { ...input, unit: v as 'kg' | 'tonne' } 
-                              })}
-                            >
-                              <SelectTrigger className="w-24 h-8 text-sm">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="kg">kg</SelectItem>
-                                <SelectItem value="tonne">tonne</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="col-span-3 text-xs text-muted-foreground text-right font-mono">
-                            × {f.factor} kgCO2/kg
-                          </div>
-                          <div className={`col-span-2 text-right font-bold text-sm ${total < 0 ? 'text-blue-600' : 'text-emerald-600'}`}>
-                            {(total / 1000).toFixed(3)} t
+                        <div key={k} className="py-2.5 md:py-3 border-b last:border-0 hover:bg-muted/50 px-2 rounded">
+                          {/* Mobile: stacked, Desktop: grid */}
+                          <div className="flex flex-col gap-2 md:grid md:grid-cols-12 md:gap-4 md:items-center">
+                            <div className="md:col-span-4 font-medium text-sm">{f.name}</div>
+                            <div className="flex items-center gap-2 md:col-span-3">
+                              <Input 
+                                type="number"
+                                min="0"
+                                step="any"
+                                className="h-9 text-sm text-foreground flex-1"
+                                placeholder="0"
+                                value={input.quantity || ''} 
+                                onChange={(e) => setWasteInputs({ 
+                                  ...wasteInputs, 
+                                  [k]: { ...input, quantity: e.target.value } 
+                                })}
+                              />
+                              <Select
+                                value={input.unit}
+                                onValueChange={(v) => setWasteInputs({ 
+                                  ...wasteInputs, 
+                                  [k]: { ...input, unit: v as 'kg' | 'tonne' } 
+                                })}
+                              >
+                                <SelectTrigger className="w-20 h-9 text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="kg">kg</SelectItem>
+                                  <SelectItem value="tonne">tonne</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="flex items-center justify-between md:contents">
+                              <span className="text-xs text-muted-foreground font-mono md:col-span-3 md:text-right">
+                                × {f.factor}
+                              </span>
+                              <span className={`font-bold text-sm md:col-span-2 md:text-right ${total < 0 ? 'text-blue-600' : 'text-emerald-600'}`}>
+                                {(total / 1000).toFixed(3)} t
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                  <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <div className="text-sm text-amber-800">
+                  <div className="mt-3 md:mt-4 p-2 md:p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <div className="text-xs md:text-sm text-amber-800">
                       <strong>Waste Total:</strong> {(calculations.scope3_waste / 1000).toFixed(3)} tCO2e
                       {calculations.scope3_waste < 0 && <span className="ml-2 text-blue-600">(Credit from recycling)</span>}
                     </div>
@@ -1390,15 +1417,15 @@ export default function Calculator() {
                 </Card>
 
                 {/* A5 On-Site Construction Section */}
-                <Card className="p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-700">On-Site Construction (A5)</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Site equipment, generators, and installation activities emissions
+                <Card className="p-4 md:p-6">
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">On-Site Construction (A5)</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
+                    Site equipment, generators, and installation activities
                   </p>
                   
                   {/* Equipment */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                  <div className="mb-4 md:mb-6">
+                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
                       Site Equipment
                     </h4>
@@ -1420,8 +1447,8 @@ export default function Calculator() {
                   </div>
 
                   {/* Generators */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                  <div className="mb-4 md:mb-6">
+                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
                       Generators
                     </h4>
@@ -1443,8 +1470,8 @@ export default function Calculator() {
                   </div>
 
                   {/* Installation Activities */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                  <div className="mb-4 md:mb-6">
+                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                       Installation Activities
                     </h4>
@@ -1466,8 +1493,8 @@ export default function Calculator() {
                   </div>
 
                   {/* Site Facilities */}
-                  <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                  <div className="mb-3 md:mb-4">
+                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
                       Site Facilities
                     </h4>
@@ -1488,8 +1515,8 @@ export default function Calculator() {
                     </div>
                   </div>
 
-                  <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                    <div className="text-sm text-orange-800">
+                  <div className="mt-3 md:mt-4 p-2 md:p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <div className="text-xs md:text-sm text-orange-800">
                       <strong>A5 On-Site Total:</strong> {(calculations.scope3_a5 / 1000).toFixed(3)} tCO2e
                     </div>
                   </div>
@@ -1498,37 +1525,38 @@ export default function Calculator() {
             )}
 
             {activeTab === 'report' && (
-              <Card className="p-8 text-center">
-                <div className="inline-block p-4 bg-emerald-50 rounded-full text-emerald-600 mb-4">
-                  <CloudUpload className="h-12 w-12" />
+              <Card className="p-4 md:p-8 text-center">
+                <div className="inline-block p-3 md:p-4 bg-emerald-50 rounded-full text-emerald-600 mb-4">
+                  <CloudUpload className="h-8 w-8 md:h-12 md:w-12" />
                 </div>
-                <h2 className="text-2xl font-bold mb-2">Ready to Report</h2>
-                <p className="text-muted-foreground mb-6">Your calculation is complete. Save to history or print as PDF.</p>
+                <h2 className="text-xl md:text-2xl font-bold mb-2">Ready to Report</h2>
+                <p className="text-sm text-muted-foreground mb-4 md:mb-6">Your calculation is complete. Save to history or print as PDF.</p>
                 
                 {!canPerformAction('lca_calculations').allowed && (
-                  <div className="p-4 mb-6 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                  <div className="p-3 md:p-4 mb-4 md:mb-6 bg-amber-50 border border-amber-200 rounded-lg text-xs md:text-sm text-amber-800">
                     <Crown className="h-4 w-4 inline mr-2" />
                     {canPerformAction('lca_calculations').reason}
                   </div>
                 )}
                 
-                <div className="flex justify-center gap-4">
+                <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
                   <Button 
                     onClick={saveReport} 
                     disabled={saving || !canPerformAction('lca_calculations').allowed} 
                     size="lg"
+                    className="text-sm"
                   >
                     {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                     Save to Reports
                     {!canPerformAction('lca_calculations').allowed && <Crown className="h-4 w-4 ml-2" />}
                   </Button>
-                  <Button variant="outline" size="lg" onClick={() => window.print()}>
+                  <Button variant="outline" size="lg" onClick={() => window.print()} className="text-sm">
                     Print PDF
                   </Button>
                   {!canPerformAction('lca_calculations').allowed && (
-                    <Button variant="default" size="lg" onClick={() => setUpgradeModalOpen(true)}>
+                    <Button variant="default" size="lg" onClick={() => setUpgradeModalOpen(true)} className="text-sm">
                       <Crown className="h-4 w-4 mr-2" />
-                      Upgrade to Pro
+                      Upgrade
                     </Button>
                   )}
                 </div>
@@ -1538,36 +1566,36 @@ export default function Calculator() {
 
           {/* Right Column - Stats Panel */}
           <div className="lg:col-span-1">
-            <Card className="p-6 sticky top-6 bg-slate-800 text-white">
+            <Card className="p-4 md:p-6 lg:sticky lg:top-6 bg-slate-800 text-white">
               <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Footprint</h3>
-              <div className="text-4xl font-bold mb-6 text-emerald-400">
-                {(calculations.total / 1000).toFixed(2)} <span className="text-lg text-white">tCO₂e</span>
+              <div className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-emerald-400">
+                {(calculations.total / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>
               </div>
-              <p className="text-[10px] text-slate-500 -mt-4 mb-4">tonnes of CO₂ equivalent</p>
-              <div className="space-y-4 text-sm">
+              <p className="text-[10px] text-slate-500 -mt-3 md:-mt-4 mb-3 md:mb-4">tonnes of CO₂ equivalent</p>
+              <div className="space-y-3 md:space-y-4 text-xs md:text-sm">
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Energy (Scope 1+2)</span>
-                  <span className="font-bold">{((calculations.scope1 + calculations.scope2) / 1000).toFixed(2)} <span className="text-xs text-slate-400">tCO₂e</span></span>
+                  <span className="font-bold">{((calculations.scope1 + calculations.scope2) / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Materials (A1-A3)</span>
-                  <span className="font-bold">{(calculations.scope3_materials / 1000).toFixed(2)} <span className="text-xs text-slate-400">tCO₂e</span></span>
+                  <span className="font-bold">{(calculations.scope3_materials / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
                 </div>
                 {calculations.scope3_sequestration > 0 && (
-                  <div className="flex justify-between border-b border-slate-700 pb-2 bg-emerald-900/30 -mx-6 px-6 py-2">
+                  <div className="flex justify-between border-b border-slate-700 pb-2 bg-emerald-900/30 -mx-4 md:-mx-6 px-4 md:px-6 py-2">
                     <span className="text-emerald-300 flex items-center gap-1">
                       <Leaf className="h-3 w-3" /> Carbon Stored
                     </span>
-                    <span className="font-bold text-emerald-400">-{(calculations.scope3_sequestration / 1000).toFixed(2)} <span className="text-xs">tCO₂e</span></span>
+                    <span className="font-bold text-emerald-400">-{(calculations.scope3_sequestration / 1000).toFixed(2)} <span className="text-xs">t</span></span>
                   </div>
                 )}
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Transport (A4)</span>
-                  <span className="font-bold">{(calculations.scope3_transport / 1000).toFixed(2)} <span className="text-xs text-slate-400">tCO₂e</span></span>
+                  <span className="font-bold">{(calculations.scope3_transport / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">On-Site (A5)</span>
-                  <span className="font-bold text-orange-400">{(calculations.scope3_a5 / 1000).toFixed(2)} <span className="text-xs">tCO₂e</span></span>
+                  <span className="font-bold text-orange-400">{(calculations.scope3_a5 / 1000).toFixed(2)} <span className="text-xs">t</span></span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Commute</span>

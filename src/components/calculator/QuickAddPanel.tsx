@@ -12,8 +12,8 @@ export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial }: Quic
   if (materials.length === 0) return null;
 
   return (
-    <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
-      <div className="flex items-center justify-between mb-3">
+    <div className="p-3 md:p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
           <div className="bg-emerald-500 p-1.5 rounded-lg">
             <Zap className="h-4 w-4 text-white" />
@@ -29,12 +29,12 @@ export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial }: Quic
             <TooltipTrigger asChild>
               <button
                 onClick={() => onAddMaterial(fav)}
-                className="group relative inline-flex items-center gap-2 px-3 py-2 text-sm bg-white border border-emerald-300 rounded-xl hover:bg-emerald-100 hover:border-emerald-400 hover:shadow-sm transition-all"
+                className="group relative inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm bg-white border border-emerald-300 rounded-lg hover:bg-emerald-100 hover:border-emerald-400 hover:shadow-sm transition-all"
               >
                 <div className="flex flex-col items-start">
-                  <span className="text-foreground font-medium truncate max-w-[140px]">{fav.materialName}</span>
+                  <span className="text-foreground font-medium text-xs md:text-sm truncate max-w-[100px] md:max-w-[140px]">{fav.materialName}</span>
                   <span className="text-xs text-emerald-600 font-mono">
-                    {fav.factor.toFixed(1)} kgCO₂/{fav.unit}
+                    {fav.factor.toFixed(1)} /{fav.unit}
                   </span>
                 </div>
                 <button
