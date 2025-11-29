@@ -1,6 +1,4 @@
-// Force rebuild: 2025-11-29T10:20 - Fix React duplicate instances
-import * as React from "react";
-import { lazy, Suspense, useEffect } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

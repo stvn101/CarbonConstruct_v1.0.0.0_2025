@@ -36,12 +36,13 @@ const Index = () => {
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
               <div className="flex items-center justify-center gap-4">
-                <img 
+              <img 
                   src="/logo-optimized.webp?v=20251127" 
                   alt="CarbonConstruct Logo"
                   className="w-16 h-16 md:w-24 md:h-24" 
                   width="96" 
                   height="96" 
+                  fetchPriority="high" 
                   loading="eager" 
                 />
                 <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
@@ -84,16 +85,20 @@ const Index = () => {
                   className="w-full h-48 sm:h-64 md:h-96 object-cover" 
                   width="1280" 
                   height="549" 
+                  fetchPriority="high" 
                   loading="eager" 
                 />
               </picture>
-              <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4 md:p-6">
-                <div className="text-center space-y-2 md:space-y-4 bg-black/60 rounded-lg p-4 md:p-6">
-                  <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-white" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-end md:items-center justify-center p-6">
+                <div className="text-center space-y-2 md:space-y-4">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
                     Professional Carbon Assessment
                   </h2>
-                  <p className="text-xs sm:text-sm md:text-base text-white max-w-md" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-                    Comprehensive LCA methodologies for Australian construction projects. Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
+                  <p className="text-sm sm:text-base text-white/90 max-w-md">
+                    Comprehensive LCA methodologies for Australian construction projects
+Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
+
+
                   </p>
                 </div>
               </div>

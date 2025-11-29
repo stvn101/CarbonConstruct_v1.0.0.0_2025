@@ -1,22 +1,14 @@
-// Force rebuild: 2025-11-29T10:20 - Fix React duplicate instances
-import * as React from "react";
-import * as ReactDOM from "react-dom/client";
+import React from "react";
+import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
 import { initializeErrorTracking, trackErrorGlobal } from "./hooks/useErrorTracking";
+import { initTracing } from "./lib/tracing";
 import "./index.css";
 
-// Initialize tracing only in local development (wrapped in try-catch)
-try {
-  import("./lib/tracing").then(({ initTracing }) => {
-    initTracing();
-  }).catch(() => {
-    // Silently fail - tracing is optional
-  });
-} catch {
-  // Silently fail - tracing is optional
-}
+// Initialize tracing
+initTracing();
 
 // Initialize global error tracking
 initializeErrorTracking();

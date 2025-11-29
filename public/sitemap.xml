@@ -66,10 +66,4 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  <url>
-    <loc>https://carbonconstruct.com.au/accessibility</loc>
-    <lastmod>2025-11-29</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
 </urlset>

@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Force rebuild: 2025-11-29T11:00 - Fixed React deduplication, removed next-themes from sonner
+// Cache bust: 2025-11-28T16:20 - Force rebuild v2
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -17,30 +17,11 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "react": path.resolve(__dirname, "node_modules/react"),
-      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
-      "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
     },
-    dedupe: [
-      'react', 
-      'react-dom', 
-      'react/jsx-runtime', 
-      'react/jsx-dev-runtime', 
-      'react-router-dom',
-      'next-themes',
-      'sonner',
-    ],
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
   },
   optimizeDeps: {
-    include: [
-      'react', 
-      'react-dom', 
-      'react/jsx-runtime', 
-      'react/jsx-dev-runtime', 
-      'react-router-dom',
-      'next-themes',
-      'sonner',
-    ],
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
     force: true,
     esbuildOptions: {
       target: "esnext",

@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
-import html2pdf from 'html2pdf.js';
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Image } from '@react-pdf/renderer';
 import { Button } from '@/components/ui/button';
-import { FileDown, Loader2 } from 'lucide-react';
+import { FileDown } from 'lucide-react';
 import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
+import { useComplianceCheck } from '@/hooks/useComplianceCheck';
 
 export interface ReportBranding {
   companyName?: string;
@@ -16,364 +17,630 @@ export interface PDFReportOptions {
   showWatermark?: boolean;
 }
 
-interface PDFReportProps {
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'column',
+    backgroundColor: '#ffffff',
+    padding: 40,
+    fontFamily: 'Helvetica',
+    position: 'relative',
+  },
+  watermark: {
+    position: 'absolute',
+    top: '45%',
+    left: '10%',
+    right: '10%',
+    transform: 'rotate(-35deg)',
+    fontSize: 48,
+    color: '#e8e8e8',
+    textAlign: 'center',
+    opacity: 0.6,
+    fontWeight: 'bold',
+    zIndex: -1,
+  },
+  header: {
+    marginBottom: 30,
+    borderBottom: '2px solid #2d5a27',
+    paddingBottom: 20,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    objectFit: 'contain',
+  },
+  companyName: {
+    fontSize: 12,
+    color: '#333333',
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  preparedBy: {
+    fontSize: 10,
+    color: '#666666',
+    marginTop: 8,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2d5a27',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 5,
+  },
+  section: {
+    marginBottom: 25,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2d5a27',
+    marginBottom: 10,
+    borderBottom: '1px solid #cccccc',
+    paddingBottom: 5,
+  },
+  row: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  label: {
+    width: 140,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  value: {
+    fontSize: 11,
+    color: '#666666',
+    flex: 1,
+  },
+  emissionCard: {
+    backgroundColor: '#f8fffe',
+    border: '1px solid #e0e7e0',
+    borderRadius: 4,
+    padding: 15,
+    marginBottom: 15,
+  },
+  emissionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#2d5a27',
+    marginBottom: 8,
+  },
+  emissionValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1e3a1c',
+    marginBottom: 5,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+    paddingLeft: 10,
+  },
+  categoryName: {
+    width: 150,
+    fontSize: 10,
+    color: '#555555',
+  },
+  categoryValue: {
+    fontSize: 10,
+    color: '#333333',
+    fontWeight: 'bold',
+  },
+  footer: {
+    marginTop: 30,
+    paddingTop: 20,
+    borderTop: '1px solid #cccccc',
+    fontSize: 10,
+    color: '#666666',
+    textAlign: 'center',
+  },
+  complianceSection: {
+    backgroundColor: '#f0f8f0',
+    padding: 15,
+    borderRadius: 4,
+    marginBottom: 20,
+  },
+  complianceItem: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  complianceLabel: {
+    width: 150,
+    fontSize: 11,
+    color: '#2d5a27',
+    fontWeight: 'bold',
+  },
+  complianceStatus: {
+    fontSize: 11,
+    color: '#22c55e',
+    fontWeight: 'bold',
+  },
+  complianceValue: {
+    fontSize: 11,
+    color: '#333333',
+  },
+  keyMetricBox: {
+    backgroundColor: '#f8fffe',
+    border: '1px solid #e0e7e0',
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 10,
+  },
+  metricLabel: {
+    fontSize: 10,
+    color: '#666666',
+    marginBottom: 4,
+  },
+  metricValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2d5a27',
+  },
+  disclaimer: {
+    marginTop: 15,
+    paddingTop: 10,
+    borderTop: '0.5px solid #e0e0e0',
+    fontSize: 6,
+    color: '#999999',
+    lineHeight: 1.4,
+  },
+  disclaimerTitle: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: '#888888',
+    marginBottom: 3,
+  },
+});
+
+interface PDFReportDocumentProps {
   data: ReportData;
   template: ReportTemplate;
   branding?: ReportBranding;
-  options?: PDFReportOptions;
+  showWatermark?: boolean;
 }
 
-const formatNumber = (num: number) => (num || 0).toFixed(2);
+const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, branding, showWatermark }) => {
+  const formatNumber = (num: number) => (num || 0).toFixed(2);
 
-export function PDFReport({ data, template, branding, options }: PDFReportProps) {
-  const reportRef = useRef<HTMLDivElement>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const renderExecutiveSummary = () => (
+    <>
+      {/* Executive Summary Content */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Executive Summary</Text>
+        <Text style={{ fontSize: 12, color: '#666666', marginBottom: 15 }}>
+          Total emissions for {data.project.name}: {formatNumber(data.emissions.total)} tCO₂e
+        </Text>
+        {data.project.description && (
+          <Text style={{ fontSize: 10, color: '#888888', marginBottom: 15 }}>{data.project.description}</Text>
+        )}
+      </View>
 
-  const handleDownload = async () => {
-    if (!reportRef.current) return;
-    
-    setIsGenerating(true);
-    try {
-      const element = reportRef.current;
-      const opt = {
-        margin: 10,
-        filename: `${data.project.name.replace(/\s+/g, '_')}_Carbon_Report.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
-      };
-      
-      await html2pdf().set(opt).from(element).save();
-    } catch (error) {
-      console.error('PDF generation failed:', error);
-    } finally {
-      setIsGenerating(false);
+      {/* Key Metrics */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Key Metrics</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 }}>
+          <View style={styles.keyMetricBox}>
+            <Text style={styles.metricLabel}>Scope 1</Text>
+            <Text style={styles.metricValue}>{formatNumber(data.emissions.scope1)} tCO₂e</Text>
+          </View>
+          <View style={styles.keyMetricBox}>
+            <Text style={styles.metricLabel}>Scope 2</Text>
+            <Text style={styles.metricValue}>{formatNumber(data.emissions.scope2)} tCO₂e</Text>
+          </View>
+          <View style={styles.keyMetricBox}>
+            <Text style={styles.metricLabel}>Scope 3</Text>
+            <Text style={styles.metricValue}>{formatNumber(data.emissions.scope3)} tCO₂e</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Compliance Overview */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Compliance Overview</Text>
+        <View style={styles.complianceItem}>
+          <Text style={styles.complianceLabel}>NCC Compliance:</Text>
+          <Text style={styles.complianceStatus}>
+            {data.compliance.nccCompliant ? '✓ Compliant' : '⚠ Partial'}
+          </Text>
+        </View>
+        <View style={styles.complianceItem}>
+          <Text style={styles.complianceLabel}>Green Star Eligible:</Text>
+          <Text style={styles.complianceStatus}>
+            {data.compliance.greenStarEligible ? '✓ Eligible' : '⚠ Review Required'}
+          </Text>
+        </View>
+        <View style={styles.complianceItem}>
+          <Text style={styles.complianceLabel}>NABERS Ready:</Text>
+          <Text style={styles.complianceStatus}>
+            {data.compliance.nabersReady ? '✓ Ready' : '⚠ Additional Data Required'}
+          </Text>
+        </View>
+      </View>
+    </>
+  );
+
+  const renderComplianceFocused = () => (
+    <>
+      {/* Compliance Report Introduction */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Compliance Assessment</Text>
+        <Text style={{ fontSize: 11, color: '#666666', marginBottom: 10 }}>
+          Detailed compliance assessment for {data.project.name} against Australian standards
+        </Text>
+      </View>
+
+      {/* NCC Compliance */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>NCC Compliance (National Construction Code)</Text>
+        <View style={styles.complianceSection}>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Status:</Text>
+            <Text style={styles.complianceStatus}>
+              {data.compliance.nccCompliant ? '✓ COMPLIANT' : '✗ REVIEW REQUIRED'}
+            </Text>
+          </View>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Total Emissions:</Text>
+            <Text style={styles.complianceValue}>{formatNumber(data.emissions.total)} tCO₂e</Text>
+          </View>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Scope 1 (Direct):</Text>
+            <Text style={styles.complianceValue}>{formatNumber(data.emissions.scope1)} tCO₂e</Text>
+          </View>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Scope 2 (Energy):</Text>
+            <Text style={styles.complianceValue}>{formatNumber(data.emissions.scope2)} tCO₂e</Text>
+          </View>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Scope 3 (Indirect):</Text>
+            <Text style={styles.complianceValue}>{formatNumber(data.emissions.scope3)} tCO₂e</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Green Star Assessment */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>GBCA Green Star Assessment</Text>
+        <View style={styles.complianceSection}>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Eligibility:</Text>
+            <Text style={styles.complianceStatus}>
+              {data.compliance.greenStarEligible ? '✓ ELIGIBLE' : '✗ NOT ELIGIBLE'}
+            </Text>
+          </View>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Total Emissions:</Text>
+            <Text style={styles.complianceValue}>{formatNumber(data.emissions.total)} tCO₂e</Text>
+          </View>
+          <Text style={{ fontSize: 10, color: '#666666', marginTop: 10 }}>
+            Green Star eligibility is based on comprehensive environmental performance including emissions intensity, 
+            materials selection, and operational efficiency.
+          </Text>
+        </View>
+      </View>
+
+      {/* NABERS Assessment */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>NABERS Energy Assessment</Text>
+        <View style={styles.complianceSection}>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Readiness:</Text>
+            <Text style={styles.complianceStatus}>
+              {data.compliance.nabersReady ? '✓ READY' : '✗ ADDITIONAL DATA REQUIRED'}
+            </Text>
+          </View>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Scope 2 Emissions:</Text>
+            <Text style={styles.complianceValue}>{formatNumber(data.emissions.scope2)} tCO₂e</Text>
+          </View>
+          <Text style={{ fontSize: 10, color: '#666666', marginTop: 10 }}>
+            NABERS Energy rating requires comprehensive operational energy data. Scope 2 emissions are the 
+            primary indicator of energy performance.
+          </Text>
+        </View>
+      </View>
+
+      {/* Emission Summary Table */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Emission Summary</Text>
+        <View style={{ border: '1px solid #cccccc', marginTop: 10 }}>
+          <View style={{ flexDirection: 'row', backgroundColor: '#f0f0f0', borderBottom: '1px solid #cccccc', padding: 8 }}>
+            <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold' }}>Scope</Text>
+            <Text style={{ width: 120, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>Emissions (tCO₂e)</Text>
+          </View>
+          <View style={{ flexDirection: 'row', borderBottom: '1px solid #cccccc', padding: 8 }}>
+            <Text style={{ flex: 1, fontSize: 10 }}>Scope 1 (Direct)</Text>
+            <Text style={{ width: 120, fontSize: 10, textAlign: 'right' }}>{formatNumber(data.emissions.scope1)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', borderBottom: '1px solid #cccccc', padding: 8 }}>
+            <Text style={{ flex: 1, fontSize: 10 }}>Scope 2 (Energy)</Text>
+            <Text style={{ width: 120, fontSize: 10, textAlign: 'right' }}>{formatNumber(data.emissions.scope2)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', borderBottom: '1px solid #cccccc', padding: 8 }}>
+            <Text style={{ flex: 1, fontSize: 10 }}>Scope 3 (Indirect)</Text>
+            <Text style={{ width: 120, fontSize: 10, textAlign: 'right' }}>{formatNumber(data.emissions.scope3)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', backgroundColor: '#f8fffe', padding: 8 }}>
+            <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold' }}>Total</Text>
+            <Text style={{ width: 120, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>{formatNumber(data.emissions.total)}</Text>
+          </View>
+        </View>
+      </View>
+    </>
+  );
+
+  const renderTechnicalReport = () => (
+    <>
+      {/* Project Information */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Project Information</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Project Name:</Text>
+          <Text style={styles.value}>{data.project.name}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Project Type:</Text>
+          <Text style={styles.value}>{data.project.project_type}</Text>
+        </View>
+        {data.project.location && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Location:</Text>
+            <Text style={styles.value}>{data.project.location}</Text>
+          </View>
+        )}
+        {data.project.description && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Description:</Text>
+            <Text style={styles.value}>{data.project.description}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Executive Summary */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Executive Summary</Text>
+        <View style={styles.emissionCard}>
+          <Text style={styles.emissionTitle}>Total Carbon Emissions</Text>
+          <Text style={styles.emissionValue}>{formatNumber(data.emissions.total)} tCO₂e</Text>
+        </View>
+      </View>
+
+      {/* Emissions Breakdown */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Emissions by Scope</Text>
+        
+        {/* Scope 1: Fuel Inputs */}
+        <View style={styles.emissionCard}>
+          <Text style={styles.emissionTitle}>Scope 1: Direct Emissions (Fuel)</Text>
+          <Text style={styles.emissionValue}>{formatNumber(data.emissions.scope1)} tCO₂e</Text>
+          {data.breakdown.fuelInputs && data.breakdown.fuelInputs.length > 0 ? (
+            data.breakdown.fuelInputs.map((fuel, index) => (
+              <View key={index} style={styles.categoryRow}>
+                <Text style={styles.categoryName}>{fuel.fuelType || 'Unknown'}</Text>
+                <Text style={styles.categoryValue}>
+                  {formatNumber(fuel.totalEmissions)} tCO₂e ({fuel.quantity || 0} {fuel.unit || 'L'})
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.categoryName}>No fuel data available</Text>
+          )}
+        </View>
+
+        {/* Scope 2: Electricity */}
+        <View style={styles.emissionCard}>
+          <Text style={styles.emissionTitle}>Scope 2: Energy Indirect (Electricity)</Text>
+          <Text style={styles.emissionValue}>{formatNumber(data.emissions.scope2)} tCO₂e</Text>
+          {data.breakdown.electricityInputs && data.breakdown.electricityInputs.length > 0 ? (
+            data.breakdown.electricityInputs.map((elec, index) => (
+              <View key={index} style={styles.categoryRow}>
+                <Text style={styles.categoryName}>{elec.state || 'Unknown'}</Text>
+                <Text style={styles.categoryValue}>
+                  {formatNumber(elec.totalEmissions)} tCO₂e ({elec.quantity || 0} {elec.unit || 'kWh'})
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.categoryName}>No electricity data available</Text>
+          )}
+        </View>
+
+        {/* Scope 3: Materials */}
+        <View style={styles.emissionCard}>
+          <Text style={styles.emissionTitle}>Scope 3: Materials (Embodied Carbon)</Text>
+          <Text style={styles.emissionValue}>
+            {data.breakdown.materials && data.breakdown.materials.length > 0 
+              ? formatNumber(data.breakdown.materials.reduce((sum, m) => sum + (m.totalEmissions || 0), 0))
+              : '0.00'
+            } tCO₂e
+          </Text>
+          {data.breakdown.materials && data.breakdown.materials.length > 0 ? (
+            data.breakdown.materials.map((material, index) => (
+              <View key={index} style={styles.categoryRow}>
+                <Text style={styles.categoryName}>{material.name || 'Unknown'} ({material.category || 'N/A'})</Text>
+                <Text style={styles.categoryValue}>
+                  {formatNumber(material.totalEmissions)} tCO₂e ({material.quantity || 0} {material.unit || 'kg'})
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.categoryName}>No materials data available</Text>
+          )}
+        </View>
+
+        {/* Scope 3: Transport */}
+        <View style={styles.emissionCard}>
+          <Text style={styles.emissionTitle}>Scope 3: Transport</Text>
+          <Text style={styles.emissionValue}>
+            {data.breakdown.transportInputs && data.breakdown.transportInputs.length > 0
+              ? formatNumber(data.breakdown.transportInputs.reduce((sum, t) => sum + (t.totalEmissions || 0), 0))
+              : '0.00'
+            } tCO₂e
+          </Text>
+          {data.breakdown.transportInputs && data.breakdown.transportInputs.length > 0 ? (
+            data.breakdown.transportInputs.map((transport, index) => (
+              <View key={index} style={styles.categoryRow}>
+                <Text style={styles.categoryName}>{transport.mode || 'Unknown'}</Text>
+                <Text style={styles.categoryValue}>
+                  {formatNumber(transport.totalEmissions)} tCO₂e ({transport.distance || 0} km, {transport.weight || 0} kg)
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.categoryName}>No transport data available</Text>
+          )}
+        </View>
+      </View>
+
+      {/* Compliance Status */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Australian Compliance Status</Text>
+        <View style={styles.complianceSection}>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>NCC Compliant:</Text>
+            <Text style={styles.complianceStatus}>
+              {data.compliance.nccCompliant ? '✓ Compliant' : '✗ Not Compliant'}
+            </Text>
+          </View>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Green Star Eligible:</Text>
+            <Text style={styles.complianceStatus}>
+              {data.compliance.greenStarEligible ? '✓ Eligible' : '✗ Review Required'}
+            </Text>
+          </View>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>NABERS Ready:</Text>
+            <Text style={styles.complianceStatus}>
+              {data.compliance.nabersReady ? '✓ Ready' : '✗ Additional Data Required'}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Methodology */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Methodology</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Standard:</Text>
+          <Text style={styles.value}>{data.metadata.methodology}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Data Quality:</Text>
+          <Text style={styles.value}>{data.metadata.dataQuality}</Text>
+        </View>
+      </View>
+    </>
+  );
+
+  const getReportTitle = () => {
+    switch (template) {
+      case 'executive':
+        return 'Executive Summary Report';
+      case 'compliance':
+        return 'Compliance Assessment Report';
+      case 'technical':
+      default:
+        return 'Technical Carbon Assessment Report';
     }
   };
 
-  const showWatermark = options?.showWatermark ?? false;
-
   return (
-    <div className="space-y-4">
-      <Button onClick={handleDownload} disabled={isGenerating} className="gap-2">
-        {isGenerating ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Generating PDF...
-          </>
-        ) : (
-          <>
-            <FileDown className="h-4 w-4" />
-            Download PDF Report
-          </>
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Watermark for non-Pro users */}
+        {showWatermark && (
+          <Text style={styles.watermark}>Generated by CarbonConstruct</Text>
         )}
-      </Button>
-
-      {/* Hidden report content for PDF generation */}
-      <div className="absolute left-[-9999px]">
-        <div 
-          ref={reportRef} 
-          className="bg-white p-8 text-black"
-          style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Helvetica, Arial, sans-serif' }}
-        >
-          {/* Watermark */}
-          {showWatermark && (
-            <div 
-              style={{
-                position: 'absolute',
-                top: '45%',
-                left: '10%',
-                right: '10%',
-                transform: 'rotate(-35deg)',
-                fontSize: '48px',
-                color: '#e8e8e8',
-                textAlign: 'center',
-                opacity: 0.6,
-                fontWeight: 'bold',
-                zIndex: -1,
-                pointerEvents: 'none',
-              }}
-            >
-              SAMPLE REPORT
-            </div>
-          )}
-
-          {/* Header */}
-          <div className="border-b-2 border-[#2d5a27] pb-5 mb-8">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                {branding?.companyName && (
-                  <p className="text-sm font-bold text-gray-700 mb-1">{branding.companyName}</p>
-                )}
-                <h1 className="text-2xl font-bold text-[#2d5a27]">Carbon Assessment Report</h1>
-                <p className="text-sm text-gray-500">{data.project.name}</p>
-              </div>
-              {branding?.logoUrl && (
-                <img src={branding.logoUrl} alt="Logo" className="w-20 h-20 object-contain" />
-              )}
-            </div>
-            <p className="text-xs text-gray-500">Generated: {new Date().toLocaleDateString()}</p>
-            {branding?.preparedBy && (
-              <p className="text-xs text-gray-500 mt-2">Prepared by: {branding.preparedBy}</p>
-            )}
-          </div>
-
-          {/* Content based on template */}
-          {template === 'executive' && <ExecutiveSummary data={data} />}
-          {template === 'technical' && <TechnicalReport data={data} />}
-          {template === 'compliance' && <ComplianceReport data={data} />}
-
-          {/* Footer */}
-          <div className="mt-8 pt-5 border-t border-gray-300 text-center text-xs text-gray-500">
-            <p>Generated by CarbonConstruct - Australian Construction Carbon Calculator</p>
-            {branding?.contactEmail && <p>Contact: {branding.contactEmail}</p>}
-            
-            {/* Disclaimer */}
-            <div className="mt-4 pt-3 border-t border-gray-200 text-left">
-              <p className="font-semibold text-gray-600 mb-1" style={{ fontSize: '7px' }}>DISCLAIMER</p>
-              <p style={{ fontSize: '6px', lineHeight: 1.4, color: '#999' }}>
-                This report is generated based on the data provided and standard emission factors from Australian government sources. 
-                Results are estimates only and should not be used as the sole basis for regulatory compliance decisions. 
-                CarbonConstruct provides this tool for informational purposes and does not guarantee accuracy of calculations. 
-                Users should verify results with qualified environmental consultants for official reporting. 
-                By using this service, you agree to our Terms of Service and Privacy Policy.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ExecutiveSummary({ data }: { data: ReportData }) {
-  return (
-    <>
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">Executive Summary</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Total emissions for {data.project.name}: {formatNumber(data.emissions.total)} tCO₂e
-        </p>
-        {data.project.description && (
-          <p className="text-xs text-gray-500 mb-4">{data.project.description}</p>
-        )}
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">Key Metrics</h2>
-        <div className="flex gap-4 mb-4">
-          <MetricBox label="Scope 1" value={`${formatNumber(data.emissions.scope1)} tCO₂e`} />
-          <MetricBox label="Scope 2" value={`${formatNumber(data.emissions.scope2)} tCO₂e`} />
-          <MetricBox label="Scope 3" value={`${formatNumber(data.emissions.scope3)} tCO₂e`} />
-        </div>
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">Compliance Overview</h2>
-        <ComplianceItem label="NCC Compliance" status={data.compliance.nccCompliant} />
-        <ComplianceItem label="Green Star Eligible" status={data.compliance.greenStarEligible} />
-        <ComplianceItem label="NABERS Ready" status={data.compliance.nabersReady} />
-      </section>
-    </>
-  );
-}
-
-function TechnicalReport({ data }: { data: ReportData }) {
-  return (
-    <>
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">Project Information</h2>
-        <InfoRow label="Project Name" value={data.project.name} />
-        <InfoRow label="Project Type" value={data.project.project_type} />
-        {data.project.location && <InfoRow label="Location" value={data.project.location} />}
-        {data.project.description && <InfoRow label="Description" value={data.project.description} />}
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">Executive Summary</h2>
-        <div className="bg-[#f8fffe] border border-[#e0e7e0] rounded p-4 mb-4">
-          <p className="text-sm font-bold text-[#2d5a27] mb-2">Total Carbon Emissions</p>
-          <p className="text-xl font-bold text-[#1e3a1c]">{formatNumber(data.emissions.total)} tCO₂e</p>
-        </div>
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">Emissions by Scope</h2>
         
-        <EmissionCard 
-          title="Scope 1: Direct Emissions (Fuel)" 
-          value={formatNumber(data.emissions.scope1)}
-          items={data.breakdown.fuelInputs?.map(f => ({
-            name: f.fuelType || 'Unknown',
-            emissions: formatNumber(f.totalEmissions),
-            detail: `${f.quantity || 0} ${f.unit || 'L'}`
-          })) || []}
-        />
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.companyName}>{branding?.companyName || 'CarbonConstruct'}</Text>
+              {branding?.preparedBy && (
+                <Text style={styles.preparedBy}>Prepared by: {branding.preparedBy}</Text>
+              )}
+            </View>
+            {branding?.logoUrl && (
+              <Image src={branding.logoUrl} style={styles.logo} />
+            )}
+          </View>
+          <Text style={styles.title}>{getReportTitle()}</Text>
+          <Text style={styles.subtitle}>{data.project.name}</Text>
+          <Text style={styles.subtitle}>Generated: {new Date(data.metadata.generatedAt).toLocaleDateString()}</Text>
+        </View>
 
-        <EmissionCard 
-          title="Scope 2: Energy Indirect (Electricity)" 
-          value={formatNumber(data.emissions.scope2)}
-          items={data.breakdown.electricityInputs?.map(e => ({
-            name: e.state || 'Unknown',
-            emissions: formatNumber(e.totalEmissions),
-            detail: `${e.quantity || 0} ${e.unit || 'kWh'}`
-          })) || []}
-        />
+        {template === 'executive' && renderExecutiveSummary()}
+        {template === 'compliance' && renderComplianceFocused()}
+        {template === 'technical' && renderTechnicalReport()}
 
-        <EmissionCard 
-          title="Scope 3: Materials (Embodied Carbon)" 
-          value={formatNumber(data.breakdown.materials?.reduce((sum, m) => sum + (m.totalEmissions || 0), 0) || 0)}
-          items={data.breakdown.materials?.map(m => ({
-            name: `${m.name || 'Unknown'} (${m.category || 'N/A'})`,
-            emissions: formatNumber(m.totalEmissions),
-            detail: `${m.quantity || 0} ${m.unit || 'kg'}`
-          })) || []}
-        />
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text>This report was generated using Australian NCC 2024 emission factors and methodologies.</Text>
+          {branding?.contactEmail ? (
+            <Text>For questions about this assessment, contact: {branding.contactEmail}</Text>
+          ) : (
+            <Text>For questions about this assessment, contact: support@carbonconstruct.com.au</Text>
+          )}
+          <Text style={{ marginTop: 5 }}>© {new Date().getFullYear()} {branding?.companyName || 'CarbonConstruct'}</Text>
+        </View>
 
-        <EmissionCard 
-          title="Scope 3: Transport" 
-          value={formatNumber(data.breakdown.transportInputs?.reduce((sum, t) => sum + (t.totalEmissions || 0), 0) || 0)}
-          items={data.breakdown.transportInputs?.map(t => ({
-            name: t.mode || 'Unknown',
-            emissions: formatNumber(t.totalEmissions),
-            detail: `${t.distance || 0} km, ${t.weight || 0} kg`
-          })) || []}
-        />
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">Compliance Status</h2>
-        <ComplianceItem label="NCC Compliance" status={data.compliance.nccCompliant} />
-        <ComplianceItem label="Green Star Eligible" status={data.compliance.greenStarEligible} />
-        <ComplianceItem label="NABERS Ready" status={data.compliance.nabersReady} />
-      </section>
-    </>
+        {/* Legal Disclaimer */}
+        <View style={styles.disclaimer}>
+          <Text style={styles.disclaimerTitle}>DISCLAIMER & TERMS OF USE</Text>
+          <Text>
+            This carbon assessment report is generated by CarbonConstruct Pty Ltd (ABN pending) using Australian emission factors 
+            from NCC 2024, NABERS, and industry EPD sources. All calculations are estimates based on user-provided data and 
+            standard emission factors. CarbonConstruct does not guarantee the accuracy, completeness, or reliability of results. 
+            This report should not be used as the sole basis for regulatory compliance, financial decisions, or legal purposes 
+            without independent verification by a qualified professional. Users are responsible for verifying data accuracy 
+            and ensuring compliance with applicable regulations. By using this report, you agree to our full Terms of Service 
+            and Privacy Policy available at carbonconstruct.com.au. CarbonConstruct accepts no liability for decisions made 
+            based on this report. For certified compliance assessments, please consult an accredited carbon assessor. 
+            © {new Date().getFullYear()} CarbonConstruct. All rights reserved.
+          </Text>
+        </View>
+      </Page>
+    </Document>
   );
+};
+
+interface PDFReportProps {
+  data: ReportData;
+  template?: ReportTemplate;
+  filename?: string;
+  branding?: ReportBranding;
+  showWatermark?: boolean;
 }
 
-function ComplianceReport({ data }: { data: ReportData }) {
+export const PDFReport: React.FC<PDFReportProps> = ({ 
+  data,
+  template = 'technical',
+  filename = `carbon-report-${data.project.name.replace(/\s+/g, '-').toLowerCase()}.pdf`,
+  branding,
+  showWatermark = false
+}) => {
   return (
-    <>
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">Compliance Assessment</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Detailed compliance assessment for {data.project.name} against Australian standards
-        </p>
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">NCC Compliance (National Construction Code)</h2>
-        <div className="bg-[#f0f8f0] p-4 rounded mb-4">
-          <ComplianceItem label="Status" status={data.compliance.nccCompliant} large />
-          <InfoRow label="Total Emissions" value={`${formatNumber(data.emissions.total)} tCO₂e`} />
-          <InfoRow label="Scope 1 (Direct)" value={`${formatNumber(data.emissions.scope1)} tCO₂e`} />
-          <InfoRow label="Scope 2 (Energy)" value={`${formatNumber(data.emissions.scope2)} tCO₂e`} />
-          <InfoRow label="Scope 3 (Indirect)" value={`${formatNumber(data.emissions.scope3)} tCO₂e`} />
-        </div>
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">GBCA Green Star Assessment</h2>
-        <div className="bg-[#f0f8f0] p-4 rounded mb-4">
-          <ComplianceItem label="Eligibility" status={data.compliance.greenStarEligible} large />
-          <InfoRow label="Total Emissions" value={`${formatNumber(data.emissions.total)} tCO₂e`} />
-          <p className="text-xs text-gray-600 mt-3">
-            Green Star eligibility is based on comprehensive environmental performance including emissions intensity, 
-            materials selection, and operational efficiency.
-          </p>
-        </div>
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">NABERS Energy Assessment</h2>
-        <div className="bg-[#f0f8f0] p-4 rounded mb-4">
-          <ComplianceItem label="Readiness" status={data.compliance.nabersReady} large />
-          <InfoRow label="Scope 2 Emissions" value={`${formatNumber(data.emissions.scope2)} tCO₂e`} />
-          <p className="text-xs text-gray-600 mt-3">
-            NABERS Energy rating requires comprehensive operational energy data. Scope 2 emissions are the 
-            primary indicator of energy performance.
-          </p>
-        </div>
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-[#2d5a27] border-b border-gray-300 pb-1 mb-3">Emission Summary</h2>
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 p-2 text-left">Scope</th>
-              <th className="border border-gray-300 p-2 text-right">Emissions (tCO₂e)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="border border-gray-300 p-2">Scope 1 (Direct)</td>
-              <td className="border border-gray-300 p-2 text-right">{formatNumber(data.emissions.scope1)}</td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 p-2">Scope 2 (Energy)</td>
-              <td className="border border-gray-300 p-2 text-right">{formatNumber(data.emissions.scope2)}</td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 p-2">Scope 3 (Indirect)</td>
-              <td className="border border-gray-300 p-2 text-right">{formatNumber(data.emissions.scope3)}</td>
-            </tr>
-            <tr className="bg-[#f8fffe] font-bold">
-              <td className="border border-gray-300 p-2">Total</td>
-              <td className="border border-gray-300 p-2 text-right">{formatNumber(data.emissions.total)}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-    </>
-  );
-}
-
-// Helper components
-function MetricBox({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-[#f8fffe] border border-[#e0e7e0] rounded p-3 flex-1">
-      <p className="text-xs text-gray-500 mb-1">{label}</p>
-      <p className="text-base font-bold text-[#2d5a27]">{value}</p>
-    </div>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex mb-2">
-      <span className="w-36 text-sm font-bold text-gray-700">{label}:</span>
-      <span className="text-sm text-gray-600 flex-1">{value}</span>
-    </div>
-  );
-}
-
-function ComplianceItem({ label, status, large }: { label: string; status: boolean; large?: boolean }) {
-  return (
-    <div className="flex mb-2">
-      <span className={`${large ? 'w-36' : 'w-40'} text-sm font-bold text-[#2d5a27]`}>{label}:</span>
-      <span className={`text-sm font-bold ${status ? 'text-green-600' : 'text-amber-600'}`}>
-        {status ? '✓ Compliant' : '⚠ Review Required'}
-      </span>
-    </div>
-  );
-}
-
-function EmissionCard({ title, value, items }: { title: string; value: string; items: { name: string; emissions: string; detail: string }[] }) {
-  return (
-    <div className="bg-[#f8fffe] border border-[#e0e7e0] rounded p-4 mb-4">
-      <p className="text-sm font-bold text-[#2d5a27] mb-2">{title}</p>
-      <p className="text-lg font-bold text-[#1e3a1c] mb-2">{value} tCO₂e</p>
-      {items.length > 0 ? (
-        items.map((item, i) => (
-          <div key={i} className="flex ml-3 mb-1">
-            <span className="w-40 text-xs text-gray-600">{item.name}</span>
-            <span className="text-xs font-bold text-gray-800">{item.emissions} tCO₂e ({item.detail})</span>
-          </div>
-        ))
-      ) : (
-        <p className="text-xs text-gray-500 ml-3">No data available</p>
+    <PDFDownloadLink
+      document={<PDFReportDocument data={data} template={template} branding={branding} showWatermark={showWatermark} />}
+      fileName={filename}
+    >
+      {({ loading }) => (
+        <Button disabled={loading} className="w-full">
+          <FileDown className="mr-2 h-4 w-4" />
+          {loading ? 'Generating PDF...' : 'Download PDF Report'}
+        </Button>
       )}
-    </div>
+    </PDFDownloadLink>
   );
-}
+};

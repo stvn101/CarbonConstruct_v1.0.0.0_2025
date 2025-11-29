@@ -2,15 +2,12 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import { Footer } from "@/components/Footer";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
-  const { user } = useAuth();
-  
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-background">
@@ -31,7 +28,7 @@ export function Layout({ children }: LayoutProps) {
           
           <Footer />
         </div>
-        {user && <ChatAssistant />}
+        <ChatAssistant />
       </div>
     </SidebarProvider>
   );

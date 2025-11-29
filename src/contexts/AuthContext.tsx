@@ -1,6 +1,4 @@
-// Force rebuild: 2025-11-29T11:00 - Fixed mixed React imports
-import { createContext, useContext, useState, useEffect } from "react";
-import type { ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
