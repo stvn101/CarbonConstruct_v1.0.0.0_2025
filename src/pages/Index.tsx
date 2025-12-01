@@ -90,6 +90,9 @@ const Index = () => {
             </div>
 
             <div className="space-y-3 md:space-y-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <p className="text-sm md:text-base font-medium text-primary">
+                Free 14 day trial and Freemium option. No credit card required.
+              </p>
               <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
                 Get Started
               </Button>
