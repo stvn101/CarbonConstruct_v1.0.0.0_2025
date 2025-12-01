@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Cache bust: 2025-12-01T10:30 - Force rebuild v8 - Trial text addition
+// Cache bust: 2025-12-01T13:20 - Force rebuild v9 - React dedup fix
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => ({
     dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', '@radix-ui/react-toast', 'sonner'],
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', '@radix-ui/react-toast', 'sonner', 'next-themes'],
     force: true,
     esbuildOptions: {
       target: "esnext",
