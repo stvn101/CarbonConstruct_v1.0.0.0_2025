@@ -9,8 +9,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock, Scale, Crown } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock, Scale, Crown, ChevronDown, ChevronRight } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { Progress } from "@/components/ui/progress";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
@@ -27,6 +28,12 @@ import { QuickAddPanel } from "@/components/calculator/QuickAddPanel";
 import { TransportCalculator } from "@/components/calculator/TransportCalculator";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MaterialComparison } from "@/components/MaterialComparison";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { UsePhaseCalculator, UsePhaseEmissions } from "@/components/calculator/UsePhaseCalculator";
+import { EndOfLifeCalculator, EndOfLifeEmissions } from "@/components/calculator/EndOfLifeCalculator";
+import { ModuleDCalculator, ModuleDEmissions } from "@/components/calculator/ModuleDCalculator";
+import { WholeLifeCarbonSummary } from "@/components/WholeLifeCarbonSummary";
+import { useWholeLifeCarbonCalculations } from "@/hooks/useWholeLifeCarbonCalculations";
 
 interface Material {
   id: string;
@@ -227,7 +234,8 @@ export default function Calculator() {
     name: '', 
     location: 'NSW', 
     period: '', 
-    auditor: '' 
+    auditor: '',
+    buildingSqm: ''
   }));
   const [scope1Inputs, setScope1Inputs] = useState<Record<string, string>>(() => loadFromStorage('scope1Inputs', {}));
   const [scope2Inputs, setScope2Inputs] = useState<Record<string, string>>(() => loadFromStorage('scope2Inputs', {}));
@@ -241,6 +249,17 @@ export default function Calculator() {
   const [aiProcessing, setAiProcessing] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // EN 15978 Lifecycle calculator states
+  const [usePhaseOpen, setUsePhaseOpen] = useState(false);
+  const [endOfLifeOpen, setEndOfLifeOpen] = useState(false);
+  const [moduleDOpen, setModuleDOpen] = useState(false);
+  const [usePhaseEmissions, setUsePhaseEmissions] = useState<UsePhaseEmissions | null>(null);
+  const [endOfLifeEmissions, setEndOfLifeEmissions] = useState<EndOfLifeEmissions | null>(null);
+  const [moduleDEmissions, setModuleDEmissions] = useState<ModuleDEmissions | null>(null);
+  
+  // Building size for lifecycle calculations
+  const buildingSqm = parseFloat(projectDetails.buildingSqm) || 0;
   
   // Group database materials by category and filter by search/category/state
   const groupedMaterials = useMemo(() => {
@@ -349,20 +368,65 @@ export default function Calculator() {
     });
 
     const scope3_materials_net = scope3_materials_gross - scope3_sequestration;
+    
+    // Upfront carbon (A1-A5)
+    const upfront = scope3_materials_net + scope3_transport + scope3_a5;
+    
+    // Use phase totals (B1-B7)
+    const usePhaseTotal = usePhaseEmissions?.total || 0;
+    
+    // End of life totals (C1-C4)
+    const endOfLifeTotal = endOfLifeEmissions?.total || 0;
+    
+    // Module D credits
+    const moduleDTotal = moduleDEmissions?.total || 0;
+    
+    // Whole life carbon calculations
+    const totalEmbodied = upfront + (usePhaseEmissions?.b2_maintenance || 0) + (usePhaseEmissions?.b3_repair || 0) + (usePhaseEmissions?.b4_replacement || 0) + (usePhaseEmissions?.b5_refurbishment || 0) + endOfLifeTotal;
+    const totalOperational = (usePhaseEmissions?.b6_operational_energy || 0) + (usePhaseEmissions?.b7_operational_water || 0);
+    const wholeLife = upfront + usePhaseTotal + endOfLifeTotal;
+    const withBenefits = wholeLife - moduleDTotal;
 
     return { 
       scope1, 
       scope2, 
-      scope3_materials: scope3_materials_net, // Net materials (after sequestration)
+      scope3_materials: scope3_materials_net,
       scope3_materials_gross,
       scope3_sequestration,
       scope3_transport, 
       scope3_commute, 
       scope3_waste, 
       scope3_a5,
-      total: scope1 + scope2 + scope3_materials_net + scope3_transport + scope3_commute + scope3_waste + scope3_a5 
+      total: scope1 + scope2 + scope3_materials_net + scope3_transport + scope3_commute + scope3_waste + scope3_a5,
+      // EN 15978 lifecycle stages
+      a1a3_product: scope3_materials_net,
+      a4_transport: scope3_transport,
+      a5_construction: scope3_a5,
+      // Use phase (B1-B7)
+      b1_use: usePhaseEmissions?.b1_use || 0,
+      b2_maintenance: usePhaseEmissions?.b2_maintenance || 0,
+      b3_repair: usePhaseEmissions?.b3_repair || 0,
+      b4_replacement: usePhaseEmissions?.b4_replacement || 0,
+      b5_refurbishment: usePhaseEmissions?.b5_refurbishment || 0,
+      b6_operational_energy: usePhaseEmissions?.b6_operational_energy || 0,
+      b7_operational_water: usePhaseEmissions?.b7_operational_water || 0,
+      // End of life (C1-C4)
+      c1_deconstruction: endOfLifeEmissions?.c1_deconstruction || 0,
+      c2_transport: endOfLifeEmissions?.c2_transport || 0,
+      c3_waste_processing: endOfLifeEmissions?.c3_waste_processing || 0,
+      c4_disposal: endOfLifeEmissions?.c4_disposal || 0,
+      // Module D
+      d_recycling: moduleDEmissions?.recycling_credits || 0,
+      d_reuse: moduleDEmissions?.reuse_credits || 0,
+      d_energy_recovery: moduleDEmissions?.energy_recovery_credits || 0,
+      // Aggregates
+      total_upfront: upfront,
+      total_embodied: totalEmbodied,
+      total_operational: totalOperational,
+      total_whole_life: wholeLife,
+      total_with_benefits: withBenefits
     };
-  }, [scope1Inputs, scope2Inputs, selectedMaterials, a4TransportEmissions, commuteInputs, wasteInputs, a5Inputs, projectDetails.location]);
+  }, [scope1Inputs, scope2Inputs, selectedMaterials, a4TransportEmissions, commuteInputs, wasteInputs, a5Inputs, projectDetails.location, usePhaseEmissions, endOfLifeEmissions, moduleDEmissions]);
 
   const addMaterialFromDb = (materialId: string) => {
     const material = dbMaterials.find(m => m.id === materialId);
@@ -919,6 +983,13 @@ export default function Calculator() {
                   placeholder="Auditor" 
                   value={projectDetails.auditor}
                   onChange={e => setProjectDetails({...projectDetails, auditor: e.target.value})} 
+                />
+                <Input 
+                  className="text-sm" 
+                  type="number"
+                  placeholder="Building Size (m²)" 
+                  value={projectDetails.buildingSqm || ''}
+                  onChange={e => setProjectDetails({...projectDetails, buildingSqm: e.target.value})} 
                 />
               </div>
             </div>
@@ -1521,6 +1592,83 @@ export default function Calculator() {
                     </div>
                   </div>
                 </Card>
+
+                {/* EN 15978 Lifecycle Stage Calculators */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 px-1">
+                    <Badge variant="outline" className="text-xs">EN 15978</Badge>
+                    <span className="text-sm font-medium text-muted-foreground">Whole Life Carbon Stages</span>
+                  </div>
+                  
+                  {/* Use Phase (B1-B7) */}
+                  <Collapsible open={usePhaseOpen} onOpenChange={setUsePhaseOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between hover:bg-amber-50 border-amber-200">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-amber-600" />
+                          <span>Use Phase (B1-B7)</span>
+                          {usePhaseEmissions && usePhaseEmissions.total > 0 && (
+                            <Badge className="bg-amber-100 text-amber-700 text-xs">
+                              {(usePhaseEmissions.total / 1000).toFixed(2)} tCO₂e
+                            </Badge>
+                          )}
+                        </div>
+                        {usePhaseOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      <UsePhaseCalculator 
+                        buildingSqm={buildingSqm} 
+                        onTotalsChange={setUsePhaseEmissions}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* End of Life (C1-C4) */}
+                  <Collapsible open={endOfLifeOpen} onOpenChange={setEndOfLifeOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between hover:bg-red-50 border-red-200">
+                        <div className="flex items-center gap-2">
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                          <span>End of Life (C1-C4)</span>
+                          {endOfLifeEmissions && endOfLifeEmissions.total > 0 && (
+                            <Badge className="bg-red-100 text-red-700 text-xs">
+                              {(endOfLifeEmissions.total / 1000).toFixed(2)} tCO₂e
+                            </Badge>
+                          )}
+                        </div>
+                        {endOfLifeOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      <EndOfLifeCalculator 
+                        buildingSqm={buildingSqm} 
+                        onTotalsChange={setEndOfLifeEmissions}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Module D (Benefits) */}
+                  <Collapsible open={moduleDOpen} onOpenChange={setModuleDOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between hover:bg-emerald-50 border-emerald-200">
+                        <div className="flex items-center gap-2">
+                          <Leaf className="h-4 w-4 text-emerald-600" />
+                          <span>Module D (Benefits)</span>
+                          {moduleDEmissions && moduleDEmissions.total !== 0 && (
+                            <Badge className="bg-emerald-100 text-emerald-700 text-xs">
+                              {(moduleDEmissions.total / 1000).toFixed(2)} tCO₂e
+                            </Badge>
+                          )}
+                        </div>
+                        {moduleDOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      <ModuleDCalculator onTotalsChange={setModuleDEmissions} />
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
               </div>
             )}
 

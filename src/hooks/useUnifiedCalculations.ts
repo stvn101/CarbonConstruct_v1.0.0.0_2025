@@ -46,6 +46,33 @@ export interface UnifiedTotals {
   scope3_materials: number;
   scope3_transport: number;
   total: number;
+  // EN 15978 Lifecycle stages
+  a1a3_product?: number;
+  a4_transport?: number;
+  a5_construction?: number;
+  // Use phase (B1-B7)
+  b1_use?: number;
+  b2_maintenance?: number;
+  b3_repair?: number;
+  b4_replacement?: number;
+  b5_refurbishment?: number;
+  b6_operational_energy?: number;
+  b7_operational_water?: number;
+  // End of life (C1-C4)
+  c1_deconstruction?: number;
+  c2_transport?: number;
+  c3_waste_processing?: number;
+  c4_disposal?: number;
+  // Module D
+  d_recycling?: number;
+  d_reuse?: number;
+  d_energy_recovery?: number;
+  // Aggregates
+  total_upfront?: number;
+  total_embodied?: number;
+  total_operational?: number;
+  total_whole_life?: number;
+  total_with_benefits?: number;
 }
 
 export interface UnifiedCalculationData {
@@ -254,7 +281,34 @@ export const useUnifiedCalculations = () => {
           scope2: rawTotals.scope2 || rawTotals.s2 || 0,
           scope3_materials: rawTotals.scope3_materials || rawTotals.s3_mat || 0,
           scope3_transport: rawTotals.scope3_transport || rawTotals.s3_trans || 0,
-          total: rawTotals.total || 0
+          total: rawTotals.total || 0,
+          // EN 15978 Lifecycle stages (with defaults to 0 for backward compatibility)
+          a1a3_product: rawTotals.a1a3_product || rawTotals.scope3_materials || 0,
+          a4_transport: rawTotals.a4_transport || rawTotals.scope3_transport || 0,
+          a5_construction: rawTotals.a5_construction || rawTotals.scope3_a5 || 0,
+          // Use phase (B1-B7)
+          b1_use: rawTotals.b1_use || 0,
+          b2_maintenance: rawTotals.b2_maintenance || 0,
+          b3_repair: rawTotals.b3_repair || 0,
+          b4_replacement: rawTotals.b4_replacement || 0,
+          b5_refurbishment: rawTotals.b5_refurbishment || 0,
+          b6_operational_energy: rawTotals.b6_operational_energy || 0,
+          b7_operational_water: rawTotals.b7_operational_water || 0,
+          // End of life (C1-C4)
+          c1_deconstruction: rawTotals.c1_deconstruction || 0,
+          c2_transport: rawTotals.c2_transport || 0,
+          c3_waste_processing: rawTotals.c3_waste_processing || 0,
+          c4_disposal: rawTotals.c4_disposal || 0,
+          // Module D
+          d_recycling: rawTotals.d_recycling || 0,
+          d_reuse: rawTotals.d_reuse || 0,
+          d_energy_recovery: rawTotals.d_energy_recovery || 0,
+          // Aggregates
+          total_upfront: rawTotals.total_upfront || 0,
+          total_embodied: rawTotals.total_embodied || 0,
+          total_operational: rawTotals.total_operational || 0,
+          total_whole_life: rawTotals.total_whole_life || 0,
+          total_with_benefits: rawTotals.total_with_benefits || 0,
         };
 
         const calculationData = {

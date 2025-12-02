@@ -15,6 +15,9 @@ const STAGE_COLORS = {
   a1a3: 'hsl(var(--chart-1))',
   a4: 'hsl(var(--chart-2))',
   a5: 'hsl(var(--chart-3))',
+  b: 'hsl(var(--chart-4))',
+  c: 'hsl(var(--chart-5))',
+  d: 'hsl(142, 71%, 45%)', // Emerald for credits
 };
 
 export const LCADashboard = () => {
