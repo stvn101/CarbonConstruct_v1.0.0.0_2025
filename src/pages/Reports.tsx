@@ -512,12 +512,12 @@ const Reports = () => {
 
       <ErrorBoundary>
         <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="lifecycle">Lifecycle Stages</TabsTrigger>
-          <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
-          <TabsTrigger value="compliance">Compliance</TabsTrigger>
-          <TabsTrigger value="export">Export</TabsTrigger>
+        <TabsList className="flex w-full overflow-x-auto md:grid md:grid-cols-5 h-auto md:h-10 gap-1 p-1">
+          <TabsTrigger value="overview" className="flex-shrink-0 px-3 py-2 text-xs md:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="lifecycle" className="flex-shrink-0 px-3 py-2 text-xs md:text-sm">Lifecycle</TabsTrigger>
+          <TabsTrigger value="breakdown" className="flex-shrink-0 px-3 py-2 text-xs md:text-sm">Breakdown</TabsTrigger>
+          <TabsTrigger value="compliance" className="flex-shrink-0 px-3 py-2 text-xs md:text-sm">Compliance</TabsTrigger>
+          <TabsTrigger value="export" className="flex-shrink-0 px-3 py-2 text-xs md:text-sm">Export</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
