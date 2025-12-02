@@ -47,7 +47,7 @@ import {
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
-export type ReportTemplate = 'executive' | 'technical' | 'compliance';
+export type ReportTemplate = 'executive' | 'technical' | 'compliance' | 'en15978';
 
 // Default CarbonConstruct branding for non-Pro yearly users
 const DEFAULT_BRANDING: ReportBranding = {
@@ -341,8 +341,38 @@ const Reports = () => {
                   <span className="text-sm text-muted-foreground">NCC, GBCA, and NABERS compliance details</span>
                 </div>
               </SelectItem>
+              <SelectItem value="en15978">
+                <div className="flex flex-col items-start">
+                  <span className="font-medium flex items-center gap-2">
+                    EN 15978 Whole Life Carbon
+                    <Badge variant="outline" className="text-xs">Standard</Badge>
+                  </span>
+                  <span className="text-sm text-muted-foreground">Full A-D lifecycle stages for compliance</span>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
+          
+          {/* EN 15978 Template Info */}
+          {selectedTemplate === 'en15978' && (
+            <div className="mt-4 p-4 bg-compliance-en15978/10 border border-compliance-en15978/30 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Globe className="h-5 w-5 text-compliance-en15978 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-sm">EN 15978:2011 Compliant Report</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This report follows the European Standard for assessment of environmental performance of buildings.
+                    It includes all lifecycle stages (A1-A5, B1-B7, C1-C4, D) with a 60-year reference study period.
+                  </p>
+                  {!wholeLifeTotals && (
+                    <p className="text-xs text-destructive mt-2">
+                      ⚠️ Complete the Use Phase, End of Life, and Module D calculators for a comprehensive report.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

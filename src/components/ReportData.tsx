@@ -1,5 +1,6 @@
 import { useProject } from '@/contexts/ProjectContext';
 import { useUnifiedCalculations, MaterialItem, FuelInput, ElectricityInput, TransportInput } from '@/hooks/useUnifiedCalculations';
+import { WholeLifeCarbonTotals, loadStoredWholeLifeTotals } from '@/hooks/useWholeLifeCarbonCalculations';
 
 export interface ReportData {
   project: {
@@ -30,6 +31,8 @@ export interface ReportData {
     methodology: string;
     dataQuality: string;
   };
+  // EN 15978 Whole Life Carbon data
+  wholeLife?: WholeLifeCarbonTotals | null;
 }
 
 export interface ValidationResult {
@@ -127,6 +130,9 @@ export const useReportData = (): ReportData | null => {
   const scope3Total = ((data.totals.scope3_materials || 0) + (data.totals.scope3_transport || 0) + transportEmissionsKg) / 1000;
   const totalTonnes = scope1Tonnes + scope2Tonnes + scope3Total;
 
+  // Load whole life carbon data from localStorage
+  const wholeLifeTotals = loadStoredWholeLifeTotals();
+
   return {
     project: {
       name: currentProject.name,
@@ -153,9 +159,10 @@ export const useReportData = (): ReportData | null => {
     },
     metadata: {
       generatedAt: new Date().toISOString(),
-      methodology: 'Australian NCC 2024 / ISO 14040-44',
-      dataQuality: 'Mixed (Calculated from Australian emission factors)',
+      methodology: 'EN 15978:2011 / Australian NCC 2024 / ISO 14040-44',
+      dataQuality: 'Mixed (Calculated from Australian emission factors and EPD data)',
     },
+    wholeLife: wholeLifeTotals,
   };
 };
 
