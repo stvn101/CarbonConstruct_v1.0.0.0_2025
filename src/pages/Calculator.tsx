@@ -46,6 +46,22 @@ interface Material {
   quantity: number;
   isCustom: boolean;
   sequestration?: number; // kgCO2 stored per unit for timber
+  // EPD Traceability fields
+  epdNumber?: string;
+  epdUrl?: string;
+  manufacturer?: string;
+  plantLocation?: string;
+  dataQualityTier?: string;
+  year?: number;
+  publishDate?: string;
+  expiryDate?: string;
+  // Lifecycle module breakdown (kgCO2e per unit)
+  ef_a1a3?: number;
+  ef_a4?: number;
+  ef_a5?: number;
+  ef_b1b5?: number;
+  ef_c1c4?: number;
+  ef_d?: number;
 }
 
 const loadFromStorage = (key: string, fallback: any) => {
@@ -442,7 +458,21 @@ export default function Calculator() {
       source: material.data_source,
       quantity: 0,
       isCustom: false,
-      sequestration: material.recycled_content ? undefined : undefined // EPD doesn't have sequestration field
+      sequestration: undefined, // EPD table doesn't have sequestration yet
+      // EPD Traceability
+      epdNumber: material.epd_number || undefined,
+      epdUrl: material.epd_url || undefined,
+      manufacturer: material.manufacturer || undefined,
+      plantLocation: material.plant_location || undefined,
+      dataQualityTier: material.data_quality_tier || undefined,
+      year: material.year || undefined,
+      // Lifecycle breakdown
+      ef_a1a3: material.ef_a1a3 || undefined,
+      ef_a4: material.ef_a4 || undefined,
+      ef_a5: material.ef_a5 || undefined,
+      ef_b1b5: material.ef_b1b5 || undefined,
+      ef_c1c4: material.ef_c1c4 || undefined,
+      ef_d: material.ef_d || undefined,
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     setMaterialSearch(''); // Clear search after adding
