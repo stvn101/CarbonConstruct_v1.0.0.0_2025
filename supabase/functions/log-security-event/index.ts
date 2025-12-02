@@ -112,6 +112,18 @@ serve(async (req) => {
   }
 
   try {
+    // Validate internal API call - only allow calls from other edge functions with service role key
+    const internalSecret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const providedAuth = req.headers.get('Authorization');
+    
+    if (!providedAuth || providedAuth !== `Bearer ${internalSecret}`) {
+      console.warn('[log-security-event] Unauthorized access attempt from external source');
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - internal API only' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
