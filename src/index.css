@@ -49,6 +49,9 @@ All colors MUST be HSL.
     --ncc-blue: 210 90% 55%;
     --gbca-green: 142 75% 48%;
     --nabers-teal: 180 80% 48%;
+    --en15978-blue: 220 85% 55%;
+    --climate-active: 152 80% 45%;
+    --is-rating: 270 70% 55%;
     
     /* Chart Colors - Ultra Vibrant Data Visualization */
     --chart-1: 15 90% 58%;        /* Coral red */

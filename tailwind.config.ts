@@ -64,6 +64,9 @@ export default {
           ncc: "hsl(var(--ncc-blue))",
           gbca: "hsl(var(--gbca-green))",
           nabers: "hsl(var(--nabers-teal))",
+          en15978: "hsl(var(--en15978-blue))",
+          climateActive: "hsl(var(--climate-active))",
+          isRating: "hsl(var(--is-rating))",
         },
         chart: {
           1: "hsl(var(--chart-1))",
