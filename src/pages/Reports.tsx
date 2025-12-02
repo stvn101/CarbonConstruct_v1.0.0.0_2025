@@ -456,11 +456,12 @@ const Reports = () => {
 
       <ErrorBoundary>
         <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="breakdown">Detailed Breakdown</TabsTrigger>
+          <TabsTrigger value="lifecycle">Lifecycle Stages</TabsTrigger>
+          <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
           <TabsTrigger value="compliance">Compliance</TabsTrigger>
-          <TabsTrigger value="export">Export Options</TabsTrigger>
+          <TabsTrigger value="export">Export</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -569,6 +570,111 @@ const Reports = () => {
               </div>
             </CardContent>
           </Card>
+          </ReportErrorBoundary>
+        </TabsContent>
+
+        {/* NEW: Lifecycle Stages Tab (EN 15978) */}
+        <TabsContent value="lifecycle" className="space-y-6">
+          <ReportErrorBoundary fallbackTitle="Lifecycle Stages Error">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  EN 15978 Whole Life Carbon Assessment
+                </CardTitle>
+                <CardDescription>
+                  Complete lifecycle carbon breakdown from cradle to grave with Module D benefits
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Lifecycle Stage Summary Cards */}
+                <div className="grid gap-4 md:grid-cols-5">
+                  <Card className="bg-blue-50 border-blue-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-blue-700">A1-A5 Upfront</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-blue-800">
+                        {reportData.emissions.scope3.toFixed(2)}
+                      </div>
+                      <p className="text-xs text-blue-600">tCO₂e</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-amber-50 border-amber-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-amber-700">B1-B7 Use Phase</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-amber-800">0.00</div>
+                      <p className="text-xs text-amber-600">tCO₂e (add in calculator)</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-red-50 border-red-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-red-700">C1-C4 End of Life</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-red-800">0.00</div>
+                      <p className="text-xs text-red-600">tCO₂e (add in calculator)</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-emerald-50 border-emerald-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-emerald-700">Module D Credits</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-emerald-800">0.00</div>
+                      <p className="text-xs text-emerald-600">tCO₂e (add in calculator)</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-slate-100 border-slate-300">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-slate-700">Whole Life Total</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-slate-800">
+                        {reportData.emissions.total.toFixed(2)}
+                      </div>
+                      <p className="text-xs text-slate-600">tCO₂e (A-D)</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* EN 15978 Standard Info */}
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">EN 15978 Lifecycle Stages</h4>
+                  <div className="grid gap-2 md:grid-cols-2 text-sm">
+                    <div>
+                      <span className="font-medium text-blue-700">A1-A3:</span> Raw material supply, transport, manufacturing
+                    </div>
+                    <div>
+                      <span className="font-medium text-blue-700">A4-A5:</span> Transport to site, construction installation
+                    </div>
+                    <div>
+                      <span className="font-medium text-amber-700">B1-B5:</span> Use, maintenance, repair, replacement, refurbishment
+                    </div>
+                    <div>
+                      <span className="font-medium text-amber-700">B6-B7:</span> Operational energy and water use
+                    </div>
+                    <div>
+                      <span className="font-medium text-red-700">C1-C4:</span> Deconstruction, transport, processing, disposal
+                    </div>
+                    <div>
+                      <span className="font-medium text-emerald-700">Module D:</span> Benefits beyond the building lifecycle
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  Use the calculator's EN 15978 Lifecycle Stage sections to add Use Phase (B1-B7), 
+                  End of Life (C1-C4), and Module D data for a complete whole life carbon assessment.
+                </p>
+              </CardContent>
+            </Card>
           </ReportErrorBoundary>
         </TabsContent>
 

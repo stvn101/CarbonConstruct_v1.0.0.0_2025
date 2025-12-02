@@ -10,6 +10,16 @@ interface EmissionTotals {
   total: number;
 }
 
+// EN 15978 Whole Life Carbon Totals
+interface WholeLifeTotals {
+  upfront: number; // A1-A5
+  usePhase: number; // B1-B7
+  endOfLife: number; // C1-C4
+  moduleD: number; // D credits (negative)
+  wholeLife: number; // A-C total
+  withBenefits: number; // A-D total
+}
+
 interface EmissionDetails {
   category: string;
   emissions: number;
@@ -23,9 +33,18 @@ export const useEmissionTotals = () => {
     scope3: 0,
     total: 0
   });
+  const [wholeLifeTotals, setWholeLifeTotals] = useState<WholeLifeTotals>({
+    upfront: 0,
+    usePhase: 0,
+    endOfLife: 0,
+    moduleD: 0,
+    wholeLife: 0,
+    withBenefits: 0
+  });
   const [scope1Details, setScope1Details] = useState<EmissionDetails[]>([]);
   const [scope2Details, setScope2Details] = useState<EmissionDetails[]>([]);
   const [scope3Details, setScope3Details] = useState<EmissionDetails[]>([]);
+  const [lifecycleDetails, setLifecycleDetails] = useState<EmissionDetails[]>([]);
   const [loading, setLoading] = useState(true);
   
   const { currentProject } = useProject();
@@ -171,12 +190,63 @@ export const useEmissionTotals = () => {
         }
         
         setScope3Details(scope3Categories);
+
+        // Parse EN 15978 whole life carbon data
+        const b1 = rawTotals.b1_use || 0;
+        const b2 = rawTotals.b2_maintenance || 0;
+        const b3 = rawTotals.b3_repair || 0;
+        const b4 = rawTotals.b4_replacement || 0;
+        const b5 = rawTotals.b5_refurbishment || 0;
+        const b6 = rawTotals.b6_operational_energy || 0;
+        const b7 = rawTotals.b7_operational_water || 0;
+        const c1 = rawTotals.c1_deconstruction || 0;
+        const c2 = rawTotals.c2_transport || 0;
+        const c3 = rawTotals.c3_waste_processing || 0;
+        const c4 = rawTotals.c4_disposal || 0;
+        const dRecycling = rawTotals.d_recycling || 0;
+        const dReuse = rawTotals.d_reuse || 0;
+        const dEnergy = rawTotals.d_energy_recovery || 0;
+
+        const upfront = (rawTotals.total_upfront || total) / 1000;
+        const usePhase = (b1 + b2 + b3 + b4 + b5 + b6 + b7) / 1000;
+        const endOfLife = (c1 + c2 + c3 + c4) / 1000;
+        const moduleD = (dRecycling + dReuse + dEnergy) / 1000;
+        const wholeLife = upfront + usePhase + endOfLife;
+        const withBenefits = wholeLife - moduleD;
+
+        setWholeLifeTotals({
+          upfront,
+          usePhase,
+          endOfLife,
+          moduleD,
+          wholeLife,
+          withBenefits
+        });
+
+        // Build lifecycle details for dashboard
+        const lcDetails: EmissionDetails[] = [];
+        if (upfront > 0) {
+          lcDetails.push({ category: 'Upfront (A1-A5)', emissions: upfront, percentage: wholeLife > 0 ? (upfront / wholeLife) * 100 : 0 });
+        }
+        if (usePhase > 0) {
+          lcDetails.push({ category: 'Use Phase (B1-B7)', emissions: usePhase, percentage: wholeLife > 0 ? (usePhase / wholeLife) * 100 : 0 });
+        }
+        if (endOfLife > 0) {
+          lcDetails.push({ category: 'End of Life (C1-C4)', emissions: endOfLife, percentage: wholeLife > 0 ? (endOfLife / wholeLife) * 100 : 0 });
+        }
+        if (moduleD > 0) {
+          lcDetails.push({ category: 'Module D Credits', emissions: -moduleD, percentage: 0 });
+        }
+        setLifecycleDetails(lcDetails);
+
       } else {
         // No unified data, reset to zeros
         setTotals({ scope1: 0, scope2: 0, scope3: 0, total: 0 });
+        setWholeLifeTotals({ upfront: 0, usePhase: 0, endOfLife: 0, moduleD: 0, wholeLife: 0, withBenefits: 0 });
         setScope1Details([]);
         setScope2Details([]);
         setScope3Details([]);
+        setLifecycleDetails([]);
       }
 
     } catch (error) {
@@ -192,9 +262,11 @@ export const useEmissionTotals = () => {
 
   return {
     totals,
+    wholeLifeTotals,
     scope1Details,
     scope2Details,
     scope3Details,
+    lifecycleDetails,
     loading,
     refetch: fetchEmissionTotals
   };
