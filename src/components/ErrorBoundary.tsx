@@ -75,13 +75,14 @@ export class ErrorBoundary extends Component<Props, State> {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {this.state.error && (
-                <div className="bg-muted p-4 rounded-md">
-                  <p className="font-mono text-sm text-muted-foreground break-all">
-                    {this.state.error.toString()}
-                  </p>
-                </div>
-              )}
+              <div className="bg-muted p-4 rounded-md">
+                <p className="text-sm text-muted-foreground">
+                  An unexpected error occurred while loading this page. The error has been automatically reported to our team.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Reference: {Date.now().toString(36).toUpperCase()}
+                </p>
+              </div>
               
               <div className="flex gap-2">
                 <Button onClick={this.handleReload} className="gap-2">
