@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.import-epd-materials]
 verify_jwt = true
 
+[functions.import-nabers-epd]
+verify_jwt = true
+
 [functions.inspect-external-schema]
 verify_jwt = true
 
