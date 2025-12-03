@@ -149,8 +149,6 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
 
       // Save to database
       if (emissions.length > 0) {
-        console.log("Saving emissions to database:", emissions);
-        
         // First, delete existing emissions for this project to avoid duplicates
         const { error: deleteError } = await supabase
           .from('scope1_emissions')
@@ -158,7 +156,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           .eq('project_id', currentProject.id);
 
         if (deleteError) {
-          console.error('Error deleting old emissions:', deleteError);
+          console.error('Error deleting old emissions');
         }
 
         // Insert new emissions
@@ -173,11 +171,9 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           .select();
 
         if (error) {
-          console.error('Database save error:', error);
+          console.error('Database save error');
           throw error;
         }
-
-        console.log("Successfully saved emissions:", savedData);
 
         const totalEmissions = emissions.reduce((sum, emission) => sum + emission.emissions_tco2e, 0);
         
