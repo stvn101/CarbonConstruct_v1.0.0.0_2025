@@ -398,9 +398,9 @@ Deno.serve(async (req) => {
     
   } catch (error) {
     console.error('[import-nabers-epd] Error:', error);
+    console.error('[import-nabers-epd] Stack trace:', error.stack);
     return new Response(JSON.stringify({ 
-      error: error.message,
-      stack: error.stack
+      error: 'An error occurred while importing EPD materials. Please try again.'
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

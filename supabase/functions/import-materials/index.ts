@@ -260,10 +260,10 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in import-materials function:', error);
+    console.error('Stack trace:', error.stack);
     return new Response(
       JSON.stringify({
-        error: error.message,
-        details: error.stack,
+        error: 'An error occurred while importing materials. Please try again.',
       }),
       {
         status: 500,
