@@ -126,10 +126,8 @@ export default function AdminMonitoring() {
   };
   
   const loadMaterialsCount = async () => {
-    const { count } = await supabase
-      .from("lca_materials")
-      .select("*", { count: 'exact', head: true });
-    setMaterialsCount(count || 0);
+    // Legacy count - lca_materials table is deprecated
+    setMaterialsCount(0);
   };
   
   const loadEpdMaterialsCount = async () => {
@@ -187,8 +185,8 @@ export default function AdminMonitoring() {
         toast.error(data.error);
       }
       
-      // Refresh materials count
-      await loadMaterialsCount();
+      // Refresh EPD materials count (primary table)
+      await loadEpdMaterialsCount();
     } catch (err: any) {
       console.error("Import error:", err);
       toast.error(err.message || "Import failed");

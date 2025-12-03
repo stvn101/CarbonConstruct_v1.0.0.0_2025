@@ -167,54 +167,6 @@ export type Database = {
         }
         Relationships: []
       }
-      lca_materials: {
-        Row: {
-          created_at: string
-          data_source: string | null
-          embodied_carbon_a1a3: number | null
-          embodied_carbon_a4: number | null
-          embodied_carbon_a5: number | null
-          embodied_carbon_total: number | null
-          id: string
-          material_category: string
-          material_name: string
-          region: string | null
-          unit: string
-          updated_at: string
-          year: number | null
-        }
-        Insert: {
-          created_at?: string
-          data_source?: string | null
-          embodied_carbon_a1a3?: number | null
-          embodied_carbon_a4?: number | null
-          embodied_carbon_a5?: number | null
-          embodied_carbon_total?: number | null
-          id?: string
-          material_category: string
-          material_name: string
-          region?: string | null
-          unit: string
-          updated_at?: string
-          year?: number | null
-        }
-        Update: {
-          created_at?: string
-          data_source?: string | null
-          embodied_carbon_a1a3?: number | null
-          embodied_carbon_a4?: number | null
-          embodied_carbon_a5?: number | null
-          embodied_carbon_total?: number | null
-          id?: string
-          material_category?: string
-          material_name?: string
-          region?: string | null
-          unit?: string
-          updated_at?: string
-          year?: number | null
-        }
-        Relationships: []
-      }
       materials_epd: {
         Row: {
           carbon_sequestration: number | null
