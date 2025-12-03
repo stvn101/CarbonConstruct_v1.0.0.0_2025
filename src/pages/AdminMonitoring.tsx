@@ -66,11 +66,21 @@ export default function AdminMonitoring() {
   // Import states
   const [importLoading, setImportLoading] = useState(false);
   const [epdImportLoading, setEpdImportLoading] = useState(false);
+  const [nabersImportLoading, setNabersImportLoading] = useState(false);
   const [importProgress, setImportProgress] = useState<{
     total: number;
     imported: number;
     failed: number;
     status: string;
+  } | null>(null);
+  const [nabersImportResult, setNabersImportResult] = useState<{
+    success: boolean;
+    total?: number;
+    inserted?: number;
+    failed?: number;
+    skipped?: number;
+    error?: string;
+    sample?: any[];
   } | null>(null);
   const [materialsCount, setMaterialsCount] = useState(0);
   const [epdMaterialsCount, setEpdMaterialsCount] = useState(0);
@@ -162,6 +172,88 @@ export default function AdminMonitoring() {
     } catch (err: any) {
       console.error("EPD Import error:", err);
       toast.error(err.message || "Import failed");
+    } finally {
+      setEpdImportLoading(false);
+    }
+  };
+  
+  const handleNabersFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      toast.error('Please upload an Excel file (.xlsx or .xls)');
+      return;
+    }
+    
+    setNabersImportLoading(true);
+    setNabersImportResult(null);
+    
+    try {
+      // Read file as base64
+      const reader = new FileReader();
+      const fileData = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      
+      toast.info('Processing XLSX file... This may take a moment.');
+      
+      const { data, error } = await supabase.functions.invoke("import-nabers-epd", {
+        body: { action: 'import', fileData, sheetIndex: 1 }
+      });
+      
+      if (error) throw error;
+      
+      setNabersImportResult(data);
+      
+      if (data?.success) {
+        toast.success(`Imported ${data.inserted || 0} EPD materials from NABERS file`);
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+      
+      // Refresh count
+      await loadEpdMaterialsCount();
+    } catch (err: any) {
+      console.error("NABERS Import error:", err);
+      toast.error(err.message || "Import failed");
+      setNabersImportResult({ success: false, error: err.message });
+    } finally {
+      setNabersImportLoading(false);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+  
+  const clearEpdMaterials = async () => {
+    if (!confirm('Are you sure you want to delete ALL EPD materials? This cannot be undone.')) {
+      return;
+    }
+    
+    setEpdImportLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("import-nabers-epd", {
+        body: { action: 'clear' }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success('Cleared all EPD materials');
+        setNabersImportResult(null);
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+      
+      await loadEpdMaterialsCount();
+    } catch (err: any) {
+      console.error("Clear EPD error:", err);
+      toast.error(err.message || "Clear failed");
     } finally {
       setEpdImportLoading(false);
     }
@@ -533,15 +625,15 @@ export default function AdminMonitoring() {
             </CardContent>
           </Card>
           
-          {/* NEW EPD Materials Import */}
+          {/* NABERS XLSX Import - Real EPD Data */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5 text-primary" />
-                EPD Materials Database (NEW - Clean Table)
+                <FileText className="h-5 w-5 text-primary" />
+                NABERS EPD Import (Real Data)
               </CardTitle>
               <CardDescription>
-                Import 4,000+ regional EPD materials with manufacturer/plant-specific data
+                Import ~3,500 verified EPD materials from the NABERS 2025 Excel file
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -552,49 +644,67 @@ export default function AdminMonitoring() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-2xl font-bold text-primary">{epdMaterialsCount.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">Regional EPD records</p>
+                    <p className="text-xs text-muted-foreground">Verified EPD records</p>
                   </CardContent>
                 </Card>
                 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Data Sources</CardTitle>
+                    <CardTitle className="text-sm">Data Quality</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="text-sm space-y-1">
-                      <li>• NABERS 2025 EPD List</li>
-                      <li>• Manufacturer plant data</li>
-                      <li>• Regional variants (NSW, VIC, QLD, WA, SA, TAS, NT, ACT)</li>
+                      <li>✓ Real EPD registration numbers</li>
+                      <li>✓ Official EPD URLs</li>
+                      <li>✓ Verified GWP values</li>
                     </ul>
                   </CardContent>
                 </Card>
               </div>
               
+              {/* File Upload Section */}
+              <div className="border-2 border-dashed border-primary/30 rounded-lg p-6 text-center">
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleNabersFileUpload}
+                  disabled={nabersImportLoading || epdImportLoading}
+                  className="hidden"
+                  id="nabers-file-upload"
+                />
+                <label 
+                  htmlFor="nabers-file-upload" 
+                  className={`cursor-pointer ${nabersImportLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    {nabersImportLoading ? (
+                      <>
+                        <RefreshCw className="h-8 w-8 text-primary animate-spin" />
+                        <p className="text-sm font-medium">Processing XLSX...</p>
+                        <p className="text-xs text-muted-foreground">This may take a minute</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-primary" />
+                        <p className="text-sm font-medium">Upload NABERS XLSX File</p>
+                        <p className="text-xs text-muted-foreground">
+                          National_material_emission_factors_database_-_EPD_list_-_v2025.1-6.xlsx
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </label>
+              </div>
+              
+              {/* Action Buttons */}
               <div className="flex gap-4 flex-wrap">
                 <Button 
-                  onClick={() => triggerEpdImport('import')} 
-                  disabled={epdImportLoading}
-                  className="gap-2"
-                >
-                  {epdImportLoading ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      Importing...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4" />
-                      Import 4,000+ EPD Materials
-                    </>
-                  )}
-                </Button>
-                <Button 
                   variant="destructive" 
-                  onClick={() => triggerEpdImport('clear')} 
-                  disabled={epdImportLoading}
+                  onClick={clearEpdMaterials} 
+                  disabled={epdImportLoading || nabersImportLoading}
                   className="gap-2"
                 >
-                  Clear EPD Table
+                  Clear All EPD Materials
                 </Button>
                 <Button variant="outline" onClick={loadEpdMaterialsCount}>
                   <RefreshCw className="h-4 w-4 mr-2" />
@@ -602,15 +712,61 @@ export default function AdminMonitoring() {
                 </Button>
               </div>
               
+              {/* Import Result */}
+              {nabersImportResult && (
+                <Card className={nabersImportResult.success ? 'border-green-500/50' : 'border-destructive/50'}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      {nabersImportResult.success ? (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-destructive" />
+                      )}
+                      Import Result
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {nabersImportResult.success ? (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-3 gap-4 text-center">
+                          <div>
+                            <p className="text-2xl font-bold text-green-600">{nabersImportResult.inserted?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Imported</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-destructive">{nabersImportResult.failed?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Failed</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-muted-foreground">{nabersImportResult.skipped?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Skipped</p>
+                          </div>
+                        </div>
+                        {nabersImportResult.sample && nabersImportResult.sample.length > 0 && (
+                          <div className="mt-4">
+                            <p className="text-xs font-medium mb-2">Sample Records:</p>
+                            <div className="bg-muted rounded p-2 text-xs overflow-x-auto">
+                              <pre>{JSON.stringify(nabersImportResult.sample, null, 2)}</pre>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-destructive">{nabersImportResult.error}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+              
               <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-                <h4 className="font-medium mb-2 text-primary">EPD Import Features:</h4>
+                <h4 className="font-medium mb-2 text-primary">NABERS Import Features:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>✓ 4,000+ materials with regional manufacturer/plant data</li>
-                  <li>✓ All concrete grades (20-100MPa) from Boral, Holcim, Hanson, etc.</li>
-                  <li>✓ Steel products from BlueScope, Liberty, InfraBuild</li>
-                  <li>✓ Cement from Cement Australia, Adelaide Brighton</li>
-                  <li>✓ Full EN 15804 lifecycle stages (A1-A3, A4, A5, B1-B5, C1-C4, D)</li>
-                  <li>✓ EPD numbers for compliance tracking</li>
+                  <li>✓ ~3,500 verified EPD records from NABERS 2025 database</li>
+                  <li>✓ Real EPD registration numbers (S-P-XXXXX format)</li>
+                  <li>✓ Official EPD document URLs</li>
+                  <li>✓ Verified GWP values from certified EPDs</li>
+                  <li>✓ Publication and expiry dates</li>
+                  <li>✓ Manufacturer and plant location extraction</li>
                 </ul>
               </div>
             </CardContent>
