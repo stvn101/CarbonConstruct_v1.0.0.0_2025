@@ -444,9 +444,16 @@ export default function Calculator() {
     };
   }, [scope1Inputs, scope2Inputs, selectedMaterials, a4TransportEmissions, commuteInputs, wasteInputs, a5Inputs, projectDetails.location, usePhaseEmissions, endOfLifeEmissions, moduleDEmissions]);
 
-  const addMaterialFromDb = (materialId: string) => {
+  const addMaterialFromDb = (materialId: string, factorType: 'process' | 'hybrid' = 'hybrid') => {
     const material = dbMaterials.find(m => m.id === materialId);
     if (!material) return;
+
+    // Use ef_a1a3 for process, ef_total for hybrid (fallback to available value)
+    const factor = factorType === 'process' 
+      ? (material.ef_a1a3 ?? material.ef_total ?? 0) 
+      : (material.ef_total ?? material.ef_a1a3 ?? 0);
+    
+    const methodLabel = factorType === 'process' ? ' (Process LCA)' : ' (Hybrid LCA)';
 
     const newItem: Material = {
       id: Date.now().toString() + Math.random(),
@@ -454,8 +461,8 @@ export default function Calculator() {
       typeId: material.id,
       name: material.material_name,
       unit: material.unit,
-      factor: material.ef_total,
-      source: material.data_source,
+      factor: factor,
+      source: material.data_source + methodLabel,
       quantity: 0,
       isCustom: false,
       sequestration: undefined, // EPD table doesn't have sequestration yet
@@ -483,7 +490,7 @@ export default function Calculator() {
       name: material.material_name,
       category: material.material_category,
       unit: material.unit,
-      factor: material.ef_total,
+      factor: factor,
       source: material.data_source
     });
   };
