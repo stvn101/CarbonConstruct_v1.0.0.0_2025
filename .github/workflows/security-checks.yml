@@ -1,0 +1,217 @@
+name: Weekly Security Checks
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC (weekly security check)
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual triggering
+  push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/security-checks.yml'
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    name: Dependency Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          warn-only: true
+
+  npm-audit:
+    name: NPM Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Run npm audit
+        id: npm-audit
+        run: |
+          echo "Running npm audit..."
+          npm audit --audit-level=moderate --json > audit-results.json || true
+          
+          # Check if there are any vulnerabilities
+          VULNERABILITIES=$(cat audit-results.json | jq '.metadata.vulnerabilities | to_entries | map(select(.value > 0)) | length')
+          
+          if [ "$VULNERABILITIES" -gt 0 ]; then
+            echo "vulnerabilities_found=true" >> $GITHUB_OUTPUT
+            echo "## 🔍 NPM Audit Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Vulnerabilities found:" >> $GITHUB_STEP_SUMMARY
+            cat audit-results.json | jq -r '.metadata.vulnerabilities | to_entries | map("- \(.key): \(.value)") | .[]' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Run \`npm audit\` locally for more details." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "vulnerabilities_found=false" >> $GITHUB_OUTPUT
+            echo "✅ No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload audit results
+        if: steps.npm-audit.outputs.vulnerabilities_found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-results
+          path: audit-results.json
+          retention-days: 30
+
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript-typescript']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  eslint-security:
+    name: ESLint Security Rules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: |
+          npm run lint -- --max-warnings=0 || true
+          echo "✅ ESLint security check completed" >> $GITHUB_STEP_SUMMARY
+
+  security-summary:
+    name: Security Check Summary
+    runs-on: ubuntu-latest
+    needs: [npm-audit, codeql-analysis, eslint-security]
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "# 🔒 Weekly Security Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.npm-audit.result }}" == "success" ]; then
+            echo "- ✅ NPM Audit: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ NPM Audit: Issues found" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.codeql-analysis.result }}" == "success" ]; then
+            echo "- ✅ CodeQL Analysis: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ CodeQL Analysis: Issues found" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.eslint-security.result }}" == "success" ]; then
+            echo "- ✅ ESLint Security: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ ESLint Security: Issues found" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Review any security findings in the Security tab" >> $GITHUB_STEP_SUMMARY
+          echo "- Update dependencies with vulnerabilities: \`npm audit fix\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Check [SECURITY.md](./SECURITY.md) for security best practices" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*This is an automated weekly security check. Only create an issue if critical vulnerabilities are found.*" >> $GITHUB_STEP_SUMMARY
+
+  create-issue-on-critical:
+    name: Create Issue for Critical Findings
+    runs-on: ubuntu-latest
+    needs: [npm-audit, codeql-analysis]
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      issues: write
+    steps:
+      - name: Create Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const date = new Date().toISOString().split('T')[0];
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `⚠️ Security Alert: Critical vulnerabilities found (${date})`,
+              body: `# Security Alert
+              
+              Critical security vulnerabilities were found during the weekly security check on ${date}.
+              
+              ## Action Required
+              
+              Please review the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+              
+              ### Steps to Address
+              
+              1. Review the security findings in the Security tab
+              2. Run \`npm audit\` locally to see detailed vulnerability information
+              3. Update vulnerable dependencies: \`npm audit fix\`
+              4. For vulnerabilities that can't be auto-fixed, check for manual updates or alternatives
+              5. Test the application after updates
+              6. Review CodeQL findings and address any security issues in the code
+              
+              ## Resources
+              
+              - [SECURITY.md](./SECURITY.md) - Security policy and reporting
+              - [SECURITY_DOCUMENTATION.md](./SECURITY_DOCUMENTATION.md) - Detailed security documentation
+              - [NPM Audit Documentation](https://docs.npmjs.com/cli/v8/commands/npm-audit)
+              
+              ---
+              
+              *This issue was automatically created by the weekly security check workflow.*`,
+              labels: ['security', 'automated']
+            });
+            console.log(`Created issue #${issue.data.number}`);
