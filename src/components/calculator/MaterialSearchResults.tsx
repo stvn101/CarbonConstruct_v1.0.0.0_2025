@@ -68,11 +68,11 @@ export function MaterialSearchResults({
                 return (
                   <div
                     key={item.id}
-                    className="flex items-center px-3 py-2.5 hover:bg-emerald-50 rounded-lg group transition-colors border border-transparent hover:border-emerald-200"
+                    className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2.5 hover:bg-emerald-50 rounded-lg group transition-colors border border-transparent hover:border-emerald-200 overflow-hidden"
                   >
-                    {/* Material info - constrained width */}
-                    <div className="flex-1 min-w-0 pr-2 max-w-[calc(100%-90px)]">
-                      <div className="font-medium text-sm text-foreground truncate" title={item.material_name}>
+                    {/* Material info - constrained, truncates */}
+                    <div className="min-w-0 overflow-hidden">
+                      <div className="font-medium text-sm text-foreground truncate block" title={item.material_name}>
                         {item.material_name}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
@@ -84,14 +84,14 @@ export function MaterialSearchResults({
                         {hasProcess && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-mono font-medium bg-emerald-50 px-1.5 py-0.5 rounded">
+                              <span className="inline-flex items-center gap-0.5 text-xs text-emerald-600 font-mono font-medium bg-emerald-50 px-1 py-0.5 rounded">
                                 <FlaskConical className="h-3 w-3" />
                                 {item.embodied_carbon_a1a3?.toFixed(1)}
                               </span>
                             </TooltipTrigger>
                             <TooltipContent side="top" className="max-w-xs">
                               <p className="font-semibold">Process LCA (A1-A3)</p>
-                              <p className="text-xs text-muted-foreground">Cradle-to-gate direct manufacturing emissions only. More conservative estimate.</p>
+                              <p className="text-xs text-muted-foreground">Cradle-to-gate direct manufacturing emissions only.</p>
                             </TooltipContent>
                           </Tooltip>
                         )}
@@ -100,32 +100,22 @@ export function MaterialSearchResults({
                         {hasHybrid && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-1 text-xs text-amber-600 font-mono font-medium bg-amber-50 px-1.5 py-0.5 rounded">
+                              <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 font-mono font-medium bg-amber-50 px-1 py-0.5 rounded">
                                 <RefreshCcw className="h-3 w-3" />
                                 {item.embodied_carbon_total?.toFixed(1)}
                               </span>
                             </TooltipTrigger>
                             <TooltipContent side="top" className="max-w-xs">
                               <p className="font-semibold">Hybrid LCA (Total)</p>
-                              <p className="text-xs text-muted-foreground">Process + Input-Output hybrid. Includes supply chain emissions. More comprehensive.</p>
+                              <p className="text-xs text-muted-foreground">Process + Input-Output hybrid. More comprehensive.</p>
                             </TooltipContent>
                           </Tooltip>
-                        )}
-                        
-                        <span className="text-xs text-muted-foreground hidden sm:inline">
-                          kgCO₂/{item.unit}
-                        </span>
-                        
-                        {item.data_source && (
-                          <span className="text-xs text-muted-foreground truncate max-w-[80px] hidden sm:inline">
-                            🏷️ {item.data_source}
-                          </span>
                         )}
                       </div>
                     </div>
                     
-                    {/* Add buttons - fixed width, never shrinks */}
-                    <div className="flex items-center gap-1 flex-shrink-0 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Add buttons - ALWAYS VISIBLE, fixed width */}
+                    <div className="flex items-center gap-1 flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">
                       {hasBoth ? (
                         <>
                           <Tooltip>
@@ -133,53 +123,57 @@ export function MaterialSearchResults({
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 px-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                className="h-7 w-7 p-0 bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onAddMaterial(item.id, 'process');
                                 }}
                               >
-                                <FlaskConical className="h-3.5 w-3.5 mr-1" />
-                                <Plus className="h-3 w-3" />
+                                <Plus className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Add with Process LCA factor</TooltipContent>
+                            <TooltipContent>Add with Process LCA ({item.embodied_carbon_a1a3?.toFixed(1)})</TooltipContent>
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 px-2 bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                className="h-7 w-7 p-0 bg-amber-100 text-amber-700 hover:bg-amber-200"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onAddMaterial(item.id, 'hybrid');
                                 }}
                               >
-                                <RefreshCcw className="h-3.5 w-3.5 mr-1" />
-                                <Plus className="h-3 w-3" />
+                                <Plus className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Add with Hybrid LCA factor</TooltipContent>
+                            <TooltipContent>Add with Hybrid LCA ({item.embodied_carbon_total?.toFixed(1)})</TooltipContent>
                           </Tooltip>
                         </>
                       ) : (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className={`h-7 px-2 ${
-                            hasProcess 
-                              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
-                              : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onAddMaterial(item.id, hasProcess ? 'process' : 'hybrid');
-                          }}
-                        >
-                          <Plus className="h-3.5 w-3.5 mr-1" />
-                          Add
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className={`h-7 w-7 p-0 ${
+                                hasProcess 
+                                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
+                                  : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onAddMaterial(item.id, hasProcess ? 'process' : 'hybrid');
+                              }}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Add ({hasProcess ? item.embodied_carbon_a1a3?.toFixed(1) : item.embodied_carbon_total?.toFixed(1)} kgCO₂/{item.unit})
+                          </TooltipContent>
+                        </Tooltip>
                       )}
                     </div>
                   </div>
