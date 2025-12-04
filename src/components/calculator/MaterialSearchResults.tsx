@@ -68,13 +68,14 @@ export function MaterialSearchResults({
                 return (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between px-3 py-2.5 hover:bg-emerald-50 rounded-lg group transition-colors border border-transparent hover:border-emerald-200"
+                    className="flex items-center px-3 py-2.5 hover:bg-emerald-50 rounded-lg group transition-colors border border-transparent hover:border-emerald-200"
                   >
-                    <div className="flex-1 min-w-0 pr-2">
-                      <div className="font-medium text-sm text-foreground truncate">
+                    {/* Material info - constrained width */}
+                    <div className="flex-1 min-w-0 pr-2 max-w-[calc(100%-90px)]">
+                      <div className="font-medium text-sm text-foreground truncate" title={item.material_name}>
                         {item.material_name}
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
                         <span className="inline-flex items-center text-xs text-muted-foreground">
                           📏 {item.unit}
                         </span>
@@ -111,20 +112,20 @@ export function MaterialSearchResults({
                           </Tooltip>
                         )}
                         
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-muted-foreground hidden sm:inline">
                           kgCO₂/{item.unit}
                         </span>
                         
                         {item.data_source && (
-                          <span className="text-xs text-muted-foreground truncate max-w-[100px]">
+                          <span className="text-xs text-muted-foreground truncate max-w-[80px] hidden sm:inline">
                             🏷️ {item.data_source}
                           </span>
                         )}
                       </div>
                     </div>
                     
-                    {/* Add buttons */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Add buttons - fixed width, never shrinks */}
+                    <div className="flex items-center gap-1 flex-shrink-0 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
                       {hasBoth ? (
                         <>
                           <Tooltip>
