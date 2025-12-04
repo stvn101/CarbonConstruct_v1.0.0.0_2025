@@ -1,16 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useEPDMaterials, EPDMaterial } from '@/hooks/useEPDMaterials';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { Plus, X, TrendingDown, TrendingUp, Minus, ArrowUpDown, Search, Leaf, CheckCircle2 } from 'lucide-react';
+import { Plus, X, TrendingDown, TrendingUp, Minus, ArrowUpDown, Search, Leaf, CheckCircle2, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { LIMITS } from '@/lib/constants';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const COMPARISON_COLORS = [
   'hsl(var(--chart-1))',
@@ -199,6 +200,86 @@ export const MaterialComparison = () => {
   const bestOption = savingsData[0];
   const worstOption = savingsData[savingsData.length - 1];
 
+  // Export to CSV
+  const exportToCSV = useCallback(() => {
+    if (comparisonMetrics.length === 0) return;
+    
+    const headers = ['Material', 'Category', 'A1-A3 (kgCO₂e)', 'A4 (kgCO₂e)', 'A5 (kgCO₂e)', 'Gross Total (kgCO₂e)', 'Sequestration (kgCO₂e)', 'Net Total (kgCO₂e)', 'Unit'];
+    const rows = comparisonMetrics.map(m => [
+      m.material.material_name,
+      m.material.material_category,
+      m.a1a3.toFixed(2),
+      m.a4.toFixed(2),
+      m.a5.toFixed(2),
+      m.grossCarbon.toFixed(2),
+      m.hasSequestration ? (-m.sequestration).toFixed(2) : '0',
+      m.netCarbon.toFixed(2),
+      m.material.unit
+    ]);
+    
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `material-comparison-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    toast({
+      title: 'Export Complete',
+      description: 'Comparison data exported to CSV',
+    });
+  }, [comparisonMetrics]);
+
+  // Export to text report
+  const exportToReport = useCallback(() => {
+    if (comparisonMetrics.length === 0) return;
+    
+    let report = `MATERIAL CARBON COMPARISON REPORT\n`;
+    report += `Generated: ${new Date().toLocaleString()}\n`;
+    report += `${'='.repeat(60)}\n\n`;
+    
+    report += `MATERIALS COMPARED: ${comparisonMetrics.length}\n\n`;
+    
+    comparisonMetrics.forEach((m, idx) => {
+      report += `${idx + 1}. ${m.material.material_name}\n`;
+      report += `   Category: ${m.material.material_category}\n`;
+      report += `   A1-A3: ${m.a1a3.toFixed(2)} kgCO₂e/${m.material.unit}\n`;
+      report += `   A4: ${m.a4.toFixed(2)} kgCO₂e/${m.material.unit}\n`;
+      report += `   A5: ${m.a5.toFixed(2)} kgCO₂e/${m.material.unit}\n`;
+      report += `   Gross Total: ${m.grossCarbon.toFixed(2)} kgCO₂e/${m.material.unit}\n`;
+      if (m.hasSequestration) {
+        report += `   Carbon Sequestration: -${m.sequestration.toFixed(2)} kgCO₂e/${m.material.unit}\n`;
+      }
+      report += `   Net Total: ${m.netCarbon.toFixed(2)} kgCO₂e/${m.material.unit}\n\n`;
+    });
+    
+    if (bestOption && worstOption && comparisonMetrics.length >= 2) {
+      report += `${'='.repeat(60)}\n`;
+      report += `RECOMMENDATION\n`;
+      report += `${'='.repeat(60)}\n\n`;
+      report += `Best Option: ${bestOption.material.material_name}\n`;
+      report += `Net Carbon: ${bestOption.netCarbon.toFixed(2)} kgCO₂e/${bestOption.material.unit}\n\n`;
+      
+      if (bestOption.material.id !== worstOption.material.id) {
+        const savings = worstOption.netCarbon - bestOption.netCarbon;
+        const percent = (savings / worstOption.netCarbon * 100).toFixed(1);
+        report += `Choosing ${bestOption.material.material_name} over ${worstOption.material.material_name}\n`;
+        report += `could save ${savings.toFixed(2)} kgCO₂e per unit (${percent}% reduction).\n`;
+      }
+    }
+    
+    const blob = new Blob([report], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `material-comparison-report-${new Date().toISOString().split('T')[0]}.txt`;
+    link.click();
+    
+    toast({
+      title: 'Export Complete',
+      description: 'Comparison report exported',
+    });
+  }, [comparisonMetrics, bestOption, worstOption]);
+
   return (
     <div className="space-y-6">
       {/* Material Selection */}
@@ -309,6 +390,28 @@ export const MaterialComparison = () => {
       {/* Comparison Results */}
       {selectedMaterials.length > 0 && (
         <>
+          {/* Export Actions */}
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Export Results
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportToCSV} className="gap-2 cursor-pointer">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToReport} className="gap-2 cursor-pointer">
+                  <FileText className="h-4 w-4" />
+                  Export as Report
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           {/* Quick Stats Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {comparisonMetrics.map((m, idx) => (
