@@ -39,7 +39,7 @@ function LCAMethodologyInfo() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+        <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800">
           <Info className="h-3.5 w-3.5" />
           Which LCA factor should I choose?
         </Button>
