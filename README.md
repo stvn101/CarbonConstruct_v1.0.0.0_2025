@@ -4,6 +4,18 @@
 
 **URL**: https://lovable.dev/projects/3175be27-a2e8-448e-9119-b56fba138059
 
+## Branch Structure
+
+This repository uses the following branch structure:
+
+- **`main`** - Primary branch for production-ready code
+- **`development`** - Active development branch for ongoing work
+- **`experiment`** - Experimental features and proof-of-concepts
+
+### Branch Cleanup
+
+The repository has been restructured. For cleanup instructions, see [BRANCH_CLEANUP_GUIDE.md](./BRANCH_CLEANUP_GUIDE.md).
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
