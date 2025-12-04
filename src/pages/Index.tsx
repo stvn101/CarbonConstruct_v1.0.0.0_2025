@@ -207,7 +207,7 @@ const Index = () => {
                 <Calculator className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 text-primary-foreground" />
               </div>
             </div>
-            
+
             <div className="flex-1 text-center lg:text-left space-y-3 md:space-y-4">
               <div>
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -217,19 +217,19 @@ const Index = () => {
                   All-in-one calculator with materials database, AI BOQ import, and auto-save. Calculate Scope 1, 2, 3 emissions and embodied carbon in one streamlined workflow.
                 </p>
               </div>
-              
+
               <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
                 <Button onClick={() => navigate("/calculator")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale shadow-lg">
                   <Calculator className="mr-2 h-5 w-5" />
                   Start Calculator
                 </Button>
-                
+
                 <Button onClick={() => navigate("/reports")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale">
                   <FileBarChart className="mr-2 h-5 w-5" />
                   View Reports
                 </Button>
               </div>
-              
+
               <div className="flex flex-wrap gap-4 text-xs md:text-sm text-muted-foreground justify-center lg:justify-start">
                 <span className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
