@@ -12,7 +12,7 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle } from "lucide-react";
 import { CalculationHistory } from "@/components/CalculationHistory";
 const Index = () => {
   const {
@@ -258,6 +258,7 @@ const Index = () => {
             <span className="sm:hidden">Charts</span>
           </TabsTrigger>
           <TabsTrigger value="compliance" className="text-xs sm:text-sm md:text-base py-2 md:py-2.5">
+            <CheckCircle className="h-3 w-3 md:h-4 md:w-4 mr-1.5 md:mr-2" />
             <span className="hidden sm:inline">Compliance Status</span>
             <span className="sm:hidden">Compliance</span>
           </TabsTrigger>
