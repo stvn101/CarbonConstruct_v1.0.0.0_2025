@@ -36,14 +36,14 @@ const Index = () => {
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
               <div className="flex items-center justify-center gap-4">
-              <img 
-                  src="/logo-optimized.webp?v=20251127" 
+              <img
+                  src="/logo-optimized.webp?v=20251127"
                   alt="CarbonConstruct Logo"
-                  className="w-16 h-16 md:w-24 md:h-24" 
-                  width="96" 
-                  height="96" 
-                  fetchPriority="high" 
-                  loading="eager" 
+                  className="w-16 h-16 md:w-24 md:h-24"
+                  width="96"
+                  height="96"
+                  fetchPriority="high"
+                  loading="eager"
                 />
                 <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                   CarbonConstruct
@@ -54,27 +54,27 @@ const Index = () => {
                 NCC Section J compliant with Green Star and NABERS integration.
               </p>
             </div>
-            
-            <div className="relative max-w-4xl mx-auto rounded-lg overflow-hidden shadow-glow animate-scale-in" style={{ animationDelay: '0.2s' }}>
+
+            <div className="relative max-w-4xl mx-auto rounded-lg overflow-hidden shadow-glow animate-scale-in [animation-delay:0.2s]">
               <picture>
-                <source 
+                <source
                   type="image/webp"
                   srcSet="/hero-carbon-calc.webp 640w, /hero-carbon-calc.webp 1024w, /hero-carbon-calc.webp 1920w"
                   sizes="(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px"
                 />
-                <source 
+                <source
                   type="image/jpeg"
                   srcSet="/hero-carbon-calc.jpg 640w, /hero-carbon-calc.jpg 1024w, /hero-carbon-calc.jpg 1920w"
                   sizes="(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px"
                 />
-                <img 
-                  src="/hero-carbon-calc.jpg" 
-                  alt="Carbon footprint calculation and environmental assessment" 
-                  className="w-full h-48 sm:h-64 md:h-96 object-cover" 
-                  width="1280" 
-                  height="549" 
-                  fetchPriority="high" 
-                  loading="eager" 
+                <img
+                  src="/hero-carbon-calc.jpg"
+                  alt="Carbon footprint calculation and environmental assessment"
+                  className="w-full h-48 sm:h-64 md:h-96 object-cover"
+                  width="1280"
+                  height="549"
+                  fetchPriority="high"
+                  loading="eager"
                 />
               </picture>
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-end md:items-center justify-center p-6">
@@ -89,7 +89,7 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="space-y-3 md:space-y-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <div className="space-y-3 md:space-y-4 animate-fade-in [animation-delay:0.4s]">
               <p className="text-sm md:text-base font-medium text-primary">
                 Free 14 day trial and Freemium option. No credit card required.
               </p>
@@ -118,10 +118,10 @@ const Index = () => {
           <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Welcome back! Select a project to continue.</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={refetch} 
-            size="sm" 
+          <Button
+            variant="outline"
+            onClick={refetch}
+            size="sm"
             className="hover-scale text-xs md:text-sm"
             disabled={emissionsLoading}
           >
@@ -152,9 +152,7 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope1/20" style={{
-        animationDelay: '0.1s'
-      }}>
+      <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope1/20 [animation-delay:0.1s]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Scope 1</CardTitle>
             <Factory className="h-4 w-4 md:h-5 md:w-5 text-scope1" />
@@ -169,9 +167,7 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope2/20" style={{
-        animationDelay: '0.2s'
-      }}>
+        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope2/20 [animation-delay:0.2s]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Scope 2</CardTitle>
             <Zap className="h-4 w-4 md:h-5 md:w-5 text-scope2" />
@@ -186,9 +182,7 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope3/20" style={{
-        animationDelay: '0.3s'
-      }}>
+        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope3/20 [animation-delay:0.3s]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Scope 3</CardTitle>
             <Truck className="h-4 w-4 md:h-5 md:w-5 text-scope3" />
