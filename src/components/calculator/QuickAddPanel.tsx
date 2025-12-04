@@ -37,15 +37,23 @@ export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial }: Quic
                     {fav.factor.toFixed(1)} /{fav.unit}
                   </span>
                 </div>
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={(e) => {
                     e.stopPropagation();
                     onHideMaterial(fav.materialId);
                   }}
-                  className="opacity-0 group-hover:opacity-100 absolute -top-1.5 -right-1.5 bg-white border border-muted rounded-full p-0.5 text-muted-foreground hover:text-destructive hover:border-destructive transition-all shadow-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.stopPropagation();
+                      onHideMaterial(fav.materialId);
+                    }
+                  }}
+                  className="opacity-0 group-hover:opacity-100 absolute -top-1.5 -right-1.5 bg-white border border-muted rounded-full p-0.5 text-muted-foreground hover:text-destructive hover:border-destructive transition-all shadow-sm cursor-pointer"
                 >
                   <X className="h-3 w-3" />
-                </button>
+                </div>
               </button>
             </TooltipTrigger>
             <TooltipContent>
