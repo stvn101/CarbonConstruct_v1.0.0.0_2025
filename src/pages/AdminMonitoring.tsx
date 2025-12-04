@@ -82,6 +82,17 @@ export default function AdminMonitoring() {
     error?: string;
     sample?: any[];
   } | null>(null);
+  const [icmImportLoading, setIcmImportLoading] = useState(false);
+  const [icmImportResult, setIcmImportResult] = useState<{
+    success: boolean;
+    total?: number;
+    inserted?: number;
+    failed?: number;
+    skipped?: number;
+    duplicates?: number;
+    error?: string;
+    sample?: any[];
+  } | null>(null);
   const [materialsCount, setMaterialsCount] = useState(0);
   const [epdMaterialsCount, setEpdMaterialsCount] = useState(0);
   
@@ -256,6 +267,88 @@ export default function AdminMonitoring() {
       toast.error(err.message || "Clear failed");
     } finally {
       setEpdImportLoading(false);
+    }
+  };
+  
+  const handleIcmFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      toast.error('Please upload an Excel file (.xlsx or .xls)');
+      return;
+    }
+    
+    setIcmImportLoading(true);
+    setIcmImportResult(null);
+    
+    try {
+      // Read file as base64
+      const reader = new FileReader();
+      const fileData = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      
+      toast.info('Processing ICM Database XLSX file...');
+      
+      const { data, error } = await supabase.functions.invoke("import-icm-materials", {
+        body: { action: 'import', fileData }
+      });
+      
+      if (error) throw error;
+      
+      setIcmImportResult(data);
+      
+      if (data?.success) {
+        toast.success(`Imported ${data.inserted || 0} materials from ICM Database`);
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+      
+      // Refresh count
+      await loadEpdMaterialsCount();
+    } catch (err: any) {
+      console.error("ICM Import error:", err);
+      toast.error(err.message || "Import failed");
+      setIcmImportResult({ success: false, error: err.message });
+    } finally {
+      setIcmImportLoading(false);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+  
+  const clearIcmMaterials = async () => {
+    if (!confirm('Are you sure you want to delete all ICM Database materials? This cannot be undone.')) {
+      return;
+    }
+    
+    setIcmImportLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("import-icm-materials", {
+        body: { action: 'clear_icm' }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success('Cleared all ICM Database materials');
+        setIcmImportResult(null);
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+      
+      await loadEpdMaterialsCount();
+    } catch (err: any) {
+      console.error("Clear ICM error:", err);
+      toast.error(err.message || "Clear failed");
+    } finally {
+      setIcmImportLoading(false);
     }
   };
   
@@ -767,6 +860,153 @@ export default function AdminMonitoring() {
                   <li>✓ Verified GWP values from certified EPDs</li>
                   <li>✓ Publication and expiry dates</li>
                   <li>✓ Manufacturer and plant location extraction</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* ICM Database 2019 Import */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-amber-600" />
+                ICM Database 2019 Import (~656 materials)
+              </CardTitle>
+              <CardDescription>
+                Import AusLCI-based lifecycle inventory data from UNSW Sydney ICM Database
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Data Source</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm font-medium">ICM Database 2019 (AusLCI)</p>
+                    <p className="text-xs text-muted-foreground">National LCI data quality</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Data Coverage</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="text-sm space-y-1">
+                      <li>✓ Process-based CFIs (A1-A3)</li>
+                      <li>✓ Hybrid CFIs (Total LCA)</li>
+                      <li>✓ ICM & AusLCI IDs preserved</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* File Upload Section */}
+              <div className="border-2 border-dashed border-amber-600/30 rounded-lg p-6 text-center">
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleIcmFileUpload}
+                  disabled={icmImportLoading}
+                  className="hidden"
+                  id="icm-file-upload"
+                />
+                <label 
+                  htmlFor="icm-file-upload" 
+                  className={`cursor-pointer ${icmImportLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    {icmImportLoading ? (
+                      <>
+                        <RefreshCw className="h-8 w-8 text-amber-600 animate-spin" />
+                        <p className="text-sm font-medium">Processing ICM Database...</p>
+                        <p className="text-xs text-muted-foreground">This may take a moment</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-amber-600" />
+                        <p className="text-sm font-medium">Upload ICM Database XLSX File</p>
+                        <p className="text-xs text-muted-foreground">
+                          ICM_Database_2019_FINAL.xlsx
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </label>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-4 flex-wrap">
+                <Button 
+                  variant="outline" 
+                  onClick={clearIcmMaterials} 
+                  disabled={icmImportLoading}
+                  className="gap-2 border-amber-600/50 text-amber-600 hover:bg-amber-600/10"
+                >
+                  Clear ICM Materials Only
+                </Button>
+              </div>
+              
+              {/* Import Result */}
+              {icmImportResult && (
+                <Card className={icmImportResult.success ? 'border-green-500/50' : 'border-destructive/50'}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      {icmImportResult.success ? (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-destructive" />
+                      )}
+                      ICM Import Result
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {icmImportResult.success ? (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-4 gap-4 text-center">
+                          <div>
+                            <p className="text-2xl font-bold text-green-600">{icmImportResult.inserted?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Imported</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-destructive">{icmImportResult.failed?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Failed</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-muted-foreground">{icmImportResult.skipped?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Skipped</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-amber-600">{icmImportResult.duplicates?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Duplicates</p>
+                          </div>
+                        </div>
+                        {icmImportResult.sample && icmImportResult.sample.length > 0 && (
+                          <div className="mt-4">
+                            <p className="text-xs font-medium mb-2">Sample Records:</p>
+                            <div className="bg-muted rounded p-2 text-xs overflow-x-auto">
+                              <pre>{JSON.stringify(icmImportResult.sample, null, 2)}</pre>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-destructive">{icmImportResult.error}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+              
+              <div className="bg-amber-600/5 p-4 rounded-lg border border-amber-600/20">
+                <h4 className="font-medium mb-2 text-amber-600">ICM Database Features:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>✓ ~656 Australian building material records</li>
+                  <li>✓ Process-based carbon footprint intensities (CFIs)</li>
+                  <li>✓ Hybrid LCA carbon footprint intensities</li>
+                  <li>✓ AusLCI-verified national inventory data</li>
+                  <li>✓ ICM ID and AusLCI ID traceability</li>
+                  <li>✓ Automatic deduplication against existing materials</li>
                 </ul>
               </div>
             </CardContent>
