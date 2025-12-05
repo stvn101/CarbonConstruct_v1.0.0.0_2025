@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLCAMaterials } from '@/hooks/useLCAMaterials';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Package, TrendingUp, Factory, Truck, Building, Download, FileSpreadsheet, FileText, Upload, Search } from 'lucide-react';
+import { Package, TrendingUp, Factory, Truck, Building, FileSpreadsheet, FileText, Upload, Search } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { logger } from '@/lib/logger';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

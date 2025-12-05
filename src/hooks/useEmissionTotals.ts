@@ -147,7 +147,6 @@ export const useEmissionTotals = () => {
         // Build Scope 3 details from materials and transport
         // Convert from kgCO2e to tCO2e for display
         const scope3Categories: EmissionDetails[] = [];
-        const scope3TotalTonnes = scope3Total / 1000;
         
         if (scope3Materials > 0) {
           scope3Categories.push({

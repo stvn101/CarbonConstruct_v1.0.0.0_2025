@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Trash2, Truck, Factory, Info, Recycle } from "lucide-react";
+import { Trash2, Truck, Info, Recycle } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
 // Demolition methods and their emission factors (kgCO2e per m²)

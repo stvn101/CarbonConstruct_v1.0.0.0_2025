@@ -9,7 +9,6 @@ import {
   Material, 
   MaterialCategory,
   getMaterialsByCategory,
-  searchMaterials,
   getMaterialCategories,
   getUnitLabel,
   getCategoryLabel

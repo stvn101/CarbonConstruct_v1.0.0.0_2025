@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Crown, ArrowRight } from 'lucide-react';
+import { Check, Crown, ArrowRight } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { CheckoutButton } from '@/components/CheckoutButton';
 import { useNavigate } from 'react-router-dom';
@@ -19,11 +19,6 @@ export const UpgradeModal = ({ open, onOpenChange, feature, limitType }: Upgrade
 
   const proTier = tiers?.find(t => t.name === 'Pro');
   const freeTier = tiers?.find(t => t.name === 'Free');
-
-  const handleUpgrade = () => {
-    onOpenChange(false);
-    navigate('/pricing');
-  };
 
   const handleViewPlans = () => {
     onOpenChange(false);
