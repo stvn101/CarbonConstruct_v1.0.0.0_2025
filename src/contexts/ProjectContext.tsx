@@ -73,10 +73,11 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (error) throw error;
       setProjects(data || []);
       
-      // If no current project and we have projects, select the first one
-      if (!currentProject && data && data.length > 0) {
-        setCurrentProject(data[0]);
-      }
+      // Use functional update to avoid dependency on currentProject
+      setCurrentProject(prev => {
+        const updatedProject = data?.find(p => prev?.id === p.id);
+        return updatedProject || data?.[0] || null;
+      });
     } catch (error) {
       logger.error('ProjectContext:refreshProjects', error);
       toast({
@@ -87,7 +88,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setLoading(false);
     }
-  }, [user, currentProject]);
+  }, [user]);
 
   const createProject = async (
     projectData: Omit<Project, 'id' | 'created_at' | 'updated_at'>,
