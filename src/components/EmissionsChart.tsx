@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface EmissionData {
   category: string;
@@ -58,7 +58,7 @@ export const EmissionsChart = memo(({ type, title, description, data, colors = V
                   label={({ percentage }) => `${percentage.toFixed(1)}%`}
                   labelLine={false}
                 >
-                  {data.map((entry, index) => (
+                {data.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                   ))}
                 </Pie>
@@ -100,7 +100,7 @@ export const EmissionsChart = memo(({ type, title, description, data, colors = V
                 dataKey="emissions" 
                 radius={[8, 8, 0, 0]}
               >
-                {data.map((entry, index) => (
+                {data.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                 ))}
               </Bar>

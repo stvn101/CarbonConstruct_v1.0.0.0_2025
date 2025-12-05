@@ -1,4 +1,4 @@
-import { Calculator, Factory, Zap, Truck, FileBarChart, Settings, Home, HelpCircle, Package, ChevronRight, DollarSign, Leaf, Map } from "lucide-react";
+import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, DollarSign, Leaf, Map } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -46,9 +46,7 @@ const otherItems = [{
   color: "text-muted-foreground"
 }];
 export function AppSidebar() {
-  const {
-    open
-  } = useSidebar();
+  useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
   const isActive = (path: string) => path === "/" ? currentPath === path : currentPath.startsWith(path);

@@ -257,7 +257,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         }
 
         // Insert new emissions
-        const { data: savedData, error } = await supabase
+        const { error } = await supabase
           .from('scope1_emissions')
           .insert(
             emissions.map(emission => ({

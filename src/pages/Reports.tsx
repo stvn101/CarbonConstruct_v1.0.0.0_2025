@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -45,7 +45,7 @@ import {
   CheckCircle2,
   XCircle
 } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 export type ReportTemplate = 'executive' | 'technical' | 'compliance' | 'en15978';
 
@@ -263,7 +263,8 @@ const Reports = () => {
       }))
     : [];
 
-  const complianceProgress = [
+  // Compliance progress data - kept for future use
+  const _complianceProgress = [
     { 
       name: 'NCC Compliance', 
       status: reportData.compliance.nccCompliant, 

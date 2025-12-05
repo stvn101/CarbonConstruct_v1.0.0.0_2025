@@ -11,9 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Pin, Database, Clock, Scale, Crown, ChevronDown, ChevronRight } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
-import { Progress } from "@/components/ui/progress";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
 import { SEOHead } from "@/components/SEOHead";
@@ -32,8 +31,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { UsePhaseCalculator, UsePhaseEmissions } from "@/components/calculator/UsePhaseCalculator";
 import { EndOfLifeCalculator, EndOfLifeEmissions } from "@/components/calculator/EndOfLifeCalculator";
 import { ModuleDCalculator, ModuleDEmissions } from "@/components/calculator/ModuleDCalculator";
-import { WholeLifeCarbonSummary } from "@/components/WholeLifeCarbonSummary";
-import { useWholeLifeCarbonCalculations } from "@/hooks/useWholeLifeCarbonCalculations";
 
 interface Material {
   id: string;
@@ -209,15 +206,15 @@ export default function Calculator() {
   const { currentProject } = useProject();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { canPerformAction, trackUsage } = useUsageTracking();
+  const { canPerformAction } = useUsageTracking();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   
   // Fetch materials from EPD database (Supabase materials_epd table)
-  const { materials: dbMaterials, loading: materialsLoading, getUnitLabel, states, manufacturers } = useEPDMaterials();
+  const { materials: dbMaterials, loading: materialsLoading, states } = useEPDMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
-  const [useNewMaterialUI, setUseNewMaterialUI] = useState(() => {
+  const [useNewMaterialUI] = useState(() => {
     try {
       const stored = localStorage.getItem('useNewMaterialUI');
       return stored === null ? true : stored === 'true'; // Default to true if not set

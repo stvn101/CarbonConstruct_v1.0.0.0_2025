@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { SEOHead } from '@/components/SEOHead';
 
 const Pricing = () => {
-  const { tiers, currentTier, loading } = useSubscription();
+  const { tiers, loading } = useSubscription();
   const { tier_name: currentTierName } = useSubscriptionStatus();
   const { user } = useAuth();
   const navigate = useNavigate();

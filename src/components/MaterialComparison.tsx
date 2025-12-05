@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useEPDMaterials, EPDMaterial } from '@/hooks/useEPDMaterials';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { Plus, X, TrendingDown, TrendingUp, Minus, ArrowUpDown, Search, Leaf, CheckCircle2, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { X, TrendingDown, TrendingUp, Minus, ArrowUpDown, Search, Leaf, CheckCircle2, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { LIMITS } from '@/lib/constants';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -548,7 +548,7 @@ export const MaterialComparison = memo(() => {
                       <YAxis type="category" dataKey="name" width={120} />
                       <Tooltip formatter={(value) => `${Number(value).toFixed(2)} kgCO₂e`} />
                       <Bar dataKey="total">
-                        {selectedMaterials.map((material, idx) => (
+                        {selectedMaterials.map((_, idx) => (
                           <Cell key={`cell-${idx}`} fill={COMPARISON_COLORS[idx]} />
                         ))}
                       </Bar>

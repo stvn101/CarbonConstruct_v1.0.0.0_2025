@@ -16,19 +16,19 @@ export const LazyEmissionsChart = lazy(() =>
 
 // Lazy load Recharts components (used in various dashboards)
 export const LazyBarChart = lazy(() =>
-  import('recharts').then((module) => ({ default: module.BarChart as ComponentType<any> }))
+  import('recharts').then((module) => ({ default: module.BarChart as ComponentType<unknown> }))
 );
 
 export const LazyPieChart = lazy(() =>
-  import('recharts').then((module) => ({ default: module.PieChart as ComponentType<any> }))
+  import('recharts').then((module) => ({ default: module.PieChart as ComponentType<unknown> }))
 );
 
 export const LazyLineChart = lazy(() =>
-  import('recharts').then((module) => ({ default: module.LineChart as ComponentType<any> }))
+  import('recharts').then((module) => ({ default: module.LineChart as ComponentType<unknown> }))
 );
 
 export const LazyAreaChart = lazy(() =>
-  import('recharts').then((module) => ({ default: module.AreaChart as ComponentType<any> }))
+  import('recharts').then((module) => ({ default: module.AreaChart as ComponentType<unknown> }))
 );
 
 /**
@@ -86,10 +86,7 @@ export function LazyChartWrapper({
  * Call this on route changes or user actions that will likely need charts
  */
 export function preloadCharts() {
-  // Preload all chart components
-  LazyEmissionsChart.preload();
-  LazyBarChart.preload();
-  LazyPieChart.preload();
-  LazyLineChart.preload();
-  LazyAreaChart.preload();
+  // Preload chart components by triggering the lazy imports
+  import('@/components/EmissionsChart');
+  import('recharts');
 }
