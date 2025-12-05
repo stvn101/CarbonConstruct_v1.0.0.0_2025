@@ -11,7 +11,6 @@ import { z } from 'zod';
  * Common validation rules
  */
 const positiveNumber = z.number().positive('Must be a positive number');
-const nonNegativeNumber = z.number().min(0, 'Must be non-negative');
 const optionalString = z.string().optional();
 const requiredString = z.string().min(1, 'Required field');
 
