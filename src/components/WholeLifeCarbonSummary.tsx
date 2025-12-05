@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { WholeLifeCarbonTotals } from "@/hooks/useWholeLifeCarbonCalculations";
-import { Factory, Truck, Hammer, Clock, Wrench, Zap, Droplets, Trash2, Recycle, ArrowDownLeft } from "lucide-react";
+import { Factory, Truck, Hammer, Wrench, Zap, Droplets, Trash2, Recycle } from "lucide-react";
 
 interface WholeLifeCarbonSummaryProps {
   totals: WholeLifeCarbonTotals;

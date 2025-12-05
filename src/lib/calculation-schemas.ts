@@ -14,6 +14,9 @@ const positiveNumber = z.number().positive('Must be a positive number');
 const optionalString = z.string().optional();
 const requiredString = z.string().min(1, 'Required field');
 
+// State codes as a union type for Zod v4 compatibility
+const STATE_CODES = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'] as const;
+
 /**
  * Scope 1 Form Data Schemas
  */
@@ -72,10 +75,8 @@ export const scope1FormDataSchema = z.object({
 
 export const electricityEntrySchema = z.object({
   quantity: positiveNumber,
-  unit: z.enum(['kWh', 'MWh', 'GJ'], {
-    errorMap: () => ({ message: 'Unit must be kWh, MWh, or GJ' }),
-  }),
-  state: z.enum(['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT']).optional(),
+  unit: z.enum(['kWh', 'MWh', 'GJ']),
+  state: z.enum(STATE_CODES).optional(),
   renewablePercentage: z.number()
     .min(0, 'Renewable percentage must be at least 0')
     .max(100, 'Renewable percentage must be at most 100')
@@ -85,19 +86,15 @@ export const electricityEntrySchema = z.object({
 
 export const heatingEntrySchema = z.object({
   quantity: positiveNumber,
-  unit: z.enum(['kWh', 'MWh', 'GJ', 'm3'], {
-    errorMap: () => ({ message: 'Unit must be kWh, MWh, GJ, or m3' }),
-  }),
-  state: z.enum(['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT']).optional(),
+  unit: z.enum(['kWh', 'MWh', 'GJ', 'm3']),
+  state: z.enum(STATE_CODES).optional(),
   notes: optionalString,
 });
 
 export const steamEntrySchema = z.object({
   quantity: positiveNumber,
-  unit: z.enum(['GJ', 'MMBtu', 'tonnes', 'klb'], {
-    errorMap: () => ({ message: 'Unit must be GJ, MMBtu, tonnes, or klb' }),
-  }),
-  state: z.enum(['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT']).optional(),
+  unit: z.enum(['GJ', 'MMBtu', 'tonnes', 'klb']),
+  state: z.enum(STATE_CODES).optional(),
   notes: optionalString,
 });
 
@@ -189,11 +186,11 @@ export function validateScope3Data(data: unknown) {
 /**
  * Error formatter for better user-facing error messages
  */
-export function formatValidationErrors(errors: z.ZodError): string {
-  return errors.errors
-    .map((error) => {
-      const path = error.path.join(' → ');
-      return `${path}: ${error.message}`;
+export function formatValidationErrors(zodError: z.ZodError): string {
+  return zodError.issues
+    .map((issue) => {
+      const path = issue.path.join(' → ');
+      return `${path}: ${issue.message}`;
     })
     .join('\n');
 }

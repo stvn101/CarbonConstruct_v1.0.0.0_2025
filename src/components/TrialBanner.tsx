@@ -1,4 +1,4 @@
-import { AlertCircle, Crown, X } from 'lucide-react';
+import { Crown, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';

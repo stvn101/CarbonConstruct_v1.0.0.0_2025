@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { UsePhaseEmissions } from '@/components/calculator/UsePhaseCalculator';
 import { EndOfLifeEmissions } from '@/components/calculator/EndOfLifeCalculator';
 import { ModuleDEmissions } from '@/components/calculator/ModuleDCalculator';
