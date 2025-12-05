@@ -3,6 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProject } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
 import { logger } from '@/lib/logger';
+import {
+  SCOPE1_DEFAULT_FACTORS,
+  SCOPE2_EMISSION_FACTORS,
+  UNIT_CONVERSION_FACTORS,
+  DATA_QUALITY_LEVELS,
+  CALCULATION_METHODS,
+  getStateEmissionFactor,
+} from '@/lib/emission-constants';
 
 interface EmissionEntry {
   category: string;
@@ -154,19 +162,20 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
       for (const fuel of formData.fuelCombustion || []) {
         if (fuel.quantity > 0) {
           const factor = await getEmissionFactor('fuel_combustion', fuel.fuelType, fuel.fuelType, fuel.unit);
-          const calculatedEmissions = fuel.quantity * (factor || 2.31); // Default factor for diesel
-          
+          const defaultFactor = SCOPE1_DEFAULT_FACTORS.DIESEL; // Default factor for diesel
+          const calculatedEmissions = fuel.quantity * (factor || defaultFactor);
+
           emissions.push({
             category: 'fuel_combustion',
             subcategory: fuel.fuelType,
             fuel_type: fuel.fuelType,
             quantity: fuel.quantity,
             unit: fuel.unit,
-            emission_factor: factor || 2.31,
+            emission_factor: factor || defaultFactor,
             emissions_tco2e: calculatedEmissions,
             notes: fuel.notes,
-            data_quality: 'estimated',
-            calculation_method: 'activity_data_x_emission_factor'
+            data_quality: DATA_QUALITY_LEVELS.ESTIMATED,
+            calculation_method: CALCULATION_METHODS.ACTIVITY_DATA_X_FACTOR
           });
         }
       }
@@ -175,19 +184,20 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
       for (const vehicle of formData.vehicles || []) {
         if (vehicle.quantity > 0) {
           const factor = await getEmissionFactor('company_vehicles', vehicle.vehicleType, vehicle.fuelType, vehicle.unit);
-          const calculatedEmissions = vehicle.quantity * (factor || 0.2); // Default factor
-          
+          const defaultFactor = SCOPE1_DEFAULT_FACTORS.VEHICLE_DEFAULT;
+          const calculatedEmissions = vehicle.quantity * (factor || defaultFactor);
+
           emissions.push({
             category: 'company_vehicles',
             subcategory: vehicle.vehicleType,
             fuel_type: vehicle.fuelType,
             quantity: vehicle.quantity,
             unit: vehicle.unit,
-            emission_factor: factor || 0.2,
+            emission_factor: factor || defaultFactor,
             emissions_tco2e: calculatedEmissions,
             notes: vehicle.notes,
-            data_quality: 'estimated',
-            calculation_method: 'activity_data_x_emission_factor'
+            data_quality: DATA_QUALITY_LEVELS.ESTIMATED,
+            calculation_method: CALCULATION_METHODS.ACTIVITY_DATA_X_FACTOR
           });
         }
       }
@@ -196,18 +206,19 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
       for (const process of formData.processes || []) {
         if (process.quantity > 0) {
           const factor = await getEmissionFactor('industrial_processes', process.processType, undefined, process.unit);
-          const calculatedEmissions = process.quantity * (factor || 1.0); // Default factor
-          
+          const defaultFactor = SCOPE1_DEFAULT_FACTORS.PROCESS_DEFAULT;
+          const calculatedEmissions = process.quantity * (factor || defaultFactor);
+
           emissions.push({
             category: 'industrial_processes',
             subcategory: process.processType,
             quantity: process.quantity,
             unit: process.unit,
-            emission_factor: factor || 1.0,
+            emission_factor: factor || defaultFactor,
             emissions_tco2e: calculatedEmissions,
             notes: process.notes,
-            data_quality: 'estimated',
-            calculation_method: 'activity_data_x_emission_factor'
+            data_quality: DATA_QUALITY_LEVELS.ESTIMATED,
+            calculation_method: CALCULATION_METHODS.ACTIVITY_DATA_X_FACTOR
           });
         }
       }
@@ -216,18 +227,19 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
       for (const fugitive of formData.fugitiveEmissions || []) {
         if (fugitive.quantity > 0) {
           const factor = await getEmissionFactor('fugitive_emissions', fugitive.refrigerantType, fugitive.refrigerantType, fugitive.unit);
-          const calculatedEmissions = fugitive.quantity * (factor || 1810); // Default GWP for R134a
-          
+          const defaultFactor = SCOPE1_DEFAULT_FACTORS.R134A; // Default GWP for R134a
+          const calculatedEmissions = fugitive.quantity * (factor || defaultFactor);
+
           emissions.push({
             category: 'fugitive_emissions',
             subcategory: fugitive.refrigerantType,
             quantity: fugitive.quantity,
             unit: fugitive.unit,
-            emission_factor: factor || 1810,
+            emission_factor: factor || defaultFactor,
             emissions_tco2e: calculatedEmissions,
             notes: fugitive.notes,
-            data_quality: 'estimated',
-            calculation_method: 'activity_data_x_emission_factor'
+            data_quality: DATA_QUALITY_LEVELS.ESTIMATED,
+            calculation_method: CALCULATION_METHODS.ACTIVITY_DATA_X_FACTOR
           });
         }
       }
@@ -333,18 +345,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         }
 
         // Australian grid emission factors (kg CO2-e/kWh)
-        const stateFactors: { [key: string]: number } = {
-          'NSW': 0.79,
-          'VIC': 1.02,
-          'QLD': 0.81,
-          'SA': 0.55,
-          'WA': 0.70,
-          'TAS': 0.17,
-          'NT': 0.58,
-          'ACT': 0.79
-        };
-        
-        const stateFactor = stateFactors[electricity.state?.toUpperCase() || ''] || 0.79;
+        const stateFactor = getStateEmissionFactor(electricity.state);
         logger.debug('EmissionCalculations:calculateScope2', 'Using emission factor', {
           factor: stateFactor,
           state: electricity.state
@@ -353,9 +354,9 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         // Convert quantity to kWh based on unit
         let quantityInKwh = electricity.quantity;
         if (electricity.unit === 'MWh') {
-          quantityInKwh = electricity.quantity * 1000;
+          quantityInKwh = electricity.quantity * UNIT_CONVERSION_FACTORS.MWH_TO_KWH;
         } else if (electricity.unit === 'GJ') {
-          quantityInKwh = electricity.quantity * 277.778;
+          quantityInKwh = electricity.quantity * UNIT_CONVERSION_FACTORS.GJ_TO_KWH;
         }
         logger.debug('EmissionCalculations:calculateScope2', 'Converted to kWh', {
           original: electricity.quantity,
@@ -366,7 +367,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         // Calculate emissions: kWh * kg/kWh = kg, then /1000 for tonnes
         const renewablePercent = electricity.renewablePercentage || 0;
         const emissionsKg = quantityInKwh * stateFactor * (1 - renewablePercent / 100);
-        const emissionsTonnes = emissionsKg / 1000;
+        const emissionsTonnes = emissionsKg / UNIT_CONVERSION_FACTORS.TONNES_TO_KG;
 
         logger.debug('EmissionCalculations:calculateScope2', 'Calculated emissions', {
           quantityInKwh,
@@ -384,8 +385,8 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           renewable_percentage: renewablePercent,
           emissions_tco2e: emissionsTonnes,
           notes: electricity.notes || null,
-          data_quality: 'measured',
-          calculation_method: 'location_based'
+          data_quality: DATA_QUALITY_LEVELS.MEASURED,
+          calculation_method: CALCULATION_METHODS.LOCATION_BASED
         });
       }
 
@@ -401,17 +402,17 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           continue;
         }
 
-        // Natural gas emission factor: 0.185 kg CO2-e/kWh
-        const factor = 0.185;
+        // Natural gas emission factor: kg CO2-e/kWh
+        const factor = SCOPE2_EMISSION_FACTORS.NATURAL_GAS;
         
         // Convert to kWh based on unit
         let quantityInKwh = heating.quantity;
         if (heating.unit === 'MWh') {
-          quantityInKwh = heating.quantity * 1000;
+          quantityInKwh = heating.quantity * UNIT_CONVERSION_FACTORS.MWH_TO_KWH;
         } else if (heating.unit === 'GJ') {
-          quantityInKwh = heating.quantity * 277.778;
+          quantityInKwh = heating.quantity * UNIT_CONVERSION_FACTORS.GJ_TO_KWH;
         } else if (heating.unit === 'm3') {
-          quantityInKwh = heating.quantity * 10.55;
+          quantityInKwh = heating.quantity * UNIT_CONVERSION_FACTORS.M3_GAS_TO_KWH;
         }
         logger.debug('EmissionCalculations:calculateScope2', 'Converted heating to kWh', {
           original: heating.quantity,
@@ -421,7 +422,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         
         // Calculate emissions: kWh * kg/kWh = kg, then /1000 for tonnes
         const emissionsKg = quantityInKwh * factor;
-        const emissionsTonnes = emissionsKg / 1000;
+        const emissionsTonnes = emissionsKg / UNIT_CONVERSION_FACTORS.TONNES_TO_KG;
 
         logger.debug('EmissionCalculations:calculateScope2', 'Calculated heating emissions', {
           quantityInKwh,
@@ -437,8 +438,8 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           emission_factor: factor,
           emissions_tco2e: emissionsTonnes,
           notes: heating.notes || null,
-          data_quality: 'estimated',
-          calculation_method: 'activity_data_x_emission_factor'
+          data_quality: DATA_QUALITY_LEVELS.ESTIMATED,
+          calculation_method: CALCULATION_METHODS.ACTIVITY_DATA_X_FACTOR
         });
       }
 
@@ -454,17 +455,17 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           continue;
         }
 
-        // Steam emission factor: 0.3 tCO₂e/GJ (already in tonnes per GJ)
-        const factorPerGJ = 0.3;
+        // Steam emission factor: tCO₂e/GJ (already in tonnes per GJ)
+        const factorPerGJ = SCOPE2_EMISSION_FACTORS.STEAM_PER_GJ;
         
         // Convert to GJ based on unit
         let quantityInGJ = steam.quantity;
         if (steam.unit === 'MMBtu') {
-          quantityInGJ = steam.quantity * 1.055;
+          quantityInGJ = steam.quantity * UNIT_CONVERSION_FACTORS.MMBTU_TO_GJ;
         } else if (steam.unit === 'tonnes') {
-          quantityInGJ = steam.quantity * 2.5;
+          quantityInGJ = steam.quantity * UNIT_CONVERSION_FACTORS.TONNES_STEAM_TO_GJ;
         } else if (steam.unit === 'klb') {
-          quantityInGJ = steam.quantity * 1.134;
+          quantityInGJ = steam.quantity * UNIT_CONVERSION_FACTORS.KLB_TO_GJ;
         }
         logger.debug('EmissionCalculations:calculateScope2', 'Converted steam to GJ', {
           original: steam.quantity,
@@ -616,8 +617,8 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
             emissions_tco2e: calculatedEmissions,
             supplier_data: activity.supplierData || false,
             notes: activity.notes || '',
-            data_quality: activity.supplierData ? 'supplier_specific' : 'estimated',
-            calculation_method: 'activity_data_x_emission_factor'
+            data_quality: activity.supplierData ? DATA_QUALITY_LEVELS.SUPPLIER_SPECIFIC : DATA_QUALITY_LEVELS.ESTIMATED,
+            calculation_method: CALCULATION_METHODS.ACTIVITY_DATA_X_FACTOR
           });
         }
       }
@@ -640,8 +641,8 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
             emissions_tco2e: calculatedEmissions,
             supplier_data: activity.supplierData || false,
             notes: activity.notes || '',
-            data_quality: activity.supplierData ? 'supplier_specific' : 'estimated',
-            calculation_method: 'activity_data_x_emission_factor'
+            data_quality: activity.supplierData ? DATA_QUALITY_LEVELS.SUPPLIER_SPECIFIC : DATA_QUALITY_LEVELS.ESTIMATED,
+            calculation_method: CALCULATION_METHODS.ACTIVITY_DATA_X_FACTOR
           });
         }
       }

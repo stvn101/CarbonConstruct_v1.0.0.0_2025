@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -20,14 +20,14 @@ const STAGE_COLORS = {
   d: 'hsl(142, 71%, 45%)', // Emerald for credits
 };
 
-export const LCADashboard = () => {
+export const LCADashboard = memo(() => {
   const { materials, loading, stageBreakdown, categoryBreakdown, refetch } = useLCAMaterials();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [inspecting, setInspecting] = useState(false);
   const [schemaInfo, setSchemaInfo] = useState<any>(null);
 
-  const exportToCSV = () => {
+  const exportToCSV = useCallback(() => {
     try {
       // Prepare CSV content
       let csvContent = 'LCA Material Database - Embodied Carbon Report\n\n';
@@ -78,9 +78,9 @@ export const LCADashboard = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [materials, stageBreakdown, categoryBreakdown]);
 
-  const exportToPDF = async () => {
+  const exportToPDF = useCallback(async () => {
     try {
       setExporting(true);
       const element = document.getElementById('lca-dashboard-content');
@@ -111,9 +111,9 @@ export const LCADashboard = () => {
     } finally {
       setExporting(false);
     }
-  };
+  }, []);
 
-  const importMaterials = async () => {
+  const importMaterials = useCallback(async () => {
     try {
       setImporting(true);
       
@@ -161,9 +161,9 @@ export const LCADashboard = () => {
     } finally {
       setImporting(false);
     }
-  };
+  }, [refetch]);
 
-  const inspectExternalSchema = async () => {
+  const inspectExternalSchema = useCallback(async () => {
     try {
       setInspecting(true);
       
@@ -200,7 +200,7 @@ export const LCADashboard = () => {
     } finally {
       setInspecting(false);
     }
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -579,4 +579,4 @@ export const LCADashboard = () => {
       </div>
     </div>
   );
-};
+});

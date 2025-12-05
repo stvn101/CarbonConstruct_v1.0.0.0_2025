@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,13 +14,13 @@ import { debounce } from '@/lib/debounce';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export const HotspotAnalysis = () => {
+export const HotspotAnalysis = memo(() => {
   const { materials, loading, stageBreakdown, categoryBreakdown } = useLCAMaterials();
   const { materialHotspots, categoryHotspots, overallStats } = useHotspotAnalysis(materials, categoryBreakdown);
   const [recommendations, setRecommendations] = useState<string>('');
   const [generatingRecommendations, setGeneratingRecommendations] = useState(false);
 
-  const generateRecommendations = async () => {
+  const generateRecommendations = useCallback(async () => {
     if (materialHotspots.length === 0 && categoryHotspots.length === 0) {
       toast({
         title: 'No Hotspots Found',
@@ -93,7 +93,7 @@ export const HotspotAnalysis = () => {
     } finally {
       setGeneratingRecommendations(false);
     }
-  };
+  }, [materialHotspots, categoryHotspots, overallStats]);
 
   if (loading) {
     return (
@@ -387,4 +387,4 @@ export const HotspotAnalysis = () => {
       </Card>
     </div>
   );
-};
+});

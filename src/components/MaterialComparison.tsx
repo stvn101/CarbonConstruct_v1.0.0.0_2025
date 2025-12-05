@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,7 @@ const PRESET_COMPARISONS = [
   { name: 'Standard vs Low-Carbon Concrete', searches: ['Concrete 32MPa', 'Low Carbon'] },
 ];
 
-export const MaterialComparison = () => {
+export const MaterialComparison = memo(() => {
   const { allMaterials: materials, loading, error } = useEPDMaterials();
   const [selectedMaterials, setSelectedMaterials] = useState<EPDMaterial[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -751,4 +751,4 @@ export const MaterialComparison = () => {
       )}
     </div>
   );
-};
+});
