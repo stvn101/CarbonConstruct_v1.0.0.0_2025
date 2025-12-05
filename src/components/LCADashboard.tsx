@@ -580,3 +580,5 @@ export const LCADashboard = memo(() => {
     </div>
   );
 });
+
+LCADashboard.displayName = 'LCADashboard';
