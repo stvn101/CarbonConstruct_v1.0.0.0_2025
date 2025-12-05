@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -45,7 +45,7 @@ import {
   CheckCircle2,
   XCircle
 } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 export type ReportTemplate = 'executive' | 'technical' | 'compliance' | 'en15978';
 
@@ -262,27 +262,6 @@ const Reports = () => {
         weight: t.weight
       }))
     : [];
-
-  const complianceProgress = [
-    { 
-      name: 'NCC Compliance', 
-      status: reportData.compliance.nccCompliant, 
-      progress: reportData.compliance.nccCompliant ? 100 : 75,
-      icon: Building2 
-    },
-    { 
-      name: 'Green Star Eligibility', 
-      status: reportData.compliance.greenStarEligible, 
-      progress: reportData.compliance.greenStarEligible ? 100 : 60,
-      icon: Star 
-    },
-    { 
-      name: 'NABERS Readiness', 
-      status: reportData.compliance.nabersReady, 
-      progress: reportData.compliance.nabersReady ? 100 : 45,
-      icon: Award 
-    },
-  ];
 
   return (
     <ErrorBoundary>

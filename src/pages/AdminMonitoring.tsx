@@ -158,36 +158,6 @@ export default function AdminMonitoring() {
     setEpdMaterialsCount(count || 0);
   };
   
-  const triggerEpdImport = async (action: 'import' | 'clear') => {
-    setEpdImportLoading(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke("import-epd-materials", {
-        body: { action }
-      });
-      
-      if (error) throw error;
-      
-      if (data?.success) {
-        if (action === 'import') {
-          toast.success(`Imported ${data.inserted || 0} EPD materials`);
-        } else {
-          toast.success('Cleared all EPD materials');
-        }
-      } else if (data?.error) {
-        toast.error(data.error);
-      }
-      
-      // Refresh count
-      await loadEpdMaterialsCount();
-    } catch (err: any) {
-      console.error("EPD Import error:", err);
-      toast.error(err.message || "Import failed");
-    } finally {
-      setEpdImportLoading(false);
-    }
-  };
-  
   const handleNabersFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;

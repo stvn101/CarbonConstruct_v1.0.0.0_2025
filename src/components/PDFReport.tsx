@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { FileDown } from 'lucide-react';
 import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
-import { useComplianceCheck } from '@/hooks/useComplianceCheck';
 
 export interface ReportBranding {
   companyName?: string;

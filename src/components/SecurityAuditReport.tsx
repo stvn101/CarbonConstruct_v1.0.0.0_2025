@@ -420,7 +420,7 @@ export const SecurityAuditReportDownload = () => {
 
     setIsSending(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-audit-report', {
+      const { error } = await supabase.functions.invoke('send-audit-report', {
         body: {
           recipientEmail,
           recipientName,

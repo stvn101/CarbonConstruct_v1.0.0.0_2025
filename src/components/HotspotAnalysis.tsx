@@ -9,13 +9,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { AlertTriangle, Flame, Lightbulb, TrendingDown, Sparkles, Loader2 } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { logger } from '@/lib/logger';
-import { DEBOUNCE } from '@/lib/constants';
-import { debounce } from '@/lib/debounce';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const HotspotAnalysis = memo(() => {
-  const { materials, loading, stageBreakdown, categoryBreakdown } = useLCAMaterials();
+  const { materials, loading, categoryBreakdown } = useLCAMaterials();
   const { materialHotspots, categoryHotspots, overallStats } = useHotspotAnalysis(materials, categoryBreakdown);
   const [recommendations, setRecommendations] = useState<string>('');
   const [generatingRecommendations, setGeneratingRecommendations] = useState(false);
