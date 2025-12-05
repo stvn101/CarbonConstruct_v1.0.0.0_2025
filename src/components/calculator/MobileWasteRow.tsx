@@ -62,3 +62,5 @@ export const MobileWasteRow = memo(({ label, factor, input, onChange, total }: M
     </div>
   );
 });
+
+MobileWasteRow.displayName = 'MobileWasteRow';

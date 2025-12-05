@@ -91,3 +91,5 @@ export const CalculationHistory = memo(() => {
     </Card>
   );
 });
+
+CalculationHistory.displayName = 'CalculationHistory';
