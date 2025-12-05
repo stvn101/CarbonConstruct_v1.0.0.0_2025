@@ -48,3 +48,5 @@ export const MobileFactorRow = memo(({ label, unit, value, onChange, factor, tot
     </div>
   );
 });
+
+MobileFactorRow.displayName = 'MobileFactorRow';
