@@ -263,8 +263,8 @@ const Reports = () => {
       }))
     : [];
 
-  // Compliance progress data - kept for future use
-  const _complianceProgress = [
+  /* Compliance progress data - kept for future use
+  const complianceProgress = [
     { 
       name: 'NCC Compliance', 
       status: reportData.compliance.nccCompliant, 
@@ -284,6 +284,7 @@ const Reports = () => {
       icon: Award 
     },
   ];
+  */
 
   return (
     <ErrorBoundary>

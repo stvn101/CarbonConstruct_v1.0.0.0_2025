@@ -158,6 +158,7 @@ export default function AdminMonitoring() {
     setEpdMaterialsCount(count || 0);
   };
   
+  /* Unused - kept for future EPD import functionality
   const triggerEpdImport = async (action: 'import' | 'clear') => {
     setEpdImportLoading(true);
     
@@ -187,6 +188,7 @@ export default function AdminMonitoring() {
       setEpdImportLoading(false);
     }
   };
+  */
   
   const handleNabersFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
