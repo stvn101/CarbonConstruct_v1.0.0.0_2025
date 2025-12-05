@@ -33,9 +33,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log to console in development
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
     // Send to production error tracking
     logger.critical('ErrorBoundary', error, {
       componentStack: errorInfo.componentStack,

@@ -17,6 +17,91 @@ interface EmissionEntry {
   calculation_method?: string;
 }
 
+// Scope 1 Form Data Interfaces
+interface FuelCombustionEntry {
+  fuelType: string;
+  quantity: number;
+  unit: string;
+  notes?: string;
+}
+
+interface VehicleEntry {
+  vehicleType: string;
+  fuelType: string;
+  quantity: number;
+  unit: string;
+  notes?: string;
+}
+
+interface ProcessEntry {
+  processType: string;
+  quantity: number;
+  unit: string;
+  notes?: string;
+}
+
+interface FugitiveEmissionEntry {
+  refrigerantType: string;
+  quantity: number;
+  unit: string;
+  notes?: string;
+}
+
+interface Scope1FormData {
+  fuelCombustion?: FuelCombustionEntry[];
+  vehicles?: VehicleEntry[];
+  processes?: ProcessEntry[];
+  fugitiveEmissions?: FugitiveEmissionEntry[];
+}
+
+// Scope 2 Form Data Interfaces
+interface ElectricityEntry {
+  quantity: number;
+  unit: string;
+  state?: string;
+  renewablePercentage?: number;
+  notes?: string;
+}
+
+interface HeatingEntry {
+  quantity: number;
+  unit: string;
+  state?: string;
+  notes?: string;
+}
+
+interface SteamEntry {
+  quantity: number;
+  unit: string;
+  state?: string;
+  notes?: string;
+}
+
+interface Scope2FormData {
+  electricity?: ElectricityEntry[];
+  heating?: HeatingEntry[];
+  steam?: SteamEntry[];
+}
+
+// Scope 3 Form Data Interfaces
+interface ActivityEntry {
+  category: number;
+  categoryName?: string;
+  subcategory?: string;
+  description?: string;
+  lcaStage?: string;
+  quantity: number;
+  unit: string;
+  emissionFactor: number;
+  supplierData?: boolean;
+  notes?: string;
+}
+
+interface Scope3FormData {
+  upstreamActivities?: ActivityEntry[];
+  downstreamActivities?: ActivityEntry[];
+}
+
 export const useEmissionCalculations = (onDataChange?: () => void) => {
   const [loading, setLoading] = useState(false);
   const { currentProject } = useProject();
@@ -51,7 +136,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
     }
   }, []);
 
-  const calculateScope1Emissions = useCallback(async (formData: any) => {
+  const calculateScope1Emissions = useCallback(async (formData: Scope1FormData) => {
     if (!currentProject) {
       toast({
         title: "No project selected",
@@ -156,7 +241,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           .eq('project_id', currentProject.id);
 
         if (deleteError) {
-          console.error('Error deleting old emissions');
+          logger.error('EmissionCalculations:deleteScope1', deleteError);
         }
 
         // Insert new emissions
@@ -171,7 +256,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           .select();
 
         if (error) {
-          console.error('Database save error');
+          logger.error('EmissionCalculations:saveScope1', error);
           throw error;
         }
 
@@ -192,7 +277,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
 
       return { emissions: [], total: 0 };
     } catch (error) {
-      console.error('Error calculating Scope 1 emissions:', error);
+      logger.error('EmissionCalculations:calculateScope1', error);
       toast({
         title: "Calculation failed",
         description: "Failed to calculate emissions. Please try again.",
@@ -204,7 +289,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
     }
   }, [currentProject, getEmissionFactor]);
 
-  const calculateScope2Emissions = useCallback(async (formData: any) => {
+  const calculateScope2Emissions = useCallback(async (formData: Scope2FormData) => {
     if (!currentProject) {
       toast({
         title: "No project selected",
@@ -215,9 +300,11 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
     }
 
     setLoading(true);
-    console.log("=== Starting Scope 2 Calculation ===");
-    console.log("Project:", currentProject.name, currentProject.id);
-    console.log("Input data:", JSON.stringify(formData, null, 2));
+    logger.debug('EmissionCalculations:calculateScope2', 'Starting Scope 2 Calculation', {
+      projectName: currentProject.name,
+      projectId: currentProject.id,
+      formData
+    });
     
     try {
       const emissions: Array<{
@@ -234,12 +321,14 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
       }> = [];
 
       // Process electricity with detailed logging
-      console.log("Processing electricity entries:", formData.electricity?.length || 0);
+      logger.debug('EmissionCalculations:calculateScope2', 'Processing electricity entries', {
+        count: formData.electricity?.length || 0
+      });
       for (const electricity of formData.electricity || []) {
-        console.log("Electricity entry:", electricity);
-        
+        logger.debug('EmissionCalculations:calculateScope2', 'Processing electricity entry', { electricity });
+
         if (!electricity.quantity || electricity.quantity <= 0) {
-          console.log("Skipping - quantity is 0 or undefined");
+          logger.debug('EmissionCalculations:calculateScope2', 'Skipping electricity - quantity is 0');
           continue;
         }
 
@@ -255,8 +344,11 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           'ACT': 0.79
         };
         
-        const stateFactor = stateFactors[electricity.state?.toUpperCase()] || 0.79;
-        console.log(`Using emission factor ${stateFactor} for state ${electricity.state}`);
+        const stateFactor = stateFactors[electricity.state?.toUpperCase() || ''] || 0.79;
+        logger.debug('EmissionCalculations:calculateScope2', 'Using emission factor', {
+          factor: stateFactor,
+          state: electricity.state
+        });
         
         // Convert quantity to kWh based on unit
         let quantityInKwh = electricity.quantity;
@@ -265,14 +357,23 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         } else if (electricity.unit === 'GJ') {
           quantityInKwh = electricity.quantity * 277.778;
         }
-        console.log(`Converted ${electricity.quantity} ${electricity.unit} to ${quantityInKwh} kWh`);
+        logger.debug('EmissionCalculations:calculateScope2', 'Converted to kWh', {
+          original: electricity.quantity,
+          unit: electricity.unit,
+          converted: quantityInKwh
+        });
         
         // Calculate emissions: kWh * kg/kWh = kg, then /1000 for tonnes
         const renewablePercent = electricity.renewablePercentage || 0;
         const emissionsKg = quantityInKwh * stateFactor * (1 - renewablePercent / 100);
         const emissionsTonnes = emissionsKg / 1000;
-        
-        console.log(`Calculation: ${quantityInKwh} kWh × ${stateFactor} kg/kWh × ${(1 - renewablePercent/100)} = ${emissionsTonnes.toFixed(4)} tCO₂e`);
+
+        logger.debug('EmissionCalculations:calculateScope2', 'Calculated emissions', {
+          quantityInKwh,
+          stateFactor,
+          renewablePercent,
+          emissionsTonnes
+        });
         
         emissions.push({
           energy_type: 'electricity',
@@ -289,12 +390,14 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
       }
 
       // Process heating/cooling
-      console.log("Processing heating/cooling entries:", formData.heating?.length || 0);
+      logger.debug('EmissionCalculations:calculateScope2', 'Processing heating/cooling entries', {
+        count: formData.heating?.length || 0
+      });
       for (const heating of formData.heating || []) {
-        console.log("Heating entry:", heating);
-        
+        logger.debug('EmissionCalculations:calculateScope2', 'Processing heating entry', { heating });
+
         if (!heating.quantity || heating.quantity <= 0) {
-          console.log("Skipping - quantity is 0 or undefined");
+          logger.debug('EmissionCalculations:calculateScope2', 'Skipping heating - quantity is 0');
           continue;
         }
 
@@ -310,13 +413,21 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         } else if (heating.unit === 'm3') {
           quantityInKwh = heating.quantity * 10.55;
         }
-        console.log(`Converted ${heating.quantity} ${heating.unit} to ${quantityInKwh} kWh`);
+        logger.debug('EmissionCalculations:calculateScope2', 'Converted heating to kWh', {
+          original: heating.quantity,
+          unit: heating.unit,
+          converted: quantityInKwh
+        });
         
         // Calculate emissions: kWh * kg/kWh = kg, then /1000 for tonnes
         const emissionsKg = quantityInKwh * factor;
         const emissionsTonnes = emissionsKg / 1000;
-        
-        console.log(`Calculation: ${quantityInKwh} kWh × ${factor} kg/kWh = ${emissionsTonnes.toFixed(4)} tCO₂e`);
+
+        logger.debug('EmissionCalculations:calculateScope2', 'Calculated heating emissions', {
+          quantityInKwh,
+          factor,
+          emissionsTonnes
+        });
         
         emissions.push({
           energy_type: 'heating_cooling',
@@ -332,12 +443,14 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
       }
 
       // Process purchased steam
-      console.log("Processing steam entries:", formData.steam?.length || 0);
+      logger.debug('EmissionCalculations:calculateScope2', 'Processing steam entries', {
+        count: formData.steam?.length || 0
+      });
       for (const steam of formData.steam || []) {
-        console.log("Steam entry:", steam);
-        
+        logger.debug('EmissionCalculations:calculateScope2', 'Processing steam entry', { steam });
+
         if (!steam.quantity || steam.quantity <= 0) {
-          console.log("Skipping - quantity is 0 or undefined");
+          logger.debug('EmissionCalculations:calculateScope2', 'Skipping steam - quantity is 0');
           continue;
         }
 
@@ -353,12 +466,20 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         } else if (steam.unit === 'klb') {
           quantityInGJ = steam.quantity * 1.134;
         }
-        console.log(`Converted ${steam.quantity} ${steam.unit} to ${quantityInGJ} GJ`);
+        logger.debug('EmissionCalculations:calculateScope2', 'Converted steam to GJ', {
+          original: steam.quantity,
+          unit: steam.unit,
+          converted: quantityInGJ
+        });
         
         // Calculate emissions: GJ * tCO₂e/GJ = tCO₂e (already in tonnes)
         const emissionsTonnes = quantityInGJ * factorPerGJ;
-        
-        console.log(`Calculation: ${quantityInGJ} GJ × ${factorPerGJ} tCO₂e/GJ = ${emissionsTonnes.toFixed(4)} tCO₂e`);
+
+        logger.debug('EmissionCalculations:calculateScope2', 'Calculated steam emissions', {
+          quantityInGJ,
+          factorPerGJ,
+          emissionsTonnes
+        });
         
         emissions.push({
           energy_type: 'purchased_steam',
@@ -373,45 +494,52 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         });
       }
 
-      console.log(`=== Total emissions calculated: ${emissions.length} entries ===`);
+      logger.debug('EmissionCalculations:calculateScope2', 'Total emissions calculated', {
+        entriesCount: emissions.length
+      });
 
       // Save to database if we have emissions
       if (emissions.length > 0) {
         const totalEmissions = emissions.reduce((sum, e) => sum + e.emissions_tco2e, 0);
-        console.log(`Total: ${totalEmissions.toFixed(4)} tCO₂e`);
-        console.log("Saving to database...");
+        logger.debug('EmissionCalculations:calculateScope2', 'Saving to database', {
+          totalEmissions
+        });
         
         // Delete existing Scope 2 entries for clean state
         const { error: deleteError } = await supabase
           .from('scope2_emissions')
           .delete()
           .eq('project_id', currentProject.id);
-          
+
         if (deleteError) {
-          console.error("Error deleting existing entries:", deleteError);
+          logger.error('EmissionCalculations:deleteScope2', deleteError);
           throw new Error(`Database delete failed: ${deleteError.message}`);
         }
-        console.log("✓ Previous entries deleted");
+        logger.debug('EmissionCalculations:calculateScope2', 'Previous entries deleted');
 
         // Insert new emissions
         const emissionsToInsert = emissions.map(e => ({
           ...e,
           project_id: currentProject.id
         }));
-        
-        console.log("Inserting emissions:", emissionsToInsert);
-        
+
+        logger.debug('EmissionCalculations:calculateScope2', 'Inserting emissions', {
+          count: emissionsToInsert.length
+        });
+
         const { data: insertedData, error: insertError } = await supabase
           .from('scope2_emissions')
           .insert(emissionsToInsert)
           .select();
 
         if (insertError) {
-          console.error("Error inserting emissions:", insertError);
+          logger.error('EmissionCalculations:insertScope2', insertError);
           throw new Error(`Database insert failed: ${insertError.message}`);
         }
-        
-        console.log("✓ Emissions saved successfully:", insertedData?.length, "rows");
+
+        logger.debug('EmissionCalculations:calculateScope2', 'Emissions saved successfully', {
+          rowsInserted: insertedData?.length
+        });
         
         toast({
           title: "Success",
@@ -426,12 +554,11 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         return { emissions, total: totalEmissions };
       }
 
-      console.log("No emissions to save (all quantities were 0)");
+      logger.debug('EmissionCalculations:calculateScope2', 'No emissions to save');
       return { emissions: [], total: 0 };
-      
+
     } catch (error) {
-      console.error('=== Scope 2 Calculation Error ===');
-      console.error(error);
+      logger.error('EmissionCalculations:calculateScope2', error);
       toast({
         title: "Calculation Failed",
         description: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -443,7 +570,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
     }
   }, [currentProject, onDataChange]);
 
-  const calculateScope3Emissions = useCallback(async (formData: any) => {
+  const calculateScope3Emissions = useCallback(async (formData: Scope3FormData) => {
     if (!currentProject) {
       toast({
         title: "No project selected",
@@ -526,9 +653,9 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           .from('scope3_emissions')
           .delete()
           .eq('project_id', currentProject.id);
-          
+
         if (deleteError) {
-          console.error("Error deleting existing entries:", deleteError);
+          logger.error('EmissionCalculations:deleteScope3', deleteError);
           throw new Error(`Database delete failed: ${deleteError.message}`);
         }
 
@@ -543,7 +670,7 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
           );
 
         if (insertError) {
-          console.error("Error inserting emissions:", insertError);
+          logger.error('EmissionCalculations:insertScope3', insertError);
           throw new Error(`Database insert failed: ${insertError.message}`);
         }
 
@@ -568,11 +695,11 @@ export const useEmissionCalculations = (onDataChange?: () => void) => {
         variant: "destructive",
       });
       return null;
-    } catch (error: any) {
-      console.error('Error calculating Scope 3 emissions:', error);
+    } catch (error) {
+      logger.error('EmissionCalculations:calculateScope3', error);
       toast({
         title: "Calculation failed",
-        description: error?.message || "Failed to calculate emissions. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to calculate emissions. Please try again.",
         variant: "destructive",
       });
       return null;
