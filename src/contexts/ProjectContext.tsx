@@ -87,7 +87,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setLoading(false);
     }
-  }, [user, currentProject]);
+  }, [user]);
 
   const createProject = async (
     projectData: Omit<Project, 'id' | 'created_at' | 'updated_at'>,
