@@ -388,3 +388,5 @@ export const HotspotAnalysis = memo(() => {
     </div>
   );
 });
+
+HotspotAnalysis.displayName = 'HotspotAnalysis';
