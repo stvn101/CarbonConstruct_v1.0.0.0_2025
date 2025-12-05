@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown } from "lucide-react";
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
 interface VerificationResult {
   material: string;
@@ -11,6 +13,303 @@ interface VerificationResult {
   status: 'pass' | 'warn' | 'fail';
   notes: string;
 }
+
+// PDF Styles
+const pdfStyles = StyleSheet.create({
+  page: {
+    flexDirection: 'column',
+    backgroundColor: '#ffffff',
+    padding: 40,
+    fontFamily: 'Helvetica',
+  },
+  header: {
+    marginBottom: 20,
+    borderBottom: '2px solid #2d5a27',
+    paddingBottom: 15,
+    textAlign: 'center',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2d5a27',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: '#666666',
+    marginBottom: 5,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#2d5a27',
+    marginBottom: 10,
+    borderBottom: '1px solid #cccccc',
+    paddingBottom: 5,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  summaryBox: {
+    width: '23%',
+    padding: 10,
+    borderRadius: 4,
+    textAlign: 'center',
+  },
+  summaryBoxGreen: {
+    backgroundColor: '#f0fdf4',
+    border: '1px solid #86efac',
+  },
+  summaryBoxYellow: {
+    backgroundColor: '#fefce8',
+    border: '1px solid #fde047',
+  },
+  summaryBoxRed: {
+    backgroundColor: '#fef2f2',
+    border: '1px solid #fca5a5',
+  },
+  summaryBoxBlue: {
+    backgroundColor: '#eff6ff',
+    border: '1px solid #93c5fd',
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  summaryLabel: {
+    fontSize: 8,
+    marginTop: 4,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+    padding: 6,
+    borderBottom: '1px solid #d1d5db',
+  },
+  tableHeaderCell: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    padding: 5,
+    borderBottom: '1px solid #e5e7eb',
+  },
+  tableCell: {
+    fontSize: 7,
+    color: '#4b5563',
+  },
+  passText: {
+    color: '#16a34a',
+  },
+  warnText: {
+    color: '#ca8a04',
+  },
+  failText: {
+    color: '#dc2626',
+  },
+  paragraph: {
+    fontSize: 10,
+    color: '#4b5563',
+    marginBottom: 8,
+    lineHeight: 1.5,
+  },
+  certificationBox: {
+    marginTop: 20,
+    padding: 15,
+    border: '2px solid #22c55e',
+    borderRadius: 4,
+    textAlign: 'center',
+  },
+  certTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#16a34a',
+    marginBottom: 8,
+  },
+  certText: {
+    fontSize: 9,
+    color: '#4b5563',
+  },
+  footer: {
+    marginTop: 20,
+    paddingTop: 10,
+    borderTop: '1px solid #e5e7eb',
+    fontSize: 8,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+  sourceBox: {
+    padding: 8,
+    marginBottom: 5,
+    borderRadius: 4,
+    backgroundColor: '#f9fafb',
+  },
+  sourceTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginBottom: 3,
+  },
+  sourceDesc: {
+    fontSize: 8,
+    color: '#6b7280',
+  },
+});
+
+interface PDFVerificationDocumentProps {
+  verificationDate: string;
+  passCount: number;
+  warnCount: number;
+  failCount: number;
+  passRate: string;
+  concreteVerification: VerificationResult[];
+  steelVerification: VerificationResult[];
+  timberVerification: VerificationResult[];
+  otherMaterialsVerification: VerificationResult[];
+}
+
+const PDFVerificationDocument: React.FC<PDFVerificationDocumentProps> = ({
+  verificationDate,
+  passCount,
+  warnCount,
+  failCount,
+  passRate,
+  concreteVerification,
+  steelVerification,
+  timberVerification,
+  otherMaterialsVerification,
+}) => {
+  const renderTable = (data: VerificationResult[], title: string) => (
+    <View style={pdfStyles.section}>
+      <Text style={pdfStyles.sectionTitle}>{title}</Text>
+      <View style={pdfStyles.tableHeader}>
+        <Text style={[pdfStyles.tableHeaderCell, { width: '18%' }]}>Material</Text>
+        <Text style={[pdfStyles.tableHeaderCell, { width: '12%' }]}>NABERS Default</Text>
+        <Text style={[pdfStyles.tableHeaderCell, { width: '12%' }]}>NABERS Range</Text>
+        <Text style={[pdfStyles.tableHeaderCell, { width: '12%' }]}>DB Value</Text>
+        <Text style={[pdfStyles.tableHeaderCell, { width: '10%' }]}>Unit</Text>
+        <Text style={[pdfStyles.tableHeaderCell, { width: '8%' }]}>Status</Text>
+        <Text style={[pdfStyles.tableHeaderCell, { width: '28%' }]}>Notes</Text>
+      </View>
+      {data.map((row, idx) => (
+        <View key={idx} style={pdfStyles.tableRow}>
+          <Text style={[pdfStyles.tableCell, { width: '18%' }]}>{row.material}</Text>
+          <Text style={[pdfStyles.tableCell, { width: '12%' }]}>{row.nabersDefault}</Text>
+          <Text style={[pdfStyles.tableCell, { width: '12%' }]}>{row.nabersRange}</Text>
+          <Text style={[pdfStyles.tableCell, { width: '12%' }]}>{row.databaseValue}</Text>
+          <Text style={[pdfStyles.tableCell, { width: '10%' }]}>{row.unit}</Text>
+          <Text style={[
+            pdfStyles.tableCell, 
+            { width: '8%' },
+            row.status === 'pass' ? pdfStyles.passText : row.status === 'warn' ? pdfStyles.warnText : pdfStyles.failText
+          ]}>
+            {row.status === 'pass' ? '✓ PASS' : row.status === 'warn' ? '⚠ WARN' : '✗ FAIL'}
+          </Text>
+          <Text style={[pdfStyles.tableCell, { width: '28%' }]}>{row.notes}</Text>
+        </View>
+      ))}
+    </View>
+  );
+
+  return (
+    <Document>
+      <Page size="A4" style={pdfStyles.page}>
+        {/* Header */}
+        <View style={pdfStyles.header}>
+          <Text style={pdfStyles.title}>Third-Party Verification Report</Text>
+          <Text style={pdfStyles.subtitle}>CarbonConstruct Materials Database Verification</Text>
+          <Text style={pdfStyles.subtitle}>Reference: NABERS v2025.1-6 | Date: {verificationDate}</Text>
+        </View>
+
+        {/* Summary Statistics */}
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitle}>Executive Summary</Text>
+          <View style={pdfStyles.summaryRow}>
+            <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxGreen]}>
+              <Text style={[pdfStyles.summaryValue, { color: '#16a34a' }]}>{passCount}</Text>
+              <Text style={[pdfStyles.summaryLabel, { color: '#15803d' }]}>Verified</Text>
+            </View>
+            <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxYellow]}>
+              <Text style={[pdfStyles.summaryValue, { color: '#ca8a04' }]}>{warnCount}</Text>
+              <Text style={[pdfStyles.summaryLabel, { color: '#a16207' }]}>Advisory</Text>
+            </View>
+            <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxRed]}>
+              <Text style={[pdfStyles.summaryValue, { color: '#dc2626' }]}>{failCount}</Text>
+              <Text style={[pdfStyles.summaryLabel, { color: '#b91c1c' }]}>Discrepancy</Text>
+            </View>
+            <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxBlue]}>
+              <Text style={[pdfStyles.summaryValue, { color: '#2563eb' }]}>{passRate}%</Text>
+              <Text style={[pdfStyles.summaryLabel, { color: '#1d4ed8' }]}>Pass Rate</Text>
+            </View>
+          </View>
+          <Text style={pdfStyles.paragraph}>
+            The CarbonConstruct materials database has been verified against the National Material Emission 
+            Factors Database v2025.1 published by NABERS (NSW Government). The database contains 4,046 
+            materials across 58 categories sourced from EPD Australasia, ICM Database 2019, and other 
+            verified EPD registries.
+          </Text>
+        </View>
+
+        {/* Data Sources */}
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitle}>Data Source Distribution</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
+              <Text style={[pdfStyles.sourceTitle, { color: '#16a34a' }]}>2,939</Text>
+              <Text style={pdfStyles.sourceDesc}>EPD Australasia (NABERS primary)</Text>
+            </View>
+            <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
+              <Text style={[pdfStyles.sourceTitle, { color: '#2563eb' }]}>638</Text>
+              <Text style={pdfStyles.sourceDesc}>ICM Database 2019 (AusLCI)</Text>
+            </View>
+            <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
+              <Text style={[pdfStyles.sourceTitle, { color: '#7c3aed' }]}>367</Text>
+              <Text style={pdfStyles.sourceDesc}>EPD International</Text>
+            </View>
+            <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
+              <Text style={pdfStyles.sourceTitle}>102</Text>
+              <Text style={pdfStyles.sourceDesc}>Other EPD Sources</Text>
+            </View>
+          </View>
+        </View>
+      </Page>
+
+      {/* Page 2: Concrete & Steel Tables */}
+      <Page size="A4" style={pdfStyles.page}>
+        {renderTable(concreteVerification, "Concrete Materials Verification")}
+        {renderTable(steelVerification, "Steel & Metals Verification")}
+      </Page>
+
+      {/* Page 3: Timber & Other Materials */}
+      <Page size="A4" style={pdfStyles.page}>
+        {renderTable(timberVerification, "Timber & Engineered Wood Verification")}
+        {renderTable(otherMaterialsVerification, "Other Materials Verification")}
+        
+        {/* Certification Statement */}
+        <View style={pdfStyles.certificationBox}>
+          <Text style={pdfStyles.certTitle}>✓ Verification Statement</Text>
+          <Text style={pdfStyles.certText}>
+            Based on this verification, the CarbonConstruct materials database contains emission factors 
+            that are consistent with the NABERS National Material Emission Factors Database v2025.1. 
+            The database is suitable for use in embodied carbon calculations for Australian construction projects.
+          </Text>
+        </View>
+
+        {/* Footer */}
+        <View style={pdfStyles.footer}>
+          <Text>CarbonConstruct Materials Database Verification Report | Generated: {verificationDate}</Text>
+          <Text>Reference Document: NABERS v2025.1-6 | Database Records: 4,046 materials | Categories: 58</Text>
+        </View>
+      </Page>
+    </Document>
+  );
+};
 
 const MaterialVerificationReport = () => {
   const verificationDate = new Date().toISOString().split('T')[0];
@@ -141,6 +440,33 @@ const MaterialVerificationReport = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* PDF Download Button */}
+      <div className="flex justify-end">
+        <PDFDownloadLink
+          document={
+            <PDFVerificationDocument
+              verificationDate={verificationDate}
+              passCount={passCount}
+              warnCount={warnCount}
+              failCount={failCount}
+              passRate={passRate}
+              concreteVerification={concreteVerification}
+              steelVerification={steelVerification}
+              timberVerification={timberVerification}
+              otherMaterialsVerification={otherMaterialsVerification}
+            />
+          }
+          fileName={`CarbonConstruct_Material_Verification_${verificationDate}.pdf`}
+        >
+          {({ loading }) => (
+            <Button disabled={loading} className="gap-2">
+              <FileDown className="h-4 w-4" />
+              {loading ? 'Generating PDF...' : 'Download Verification Report (PDF)'}
+            </Button>
+          )}
+        </PDFDownloadLink>
+      </div>
 
       {/* Executive Summary */}
       <Card>
