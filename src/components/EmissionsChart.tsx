@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
@@ -27,14 +28,14 @@ const VIBRANT_COLORS = [
   'hsl(340, 75%, 55%)',  // Hot pink
 ];
 
-export const EmissionsChart = ({ type, title, description, data, colors = VIBRANT_COLORS }: EmissionsChartProps) => {
-  const chartConfig = data.reduce((acc, item, idx) => {
+export const EmissionsChart = memo(({ type, title, description, data, colors = VIBRANT_COLORS }: EmissionsChartProps) => {
+  const chartConfig = useMemo(() => data.reduce((acc, item, idx) => {
     acc[item.category] = {
       label: item.category,
       color: colors[idx % colors.length],
     };
     return acc;
-  }, {} as Record<string, { label: string; color: string }>);
+  }, {} as Record<string, { label: string; color: string }>), [data, colors]);
 
   if (type === 'pie') {
     return (
@@ -109,4 +110,4 @@ export const EmissionsChart = ({ type, title, description, data, colors = VIBRAN
       </CardContent>
     </Card>
   );
-};
+});

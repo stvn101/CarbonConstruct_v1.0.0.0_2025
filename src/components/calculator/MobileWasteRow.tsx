@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -15,7 +16,7 @@ interface MobileWasteRowProps {
 }
 
 // Mobile-optimized waste row
-export function MobileWasteRow({ label, factor, input, onChange, total }: MobileWasteRowProps) {
+export const MobileWasteRow = memo(({ label, factor, input, onChange, total }: MobileWasteRowProps) => {
   return (
     <div className="py-2.5 md:py-3 border-b last:border-0 hover:bg-muted/50 px-2 rounded">
       {/* Mobile: stacked, Desktop: grid */}
@@ -60,4 +61,4 @@ export function MobileWasteRow({ label, factor, input, onChange, total }: Mobile
       </div>
     </div>
   );
-}
+});

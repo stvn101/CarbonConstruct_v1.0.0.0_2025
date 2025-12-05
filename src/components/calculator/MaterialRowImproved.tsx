@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, Leaf, ChevronRight, Info, ExternalLink, FileText } from "lucide-react";
@@ -41,29 +41,41 @@ interface MaterialRowImprovedProps {
   onRemove: () => void;
 }
 
-export function MaterialRowImproved({ material, onChange, onRemove }: MaterialRowImprovedProps) {
+export const MaterialRowImproved = memo(({ material, onChange, onRemove }: MaterialRowImprovedProps) => {
   const [breakdownOpen, setBreakdownOpen] = useState(false);
-  
-  const grossEmissions = (material.quantity * material.factor) / 1000;
-  const sequestration = material.sequestration 
-    ? (material.quantity * material.sequestration) / 1000 
-    : 0;
-  const netEmissions = grossEmissions - sequestration;
+
+  const emissions = useMemo(() => {
+    const grossEmissions = (material.quantity * material.factor) / 1000;
+    const sequestration = material.sequestration
+      ? (material.quantity * material.sequestration) / 1000
+      : 0;
+    const netEmissions = grossEmissions - sequestration;
+
+    // Calculate lifecycle stage emissions
+    const a1a3Emissions = material.ef_a1a3 ? (material.quantity * material.ef_a1a3) / 1000 : 0;
+    const a4Emissions = material.ef_a4 ? (material.quantity * material.ef_a4) / 1000 : 0;
+    const a5Emissions = material.ef_a5 ? (material.quantity * material.ef_a5) / 1000 : 0;
+    const totalLifecycle = a1a3Emissions + a4Emissions + a5Emissions;
+
+    return {
+      grossEmissions,
+      sequestration,
+      netEmissions,
+      a1a3Emissions,
+      a4Emissions,
+      a5Emissions,
+      totalLifecycle,
+      a1a3Percent: totalLifecycle > 0 ? Math.round((a1a3Emissions / totalLifecycle) * 100) : 0,
+      a4Percent: totalLifecycle > 0 ? Math.round((a4Emissions / totalLifecycle) * 100) : 0,
+      a5Percent: totalLifecycle > 0 ? Math.round((a5Emissions / totalLifecycle) * 100) : 0,
+    };
+  }, [material.quantity, material.factor, material.sequestration, material.ef_a1a3, material.ef_a4, material.ef_a5]);
+
   const hasSequestration = material.sequestration && material.sequestration > 0;
-  
-  // Calculate lifecycle stage emissions
-  const a1a3Emissions = material.ef_a1a3 ? (material.quantity * material.ef_a1a3) / 1000 : 0;
-  const a4Emissions = material.ef_a4 ? (material.quantity * material.ef_a4) / 1000 : 0;
-  const a5Emissions = material.ef_a5 ? (material.quantity * material.ef_a5) / 1000 : 0;
-  const totalLifecycle = a1a3Emissions + a4Emissions + a5Emissions;
-  
-  // Percentages for breakdown
-  const a1a3Percent = totalLifecycle > 0 ? Math.round((a1a3Emissions / totalLifecycle) * 100) : 0;
-  const a4Percent = totalLifecycle > 0 ? Math.round((a4Emissions / totalLifecycle) * 100) : 0;
-  const a5Percent = totalLifecycle > 0 ? Math.round((a5Emissions / totalLifecycle) * 100) : 0;
-  
   const hasLifecycleData = material.ef_a1a3 && material.ef_a1a3 > 0;
   const hasEpdData = material.epdNumber || material.manufacturer;
+
+  const { grossEmissions, sequestration, netEmissions, a1a3Emissions, a4Emissions, a5Emissions, a1a3Percent, a4Percent, a5Percent } = emissions;
 
   return (
     <div className={`rounded-lg border p-3 md:p-4 mb-3 transition-all ${
@@ -346,4 +358,4 @@ export function MaterialRowImproved({ material, onChange, onRemove }: MaterialRo
       )}
     </div>
   );
-}
+});

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Input } from "@/components/ui/input";
 
 interface MobileFactorRowProps {
@@ -10,7 +11,7 @@ interface MobileFactorRowProps {
 }
 
 // Mobile-optimized factor row for energy, commute, etc.
-export function MobileFactorRow({ label, unit, value, onChange, factor, total }: MobileFactorRowProps) {
+export const MobileFactorRow = memo(({ label, unit, value, onChange, factor, total }: MobileFactorRowProps) => {
   return (
     <div className="py-2.5 md:py-3 border-b last:border-0 hover:bg-muted/50 px-2 rounded">
       {/* Mobile: stacked layout, Desktop: grid */}
@@ -46,4 +47,4 @@ export function MobileFactorRow({ label, unit, value, onChange, factor, total }:
       </div>
     </div>
   );
-}
+});
