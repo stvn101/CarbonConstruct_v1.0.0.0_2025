@@ -359,3 +359,5 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove }: Mater
     </div>
   );
 });
+
+MaterialRowImproved.displayName = 'MaterialRowImproved';
