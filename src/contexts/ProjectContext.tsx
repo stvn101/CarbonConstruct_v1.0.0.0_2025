@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -60,7 +60,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  const refreshProjects = async () => {
+  const refreshProjects = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
@@ -87,7 +87,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, currentProject]);
 
   const createProject = async (
     projectData: Omit<Project, 'id' | 'created_at' | 'updated_at'>,
@@ -151,7 +151,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       return true;
     } catch (error) {
-      console.error('Error creating project:', error);
+      logger.error('ProjectContext:createProject', error);
       toast({
         title: "Error creating project",
         description: "Failed to create project. Please try again.",
@@ -175,7 +175,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setProjects([]);
       setCurrentProject(null);
     }
-  }, [user]);
+  }, [user, refreshProjects]);
 
   const value = {
     currentProject,
