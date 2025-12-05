@@ -2,6 +2,8 @@
  * Test setup file - mocks browser globals for Node.js environment
  */
 
+import '@testing-library/jest-dom';
+
 // Mock localStorage
 const localStorageMock = {
   getItem: () => null,
@@ -15,8 +17,17 @@ const localStorageMock = {
 // @ts-ignore
 global.localStorage = localStorageMock;
 
-// Mock window if needed
+// Mock window with all necessary methods
 // @ts-ignore
-global.window = {
+global.window = global.window || {};
+Object.assign(global.window, {
   localStorage: localStorageMock,
-};
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  location: {
+    reload: () => {}
+  },
+  HTMLElement: class HTMLElement {},
+  getSelection: () => null,
+  scrollTo: () => {}
+});
