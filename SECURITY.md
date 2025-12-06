@@ -188,7 +188,7 @@ We continuously improve our security posture through:
 
 The following are within the scope of our security program:
 
-- **Web Application**: https://carbonconstruct.com.au
+- **Web Application**: [https://carbonconstruct.com.au](https://carbonconstruct.com.au)
 - **API Endpoints**: All Supabase edge functions
 - **Authentication System**: Email/password and Google OAuth flows
 - **Database**: All user data, calculations, and reports
@@ -285,7 +285,7 @@ When testing for security vulnerabilities:
 ### General Support
 
 - **Email**: support@carbonconstruct.com.au
-- **Documentation**: See SECURITY_DOCUMENTATION.md for technical details
+- **Documentation**: See [SECURITY_DOCUMENTATION.md](./SECURITY_DOCUMENTATION.md) for technical details
 - **Business Hours**: Monday-Friday, 9 AM - 5 PM AEST
 
 ---
@@ -294,11 +294,11 @@ When testing for security vulnerabilities:
 
 For more detailed security information, please refer to:
 
-- **SECURITY_DOCUMENTATION.md**: Complete technical security architecture
-- **SECURITY_TESTING_GUIDE.md**: Security testing procedures and results
-- **SECURITY_TEST_AUTOMATION.md**: Automated security testing implementation
-- **PRODUCTION_READINESS_CHECKLIST.md**: Production deployment security checks
-- **FINAL_LAUNCH_CHECKLIST.md**: Launch security verification procedures
+- [**SECURITY_DOCUMENTATION.md**](./SECURITY_DOCUMENTATION.md): Complete technical security architecture
+- [**SECURITY_TESTING_GUIDE.md**](./SECURITY_TESTING_GUIDE.md): Security testing procedures and results
+- [**SECURITY_TEST_AUTOMATION.md**](./SECURITY_TEST_AUTOMATION.md): Automated security testing implementation
+- [**PRODUCTION_READINESS_CHECKLIST.md**](./PRODUCTION_READINESS_CHECKLIST.md): Production deployment security checks
+- [**FINAL_LAUNCH_CHECKLIST.md**](./FINAL_LAUNCH_CHECKLIST.md): Launch security verification procedures
 
 ---
 
