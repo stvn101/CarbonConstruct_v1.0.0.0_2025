@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 interface AuthContextType {
   user: User | null;
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(currentSession?.user ?? null);
       setLoading(false);
     }).catch((error) => {
-      console.error("Failed to get session:", error);
+      logger.error("AuthContext", error, { message: "Failed to get session" });
       setLoading(false);
     });
 
