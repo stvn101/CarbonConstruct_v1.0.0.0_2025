@@ -19,9 +19,17 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Anon client for auth verification
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+  );
+
+  // Service role client for rate limiting (requires elevated permissions)
+  const supabaseServiceClient = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } }
   );
 
   try {
@@ -55,7 +63,7 @@ serve(async (req) => {
 
     // Check rate limit (10 checkout attempts per 15 minutes)
     const rateLimitResult = await checkRateLimit(
-      supabaseClient,
+      supabaseServiceClient,
       user.id,
       'create-checkout',
       { windowMinutes: 15, maxRequests: 10 }
