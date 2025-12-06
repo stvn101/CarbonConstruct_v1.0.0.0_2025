@@ -207,21 +207,29 @@ serve(async (req) => {
       );
     }
 
+    // Anon client for auth verification
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
+    // Service role client for rate limiting (requires elevated permissions)
+    const supabaseServiceClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
     );
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !userData.user) {
-      console.error("[validate-calculation] Authentication failed:", userError?.message);
+      console.error("[validate-calculation] Authentication failed");
       logSecurityEvent({
         event_type: 'invalid_token',
         ip_address: getClientIP(req),
         endpoint: 'validate-calculation',
-        details: userError?.message || 'Invalid or expired token'
+        details: 'Invalid or expired token'
       });
       return new Response(
         JSON.stringify({ error: "Unauthorized - Invalid token" }), 
@@ -230,11 +238,11 @@ serve(async (req) => {
     }
 
     const user = userData.user;
-    console.log(`[validate-calculation] Authenticated user: ${user.id}`);
+    console.log(`[validate-calculation] Authenticated user: ${user.id.substring(0, 8)}...`);
 
-    // Check rate limit (30 requests per 5 minutes for validation)
+    // Check rate limit using service role client (30 requests per 5 minutes for validation)
     const rateLimitResult = await checkRateLimit(
-      supabaseClient,
+      supabaseServiceClient,
       user.id,
       'validate-calculation',
       { windowMinutes: 5, maxRequests: 30 }
@@ -242,7 +250,7 @@ serve(async (req) => {
 
     if (!rateLimitResult.allowed) {
       const resetInSeconds = Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000);
-      console.warn(`[validate-calculation] User ${user.id}: Rate limit exceeded. Reset in ${resetInSeconds}s`);
+      console.warn(`[validate-calculation] Rate limit exceeded. Reset in ${resetInSeconds}s`);
       
       // Log security event for rate limit violation
       logSecurityEvent({
@@ -269,13 +277,13 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[validate-calculation] User ${user.id}: Rate limit OK (${rateLimitResult.remaining} remaining)`);
+    console.log(`[validate-calculation] Rate limit OK (${rateLimitResult.remaining} remaining)`);
 
     // Parse request body
     const body = await req.json();
     
     // Validate calculation data
-    console.log(`[validate-calculation] User ${user.id}: Validating calculation data`);
+    console.log(`[validate-calculation] Validating calculation data`);
     
     const result = CalculationDataSchema.safeParse(body);
     
@@ -284,7 +292,7 @@ serve(async (req) => {
         `${issue.path.join('.')}: ${issue.message}`
       );
       
-      console.error(`[validate-calculation] User ${user.id}: Validation failed - ${errors.join(', ')}`);
+      console.error(`[validate-calculation] Validation failed`);
       
       return new Response(
         JSON.stringify({ 
@@ -295,7 +303,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[validate-calculation] User ${user.id}: Validation successful - ${result.data.materials.length} materials validated`);
+    console.log(`[validate-calculation] Validation successful - ${result.data.materials.length} materials validated`);
 
     // Return validated data
     return new Response(
@@ -307,10 +315,10 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("[validate-calculation] Error:", error);
+    console.error("[validate-calculation] Error:", error instanceof Error ? error.message : "Unknown error");
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Validation failed" 
+        error: "Validation failed" 
       }), 
       { 
         status: 500, 
