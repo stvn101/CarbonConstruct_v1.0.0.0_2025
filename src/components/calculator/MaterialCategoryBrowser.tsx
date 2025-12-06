@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
@@ -79,16 +79,16 @@ export function MaterialCategoryBrowser({
   const allCategories = categories;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">Browse by Category</span>
+    <div className="space-y-2 md:space-y-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+        <span className="text-xs md:text-sm font-medium text-muted-foreground">Browse by Category</span>
         <span className="text-xs text-muted-foreground">
           {allCategories.length} categories • {totalMaterials.toLocaleString()} materials
         </span>
       </div>
       
-      <ScrollArea className="h-auto max-h-[200px]">
-        <div className="flex flex-wrap gap-2 pr-4">
+      <ScrollArea className="h-auto max-h-[160px] md:max-h-[200px]">
+        <div className="flex flex-wrap gap-1.5 md:gap-2 pr-4">
           {allCategories.map(({ category, count }) => {
             const Icon = CATEGORY_ICONS[category] || Package;
             const colorClass = CATEGORY_COLORS[category] || "bg-muted hover:bg-muted/80 border-border text-foreground";
@@ -100,14 +100,14 @@ export function MaterialCategoryBrowser({
                 variant="outline"
                 size="sm"
                 onClick={() => onSelectCategory(isSelected ? null : category)}
-                className={`h-auto py-1.5 px-2.5 flex items-center gap-1.5 transition-all ${
+                className={`h-auto py-1 px-2 md:py-1.5 md:px-2.5 flex items-center gap-1 md:gap-1.5 transition-all text-xs ${
                   isSelected 
                     ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90" 
                     : colorClass
                 }`}
               >
-                <Icon className="h-3.5 w-3.5 flex-shrink-0" />
-                <span className="text-xs font-medium truncate max-w-[120px]">
+                <Icon className="h-3 w-3 md:h-3.5 md:w-3.5 flex-shrink-0" />
+                <span className="font-medium truncate max-w-[80px] md:max-w-[120px]">
                   {category}
                 </span>
                 <span className={`text-xs ${isSelected ? "text-primary-foreground/70" : "opacity-60"}`}>
@@ -122,9 +122,9 @@ export function MaterialCategoryBrowser({
               variant="outline"
               size="sm"
               onClick={() => onSelectCategory(null)}
-              className="h-auto py-1.5 px-2.5 border-destructive/50 text-destructive hover:bg-destructive/10"
+              className="h-auto py-1 px-2 md:py-1.5 md:px-2.5 border-destructive/50 text-destructive hover:bg-destructive/10 text-xs"
             >
-              Clear Filter
+              Clear
             </Button>
           )}
         </div>

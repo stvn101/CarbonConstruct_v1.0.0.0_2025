@@ -34,6 +34,22 @@ self.addEventListener('activate', (event) => {
 // Fetch event - cache-first for hashed assets, network-first for HTML
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+
+  // Skip non-GET requests (POST, PUT, DELETE cannot be cached)
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Skip chrome-extension URLs
+  if (request.url.startsWith('chrome-extension://')) {
+    return;
+  }
+
+  // Skip tracing endpoints
+  if (request.url.includes('localhost:4318')) {
+    return;
+  }
+
   const url = new URL(request.url);
 
   // Cache-first strategy for hashed assets (JS, CSS, images with hashes)

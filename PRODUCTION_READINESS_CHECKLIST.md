@@ -14,11 +14,11 @@ Complete checklist for launching CarbonConstruct to production.
 **Status**: Guide Created
 **File**: `STRIPE_PRODUCTION_SETUP.md`
 
-- [ ] Switch Stripe to live mode
-- [ ] Configure production webhook
-- [ ] Update API keys in secrets
-- [ ] Configure customer portal
-- [ ] Verify product/price IDs
+- [x] Switch Stripe to live mode
+- [x] Configure production webhook
+- [x] Update API keys in secrets
+- [x] Configure customer portal
+- [x] Verify product/price IDs
 - [ ] Test live payments
 
 ### 2. Database Seeding ✅
@@ -34,9 +34,9 @@ Complete checklist for launching CarbonConstruct to production.
 **Status**: Pending Configuration
 
 Required secrets to configure:
-- [ ] Production Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`)
-- [ ] Email provider API key (`RESEND_API_KEY`)
-- [ ] Verify all Supabase keys are production keys
+- [x] Production Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`)
+- [x] Email provider API key (`RESEND_API_KEY`)
+- [x] Verify all Supabase keys are production keys
 
 ### 4. Legal Pages ✅
 **Status**: Complete
@@ -51,7 +51,7 @@ Required secrets to configure:
 
 ### 5. Email Notifications ✅
 **Status**: Complete & Integrated
-**Files**: 
+**Files**:
 - `supabase/functions/send-email/index.ts`
 - `EMAIL_SETUP_GUIDE.md`
 
@@ -68,8 +68,8 @@ Required secrets to configure:
 - [x] **Email domain configured: noreply@carbonconstruct.com.au**
 
 **Resend Configuration Required**:
-- [ ] Verify domain carbonconstruct.com.au in Resend
-- [ ] Test all email types in production
+- [x] Verify domain carbonconstruct.com.au in Resend
+- [x] Test all email types in production
 
 **Email Sends On**:
 - ✅ User signup (welcome email)
@@ -82,7 +82,7 @@ Required secrets to configure:
 
 ### 6. Security Testing ✅
 **Status**: Complete
-**Files**: 
+**Files**:
 - `SECURITY_TESTING_GUIDE.md`
 - `SECURITY_TEST_AUTOMATION.md`
 - `GOOGLE_OAUTH_SETUP.md`
@@ -103,9 +103,9 @@ Test Coverage:
 **Security Score**: 96/100 - Production Ready ✅
 
 **Next Steps**:
-- [ ] Run automated security test suite before launch
-- [ ] Configure Google OAuth in production
-- [ ] Test OAuth flow on production domain
+- [x] Run automated security test suite before launch
+- [x] Configure Google OAuth in production
+- [x] Test OAuth flow on production domain
 
 ### 7. Monitoring & Logging ✅
 **Status**: Complete
@@ -397,7 +397,7 @@ If critical issues are discovered:
 
 ## Summary
 
-**Critical Items Completed**: 
+**Critical Items Completed**:
 1. ✅ Database seeded with Australian emission factors and LCA materials
 2. ✅ Legal pages created (Privacy, Terms, Cookie Policy)
 3. ✅ Email system fully integrated (welcome, subscription, reports)
@@ -405,7 +405,7 @@ If critical issues are discovered:
 5. ✅ All security findings resolved
 6. ✅ Google OAuth documentation complete
 
-**Critical Items Remaining**: 
+**Critical Items Remaining**:
 1. ⏳ Verify domain in Resend (carbonconstruct.com.au)
 2. ⏳ Set up custom domain in Lovable (better than redirect)
 3. ⏳ Configure Google OAuth credentials in Lovable Cloud

@@ -1,16 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { useLocalMaterials, Material } from '@/hooks/useLocalMaterials';
+import { useEPDMaterials, EPDMaterial } from '@/hooks/useEPDMaterials';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { Plus, X, TrendingDown, TrendingUp, Minus, ArrowUpDown, Search, Leaf, CheckCircle2 } from 'lucide-react';
+import { X, TrendingDown, TrendingUp, Minus, ArrowUpDown, Search, Leaf, CheckCircle2, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { LIMITS } from '@/lib/constants';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const COMPARISON_COLORS = [
   'hsl(var(--chart-1))',
@@ -20,17 +21,17 @@ const COMPARISON_COLORS = [
   'hsl(var(--chart-5))',
 ];
 
-// Preset comparisons for common construction scenarios
+// Preset comparisons using name patterns for EPD materials
 const PRESET_COMPARISONS = [
-  { name: 'CLT vs Concrete (Structural)', ids: ['clt_panel', 'concrete_32mpa'] },
-  { name: 'Steel vs Timber (Framing)', ids: ['steel_reinforcing', 'softwood_framing'] },
-  { name: 'Brick vs AAC Block', ids: ['clay_brick', 'concrete_aac_block'] },
-  { name: 'Standard vs Low-Carbon Concrete', ids: ['concrete_32mpa', 'concrete_low_carbon'] },
+  { name: 'CLT vs Concrete (Structural)', searches: ['CLT', 'Concrete 32'] },
+  { name: 'Steel vs Timber (Framing)', searches: ['Steel Section', 'Hardwood'] },
+  { name: 'Brick vs AAC Block', searches: ['Clay Brick', 'AAC Block'] },
+  { name: 'Standard vs Low-Carbon Concrete', searches: ['Concrete 32MPa', 'Low Carbon'] },
 ];
 
-export const MaterialComparison = () => {
-  const { allMaterials: materials, loading, getCategoryLabel } = useLocalMaterials();
-  const [selectedMaterials, setSelectedMaterials] = useState<Material[]>([]);
+export const MaterialComparison = memo(() => {
+  const { allMaterials: materials, loading, error } = useEPDMaterials();
+  const [selectedMaterials, setSelectedMaterials] = useState<EPDMaterial[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
 
@@ -40,14 +41,15 @@ export const MaterialComparison = () => {
     const term = searchTerm.toLowerCase();
     return materials
       .filter(m => 
-        m.name.toLowerCase().includes(term) ||
-        m.category.toLowerCase().includes(term) ||
-        m.subcategory.toLowerCase().includes(term)
+        m.material_name.toLowerCase().includes(term) ||
+        m.material_category.toLowerCase().includes(term) ||
+        m.subcategory?.toLowerCase().includes(term) ||
+        m.manufacturer?.toLowerCase().includes(term)
       )
       .slice(0, 15);
   }, [materials, searchTerm]);
 
-  const addMaterial = (material: Material) => {
+  const addMaterial = (material: EPDMaterial) => {
     if (selectedMaterials.length >= LIMITS.MAX_MATERIALS_COMPARISON) {
       toast({
         title: 'Maximum Reached',
@@ -79,16 +81,25 @@ export const MaterialComparison = () => {
     setSelectedMaterials([]);
   };
 
-  const loadPreset = (ids: string[]) => {
-    const presetMaterials = ids
-      .map(id => materials.find(m => m.id === id))
-      .filter(Boolean) as Material[];
+  const loadPreset = (searches: string[]) => {
+    // Find materials matching the search patterns
+    const presetMaterials: EPDMaterial[] = [];
+    for (const search of searches) {
+      const term = search.toLowerCase();
+      const found = materials.find(m => 
+        m.material_name.toLowerCase().includes(term)
+      );
+      if (found && !presetMaterials.find(p => p.id === found.id)) {
+        presetMaterials.push(found);
+      }
+    }
+    
     if (presetMaterials.length > 0) {
       setSelectedMaterials(presetMaterials);
     } else {
       toast({
         title: 'Preset Not Available',
-        description: 'Some materials in this preset are not in the database',
+        description: 'No matching materials found for this preset',
         variant: 'destructive',
       });
     }
@@ -105,12 +116,12 @@ export const MaterialComparison = () => {
     );
   }
 
-  if (materials.length === 0) {
+  if (error || materials.length === 0) {
     return (
       <EmptyState
         icon={ArrowUpDown}
         title="No Materials Available"
-        description="The material database is empty. Materials must be imported before you can use the comparison tool."
+        description={error || "The material database is empty. Materials must be imported before you can use the comparison tool."}
       />
     );
   }
@@ -119,7 +130,8 @@ export const MaterialComparison = () => {
   const comparisonMetrics = useMemo(() => {
     return selectedMaterials.map(mat => {
       const grossCarbon = mat.ef_total;
-      const sequestration = mat.carbon_sequestration_kg ? Math.abs(mat.carbon_sequestration_kg) : 0;
+      // EPD materials may have carbon_sequestration field (timber materials)
+      const sequestration = (mat as any).carbon_sequestration ? Math.abs((mat as any).carbon_sequestration) : 0;
       const netCarbon = grossCarbon - sequestration;
       
       return {
@@ -141,21 +153,21 @@ export const MaterialComparison = () => {
       stage: 'A1-A3: Product',
       ...selectedMaterials.reduce((acc, mat) => ({
         ...acc,
-        [mat.name]: mat.ef_a1a3 || 0
+        [mat.material_name]: mat.ef_a1a3 || 0
       }), {})
     },
     {
       stage: 'A4: Transport',
       ...selectedMaterials.reduce((acc, mat) => ({
         ...acc,
-        [mat.name]: mat.ef_a4 || 0
+        [mat.material_name]: mat.ef_a4 || 0
       }), {})
     },
     {
       stage: 'A5: Construction',
       ...selectedMaterials.reduce((acc, mat) => ({
         ...acc,
-        [mat.name]: mat.ef_a5 || 0
+        [mat.material_name]: mat.ef_a5 || 0
       }), {})
     },
   ];
@@ -163,7 +175,7 @@ export const MaterialComparison = () => {
   // Net carbon comparison data (including sequestration)
   const netCarbonData = comparisonMetrics
     .map((m, idx) => ({
-      name: m.material.name,
+      name: m.material.material_name,
       gross: m.grossCarbon,
       sequestration: -m.sequestration,
       net: m.netCarbon,
@@ -188,6 +200,86 @@ export const MaterialComparison = () => {
   const bestOption = savingsData[0];
   const worstOption = savingsData[savingsData.length - 1];
 
+  // Export to CSV
+  const exportToCSV = useCallback(() => {
+    if (comparisonMetrics.length === 0) return;
+    
+    const headers = ['Material', 'Category', 'A1-A3 (kgCO₂e)', 'A4 (kgCO₂e)', 'A5 (kgCO₂e)', 'Gross Total (kgCO₂e)', 'Sequestration (kgCO₂e)', 'Net Total (kgCO₂e)', 'Unit'];
+    const rows = comparisonMetrics.map(m => [
+      m.material.material_name,
+      m.material.material_category,
+      m.a1a3.toFixed(2),
+      m.a4.toFixed(2),
+      m.a5.toFixed(2),
+      m.grossCarbon.toFixed(2),
+      m.hasSequestration ? (-m.sequestration).toFixed(2) : '0',
+      m.netCarbon.toFixed(2),
+      m.material.unit
+    ]);
+    
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `material-comparison-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    toast({
+      title: 'Export Complete',
+      description: 'Comparison data exported to CSV',
+    });
+  }, [comparisonMetrics]);
+
+  // Export to text report
+  const exportToReport = useCallback(() => {
+    if (comparisonMetrics.length === 0) return;
+    
+    let report = `MATERIAL CARBON COMPARISON REPORT\n`;
+    report += `Generated: ${new Date().toLocaleString()}\n`;
+    report += `${'='.repeat(60)}\n\n`;
+    
+    report += `MATERIALS COMPARED: ${comparisonMetrics.length}\n\n`;
+    
+    comparisonMetrics.forEach((m, idx) => {
+      report += `${idx + 1}. ${m.material.material_name}\n`;
+      report += `   Category: ${m.material.material_category}\n`;
+      report += `   A1-A3: ${m.a1a3.toFixed(2)} kgCO₂e/${m.material.unit}\n`;
+      report += `   A4: ${m.a4.toFixed(2)} kgCO₂e/${m.material.unit}\n`;
+      report += `   A5: ${m.a5.toFixed(2)} kgCO₂e/${m.material.unit}\n`;
+      report += `   Gross Total: ${m.grossCarbon.toFixed(2)} kgCO₂e/${m.material.unit}\n`;
+      if (m.hasSequestration) {
+        report += `   Carbon Sequestration: -${m.sequestration.toFixed(2)} kgCO₂e/${m.material.unit}\n`;
+      }
+      report += `   Net Total: ${m.netCarbon.toFixed(2)} kgCO₂e/${m.material.unit}\n\n`;
+    });
+    
+    if (bestOption && worstOption && comparisonMetrics.length >= 2) {
+      report += `${'='.repeat(60)}\n`;
+      report += `RECOMMENDATION\n`;
+      report += `${'='.repeat(60)}\n\n`;
+      report += `Best Option: ${bestOption.material.material_name}\n`;
+      report += `Net Carbon: ${bestOption.netCarbon.toFixed(2)} kgCO₂e/${bestOption.material.unit}\n\n`;
+      
+      if (bestOption.material.id !== worstOption.material.id) {
+        const savings = worstOption.netCarbon - bestOption.netCarbon;
+        const percent = (savings / worstOption.netCarbon * 100).toFixed(1);
+        report += `Choosing ${bestOption.material.material_name} over ${worstOption.material.material_name}\n`;
+        report += `could save ${savings.toFixed(2)} kgCO₂e per unit (${percent}% reduction).\n`;
+      }
+    }
+    
+    const blob = new Blob([report], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `material-comparison-report-${new Date().toISOString().split('T')[0]}.txt`;
+    link.click();
+    
+    toast({
+      title: 'Export Complete',
+      description: 'Comparison report exported',
+    });
+  }, [comparisonMetrics, bestOption, worstOption]);
+
   return (
     <div className="space-y-6">
       {/* Material Selection */}
@@ -210,7 +302,7 @@ export const MaterialComparison = () => {
                 key={i} 
                 variant="outline" 
                 size="sm" 
-                onClick={() => loadPreset(preset.ids)}
+                onClick={() => loadPreset(preset.searches)}
                 className="text-xs"
               >
                 {preset.name}
@@ -245,8 +337,8 @@ export const MaterialComparison = () => {
                       disabled={selectedMaterials.find(sm => sm.id === m.id) !== undefined}
                     >
                       <span className="flex items-center gap-2">
-                        {m.name}
-                        {m.carbon_sequestration_kg && (
+                        {m.material_name}
+                        {(m as any).carbon_sequestration && (
                           <Leaf className="h-3 w-3 text-emerald-500" />
                         )}
                       </span>
@@ -277,8 +369,8 @@ export const MaterialComparison = () => {
                     className="pr-1 text-sm flex items-center gap-1"
                     style={{ backgroundColor: COMPARISON_COLORS[idx] + '20', color: COMPARISON_COLORS[idx] }}
                   >
-                    {material.carbon_sequestration_kg && <Leaf className="h-3 w-3" />}
-                    {material.name}
+                    {(material as any).carbon_sequestration && <Leaf className="h-3 w-3" />}
+                    {material.material_name}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -298,6 +390,28 @@ export const MaterialComparison = () => {
       {/* Comparison Results */}
       {selectedMaterials.length > 0 && (
         <>
+          {/* Export Actions */}
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Export Results
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportToCSV} className="gap-2 cursor-pointer">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToReport} className="gap-2 cursor-pointer">
+                  <FileText className="h-4 w-4" />
+                  Export as Report
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           {/* Quick Stats Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {comparisonMetrics.map((m, idx) => (
@@ -305,7 +419,7 @@ export const MaterialComparison = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base flex items-center gap-2">
-                      {m.material.name}
+                      {m.material.material_name}
                       {m.hasSequestration && <Leaf className="h-4 w-4 text-emerald-500" />}
                     </CardTitle>
                     <div className="flex items-center gap-2">
@@ -318,7 +432,7 @@ export const MaterialComparison = () => {
                       />
                     </div>
                   </div>
-                  <CardDescription className="capitalize">{getCategoryLabel(m.material.category)}</CardDescription>
+                  <CardDescription className="capitalize">{m.material.material_category}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-1">
@@ -401,9 +515,9 @@ export const MaterialComparison = () => {
                       {selectedMaterials.map((material, idx) => (
                         <Bar
                           key={material.id}
-                          dataKey={material.name}
+                          dataKey={material.material_name}
                           fill={COMPARISON_COLORS[idx]}
-                          name={material.name}
+                          name={material.material_name}
                         />
                       ))}
                     </BarChart>
@@ -423,7 +537,7 @@ export const MaterialComparison = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={selectedMaterials.map((m, idx) => ({
-                        name: m.name,
+                        name: m.material_name,
                         total: m.ef_total,
                         fill: COMPARISON_COLORS[idx]
                       }))}
@@ -434,7 +548,7 @@ export const MaterialComparison = () => {
                       <YAxis type="category" dataKey="name" width={120} />
                       <Tooltip formatter={(value) => `${Number(value).toFixed(2)} kgCO₂e`} />
                       <Bar dataKey="total">
-                        {selectedMaterials.map((material, idx) => (
+                        {selectedMaterials.map((_material, idx) => (
                           <Cell key={`cell-${idx}`} fill={COMPARISON_COLORS[idx]} />
                         ))}
                       </Bar>
@@ -473,7 +587,7 @@ export const MaterialComparison = () => {
                               style={{ backgroundColor: COMPARISON_COLORS[materialIdx] }}
                             />
                             <span className="font-medium flex items-center gap-2">
-                              {item.material.name}
+                              {item.material.material_name}
                               {item.hasSequestration && <Leaf className="h-3 w-3 text-emerald-500" />}
                             </span>
                             <Badge variant={item.savings > 0 ? 'default' : 'secondary'}>
@@ -541,11 +655,11 @@ export const MaterialComparison = () => {
                               className="h-3 w-3 rounded-full" 
                               style={{ backgroundColor: COMPARISON_COLORS[idx] }}
                             />
-                            {m.material.name}
+                            {m.material.material_name}
                             {m.hasSequestration && <Leaf className="h-3 w-3 text-emerald-500" />}
                           </div>
                         </TableCell>
-                        <TableCell className="capitalize">{getCategoryLabel(m.material.category)}</TableCell>
+                        <TableCell className="capitalize">{m.material.material_category}</TableCell>
                         <TableCell className="text-right">{m.a1a3.toFixed(1)}</TableCell>
                         <TableCell className="text-right">{m.a4.toFixed(1)}</TableCell>
                         <TableCell className="text-right">{m.a5.toFixed(1)}</TableCell>
@@ -577,7 +691,7 @@ export const MaterialComparison = () => {
               <CardContent>
                 <div className="space-y-3 text-sm">
                   <p>
-                    <strong className="text-emerald-700">{bestOption.material.name}</strong> has the lowest net embodied carbon at{' '}
+                    <strong className="text-emerald-700">{bestOption.material.material_name}</strong> has the lowest net embodied carbon at{' '}
                     <strong>{bestOption.netCarbon.toFixed(1)} kgCO₂e/{bestOption.material.unit}</strong>
                     {bestOption.hasSequestration && (
                       <span className="text-emerald-600"> (including {bestOption.sequestration.toFixed(1)} kgCO₂e of carbon storage)</span>
@@ -585,8 +699,8 @@ export const MaterialComparison = () => {
                   </p>
                   {bestOption.material.id !== worstOption.material.id && (
                     <p>
-                      Choosing <strong>{bestOption.material.name}</strong> over{' '}
-                      <strong>{worstOption.material.name}</strong> could reduce net embodied carbon by{' '}
+                      Choosing <strong>{bestOption.material.material_name}</strong> over{' '}
+                      <strong>{worstOption.material.material_name}</strong> could reduce net embodied carbon by{' '}
                       <strong className="text-emerald-700">
                         {(worstOption.netCarbon - bestOption.netCarbon).toFixed(1)} kgCO₂e/{bestOption.material.unit}
                       </strong> ({((worstOption.netCarbon - bestOption.netCarbon) / worstOption.netCarbon * 100).toFixed(1)}% reduction).
@@ -626,7 +740,7 @@ export const MaterialComparison = () => {
                   key={i} 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => loadPreset(preset.ids)}
+                  onClick={() => loadPreset(preset.searches)}
                 >
                   Try: {preset.name}
                 </Button>
@@ -637,4 +751,6 @@ export const MaterialComparison = () => {
       )}
     </div>
   );
-};
+});
+
+MaterialComparison.displayName = 'MaterialComparison';

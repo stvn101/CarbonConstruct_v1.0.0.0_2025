@@ -1,6 +1,6 @@
-import React, { lazy, Suspense, useEffect } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import * as React from "react";
+import { lazy, Suspense } from "react";
+import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
@@ -28,8 +28,18 @@ const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 const Roadmap = lazy(() => import("./pages/Roadmap"));
 const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
 const AccessibilityStatement = lazy(() => import("./pages/AccessibilityStatement"));
+const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60, // 1 minute - data considered fresh
+      gcTime: 1000 * 60 * 5, // 5 minutes - cache garbage collection
+      refetchOnWindowFocus: false, // Don't refetch when tab focused
+      retry: 1, // Only retry once on failure
+    },
+  },
+});
 
 // Monitoring wrapper component
 function MonitoringProvider({ children }: { children: React.ReactNode }) {
@@ -43,7 +53,6 @@ const App = () => (
     <AuthProvider>
       <ProjectProvider>
         <Toaster />
-        <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <MonitoringProvider>
             <Layout>
@@ -64,6 +73,7 @@ const App = () => (
                   <Route path="/roadmap" element={<Roadmap />} />
                   <Route path="/accessibility" element={<AccessibilityStatement />} />
                   <Route path="/admin/monitoring" element={<AdminMonitoring />} />
+                  <Route path="/admin/material-verification" element={<MaterialVerification />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

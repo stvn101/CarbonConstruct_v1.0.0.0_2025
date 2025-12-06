@@ -1,9 +1,11 @@
 /**
  * Hook for accessing the EPD materials database from Supabase
  * Uses the new materials_epd table with regional manufacturer data
+ * Implements TanStack Query for caching to prevent redundant fetches
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface EPDMaterial {
@@ -36,41 +38,58 @@ export interface GroupedEPDMaterials {
   materials: EPDMaterial[];
 }
 
+// Fetch function for EPD materials (handles pagination)
+async function fetchAllEPDMaterials(): Promise<EPDMaterial[]> {
+  const allMaterials: EPDMaterial[] = [];
+  const pageSize = 1000;
+  let page = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error } = await supabase
+      .from('materials_epd')
+      .select('*')
+      .order('material_category')
+      .order('material_name')
+      .range(from, to);
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      allMaterials.push(...data);
+      hasMore = data.length === pageSize;
+      page++;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allMaterials;
+}
+
 export function useEPDMaterials() {
-  const [materials, setMaterials] = useState<EPDMaterial[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedState, setSelectedState] = useState<string>('all');
   const [selectedManufacturer, setSelectedManufacturer] = useState<string>('all');
 
-  // Fetch materials from Supabase
-  const fetchMaterials = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('materials_epd')
-        .select('*')
-        .order('material_category')
-        .order('material_name');
+  // Use TanStack Query for caching - materials rarely change
+  const { 
+    data: materials = [], 
+    isLoading: loading, 
+    error: queryError,
+    refetch 
+  } = useQuery({
+    queryKey: ['epd-materials'],
+    queryFn: fetchAllEPDMaterials,
+    staleTime: 5 * 60 * 1000, // 5 minutes - EPD data rarely changes
+    gcTime: 30 * 60 * 1000, // 30 minutes cache retention
+  });
 
-      if (fetchError) throw fetchError;
-
-      setMaterials(data || []);
-    } catch (err) {
-      console.error('Error fetching EPD materials:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch materials');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchMaterials();
-  }, [fetchMaterials]);
+  const error = queryError instanceof Error ? queryError.message : queryError ? 'Failed to fetch materials' : null;
 
   // Get unique categories
   const categories = useMemo(() => {
@@ -186,7 +205,7 @@ export function useEPDMaterials() {
     setSelectedState,
     setSelectedManufacturer,
     resetFilters,
-    refetch: fetchMaterials,
+    refetch,
     
     // Helpers
     getUnitLabel,

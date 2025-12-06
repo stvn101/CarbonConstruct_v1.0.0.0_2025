@@ -1,6 +1,7 @@
+import { memo, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface EmissionData {
   category: string;
@@ -27,42 +28,42 @@ const VIBRANT_COLORS = [
   'hsl(340, 75%, 55%)',  // Hot pink
 ];
 
-export const EmissionsChart = ({ type, title, description, data, colors = VIBRANT_COLORS }: EmissionsChartProps) => {
-  const chartConfig = data.reduce((acc, item, idx) => {
+export const EmissionsChart = memo(({ type, title, description, data, colors = VIBRANT_COLORS }: EmissionsChartProps) => {
+  const chartConfig = useMemo(() => data.reduce((acc, item, idx) => {
     acc[item.category] = {
       label: item.category,
       color: colors[idx % colors.length],
     };
     return acc;
-  }, {} as Record<string, { label: string; color: string }>);
+  }, {} as Record<string, { label: string; color: string }>), [data, colors]);
 
   if (type === 'pie') {
     return (
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[400px]">
+        <CardContent className="px-2 sm:px-6">
+          <ChartContainer config={chartConfig} className="h-[280px] sm:h-[350px] w-full max-w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                 <Pie
                   data={data}
                   dataKey="emissions"
                   nameKey="category"
                   cx="50%"
-                  cy="50%"
-                  outerRadius={120}
-                  label={({ category, percentage }) => `${category}: ${percentage.toFixed(1)}%`}
-                  labelLine={true}
+                  cy="45%"
+                  outerRadius="70%"
+                  label={({ percentage }) => `${percentage.toFixed(1)}%`}
+                  labelLine={false}
                 >
-                  {data.map((entry, index) => (
+                {data.map((_entry, index) => (
                     <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                   ))}
                 </Pie>
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -99,7 +100,7 @@ export const EmissionsChart = ({ type, title, description, data, colors = VIBRAN
                 dataKey="emissions" 
                 radius={[8, 8, 0, 0]}
               >
-                {data.map((entry, index) => (
+              {data.map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                 ))}
               </Bar>
@@ -109,4 +110,6 @@ export const EmissionsChart = ({ type, title, description, data, colors = VIBRAN
       </CardContent>
     </Card>
   );
-};
+});
+
+EmissionsChart.displayName = 'EmissionsChart';

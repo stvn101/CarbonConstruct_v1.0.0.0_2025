@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
@@ -137,9 +137,9 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Contact email sent successfully:", emailResponse);
+    console.log("Contact email sent successfully");
 
-    return new Response(JSON.stringify(emailResponse), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -147,9 +147,9 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
   } catch (error: any) {
-    console.error("Error in send-contact-email function:", error);
+    console.error("Error in send-contact-email function:", error.message);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Failed to send message. Please try again.' }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

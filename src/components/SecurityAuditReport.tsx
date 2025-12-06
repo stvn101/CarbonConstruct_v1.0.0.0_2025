@@ -158,7 +158,7 @@ const databaseTables = [
   { table: 'scope2_emissions', rls: 'Yes', policies: '1', pattern: 'Project-scoped' },
   { table: 'scope3_emissions', rls: 'Yes', policies: '1', pattern: 'Project-scoped' },
   { table: 'reports', rls: 'Yes', policies: '1', pattern: 'Project-scoped' },
-  { table: 'lca_materials', rls: 'Yes', policies: '2', pattern: 'Auth read' },
+  { table: 'materials_epd', rls: 'Yes', policies: '2', pattern: 'Auth read' },
   { table: 'emission_factors', rls: 'Yes', policies: '2', pattern: 'Auth read' },
   { table: 'subscription_tiers', rls: 'Yes', policies: '1', pattern: 'Public read' },
   { table: 'user_roles', rls: 'Yes', policies: '2', pattern: 'Own + Admin' },
@@ -420,7 +420,7 @@ export const SecurityAuditReportDownload = () => {
 
     setIsSending(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-audit-report', {
+      const { error } = await supabase.functions.invoke('send-audit-report', {
         body: {
           recipientEmail,
           recipientName,

@@ -8,6 +8,14 @@ import { DocumentLoadInstrumentation } from "@opentelemetry/instrumentation-docu
 import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
 
 export function initTracing() {
+  // Only initialize tracing in local development
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return; // Skip tracing in production
+    }
+  }
+
   try {
     const resource = resourceFromAttributes({
       [SEMRESATTRS_SERVICE_NAME]: "loval-carbon-compass",

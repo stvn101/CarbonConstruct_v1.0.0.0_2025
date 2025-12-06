@@ -144,15 +144,17 @@ export const QuickCarbonCalculator = () => {
               disabled={!projectSize || !projectType || !duration || isCalculating}
               className="w-full"
               size="lg"
+              aria-label="Calculate carbon emissions estimate"
+              aria-busy={isCalculating}
             >
               {isCalculating ? (
                 <>
-                  <Calculator className="mr-2 h-5 w-5 animate-spin" />
+                  <Calculator className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
                   Calculating...
                 </>
               ) : (
                 <>
-                  <Calculator className="mr-2 h-5 w-5" />
+                  <Calculator className="mr-2 h-5 w-5" aria-hidden="true" />
                   Calculate Emissions
                 </>
               )}
@@ -168,14 +170,22 @@ export const QuickCarbonCalculator = () => {
         ) : (
           <>
             {/* Results Display */}
-            <div className="space-y-6 animate-fade-in">
+            <div
+              className="space-y-6 animate-fade-in"
+              role="region"
+              aria-label="Calculation results"
+              aria-live="polite"
+            >
               {/* Total Emissions */}
               <div className="text-center p-6 bg-primary/10 rounded-lg border-2 border-primary/20">
                 <div className="text-sm text-muted-foreground mb-2">Estimated Total Emissions</div>
-                <div className="text-5xl font-bold text-primary mb-2">
+                <div
+                  className="text-5xl font-bold text-primary mb-2"
+                  aria-label={`Total emissions: ${result.totalEmissions.toLocaleString()} tonnes CO2 equivalent`}
+                >
                   {result.totalEmissions.toLocaleString()}
                 </div>
-                <div className="text-lg text-muted-foreground">tonnes CO₂e</div>
+                <div className="text-lg text-muted-foreground" aria-hidden="true">tonnes CO₂e</div>
                 <Badge variant="secondary" className="mt-3">
                   <TrendingUp className="h-3 w-3 mr-1" />
                   Based on Australian standards

@@ -241,11 +241,11 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (emailError) {
-      console.error("Error sending email:", emailError);
+      console.error("Error sending email");
       throw emailError;
     }
 
-    console.log(`Email sent successfully: ${type} to ${to}`);
+    console.log(`Email sent successfully: ${type}`);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
@@ -255,9 +255,9 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
   } catch (error: any) {
-    console.error("Error in send-email function:", error);
+    console.error("Error in send-email function:", error.message);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Failed to send email. Please try again.' }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

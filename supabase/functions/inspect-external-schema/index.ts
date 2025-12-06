@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     // Connect to external Supabase
     const externalSupabase = createClient(externalUrl, externalKey);
 
-    const { tableName = 'lca_materials' } = await req.json();
+    const { tableName = 'materials_epd' } = await req.json();
 
     // Get sample rows to understand schema
     const { data: sampleData, error: sampleError } = await externalSupabase

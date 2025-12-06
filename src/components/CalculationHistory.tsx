@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useCalculationHistory } from '@/hooks/useCalculationHistory';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, TrendingDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-export const CalculationHistory = () => {
+export const CalculationHistory = memo(() => {
   const { history, loading } = useCalculationHistory(5);
 
   if (loading) {
@@ -89,4 +90,6 @@ export const CalculationHistory = () => {
       </CardContent>
     </Card>
   );
-};
+});
+
+CalculationHistory.displayName = 'CalculationHistory';

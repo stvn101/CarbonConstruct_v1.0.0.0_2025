@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -7,14 +7,19 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PDFReport, ReportBranding } from '@/components/PDFReport';
 import { useReportData, validateReportData, calculateDataCompleteness } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useComplianceCheck } from '@/hooks/useComplianceCheck';
+import { useEmissionTotals } from '@/hooks/useEmissionTotals';
+import { loadStoredWholeLifeTotals } from '@/hooks/useWholeLifeCarbonCalculations';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ReportErrorBoundary } from '@/components/ReportErrorBoundary';
+import { ComplianceCard } from '@/components/ComplianceCard';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   FileBarChart, 
@@ -32,11 +37,17 @@ import {
   FileText,
   Building,
   User,
-  Mail
+  Mail,
+  Leaf,
+  Globe,
+  HardHat,
+  Lightbulb,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-export type ReportTemplate = 'executive' | 'technical' | 'compliance';
+export type ReportTemplate = 'executive' | 'technical' | 'compliance' | 'en15978';
 
 // Default CarbonConstruct branding for non-Pro yearly users
 const DEFAULT_BRANDING: ReportBranding = {
@@ -48,10 +59,22 @@ const DEFAULT_BRANDING: ReportBranding = {
 const Reports = () => {
   const { currentProject } = useProject();
   const reportData = useReportData();
+  const { totals } = useEmissionTotals();
   const { canPerformAction, trackUsage, currentUsage } = useUsageTracking();
   const { currentTier, userSubscription } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate>('technical');
+  
+  // Load whole life totals from localStorage
+  const wholeLifeTotals = useMemo(() => {
+    return loadStoredWholeLifeTotals();
+  }, []);
+  
+  // Get compliance results
+  const complianceResults = useComplianceCheck(
+    totals || { scope1: 0, scope2: 0, scope3: 0, total: 0 },
+    wholeLifeTotals
+  );
   
   // Check if user is Pro tier with yearly subscription (price_annual = 790)
   const isProYearly = currentTier?.name === 'Pro' && 
@@ -74,6 +97,9 @@ const Reports = () => {
   
   // Effective branding - use default if not allowed to customize
   const effectiveBranding = canCustomBrand ? branding : DEFAULT_BRANDING;
+  
+  // Get project type for showing IS Rating
+  const isInfrastructure = complianceResults.isRating.isInfrastructure;
 
   // Save branding to localStorage when it changes
   const updateBranding = (field: keyof ReportBranding, value: string) => {
@@ -237,27 +263,6 @@ const Reports = () => {
       }))
     : [];
 
-  const complianceProgress = [
-    { 
-      name: 'NCC Compliance', 
-      status: reportData.compliance.nccCompliant, 
-      progress: reportData.compliance.nccCompliant ? 100 : 75,
-      icon: Building2 
-    },
-    { 
-      name: 'Green Star Eligibility', 
-      status: reportData.compliance.greenStarEligible, 
-      progress: reportData.compliance.greenStarEligible ? 100 : 60,
-      icon: Star 
-    },
-    { 
-      name: 'NABERS Readiness', 
-      status: reportData.compliance.nabersReady, 
-      progress: reportData.compliance.nabersReady ? 100 : 45,
-      icon: Award 
-    },
-  ];
-
   return (
     <ErrorBoundary>
       <UpgradeModal 
@@ -315,8 +320,38 @@ const Reports = () => {
                   <span className="text-sm text-muted-foreground">NCC, GBCA, and NABERS compliance details</span>
                 </div>
               </SelectItem>
+              <SelectItem value="en15978">
+                <div className="flex flex-col items-start">
+                  <span className="font-medium flex items-center gap-2">
+                    EN 15978 Whole Life Carbon
+                    <Badge variant="outline" className="text-xs">Standard</Badge>
+                  </span>
+                  <span className="text-sm text-muted-foreground">Full A-D lifecycle stages for compliance</span>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
+          
+          {/* EN 15978 Template Info */}
+          {selectedTemplate === 'en15978' && (
+            <div className="mt-4 p-4 bg-compliance-en15978/10 border border-compliance-en15978/30 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Globe className="h-5 w-5 text-compliance-en15978 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-sm">EN 15978:2011 Compliant Report</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This report follows the European Standard for assessment of environmental performance of buildings.
+                    It includes all lifecycle stages (A1-A5, B1-B7, C1-C4, D) with a 60-year reference study period.
+                  </p>
+                  {!wholeLifeTotals && (
+                    <p className="text-xs text-destructive mt-2">
+                      ⚠️ Complete the Use Phase, End of Life, and Module D calculators for a comprehensive report.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -456,11 +491,12 @@ const Reports = () => {
 
       <ErrorBoundary>
         <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="breakdown">Detailed Breakdown</TabsTrigger>
-          <TabsTrigger value="compliance">Compliance</TabsTrigger>
-          <TabsTrigger value="export">Export Options</TabsTrigger>
+        <TabsList className="flex w-full overflow-x-auto md:grid md:grid-cols-5 h-auto md:h-10 gap-1 p-1">
+          <TabsTrigger value="overview" className="flex-shrink-0 px-3 py-2 text-xs md:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="lifecycle" className="flex-shrink-0 px-3 py-2 text-xs md:text-sm">Lifecycle</TabsTrigger>
+          <TabsTrigger value="breakdown" className="flex-shrink-0 px-3 py-2 text-xs md:text-sm">Breakdown</TabsTrigger>
+          <TabsTrigger value="compliance" className="flex-shrink-0 px-3 py-2 text-xs md:text-sm">Compliance</TabsTrigger>
+          <TabsTrigger value="export" className="flex-shrink-0 px-3 py-2 text-xs md:text-sm">Export</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -569,6 +605,111 @@ const Reports = () => {
               </div>
             </CardContent>
           </Card>
+          </ReportErrorBoundary>
+        </TabsContent>
+
+        {/* NEW: Lifecycle Stages Tab (EN 15978) */}
+        <TabsContent value="lifecycle" className="space-y-6">
+          <ReportErrorBoundary fallbackTitle="Lifecycle Stages Error">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  EN 15978 Whole Life Carbon Assessment
+                </CardTitle>
+                <CardDescription>
+                  Complete lifecycle carbon breakdown from cradle to grave with Module D benefits
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Lifecycle Stage Summary Cards */}
+                <div className="grid gap-4 md:grid-cols-5">
+                  <Card className="bg-blue-50 border-blue-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-blue-700">A1-A5 Upfront</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-blue-800">
+                        {reportData.emissions.scope3.toFixed(2)}
+                      </div>
+                      <p className="text-xs text-blue-600">tCO₂e</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-amber-50 border-amber-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-amber-700">B1-B7 Use Phase</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-amber-800">0.00</div>
+                      <p className="text-xs text-amber-600">tCO₂e (add in calculator)</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-red-50 border-red-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-red-700">C1-C4 End of Life</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-red-800">0.00</div>
+                      <p className="text-xs text-red-600">tCO₂e (add in calculator)</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-emerald-50 border-emerald-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-emerald-700">Module D Credits</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-emerald-800">0.00</div>
+                      <p className="text-xs text-emerald-600">tCO₂e (add in calculator)</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-slate-100 border-slate-300">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-slate-700">Whole Life Total</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-slate-800">
+                        {reportData.emissions.total.toFixed(2)}
+                      </div>
+                      <p className="text-xs text-slate-600">tCO₂e (A-D)</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* EN 15978 Standard Info */}
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">EN 15978 Lifecycle Stages</h4>
+                  <div className="grid gap-2 md:grid-cols-2 text-sm">
+                    <div>
+                      <span className="font-medium text-blue-700">A1-A3:</span> Raw material supply, transport, manufacturing
+                    </div>
+                    <div>
+                      <span className="font-medium text-blue-700">A4-A5:</span> Transport to site, construction installation
+                    </div>
+                    <div>
+                      <span className="font-medium text-amber-700">B1-B5:</span> Use, maintenance, repair, replacement, refurbishment
+                    </div>
+                    <div>
+                      <span className="font-medium text-amber-700">B6-B7:</span> Operational energy and water use
+                    </div>
+                    <div>
+                      <span className="font-medium text-red-700">C1-C4:</span> Deconstruction, transport, processing, disposal
+                    </div>
+                    <div>
+                      <span className="font-medium text-emerald-700">Module D:</span> Benefits beyond the building lifecycle
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  Use the calculator's EN 15978 Lifecycle Stage sections to add Use Phase (B1-B7), 
+                  End of Life (C1-C4), and Module D data for a complete whole life carbon assessment.
+                </p>
+              </CardContent>
+            </Card>
           </ReportErrorBoundary>
         </TabsContent>
 
@@ -713,96 +854,363 @@ const Reports = () => {
         </TabsContent>
 
         <TabsContent value="compliance" className="space-y-6">
-          {/* Compliance Status */}
-          <ReportErrorBoundary fallbackTitle="Compliance Status Error">
-            <div className="grid gap-6 md:grid-cols-3">
-            {complianceProgress.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <Card key={index}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon className="h-5 w-5" />
-                      {item.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      {item.status ? (
-                        <CheckCircle className="h-5 w-5 text-success" />
-                      ) : (
-                        <AlertCircle className="h-5 w-5 text-warning" />
-                      )}
-                      <Badge variant={item.status ? "default" : "secondary"}>
-                        {item.status ? "Compliant" : "Review Required"}
-                      </Badge>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Progress</span>
-                        <span>{item.progress}%</span>
-                      </div>
-                      <Progress value={item.progress} />
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          {/* Compliance Summary Header */}
+          <ReportErrorBoundary fallbackTitle="Compliance Summary Error">
+            <Card className="border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-5 w-5" />
+                  Australian Compliance Dashboard
+                </CardTitle>
+                <CardDescription>
+                  Comprehensive assessment against Australian building and environmental standards.
+                  {isInfrastructure && (
+                    <Badge variant="outline" className="ml-2">
+                      <HardHat className="h-3 w-3 mr-1" />
+                      Infrastructure Project
+                    </Badge>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    <span className="font-medium">Compliant</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <AlertCircle className="h-4 w-4 text-warning" />
+                    <span className="font-medium">Partial</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <XCircle className="h-4 w-4 text-destructive" />
+                    <span className="font-medium">Non-Compliant</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </ReportErrorBoundary>
 
-          {/* Compliance Details */}
+          {/* Compliance Cards Grid */}
+          <ReportErrorBoundary fallbackTitle="Compliance Status Error">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {/* NCC 2024 */}
+              <ComplianceCard
+                framework="NCC"
+                title="NCC Section J"
+                description="National Construction Code 2024 embodied carbon requirements"
+                overallCompliance={complianceResults.ncc.status}
+                requirements={complianceResults.ncc.requirements}
+                compact
+              />
+
+              {/* GBCA Green Star */}
+              <ComplianceCard
+                framework="GBCA"
+                title="Green Star"
+                description="GBCA Green Star Buildings v1.1 carbon credits"
+                overallCompliance={complianceResults.gbca.status}
+                requirements={complianceResults.gbca.requirements}
+                score={complianceResults.gbca.score}
+                maxScore={complianceResults.gbca.maxScore}
+                compact
+              />
+
+              {/* NABERS */}
+              <ComplianceCard
+                framework="NABERS"
+                title="NABERS Energy"
+                description="National Australian Built Environment Rating System"
+                overallCompliance={complianceResults.nabers.status}
+                requirements={complianceResults.nabers.requirements}
+                rating={complianceResults.nabers.rating}
+                maxRating={complianceResults.nabers.maxRating}
+                compact
+              />
+
+              {/* EN 15978 */}
+              <ComplianceCard
+                framework="EN15978"
+                title="EN 15978"
+                description="Building lifecycle assessment methodology"
+                overallCompliance={complianceResults.en15978.status}
+                requirements={complianceResults.en15978.requirements}
+                compact
+              />
+
+              {/* Climate Active */}
+              <ComplianceCard
+                framework="CLIMATE_ACTIVE"
+                title="Climate Active"
+                description="Australian Government carbon neutral certification"
+                overallCompliance={complianceResults.climateActive.status}
+                requirements={complianceResults.climateActive.requirements}
+                compact
+              />
+
+              {/* IS Rating (Infrastructure only) */}
+              {isInfrastructure && (
+                <ComplianceCard
+                  framework="IS_RATING"
+                  title="IS Rating"
+                  description="Infrastructure Sustainability Council rating"
+                  overallCompliance={complianceResults.isRating.status}
+                  requirements={complianceResults.isRating.requirements}
+                  score={complianceResults.isRating.score}
+                  maxScore={complianceResults.isRating.maxScore}
+                  level={complianceResults.isRating.level}
+                  compact
+                />
+              )}
+            </div>
+          </ReportErrorBoundary>
+
+          {/* Detailed Compliance Breakdown */}
           <ReportErrorBoundary fallbackTitle="Compliance Details Error" inline>
             <Card>
-            <CardHeader>
-              <CardTitle>Australian Standards Compliance</CardTitle>
-              <CardDescription>
-                Assessment against key Australian environmental and building standards
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-3">
-                  <h4 className="font-medium">National Construction Code (NCC)</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Carbon emissions calculated according to NCC 2024 methodologies for embodied carbon assessment.
-                  </p>
-                  <div className="text-sm">
-                    <span className="font-medium">Status:</span> 
-                    <Badge variant={reportData.compliance.nccCompliant ? "default" : "secondary"} className="ml-2">
-                      {reportData.compliance.nccCompliant ? "Compliant" : "Pending Review"}
-                    </Badge>
-                  </div>
-                </div>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Detailed Requirements
+                </CardTitle>
+                <CardDescription>
+                  Expand each framework to view detailed requirements and recommendations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="multiple" className="w-full">
+                  {/* NCC Details */}
+                  <AccordionItem value="ncc">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-3">
+                        <Building2 className="h-5 w-5 text-compliance-ncc" />
+                        <span>NCC 2024 Section J Requirements</span>
+                        <Badge variant={complianceResults.ncc.status === 'compliant' ? 'default' : 'secondary'}>
+                          {complianceResults.ncc.requirements.filter(r => r.met).length}/{complianceResults.ncc.requirements.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3 pt-2">
+                        {complianceResults.ncc.requirements.map((req, idx) => (
+                          <div key={idx} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                            {req.met ? (
+                              <CheckCircle2 className="h-4 w-4 text-success mt-0.5" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-destructive mt-0.5" />
+                            )}
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{req.name}</p>
+                              {req.value !== undefined && (
+                                <p className="text-xs text-muted-foreground">
+                                  Current: {req.value} {req.unit} | Threshold: {req.threshold} {req.unit}
+                                </p>
+                              )}
+                              {!req.met && req.recommendation && (
+                                <p className="text-xs text-warning mt-1 flex items-center gap-1">
+                                  <Lightbulb className="h-3 w-3" />
+                                  {req.recommendation}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
 
-                <div className="space-y-3">
-                  <h4 className="font-medium">Green Star Rating</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Assessment meets GBCA Green Star requirements for carbon emission reporting and LCA methodology.
-                  </p>
-                  <div className="text-sm">
-                    <span className="font-medium">Eligibility:</span>
-                    <Badge variant={reportData.compliance.greenStarEligible ? "default" : "secondary"} className="ml-2">
-                      {reportData.compliance.greenStarEligible ? "Eligible" : "Review Required"}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
+                  {/* GBCA Details */}
+                  <AccordionItem value="gbca">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-3">
+                        <Star className="h-5 w-5 text-compliance-gbca" />
+                        <span>Green Star Credit Requirements</span>
+                        <Badge variant={complianceResults.gbca.status === 'compliant' ? 'default' : 'secondary'}>
+                          {complianceResults.gbca.score}%
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3 pt-2">
+                        {complianceResults.gbca.requirements.map((req, idx) => (
+                          <div key={idx} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                            {req.met ? (
+                              <CheckCircle2 className="h-4 w-4 text-success mt-0.5" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-destructive mt-0.5" />
+                            )}
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{req.name}</p>
+                              {req.stage && (
+                                <Badge variant="outline" className="text-xs mt-1">{req.stage}</Badge>
+                              )}
+                              {!req.met && req.recommendation && (
+                                <p className="text-xs text-warning mt-1 flex items-center gap-1">
+                                  <Lightbulb className="h-3 w-3" />
+                                  {req.recommendation}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
 
-              <div className="pt-4 border-t">
-                <h4 className="font-medium mb-3">NABERS Integration</h4>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Energy data captured for potential NABERS rating submissions including embodied carbon considerations.
-                </p>
-                <div className="text-sm">
-                  <span className="font-medium">Readiness:</span>
-                  <Badge variant={reportData.compliance.nabersReady ? "default" : "secondary"} className="ml-2">
-                    {reportData.compliance.nabersReady ? "Ready for Submission" : "Additional Data Required"}
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                  {/* EN 15978 Details */}
+                  <AccordionItem value="en15978">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-5 w-5 text-compliance-en15978" />
+                        <span>EN 15978 Lifecycle Stages</span>
+                        <Badge variant={complianceResults.en15978.status === 'compliant' ? 'default' : 'secondary'}>
+                          {complianceResults.en15978.requirements.filter(r => r.met).length}/{complianceResults.en15978.requirements.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3 pt-2">
+                        {/* Stage Summary */}
+                        <div className="grid grid-cols-4 gap-2 mb-4">
+                          <div className={`p-2 rounded text-center ${complianceResults.en15978.stages.a1a5.compliant ? 'bg-success/20' : 'bg-destructive/20'}`}>
+                            <p className="text-xs font-medium">A1-A5</p>
+                            <p className="text-sm font-bold">{complianceResults.en15978.stages.a1a5.value}</p>
+                          </div>
+                          <div className={`p-2 rounded text-center ${complianceResults.en15978.stages.b1b7.compliant ? 'bg-success/20' : 'bg-destructive/20'}`}>
+                            <p className="text-xs font-medium">B1-B7</p>
+                            <p className="text-sm font-bold">{complianceResults.en15978.stages.b1b7.value}</p>
+                          </div>
+                          <div className={`p-2 rounded text-center ${complianceResults.en15978.stages.c1c4.compliant ? 'bg-success/20' : 'bg-destructive/20'}`}>
+                            <p className="text-xs font-medium">C1-C4</p>
+                            <p className="text-sm font-bold">{complianceResults.en15978.stages.c1c4.value}</p>
+                          </div>
+                          <div className={`p-2 rounded text-center ${complianceResults.en15978.stages.wholeLife.compliant ? 'bg-success/20' : 'bg-destructive/20'}`}>
+                            <p className="text-xs font-medium">Total</p>
+                            <p className="text-sm font-bold">{complianceResults.en15978.stages.wholeLife.value}</p>
+                          </div>
+                        </div>
+                        {complianceResults.en15978.requirements.map((req, idx) => (
+                          <div key={idx} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                            {req.met ? (
+                              <CheckCircle2 className="h-4 w-4 text-success mt-0.5" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-destructive mt-0.5" />
+                            )}
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{req.name}</p>
+                              {req.value !== undefined && (
+                                <p className="text-xs text-muted-foreground">
+                                  {req.value} / {req.threshold} {req.unit}
+                                </p>
+                              )}
+                              {!req.met && req.recommendation && (
+                                <p className="text-xs text-warning mt-1 flex items-center gap-1">
+                                  <Lightbulb className="h-3 w-3" />
+                                  {req.recommendation}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* Climate Active Details */}
+                  <AccordionItem value="climate-active">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-3">
+                        <Leaf className="h-5 w-5 text-compliance-climateActive" />
+                        <span>Climate Active Carbon Neutral</span>
+                        <Badge variant={complianceResults.climateActive.status === 'compliant' ? 'default' : 'secondary'}>
+                          {complianceResults.climateActive.pathwayStatus}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3 pt-2">
+                        {complianceResults.climateActive.requirements.map((req, idx) => (
+                          <div key={idx} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                            {req.met ? (
+                              <CheckCircle2 className="h-4 w-4 text-success mt-0.5" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-destructive mt-0.5" />
+                            )}
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{req.name}</p>
+                              {req.value !== undefined && (
+                                <p className="text-xs text-muted-foreground">
+                                  {req.value.toLocaleString()} {req.unit}
+                                </p>
+                              )}
+                              {!req.met && req.recommendation && (
+                                <p className="text-xs text-warning mt-1 flex items-center gap-1">
+                                  <Lightbulb className="h-3 w-3" />
+                                  {req.recommendation}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* IS Rating Details (Infrastructure only) */}
+                  {isInfrastructure && (
+                    <AccordionItem value="is-rating">
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <HardHat className="h-5 w-5 text-compliance-isRating" />
+                          <span>IS Rating Infrastructure</span>
+                          <Badge variant={complianceResults.isRating.status === 'compliant' ? 'default' : 'secondary'}>
+                            {complianceResults.isRating.level}
+                          </Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-3 pt-2">
+                          <div className="p-3 bg-muted/50 rounded-lg">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-sm font-medium">IS Rating Score</span>
+                              <span className="text-lg font-bold">{complianceResults.isRating.score}/100</span>
+                            </div>
+                            <Progress value={complianceResults.isRating.score} className="h-2" />
+                            <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                              <span>Certified (25)</span>
+                              <span>Commended (50)</span>
+                              <span>Excellent (75)</span>
+                              <span>Leading (85)</span>
+                            </div>
+                          </div>
+                          {complianceResults.isRating.requirements.map((req, idx) => (
+                            <div key={idx} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                              {req.met ? (
+                                <CheckCircle2 className="h-4 w-4 text-success mt-0.5" />
+                              ) : (
+                                <XCircle className="h-4 w-4 text-destructive mt-0.5" />
+                              )}
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{req.name}</p>
+                                {req.stage && (
+                                  <Badge variant="outline" className="text-xs mt-1">{req.stage}</Badge>
+                                )}
+                                {!req.met && req.recommendation && (
+                                  <p className="text-xs text-warning mt-1 flex items-center gap-1">
+                                    <Lightbulb className="h-3 w-3" />
+                                    {req.recommendation}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
+                </Accordion>
+              </CardContent>
+            </Card>
           </ReportErrorBoundary>
         </TabsContent>
 

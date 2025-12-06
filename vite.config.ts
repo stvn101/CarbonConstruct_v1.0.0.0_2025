@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Cache bust: 2025-11-28T16:20 - Force rebuild v2
+// Cache bust: 2025-12-05T12:30 - Force GitHub sync v17
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -17,11 +17,27 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "react": path.resolve(__dirname, "node_modules/react"),
+      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+      "react/jsx-runtime": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
+      "react/jsx-dev-runtime": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime"),
+      "react-dom/client": path.resolve(__dirname, "node_modules/react-dom/client"),
     },
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom/client'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+    include: [
+      'react', 
+      'react-dom', 
+      'react/jsx-runtime', 
+      'react/jsx-dev-runtime',
+      'react-dom/client',
+      '@radix-ui/react-toast', 
+      'sonner', 
+      'next-themes',
+      '@supabase/supabase-js',
+      'react-router-dom'
+    ],
     force: true,
     esbuildOptions: {
       target: "esnext",

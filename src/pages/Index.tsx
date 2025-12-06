@@ -12,7 +12,7 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw } from "lucide-react";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle } from "lucide-react";
 import { CalculationHistory } from "@/components/CalculationHistory";
 const Index = () => {
   const {
@@ -36,57 +36,45 @@ const Index = () => {
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
               <div className="flex items-center justify-center gap-4">
-              <img 
-                  src="/logo-optimized.webp?v=20251127" 
+              <img
+                  src="/logo-optimized.webp?v=20251127"
                   alt="CarbonConstruct Logo"
-                  className="w-16 h-16 md:w-24 md:h-24" 
-                  width="96" 
-                  height="96" 
-                  fetchPriority="high" 
-                  loading="eager" 
+                  className="w-16 h-16 md:w-24 md:h-24"
+                  width="96"
+                  height="96"
+                  fetchPriority="high"
+                  loading="eager"
                 />
                 <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                   CarbonConstruct
                 </h1>
               </div>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-                
-
-
-
-
-
-
-
-
-
-
-
+                Professional carbon emissions calculator for Australian construction projects.
+                NCC Section J compliant with Green Star and NABERS integration.
               </p>
             </div>
-            
-            <div className="relative max-w-4xl mx-auto rounded-lg overflow-hidden shadow-glow animate-scale-in" style={{
-            animationDelay: '0.2s'
-          }}>
+
+            <div className="relative max-w-4xl mx-auto rounded-lg overflow-hidden shadow-glow animate-scale-in [animation-delay:0.2s]">
               <picture>
-                <source 
+                <source
                   type="image/webp"
                   srcSet="/hero-carbon-calc.webp 640w, /hero-carbon-calc.webp 1024w, /hero-carbon-calc.webp 1920w"
                   sizes="(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px"
                 />
-                <source 
+                <source
                   type="image/jpeg"
                   srcSet="/hero-carbon-calc.jpg 640w, /hero-carbon-calc.jpg 1024w, /hero-carbon-calc.jpg 1920w"
                   sizes="(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px"
                 />
-                <img 
-                  src="/hero-carbon-calc.jpg" 
-                  alt="Carbon footprint calculation and environmental assessment" 
-                  className="w-full h-48 sm:h-64 md:h-96 object-cover" 
-                  width="1280" 
-                  height="549" 
-                  fetchPriority="high" 
-                  loading="eager" 
+                <img
+                  src="/hero-carbon-calc.jpg"
+                  alt="Carbon footprint calculation and environmental assessment"
+                  className="w-full h-48 sm:h-64 md:h-96 object-cover"
+                  width="1280"
+                  height="549"
+                  fetchPriority="high"
+                  loading="eager"
                 />
               </picture>
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-end md:items-center justify-center p-6">
@@ -95,18 +83,16 @@ const Index = () => {
                     Professional Carbon Assessment
                   </h2>
                   <p className="text-sm sm:text-base text-white/90 max-w-md">
-                    Comprehensive LCA methodologies for Australian construction projects
-Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
-
-
+                    Comprehensive LCA methodologies for Australian construction projects. Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-3 md:space-y-4 animate-fade-in" style={{
-            animationDelay: '0.4s'
-          }}>
+            <div className="space-y-3 md:space-y-4 animate-fade-in [animation-delay:0.4s]">
+              <p className="text-sm md:text-base font-medium text-primary">
+                Free 14 day trial and Freemium option. No credit card required.
+              </p>
               <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
                 Get Started
               </Button>
@@ -132,10 +118,10 @@ Calculate and track your project's carbon emissions across all three scopes with
           <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Welcome back! Select a project to continue.</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={refetch} 
-            size="sm" 
+          <Button
+            variant="outline"
+            onClick={refetch}
+            size="sm"
             className="hover-scale text-xs md:text-sm"
             disabled={emissionsLoading}
           >
@@ -166,9 +152,7 @@ Calculate and track your project's carbon emissions across all three scopes with
           </CardContent>
         </Card>
 
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope1/20" style={{
-        animationDelay: '0.1s'
-      }}>
+      <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope1/20 [animation-delay:0.1s]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Scope 1</CardTitle>
             <Factory className="h-4 w-4 md:h-5 md:w-5 text-scope1" />
@@ -183,9 +167,7 @@ Calculate and track your project's carbon emissions across all three scopes with
           </CardContent>
         </Card>
 
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope2/20" style={{
-        animationDelay: '0.2s'
-      }}>
+        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope2/20 [animation-delay:0.2s]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Scope 2</CardTitle>
             <Zap className="h-4 w-4 md:h-5 md:w-5 text-scope2" />
@@ -200,9 +182,7 @@ Calculate and track your project's carbon emissions across all three scopes with
           </CardContent>
         </Card>
 
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope3/20" style={{
-        animationDelay: '0.3s'
-      }}>
+        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope3/20 [animation-delay:0.3s]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Scope 3</CardTitle>
             <Truck className="h-4 w-4 md:h-5 md:w-5 text-scope3" />
@@ -227,7 +207,7 @@ Calculate and track your project's carbon emissions across all three scopes with
                 <Calculator className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 text-primary-foreground" />
               </div>
             </div>
-            
+
             <div className="flex-1 text-center lg:text-left space-y-3 md:space-y-4">
               <div>
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -237,19 +217,19 @@ Calculate and track your project's carbon emissions across all three scopes with
                   All-in-one calculator with materials database, AI BOQ import, and auto-save. Calculate Scope 1, 2, 3 emissions and embodied carbon in one streamlined workflow.
                 </p>
               </div>
-              
+
               <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
                 <Button onClick={() => navigate("/calculator")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale shadow-lg">
                   <Calculator className="mr-2 h-5 w-5" />
                   Start Calculator
                 </Button>
-                
+
                 <Button onClick={() => navigate("/reports")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale">
                   <FileBarChart className="mr-2 h-5 w-5" />
                   View Reports
                 </Button>
               </div>
-              
+
               <div className="flex flex-wrap gap-4 text-xs md:text-sm text-muted-foreground justify-center lg:justify-start">
                 <span className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
@@ -278,6 +258,7 @@ Calculate and track your project's carbon emissions across all three scopes with
             <span className="sm:hidden">Charts</span>
           </TabsTrigger>
           <TabsTrigger value="compliance" className="text-xs sm:text-sm md:text-base py-2 md:py-2.5">
+            <CheckCircle className="h-3 w-3 md:h-4 md:w-4 mr-1.5 md:mr-2" />
             <span className="hidden sm:inline">Compliance Status</span>
             <span className="sm:hidden">Compliance</span>
           </TabsTrigger>

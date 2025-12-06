@@ -48,7 +48,7 @@ export const useLCAMaterials = () => {
       setLoading(true);
       setLoadedCount(0);
 
-      // Fetch all materials - Supabase defaults to 1000 rows, so we need to paginate
+      // Fetch all materials from materials_epd - paginate to get all records
       let allData: any[] = [];
       let page = 0;
       const pageSize = 1000;
@@ -56,7 +56,7 @@ export const useLCAMaterials = () => {
       
       while (hasMore) {
         const { data, error } = await supabase
-          .from('lca_materials')
+          .from('materials_epd')
           .select('*')
           .order('material_category', { ascending: true })
           .range(page * pageSize, (page + 1) * pageSize - 1);
@@ -73,7 +73,21 @@ export const useLCAMaterials = () => {
         }
       }
       
-      const data = allData;
+      // Map materials_epd columns to LCAMaterialData interface
+      const mappedData = allData.map(row => ({
+        id: row.id,
+        material_name: row.material_name,
+        material_category: row.material_category,
+        embodied_carbon_a1a3: row.ef_a1a3 || 0,
+        embodied_carbon_a4: row.ef_a4 || 0,
+        embodied_carbon_a5: row.ef_a5 || 0,
+        embodied_carbon_total: row.ef_total || 0,
+        unit: row.unit,
+        region: row.region || 'Australia',
+        data_source: row.data_source,
+      }));
+      
+      const data = mappedData;
 
       if (data) {
         // Validate materials data

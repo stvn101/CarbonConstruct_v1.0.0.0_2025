@@ -39,9 +39,9 @@ serve(async (req) => {
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId: user.id.substring(0, 8) + '...' });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" });
     
     // Find customer by email
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
@@ -58,7 +58,7 @@ serve(async (req) => {
     }
 
     const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
+    logStep("Found Stripe customer");
 
     // Get active subscriptions
     const subscriptions = await stripe.subscriptions.list({
@@ -86,11 +86,8 @@ serve(async (req) => {
       priceId = subscription.items.data[0].price.id;
       
       logStep("Active subscription found", { 
-        subscriptionId: subscription.id, 
         endDate: subscriptionEnd,
-        trialEnd,
-        productId,
-        priceId
+        trialEnd
       });
 
       // Get tier info from database
@@ -169,8 +166,8 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    console.error('[CHECK-SUBSCRIPTION] Error:', errorMessage);
+    return new Response(JSON.stringify({ error: 'An error occurred checking subscription status' }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

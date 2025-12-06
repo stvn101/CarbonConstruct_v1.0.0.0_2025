@@ -205,10 +205,23 @@ Deno.serve(async (req) => {
         }
 
         if (mappedData.length > 0) {
-          // Insert batch into our database
+          // Insert batch into materials_epd table (primary materials table)
+          const epdMappedData = mappedData.map(row => ({
+            material_name: row.material_name,
+            material_category: row.material_category,
+            unit: row.unit,
+            ef_a1a3: row.embodied_carbon_a1a3,
+            ef_a4: row.embodied_carbon_a4,
+            ef_a5: row.embodied_carbon_a5,
+            ef_total: row.embodied_carbon_total,
+            data_source: row.data_source,
+            region: row.region,
+            year: row.year,
+          }));
+
           const { error: insertError } = await supabaseAdmin
-            .from('lca_materials')
-            .insert(mappedData);
+            .from('materials_epd')
+            .insert(epdMappedData);
 
           if (insertError) {
             console.error(`Error inserting batch at offset ${offset}:`, insertError);
@@ -247,10 +260,10 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in import-materials function:', error);
+    console.error('Stack trace:', error.stack);
     return new Response(
       JSON.stringify({
-        error: error.message,
-        details: error.stack,
+        error: 'An error occurred while importing materials. Please try again.',
       }),
       {
         status: 500,

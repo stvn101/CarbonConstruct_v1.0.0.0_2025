@@ -6,7 +6,7 @@ import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { logger } from "@/lib/logger";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -16,6 +16,7 @@ export const ChatAssistant = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
   useEffect(() => {
@@ -141,17 +142,27 @@ export const ChatAssistant = () => {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
+        className={`fixed rounded-full shadow-lg ${
+          isMobile ? "bottom-4 right-4 h-12 w-12" : "bottom-6 right-6 h-14 w-14"
+        }`}
         size="icon"
         aria-label="Open AI Assistant"
       >
-        <MessageCircle className="h-6 w-6" />
+        <MessageCircle className={isMobile ? "h-5 w-5" : "h-6 w-6"} />
       </Button>
     );
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-96 h-[600px] flex flex-col shadow-2xl" role="dialog" aria-label="AI Assistant">
+    <Card 
+      className={`fixed flex flex-col shadow-2xl ${
+        isMobile 
+          ? "left-2 right-2 bottom-2 h-[85vh]" 
+          : "bottom-6 right-6 w-96 h-[600px]"
+      }`} 
+      role="dialog" 
+      aria-label="AI Assistant"
+    >
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <MessageCircle className="h-5 w-5" aria-hidden="true" />
