@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText } from "lucide-react";
+import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { SecurityAuditReportDownload } from "@/components/SecurityAuditReport";
@@ -542,6 +543,27 @@ export default function AdminMonitoring() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Links */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FileCheck className="h-5 w-5" />
+            Admin Quick Links
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/admin/material-verification">
+              <Button variant="outline" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Material Verification Report
+              </Button>
+            </Link>
+            <SecurityAuditReportDownload />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Service Health */}
       {healthStatus?.checks && (

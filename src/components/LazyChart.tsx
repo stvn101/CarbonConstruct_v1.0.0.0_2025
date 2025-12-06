@@ -16,19 +16,19 @@ export const LazyEmissionsChart = lazy(() =>
 
 // Lazy load Recharts components (used in various dashboards)
 export const LazyBarChart = lazy(() =>
-  import('recharts').then((module) => ({ default: module.BarChart as ComponentType<any> }))
+  import('recharts').then((module) => ({ default: module.BarChart as ComponentType<unknown> }))
 );
 
 export const LazyPieChart = lazy(() =>
-  import('recharts').then((module) => ({ default: module.PieChart as ComponentType<any> }))
+  import('recharts').then((module) => ({ default: module.PieChart as ComponentType<unknown> }))
 );
 
 export const LazyLineChart = lazy(() =>
-  import('recharts').then((module) => ({ default: module.LineChart as ComponentType<any> }))
+  import('recharts').then((module) => ({ default: module.LineChart as ComponentType<unknown> }))
 );
 
 export const LazyAreaChart = lazy(() =>
-  import('recharts').then((module) => ({ default: module.AreaChart as ComponentType<any> }))
+  import('recharts').then((module) => ({ default: module.AreaChart as ComponentType<unknown> }))
 );
 
 /**

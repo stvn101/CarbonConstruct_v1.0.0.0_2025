@@ -14,6 +14,9 @@ const positiveNumber = z.number().positive('Must be a positive number');
 const optionalString = z.string().optional();
 const requiredString = z.string().min(1, 'Required field');
 
+// State codes as a union type for Zod v4 compatibility
+const STATE_CODES = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'] as const;
+
 /**
  * Scope 1 Form Data Schemas
  */
@@ -182,6 +185,8 @@ export function validateScope3Data(data: unknown) {
 
 /**
  * Error formatter for better user-facing error messages
+ * @param zodError - A Zod validation error object (z.ZodError) that contains validation issues
+ * @returns A formatted string with all validation errors, using the `.issues` property from ZodError
  */
 export function formatValidationErrors(errors: z.ZodError): string {
   return errors.issues

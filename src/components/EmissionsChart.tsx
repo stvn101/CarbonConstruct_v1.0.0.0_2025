@@ -111,3 +111,5 @@ export const EmissionsChart = memo(({ type, title, description, data, colors = V
     </Card>
   );
 });
+
+EmissionsChart.displayName = 'EmissionsChart';

@@ -752,3 +752,5 @@ export const MaterialComparison = memo(() => {
     </div>
   );
 });
+
+MaterialComparison.displayName = 'MaterialComparison';

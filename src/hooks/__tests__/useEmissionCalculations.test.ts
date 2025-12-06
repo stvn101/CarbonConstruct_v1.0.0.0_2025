@@ -181,7 +181,7 @@ describe('useEmissionCalculations', () => {
     it('should handle different Australian states correctly', async () => {
       const { result } = renderHook(() => useEmissionCalculations());
 
-      const states = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
+      const states = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'] as const;
 
       for (const state of states) {
         const formData: Scope2FormData = {
