@@ -37,8 +37,20 @@ const ElectricityInputsSchema = z.object({
   ]).optional()
 });
 
-const TransportInputsSchema = z.record(
-  z.string().max(50),
+// A4 Transport item schema for detailed transport tracking
+const A4TransportItemSchema = z.object({
+  id: z.string(),
+  materialName: z.string().max(200),
+  weight: z.number().nonnegative().max(10000000),
+  distance: z.number().nonnegative().max(100000),
+  mode: z.string().max(50),
+  emissions: z.number().nonnegative().max(100000000)
+});
+
+const TransportInputsSchema = z.object({
+  a4_transport_items: z.array(A4TransportItemSchema).max(500).optional(),
+  a4_total_emissions: z.number().nonnegative().max(100000000).optional()
+}).catchall(
   z.union([
     z.string().regex(/^\d*\.?\d*$/, "Must be a valid number"),
     z.number().nonnegative("Quantity cannot be negative").max(10000000, "Quantity too large")
