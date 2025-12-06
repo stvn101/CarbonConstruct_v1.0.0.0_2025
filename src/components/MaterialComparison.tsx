@@ -548,7 +548,7 @@ export const MaterialComparison = memo(() => {
                       <YAxis type="category" dataKey="name" width={120} />
                       <Tooltip formatter={(value) => `${Number(value).toFixed(2)} kgCO₂e`} />
                       <Bar dataKey="total">
-                        {selectedMaterials.map((_, idx) => (
+                        {selectedMaterials.map((_material, idx) => (
                           <Cell key={`cell-${idx}`} fill={COMPARISON_COLORS[idx]} />
                         ))}
                       </Bar>

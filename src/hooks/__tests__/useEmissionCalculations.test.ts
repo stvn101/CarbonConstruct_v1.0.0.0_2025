@@ -6,12 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useEmissionCalculations } from '../useEmissionCalculations';
-import type { 
-  Scope1FormData, 
-  Scope2FormData, 
-  Scope3FormData 
-} from '@/lib/calculation-schemas';
+import { useEmissionCalculations, type Scope1FormData, type Scope2FormData, type Scope3FormData } from '../useEmissionCalculations';
 
 // Mock the dependencies
 vi.mock('@/integrations/supabase/client', () => ({

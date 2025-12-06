@@ -55,7 +55,7 @@ interface FugitiveEmissionEntry {
   notes?: string;
 }
 
-interface Scope1FormData {
+export interface Scope1FormData {
   fuelCombustion?: FuelCombustionEntry[];
   vehicles?: VehicleEntry[];
   processes?: ProcessEntry[];
@@ -85,7 +85,7 @@ interface SteamEntry {
   notes?: string;
 }
 
-interface Scope2FormData {
+export interface Scope2FormData {
   electricity?: ElectricityEntry[];
   heating?: HeatingEntry[];
   steam?: SteamEntry[];
@@ -105,7 +105,7 @@ interface ActivityEntry {
   notes?: string;
 }
 
-interface Scope3FormData {
+export interface Scope3FormData {
   upstreamActivities?: ActivityEntry[];
   downstreamActivities?: ActivityEntry[];
 }

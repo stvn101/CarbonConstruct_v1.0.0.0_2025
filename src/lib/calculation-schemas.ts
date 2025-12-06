@@ -75,8 +75,8 @@ export const scope1FormDataSchema = z.object({
 
 export const electricityEntrySchema = z.object({
   quantity: positiveNumber,
-  unit: z.enum(['kWh', 'MWh', 'GJ']),
-  state: z.enum(STATE_CODES).optional(),
+  unit: z.enum({ kWh: 'kWh', MWh: 'MWh', GJ: 'GJ' }),
+  state: z.enum({ NSW: 'NSW', VIC: 'VIC', QLD: 'QLD', SA: 'SA', WA: 'WA', TAS: 'TAS', NT: 'NT', ACT: 'ACT' }).optional(),
   renewablePercentage: z.number()
     .min(0, 'Renewable percentage must be at least 0')
     .max(100, 'Renewable percentage must be at most 100')
@@ -86,15 +86,15 @@ export const electricityEntrySchema = z.object({
 
 export const heatingEntrySchema = z.object({
   quantity: positiveNumber,
-  unit: z.enum(['kWh', 'MWh', 'GJ', 'm3']),
-  state: z.enum(STATE_CODES).optional(),
+  unit: z.enum({ kWh: 'kWh', MWh: 'MWh', GJ: 'GJ', m3: 'm3' }),
+  state: z.enum({ NSW: 'NSW', VIC: 'VIC', QLD: 'QLD', SA: 'SA', WA: 'WA', TAS: 'TAS', NT: 'NT', ACT: 'ACT' }).optional(),
   notes: optionalString,
 });
 
 export const steamEntrySchema = z.object({
   quantity: positiveNumber,
-  unit: z.enum(['GJ', 'MMBtu', 'tonnes', 'klb']),
-  state: z.enum(STATE_CODES).optional(),
+  unit: z.enum({ GJ: 'GJ', MMBtu: 'MMBtu', tonnes: 'tonnes', klb: 'klb' }),
+  state: z.enum({ NSW: 'NSW', VIC: 'VIC', QLD: 'QLD', SA: 'SA', WA: 'WA', TAS: 'TAS', NT: 'NT', ACT: 'ACT' }).optional(),
   notes: optionalString,
 });
 
@@ -188,8 +188,8 @@ export function validateScope3Data(data: unknown) {
  * @param zodError - A Zod validation error object (z.ZodError) that contains validation issues
  * @returns A formatted string with all validation errors, using the `.issues` property from ZodError
  */
-export function formatValidationErrors(zodError: z.ZodError): string {
-  return zodError.issues
+export function formatValidationErrors(errors: z.ZodError): string {
+  return errors.issues
     .map((issue) => {
       const path = issue.path.join(' → ');
       return `${path}: ${issue.message}`;

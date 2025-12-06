@@ -86,7 +86,7 @@ export function LazyChartWrapper({
  * Call this on route changes or user actions that will likely need charts
  */
 export function preloadCharts() {
-  // Preload chart components by triggering the lazy imports
-  import('@/components/EmissionsChart').catch(() => {});
-  import('recharts').catch(() => {});
+  // Trigger lazy loading by importing the modules
+  import('@/components/EmissionsChart');
+  import('recharts');
 }

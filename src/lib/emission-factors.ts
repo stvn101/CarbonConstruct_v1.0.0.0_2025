@@ -1,3 +1,5 @@
+
+
 // Material Database with Australian Emission Factors (v2.3)
 export const MATERIAL_DB = {
   concrete: {

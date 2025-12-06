@@ -58,7 +58,7 @@ export const EmissionsChart = memo(({ type, title, description, data, colors = V
                   label={({ percentage }) => `${percentage.toFixed(1)}%`}
                   labelLine={false}
                 >
-                {data.map((_, index) => (
+                {data.map((_entry, index) => (
                     <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                   ))}
                 </Pie>
@@ -100,7 +100,7 @@ export const EmissionsChart = memo(({ type, title, description, data, colors = V
                 dataKey="emissions" 
                 radius={[8, 8, 0, 0]}
               >
-                {data.map((_, index) => (
+              {data.map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                 ))}
               </Bar>
