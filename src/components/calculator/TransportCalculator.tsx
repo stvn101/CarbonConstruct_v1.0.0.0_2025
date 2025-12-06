@@ -248,7 +248,6 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
       {items.length > 0 ? (
         <div className="space-y-3">
           {items.map(item => {
-            getTransportMode(item.modeId);
             return (
               <div key={item.id} className="p-3 bg-muted/30 rounded-lg border border-border/50">
                 {/* Header row with route and delete */}

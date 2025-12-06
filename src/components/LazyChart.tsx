@@ -87,6 +87,6 @@ export function LazyChartWrapper({
  */
 export function preloadCharts() {
   // Preload chart components by triggering the lazy imports
-  import('@/components/EmissionsChart');
-  import('recharts');
+  import('@/components/EmissionsChart').catch(() => {});
+  import('recharts').catch(() => {});
 }
