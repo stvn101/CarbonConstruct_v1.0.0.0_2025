@@ -185,6 +185,8 @@ export function validateScope3Data(data: unknown) {
 
 /**
  * Error formatter for better user-facing error messages
+ * @param zodError - A Zod validation error object (z.ZodError) that contains validation issues
+ * @returns A formatted string with all validation errors, using the `.issues` property from ZodError
  */
 export function formatValidationErrors(zodError: z.ZodError): string {
   return zodError.issues
