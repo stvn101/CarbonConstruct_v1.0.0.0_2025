@@ -538,9 +538,9 @@ const PDFVerificationDocument: React.FC<PDFVerificationDocumentProps> = ({
 const MaterialVerificationReport = () => {
   const verificationDate = new Date().toISOString().split('T')[0];
   const verificationTime = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
-  // Validation data from comprehensive database analysis performed 2024-12-06
+  // Validation data from comprehensive database analysis performed 2025-12-06
 
-  // Real validation data from comprehensive database analysis (2024-12-06)
+  // Real validation data from comprehensive database analysis (2025-12-06)
   const validationSummary: ValidationSummary = {
     totalMaterials: 4046,
     categoriesCount: 58,
