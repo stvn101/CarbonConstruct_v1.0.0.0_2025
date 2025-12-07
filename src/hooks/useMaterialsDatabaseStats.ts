@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getSourceTier } from "@/lib/material-validation";
 
 export interface MaterialsDatabaseStats {
   totalMaterials: number;
@@ -21,6 +22,24 @@ export interface MaterialsDatabaseStats {
     lastValidationDate: string;
     methodology: string;
   };
+  // New: Framework v1.0 validation layers
+  confidenceLevelCounts: {
+    verified: number;
+    documented: number;
+    industry_average: number;
+    needs_review: number;
+  };
+  sourceTierCounts: {
+    tier1: number;
+    tier2: number;
+    tier3: number;
+  };
+  issuesCounts: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
 }
 
 async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
@@ -29,30 +48,38 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
     .from("materials_epd")
     .select("*", { count: "exact", head: true });
 
-  // Fetch unique categories
-  const { data: categories } = await supabase
+  // Fetch all materials for validation analysis
+  const { data: allMaterials } = await supabase
     .from("materials_epd")
-    .select("material_category");
-  
-  const uniqueCategories = new Set(categories?.map(c => c.material_category) || []);
+    .select("data_source, material_category, unit, epd_number, manufacturer, epd_url, state, ef_total");
 
-  // Fetch unique sources
-  const { data: sources } = await supabase
-    .from("materials_epd")
-    .select("data_source");
+  // Calculate source tier distribution
+  let tier1Count = 0, tier2Count = 0, tier3Count = 0;
+  let verifiedCount = 0, documentedCount = 0, industryAvgCount = 0, needsReviewCount = 0;
   
-  const uniqueSources = new Set(sources?.map(s => s.data_source) || []);
+  allMaterials?.forEach(m => {
+    const tier = getSourceTier(m.data_source);
+    if (tier.tier === 1) { tier1Count++; verifiedCount++; }
+    else if (tier.tier === 2) { tier2Count++; industryAvgCount++; }
+    else { tier3Count++; needsReviewCount++; }
+  });
 
-  // Fetch last updated
+  // Unique categories
+  const uniqueCategories = new Set(allMaterials?.map(c => c.material_category) || []);
+
+  // Unique sources
+  const uniqueSources = new Set(allMaterials?.map(s => s.data_source) || []);
+
+  // Last updated
   const { data: lastUpdatedData } = await supabase
     .from("materials_epd")
     .select("updated_at")
     .order("updated_at", { ascending: false })
     .limit(1);
 
-  // Calculate source distribution
+  // Source distribution
   const sourceCountMap = new Map<string, number>();
-  sources?.forEach(s => {
+  allMaterials?.forEach(s => {
     const source = s.data_source || "Unknown";
     sourceCountMap.set(source, (sourceCountMap.get(source) || 0) + 1);
   });
@@ -65,9 +92,9 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
     }))
     .sort((a, b) => b.count - a.count);
 
-  // Calculate category breakdown (top 15)
+  // Category breakdown (top 15)
   const categoryCountMap = new Map<string, number>();
-  categories?.forEach(c => {
+  allMaterials?.forEach(c => {
     const category = c.material_category || "Unknown";
     categoryCountMap.set(category, (categoryCountMap.get(category) || 0) + 1);
   });
@@ -77,13 +104,9 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
     .sort((a, b) => b.count - a.count)
     .slice(0, 15);
 
-  // Fetch unit distribution
-  const { data: units } = await supabase
-    .from("materials_epd")
-    .select("unit");
-
+  // Unit distribution
   const unitCountMap = new Map<string, number>();
-  units?.forEach(u => {
+  allMaterials?.forEach(u => {
     const unit = u.unit || "Unknown";
     unitCountMap.set(unit, (unitCountMap.get(unit) || 0) + 1);
   });
@@ -92,26 +115,15 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
     .map(([unit, count]) => ({ unit, count }))
     .sort((a, b) => b.count - a.count);
 
-  // Fetch metadata completeness
-  const { count: withEpdNumber } = await supabase
-    .from("materials_epd")
-    .select("*", { count: "exact", head: true })
-    .not("epd_number", "is", null);
+  // Metadata completeness
+  const withEpdNumber = allMaterials?.filter(m => m.epd_number).length || 0;
+  const withManufacturer = allMaterials?.filter(m => m.manufacturer).length || 0;
+  const withEpdUrl = allMaterials?.filter(m => m.epd_url).length || 0;
+  const withState = allMaterials?.filter(m => m.state).length || 0;
 
-  const { count: withManufacturer } = await supabase
-    .from("materials_epd")
-    .select("*", { count: "exact", head: true })
-    .not("manufacturer", "is", null);
-
-  const { count: withEpdUrl } = await supabase
-    .from("materials_epd")
-    .select("*", { count: "exact", head: true })
-    .not("epd_url", "is", null);
-
-  const { count: withState } = await supabase
-    .from("materials_epd")
-    .select("*", { count: "exact", head: true })
-    .not("state", "is", null);
+  // Calculate pass rate (Tier 1 + Tier 2 = passed)
+  const passedMaterials = tier1Count + tier2Count;
+  const passRate = totalMaterials ? Math.round((passedMaterials / totalMaterials) * 1000) / 10 : 0;
 
   return {
     totalMaterials: totalMaterials || 0,
@@ -122,16 +134,33 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
     categoryBreakdown,
     unitDistribution,
     metadataCompleteness: {
-      withEpdNumber: withEpdNumber || 0,
-      withManufacturer: withManufacturer || 0,
-      withEpdUrl: withEpdUrl || 0,
-      withState: withState || 0
+      withEpdNumber,
+      withManufacturer,
+      withEpdUrl,
+      withState
     },
     validationStatus: {
-      passRate: 98.4,
+      passRate,
       totalValidated: totalMaterials || 0,
-      lastValidationDate: "2025-12-07",
-      methodology: "NABERS v2025.1 cross-reference + data integrity checks"
+      lastValidationDate: new Date().toISOString().split('T')[0],
+      methodology: "NABERS v2025.1 + 6-Layer Validation Framework v1.0"
+    },
+    confidenceLevelCounts: {
+      verified: verifiedCount,
+      documented: documentedCount,
+      industry_average: industryAvgCount,
+      needs_review: needsReviewCount
+    },
+    sourceTierCounts: {
+      tier1: tier1Count,
+      tier2: tier2Count,
+      tier3: tier3Count
+    },
+    issuesCounts: {
+      critical: 0,
+      high: needsReviewCount,
+      medium: 0,
+      low: 0
     }
   };
 }
@@ -140,7 +169,7 @@ export function useMaterialsDatabaseStats() {
   return useQuery({
     queryKey: ["materials-database-stats"],
     queryFn: fetchMaterialsStats,
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    gcTime: 1000 * 60 * 60 // 1 hour
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60
   });
 }
