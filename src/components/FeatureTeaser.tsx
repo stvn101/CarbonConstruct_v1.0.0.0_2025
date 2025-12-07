@@ -27,14 +27,14 @@ export const FeatureTeaser = () => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Moderate playback speed
-    video.playbackRate = 1.8;
+    // Slower playback for better readability
+    video.playbackRate = 1.5;
 
     const handleTimeUpdate = () => {
       const currentTime = video.currentTime;
       
       // Calculate effective time based on playback speed
-      const effectiveTime = currentTime * 1.8;
+      const effectiveTime = currentTime * 1.5;
       const visible = overlays.filter(
         (o) => effectiveTime >= o.time && effectiveTime < o.time + o.duration
       );
@@ -85,7 +85,7 @@ export const FeatureTeaser = () => {
             {activeOverlays.map((overlay) => (
               <div
                 key={overlay.time}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-fade-in"
               >
                 {/* Pulsing glow effect behind all cards */}
                 <div 
@@ -97,7 +97,7 @@ export const FeatureTeaser = () => {
                   }}
                 />
                 <div
-                  className={`animate-zoom-forward font-bold rounded-2xl ${
+                  className={`animate-zoom-forward font-bold rounded-2xl transition-opacity duration-500 ease-in-out ${
                     overlay.highlight
                       ? "bg-primary/80 backdrop-blur-md text-primary-foreground text-2xl md:text-5xl lg:text-6xl px-6 py-3 md:px-10 md:py-5 shadow-glow border border-primary-foreground/20"
                       : "bg-background/60 backdrop-blur-md text-foreground text-xl md:text-4xl lg:text-5xl px-5 py-3 md:px-8 md:py-4 shadow-elevated border border-border/30"
