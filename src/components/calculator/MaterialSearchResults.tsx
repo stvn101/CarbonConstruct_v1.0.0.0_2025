@@ -1,7 +1,9 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Plus, Database, FlaskConical, RefreshCcw, Info } from "lucide-react";
+import { Plus, Database, FlaskConical, RefreshCcw, Info, MapPin } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { UnitInfoTooltip } from "./UnitInfoTooltip";
+import { WhyFactorsVaryDialog } from "./RegionalVariantTooltip";
 
 import {
   Dialog,
@@ -19,6 +21,9 @@ interface MaterialItem {
   embodied_carbon_total: number | null;  // ef_total (hybrid)
   embodied_carbon_a1a3: number | null;   // ef_a1a3 (process)
   data_source?: string | null;
+  state?: string | null;
+  manufacturer?: string | null;
+  plant_location?: string | null;
 }
 
 interface GroupedMaterials {
@@ -115,7 +120,7 @@ export function MaterialSearchResults({
     <TooltipProvider>
       <div className="space-y-2">
         {/* LCA Methodology Info */}
-        <div className="flex items-center justify-between px-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
           <div className="flex items-center gap-3 text-xs">
             <span className="inline-flex items-center gap-1 text-emerald-600">
               <FlaskConical className="h-3 w-3" /> Process
@@ -123,8 +128,14 @@ export function MaterialSearchResults({
             <span className="inline-flex items-center gap-1 text-amber-600">
               <RefreshCcw className="h-3 w-3" /> Hybrid
             </span>
+            <span className="inline-flex items-center gap-1 text-blue-600">
+              <MapPin className="h-3 w-3" /> Regional
+            </span>
           </div>
-          <LCAMethodologyInfo />
+          <div className="flex items-center gap-2">
+            <WhyFactorsVaryDialog />
+            <LCAMethodologyInfo />
+          </div>
         </div>
         <ScrollArea className="h-72 border rounded-lg bg-background">
           <div className="p-2 space-y-1">
@@ -156,9 +167,30 @@ export function MaterialSearchResults({
                         {item.material_name}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
-                        <span className="inline-flex items-center text-xs text-muted-foreground">
+                        <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground">
                           📏 {item.unit}
+                          <UnitInfoTooltip unit={item.unit} />
                         </span>
+                        
+                        {/* Regional indicator */}
+                        {item.state && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex items-center gap-0.5 text-xs text-blue-600 bg-blue-50 px-1 py-0.5 rounded cursor-help">
+                                <MapPin className="h-3 w-3" />
+                                {item.state}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">
+                              <p className="font-semibold">Regional Variant</p>
+                              <p className="text-xs text-muted-foreground">
+                                This emission factor is specific to {item.state}
+                                {item.manufacturer && ` (${item.manufacturer})`}.
+                                Regional factors account for local grid carbon intensity.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
                         
                         {/* Process LCA factor (ef_a1a3) */}
                         {hasProcess && (
