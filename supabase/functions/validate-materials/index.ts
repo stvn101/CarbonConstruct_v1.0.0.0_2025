@@ -397,22 +397,35 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Parse request body for scheduled flag
+    // Parse request body for scheduled flag or internal secret
     let isScheduled = false;
+    let isInternalCall = false;
+    let body: Record<string, unknown> = {};
+    
     try {
-      const body = await req.json();
-      isScheduled = body?.scheduled === true;
+      const text = await req.text();
+      if (text) {
+        body = JSON.parse(text);
+        isScheduled = body?.scheduled === true;
+      }
     } catch {
       // No body or invalid JSON - treat as manual request
     }
 
-    // For scheduled (cron) calls, skip auth - they use service role key
-    // For manual calls, verify admin role
+    // Check for internal API secret (used by cron and internal tools)
     const authHeader = req.headers.get('Authorization');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    if (!isScheduled) {
+    if (authHeader === `Bearer ${serviceRoleKey}`) {
+      isInternalCall = true;
+      console.log(`[validate-materials] Internal service call starting full validation`);
+    }
+
+    // For scheduled (cron) or internal calls, skip auth
+    // For manual calls, verify admin role
+    if (!isScheduled && !isInternalCall) {
       if (!authHeader) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        return new Response(JSON.stringify({ code: 401, message: 'Missing authorization header' }), {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
@@ -444,7 +457,7 @@ serve(async (req) => {
       }
 
       console.log(`[validate-materials] Admin ${user.id.slice(0, 8)}... starting full validation`);
-    } else {
+    } else if (isScheduled) {
       console.log(`[validate-materials] Scheduled cron job starting full validation`);
     }
 
