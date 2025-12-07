@@ -1,15 +1,16 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateRequest, PUBLIC_RATE_LIMIT } from '../_shared/request-validator.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// IP-based rate limiting to prevent abuse
+// IP-based rate limiting to prevent abuse (50 requests per hour per IP)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const MAX_REQUESTS_PER_WINDOW = 100; // 100 requests per hour per IP
+const RATE_LIMIT_WINDOW_MS = PUBLIC_RATE_LIMIT.windowMs;
+const MAX_REQUESTS_PER_WINDOW = PUBLIC_RATE_LIMIT.maxRequests;
 
 function checkIpRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -87,6 +88,22 @@ serve(async (req) => {
 
     const body: ErrorLogRequest = await req.json();
 
+    // Validate payload structure and check for abuse
+    const validation = validateRequest(body);
+    if (!validation.valid) {
+      console.warn('[log-error] Request validation failed:', validation.reason, 'IP:', clientIP);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request payload' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Log honeypot triggers for abuse detection
+    if (validation.honeypotTriggered) {
+      console.warn('[log-error] Honeypot triggered from IP:', clientIP);
+      // Still process request but flag it
+    }
+
     // Validate required fields
     if (!body.error_type || !body.error_message) {
       return new Response(
@@ -122,7 +139,6 @@ serve(async (req) => {
     // Check for critical errors and potentially send alert
     if (errorLog.severity === 'critical') {
       console.log('Critical error logged:', errorLog.error_type, errorLog.error_message);
-      // Future: trigger alert email
     }
 
     console.log('Error logged successfully:', errorLog.error_type);
