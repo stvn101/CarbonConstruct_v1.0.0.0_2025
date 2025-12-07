@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Settings as SettingsIcon, Save, Check, Lock } from "lucide-react";
 import { UsageDisplay } from "@/components/UsageDisplay";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
+import { CookieSettings } from "@/components/CookieSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -368,6 +369,8 @@ const Settings = () => {
               </div>
             </CardContent>
           </Card>
+
+          <CookieSettings />
         </div>
       </div>
     </div>
