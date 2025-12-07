@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { validateRequest, PUBLIC_RATE_LIMIT } from '../_shared/request-validator.ts';
+import { logSecurityEvent } from '../_shared/security-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,6 +65,13 @@ serve(async (req) => {
     const clientIP = getClientIP(req);
     if (!checkIpRateLimit(clientIP)) {
       console.warn(`[log-error] Rate limit exceeded for IP: ${clientIP}`);
+      // Fire security alert for rate limit violation
+      logSecurityEvent({
+        event_type: 'rate_limit_exceeded',
+        ip_address: clientIP,
+        endpoint: '/log-error',
+        details: `Rate limit exceeded: ${PUBLIC_RATE_LIMIT.maxRequests} requests per hour`,
+      });
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Try again later.' }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -101,7 +109,13 @@ serve(async (req) => {
     // Log honeypot triggers for abuse detection
     if (validation.honeypotTriggered) {
       console.warn('[log-error] Honeypot triggered from IP:', clientIP);
-      // Still process request but flag it
+      // Fire security alert for honeypot trigger (likely bot)
+      logSecurityEvent({
+        event_type: 'honeypot_triggered',
+        ip_address: clientIP,
+        endpoint: '/log-error',
+        details: 'Honeypot field filled - likely automated bot attack',
+      });
     }
 
     // Validate required fields
