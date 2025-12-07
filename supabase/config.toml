@@ -1,5 +1,8 @@
 project_id = "htruyldcvakkzpykfoxq"
 
+[functions.validate-materials]
+verify_jwt = true
+
 [functions.log-security-event]
 verify_jwt = false
 
