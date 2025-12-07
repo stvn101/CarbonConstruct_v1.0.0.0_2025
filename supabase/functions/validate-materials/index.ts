@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@2.0.0";
 
 /**
  * CarbonConstruct Monthly Material Validation Edge Function
@@ -18,6 +19,8 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const ADMIN_EMAIL = 'contact@carbonconstruct.net';
 
 // NABERS v2025.1 expected ranges by category
 const NABERS_RANGES: Record<string, { min: number; max: number; unit: string }[]> = {
@@ -564,6 +567,93 @@ serve(async (req) => {
       high: issueCounts.high,
       outliers: outlierCount
     });
+
+    // Send email notification if critical issues found (for scheduled runs or any validation with critical issues)
+    if (issueCounts.critical > 0 || issueCounts.high >= 10) {
+      try {
+        const resendApiKey = Deno.env.get('RESEND_API_KEY');
+        if (resendApiKey) {
+          const resend = new Resend(resendApiKey);
+          
+          const criticalMaterials = flaggedMaterials
+            .filter(m => m.issues.some(i => i.severity === 'critical'))
+            .slice(0, 10);
+          
+          const highMaterials = flaggedMaterials
+            .filter(m => m.issues.some(i => i.severity === 'high') && !m.issues.some(i => i.severity === 'critical'))
+            .slice(0, 10);
+
+          const criticalIssuesList = criticalMaterials.map(m => {
+            const issues = m.issues.filter(i => i.severity === 'critical');
+            return `<li><strong>${m.material_name}</strong> (${m.material_category}): ${issues.map(i => i.message).join(', ')}</li>`;
+          }).join('');
+
+          const highIssuesList = highMaterials.map(m => {
+            const issues = m.issues.filter(i => i.severity === 'high');
+            return `<li><strong>${m.material_name}</strong> (${m.material_category}): ${issues.map(i => i.message).join(', ')}</li>`;
+          }).join('');
+
+          const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+              <h1 style="color: #dc2626;">⚠️ Material Validation Alert</h1>
+              <p>The monthly material database validation has completed with <strong style="color: #dc2626;">${issueCounts.critical} critical</strong> and <strong style="color: #f59e0b;">${issueCounts.high} high</strong> severity issues requiring attention.</p>
+              
+              <div style="background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #dc2626;">
+                <h3 style="margin: 0 0 10px 0; color: #dc2626;">Validation Summary</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 5px 0;"><strong>Total Materials:</strong></td><td>${totalMaterials}</td></tr>
+                  <tr><td style="padding: 5px 0;"><strong>Pass Rate:</strong></td><td>${passRate}%</td></tr>
+                  <tr><td style="padding: 5px 0;"><strong>Critical Issues:</strong></td><td style="color: #dc2626; font-weight: bold;">${issueCounts.critical}</td></tr>
+                  <tr><td style="padding: 5px 0;"><strong>High Issues:</strong></td><td style="color: #f59e0b; font-weight: bold;">${issueCounts.high}</td></tr>
+                  <tr><td style="padding: 5px 0;"><strong>Outliers Detected:</strong></td><td>${outlierCount}</td></tr>
+                  <tr><td style="padding: 5px 0;"><strong>Validation Date:</strong></td><td>${new Date().toISOString().split('T')[0]}</td></tr>
+                </table>
+              </div>
+
+              ${criticalIssuesList ? `
+              <div style="margin: 20px 0;">
+                <h3 style="color: #dc2626;">🔴 Critical Issues (Top 10)</h3>
+                <ul>${criticalIssuesList}</ul>
+              </div>
+              ` : ''}
+
+              ${highIssuesList ? `
+              <div style="margin: 20px 0;">
+                <h3 style="color: #f59e0b;">🟠 High Priority Issues (Top 10)</h3>
+                <ul>${highIssuesList}</ul>
+              </div>
+              ` : ''}
+
+              <div style="margin-top: 30px;">
+                <a href="https://carbonconstruct.com.au/admin/monitoring" style="display: inline-block; padding: 12px 24px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Review Full Validation Report</a>
+              </div>
+
+              <p style="margin-top: 30px; color: #666; font-size: 12px;">
+                This is an automated notification from CarbonConstruct Material Validation Framework v1.0.<br>
+                Validation runs automatically on the 1st of each month at 2:00 AM UTC.
+              </p>
+            </div>
+          `;
+
+          const { error: emailError } = await resend.emails.send({
+            from: 'CarbonConstruct Alerts <alerts@carbonconstruct.com.au>',
+            to: [ADMIN_EMAIL],
+            subject: `⚠️ Material Validation Alert: ${issueCounts.critical} Critical, ${issueCounts.high} High Issues Found`,
+            html: emailHtml,
+          });
+
+          if (emailError) {
+            console.error('[validate-materials] Failed to send alert email:', emailError);
+          } else {
+            console.log(`[validate-materials] Alert email sent to ${ADMIN_EMAIL}`);
+          }
+        } else {
+          console.warn('[validate-materials] RESEND_API_KEY not configured, skipping email notification');
+        }
+      } catch (emailErr) {
+        console.error('[validate-materials] Error sending notification email:', emailErr);
+      }
+    }
 
     return new Response(JSON.stringify(report), {
       status: 200,

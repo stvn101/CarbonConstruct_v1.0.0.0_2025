@@ -73,6 +73,7 @@ const App = () => (
                   <Route path="/cookies" element={<CookiePolicy />} />
                   <Route path="/roadmap" element={<Roadmap />} />
                   <Route path="/accessibility" element={<AccessibilityStatement />} />
+                  <Route path="/admin" element={<AdminMonitoring />} />
                   <Route path="/admin/monitoring" element={<AdminMonitoring />} />
                   <Route path="/admin/material-verification" element={<MaterialVerification />} />
                   <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
