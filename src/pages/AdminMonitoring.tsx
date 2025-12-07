@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { SecurityAuditReportDownload } from "@/components/SecurityAuditReport";
 import { SecurityDashboard } from "@/components/SecurityDashboard";
+import { MaterialValidationReport } from "@/components/MaterialValidationReport";
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -621,7 +622,16 @@ export default function AdminMonitoring() {
             <Shield className="h-4 w-4" />
             Security
           </TabsTrigger>
+          <TabsTrigger value="validation" className="gap-2">
+            <FileCheck className="h-4 w-4" />
+            Validation
+          </TabsTrigger>
         </TabsList>
+
+        {/* Validation Tab */}
+        <TabsContent value="validation">
+          <MaterialValidationReport />
+        </TabsContent>
 
         {/* Data Import Tab */}
         <TabsContent value="data" className="space-y-4">
