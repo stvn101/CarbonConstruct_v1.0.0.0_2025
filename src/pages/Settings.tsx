@@ -5,7 +5,7 @@ import { UsageDisplay } from "@/components/UsageDisplay";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 import { CookieSettings } from "@/components/CookieSettings";
 import { DataExportButton } from "@/components/DataExportButton";
-import { DeleteAccountButton } from "@/components/DeleteAccountButton";
+import { AccountStatusManager } from "@/components/AccountStatusManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -406,12 +406,8 @@ const Settings = () => {
                     </Link>
                   </div>
                 </div>
-                <div className="pt-4 border-t space-y-2">
-                  <Label className="text-base text-destructive">Danger Zone</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Permanently delete your account and all associated data. This action cannot be undone.
-                  </p>
-                  <DeleteAccountButton />
+                <div className="pt-4 border-t">
+                  <AccountStatusManager />
                 </div>
               </CardContent>
             </Card>
