@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Shield, AlertTriangle, ShieldAlert, ShieldCheck, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Shield, AlertTriangle, ShieldAlert, ShieldCheck, RefreshCw, CheckCircle2, Bug, Zap, FlaskConical } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -91,8 +91,49 @@ export function SecurityDashboard() {
       security_rate_limit_exceeded: "Rate Limit",
       security_invalid_token: "Invalid Token",
       security_suspicious_activity: "Suspicious Activity",
+      security_honeypot_triggered: "Honeypot Trap",
     };
     return labels[type] || type.replace("security_", "").replace(/_/g, " ");
+  };
+
+  const triggerTestEvent = async (eventType: 'honeypot' | 'rate_limit') => {
+    try {
+      if (eventType === 'honeypot') {
+        // Trigger honeypot by sending a request with the honeypot field
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/log-error`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            honeypot_field: 'test_bot_value',
+            error_type: 'test',
+            error_message: 'Test honeypot trigger'
+          })
+        });
+        toast.success('Honeypot test event triggered');
+      } else {
+        // Trigger multiple rapid requests to simulate rate limit
+        const promises = [];
+        for (let i = 0; i < 12; i++) {
+          promises.push(
+            fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/log-error`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                error_type: 'test',
+                error_message: `Rate limit test ${i}`
+              })
+            })
+          );
+        }
+        await Promise.all(promises);
+        toast.success('Rate limit test triggered (12 rapid requests)');
+      }
+      
+      // Reload data after a short delay
+      setTimeout(loadSecurityData, 2000);
+    } catch (error) {
+      toast.error('Failed to trigger test event');
+    }
   };
 
   const getSeverityBadge = (severity: string) => {
@@ -106,6 +147,13 @@ export function SecurityDashboard() {
     }
   };
 
+  const getEventTypeBadge = (type: string) => {
+    if (type === 'security_honeypot_triggered') {
+      return <Badge className="bg-purple-500/20 text-purple-600 border-purple-300">Bot Detected</Badge>;
+    }
+    return null;
+  };
+
   // Calculate stats
   const unresolvedAlerts = alerts.filter(a => !a.resolved).length;
   const last24hEvents = securityEvents.filter(e => 
@@ -113,6 +161,7 @@ export function SecurityDashboard() {
   ).length;
   const authFailures = securityEvents.filter(e => e.error_type === "security_auth_failure").length;
   const rateLimitViolations = securityEvents.filter(e => e.error_type === "security_rate_limit_exceeded").length;
+  const honeypotTriggers = securityEvents.filter(e => e.error_type === "security_honeypot_triggered").length;
 
   if (loading) {
     return (
@@ -177,7 +226,54 @@ export function SecurityDashboard() {
             <p className="text-xs text-muted-foreground">Violations</p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Bug className="h-4 w-4 text-purple-500" />
+              Honeypot Traps
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{honeypotTriggers}</p>
+            <p className="text-xs text-muted-foreground">Bot detections</p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Test Security Alerts */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FlaskConical className="h-5 w-5 text-amber-500" />
+            Test Security Alerts
+          </CardTitle>
+          <CardDescription>Trigger test events to verify email notifications are working</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4">
+            <Button 
+              variant="outline" 
+              onClick={() => triggerTestEvent('honeypot')}
+              className="gap-2"
+            >
+              <Bug className="h-4 w-4" />
+              Trigger Honeypot Test
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => triggerTestEvent('rate_limit')}
+              className="gap-2"
+            >
+              <Zap className="h-4 w-4" />
+              Trigger Rate Limit Test
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mt-4">
+            Note: Email alerts are sent when thresholds are exceeded (5+ honeypot triggers/hour, 20+ rate limit violations/hour).
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Active Alerts */}
       <Card>
@@ -286,7 +382,10 @@ export function SecurityDashboard() {
                 {securityEvents.slice(0, 20).map((event) => (
                   <TableRow key={event.id}>
                     <TableCell className="font-medium">
-                      {getEventTypeLabel(event.error_type)}
+                      <div className="flex items-center gap-2">
+                        {getEventTypeLabel(event.error_type)}
+                        {getEventTypeBadge(event.error_type)}
+                      </div>
                     </TableCell>
                     <TableCell>{getSeverityBadge(event.severity)}</TableCell>
                     <TableCell className="max-w-xs truncate">
