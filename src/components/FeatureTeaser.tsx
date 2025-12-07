@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Calculator, Upload } from "lucide-react";
@@ -19,9 +19,24 @@ const overlays: Overlay[] = [
 ];
 
 export const FeatureTeaser = () => {
-  const navigate = useNavigate();
+  // Defensive navigation - useNavigate may fail if Router context is unavailable during edge cases
+  let navigate: ReturnType<typeof useNavigate> | null = null;
+  try {
+    navigate = useNavigate();
+  } catch {
+    // Router context not available - will use fallback
+  }
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const [activeOverlays, setActiveOverlays] = useState<Overlay[]>([]);
+
+  const handleNavigate = useCallback(() => {
+    if (navigate) {
+      navigate("/calculator");
+    } else {
+      window.location.href = "/calculator";
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -116,7 +131,7 @@ export const FeatureTeaser = () => {
         {/* CTA and Tagline */}
         <div className="text-center mt-8 md:mt-12 space-y-6">
           <Button
-            onClick={() => navigate("/calculator")}
+            onClick={handleNavigate}
             size="lg"
             className="text-base md:text-lg px-8 py-6 hover-scale shadow-lg"
           >
