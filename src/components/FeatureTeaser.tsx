@@ -5,18 +5,17 @@ import { Calculator, Upload } from "lucide-react";
 
 interface Overlay {
   time: number;
+  duration: number;
   text: string;
   highlight?: boolean;
-  centered?: boolean;
-  zoomEffect?: boolean;
 }
 
 const overlays: Overlay[] = [
-  { time: 2, text: "Upload your BOQ" },
-  { time: 5, text: "52 materials", centered: true, zoomEffect: true },
-  { time: 9, text: "15 seconds", centered: true, zoomEffect: true, highlight: true },
-  { time: 13, text: "Completely filled out" },
-  { time: 15, text: "Ready to calculate" },
+  { time: 0, duration: 4, text: "Upload your BOQ" },
+  { time: 5, duration: 5, text: "52 materials", highlight: true },
+  { time: 11, duration: 5, text: "15 seconds", highlight: true },
+  { time: 17, duration: 4, text: "Completely filled out" },
+  { time: 22, duration: 4, text: "Ready to calculate" },
 ];
 
 export const FeatureTeaser = () => {
@@ -28,22 +27,17 @@ export const FeatureTeaser = () => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Start at 2x speed
-    video.playbackRate = 2.0;
+    // Moderate playback speed
+    video.playbackRate = 1.8;
 
     const handleTimeUpdate = () => {
       const currentTime = video.currentTime;
       
-      // Accelerate to 3x after the key stats (around 5 seconds actual time)
-      if (currentTime > 5) {
-        video.playbackRate = 3.0;
-      } else {
-        video.playbackRate = 2.0;
-      }
-      
-      // Calculate effective time based on playback
-      const effectiveTime = currentTime * 2;
-      const visible = overlays.filter((o) => effectiveTime >= o.time && effectiveTime < o.time + 4);
+      // Calculate effective time based on playback speed
+      const effectiveTime = currentTime * 1.8;
+      const visible = overlays.filter(
+        (o) => effectiveTime >= o.time && effectiveTime < o.time + o.duration
+      );
       setActiveOverlays(visible);
     };
 
@@ -88,38 +82,25 @@ export const FeatureTeaser = () => {
 
           {/* Animated Overlays */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            {activeOverlays.map((overlay, index) => (
+            {activeOverlays.map((overlay) => (
               <div
                 key={overlay.time}
-                className={`absolute transition-all duration-300 ${
-                  overlay.centered || overlay.zoomEffect
-                    ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                    : index === 0
-                    ? "top-2 left-2 md:top-4 md:left-4"
-                    : "bottom-2 right-2 md:bottom-4 md:right-4"
-                }`}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
               >
-                {/* Pulsing glow effect behind zoom text */}
-                {overlay.zoomEffect && (
-                  <div 
-                    className="absolute inset-0 -z-10 rounded-xl animate-pulse-glow"
-                    style={{ 
-                      transform: "scale(1.2)",
-                      filter: "blur(8px)"
-                    }}
-                  />
-                )}
+                {/* Pulsing glow effect behind all cards */}
+                <div 
+                  className="absolute inset-0 -z-10 rounded-2xl animate-pulse-glow"
+                  style={{ 
+                    transform: "scale(1.3)",
+                    filter: "blur(12px)",
+                    opacity: overlay.highlight ? 0.8 : 0.5
+                  }}
+                />
                 <div
-                  className={`font-bold ${
-                    overlay.zoomEffect
-                      ? `animate-zoom-forward ${
-                          overlay.highlight
-                            ? "bg-primary text-primary-foreground text-3xl md:text-6xl lg:text-7xl px-4 py-2 md:px-8 md:py-4 rounded-xl shadow-glow"
-                            : "bg-accent text-accent-foreground text-2xl md:text-5xl lg:text-6xl px-3 py-2 md:px-6 md:py-3 rounded-lg shadow-elevated"
-                        }`
-                      : overlay.highlight
-                      ? "bg-primary text-primary-foreground text-lg md:text-4xl px-2 py-1 md:px-6 md:py-3 rounded-md md:rounded-lg shadow-glow scale-105 md:scale-110 animate-scale-in"
-                      : "bg-background/90 backdrop-blur-sm text-foreground text-xs md:text-lg px-2 py-1 md:px-6 md:py-3 rounded-md md:rounded-lg border border-border/50 animate-scale-in"
+                  className={`animate-zoom-forward font-bold rounded-2xl ${
+                    overlay.highlight
+                      ? "bg-primary/80 backdrop-blur-md text-primary-foreground text-2xl md:text-5xl lg:text-6xl px-6 py-3 md:px-10 md:py-5 shadow-glow border border-primary-foreground/20"
+                      : "bg-background/60 backdrop-blur-md text-foreground text-xl md:text-4xl lg:text-5xl px-5 py-3 md:px-8 md:py-4 shadow-elevated border border-border/30"
                   }`}
                 >
                   {overlay.text}
@@ -134,24 +115,14 @@ export const FeatureTeaser = () => {
 
         {/* CTA and Tagline */}
         <div className="text-center mt-8 md:mt-12 space-y-6">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={() => navigate("/calculator")}
-              size="lg"
-              className="text-base md:text-lg px-8 py-6 hover-scale shadow-lg"
-            >
-              <Calculator className="mr-2 h-5 w-5" />
-              Try AI BOQ Import
-            </Button>
-            <Button
-              onClick={() => navigate("/demo")}
-              variant="outline"
-              size="lg"
-              className="text-base md:text-lg px-8 py-6"
-            >
-              See How It Works
-            </Button>
-          </div>
+          <Button
+            onClick={() => navigate("/calculator")}
+            size="lg"
+            className="text-base md:text-lg px-8 py-6 hover-scale shadow-lg"
+          >
+            <Calculator className="mr-2 h-5 w-5" />
+            Try AI BOQ Import
+          </Button>
 
           <div className="flex items-center justify-center gap-3">
             <img
