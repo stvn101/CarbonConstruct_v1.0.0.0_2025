@@ -801,6 +801,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          analytics_enabled: boolean | null
+          cookie_consent: string | null
+          created_at: string | null
+          id: string
+          marketing_enabled: boolean | null
+          preferences_data: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          analytics_enabled?: boolean | null
+          cookie_consent?: string | null
+          created_at?: string | null
+          id?: string
+          marketing_enabled?: boolean | null
+          preferences_data?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          analytics_enabled?: boolean | null
+          cookie_consent?: string | null
+          created_at?: string | null
+          id?: string
+          marketing_enabled?: boolean | null
+          preferences_data?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
