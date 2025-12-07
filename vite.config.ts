@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Cache bust: 2025-12-07T00:25 - Force React dedup v18
+// Cache bust: 2025-12-07T00:30 - Force aggressive cache clear v19
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
