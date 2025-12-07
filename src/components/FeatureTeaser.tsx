@@ -26,8 +26,12 @@ export const FeatureTeaser = () => {
     const video = videoRef.current;
     if (!video) return;
 
+    // Set 2x playback speed for faster visual impact
+    video.playbackRate = 2.0;
+
     const handleTimeUpdate = () => {
-      const currentTime = video.currentTime;
+      // Adjust timing for 2x speed (divide by 2)
+      const currentTime = video.currentTime * 2;
       const visible = overlays.filter((o) => currentTime >= o.time && currentTime < o.time + 5);
       setActiveOverlays(visible);
     };
@@ -80,15 +84,15 @@ export const FeatureTeaser = () => {
                   overlay.highlight
                     ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                     : index === 0
-                    ? "top-4 left-4"
-                    : "bottom-4 right-4"
+                    ? "top-2 left-2 md:top-4 md:left-4"
+                    : "bottom-2 right-2 md:bottom-4 md:right-4"
                 }`}
               >
                 <div
-                  className={`px-4 py-2 md:px-6 md:py-3 rounded-lg font-bold animate-scale-in ${
+                  className={`px-2 py-1 md:px-6 md:py-3 rounded-md md:rounded-lg font-bold animate-scale-in ${
                     overlay.highlight
-                      ? "bg-primary text-primary-foreground text-2xl md:text-4xl shadow-glow scale-110"
-                      : "bg-background/90 backdrop-blur-sm text-foreground text-sm md:text-lg border border-border/50"
+                      ? "bg-primary text-primary-foreground text-lg md:text-4xl shadow-glow scale-105 md:scale-110"
+                      : "bg-background/90 backdrop-blur-sm text-foreground text-xs md:text-lg border border-border/50"
                   }`}
                 >
                   {overlay.text}
