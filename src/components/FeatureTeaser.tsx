@@ -1,0 +1,135 @@
+import { useRef, useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { Calculator, Upload } from "lucide-react";
+
+interface Overlay {
+  time: number;
+  text: string;
+  highlight?: boolean;
+}
+
+const overlays: Overlay[] = [
+  { time: 5, text: "Upload your BOQ" },
+  { time: 10, text: "52 materials" },
+  { time: 15, text: "15 seconds", highlight: true },
+  { time: 20, text: "Completely filled out" },
+  { time: 25, text: "Ready to calculate" },
+];
+
+export const FeatureTeaser = () => {
+  const navigate = useNavigate();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [activeOverlays, setActiveOverlays] = useState<Overlay[]>([]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => {
+      const currentTime = video.currentTime;
+      const visible = overlays.filter((o) => currentTime >= o.time && currentTime < o.time + 5);
+      setActiveOverlays(visible);
+    };
+
+    video.addEventListener("timeupdate", handleTimeUpdate);
+    return () => video.removeEventListener("timeupdate", handleTimeUpdate);
+  }, []);
+
+  return (
+    <section className="py-12 md:py-20 animate-fade-in">
+      <div className="container mx-auto px-4">
+        {/* Section Header */}
+        <div className="text-center space-y-4 mb-8 md:mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
+            <Upload className="h-4 w-4" />
+            AI-Powered BOQ Import
+          </div>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
+            <span className="text-muted-foreground line-through decoration-2">90 Minutes</span>
+            <span className="mx-3 text-primary">→</span>
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">15 Seconds</span>
+          </h2>
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+            What takes 90 minutes in other calculators takes 15 seconds in CarbonConstruct.
+          </p>
+        </div>
+
+        {/* Video Container */}
+        <div className="relative max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl border border-border/50 bg-card">
+          {/* Video Element */}
+          <video
+            ref={videoRef}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full aspect-video object-cover"
+            poster="/hero-carbon-calc.webp"
+          >
+            <source src="/demo/boq-import-teaser.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+
+          {/* Animated Overlays */}
+          <div className="absolute inset-0 pointer-events-none">
+            {activeOverlays.map((overlay, index) => (
+              <div
+                key={overlay.time}
+                className={`absolute transition-all duration-500 ${
+                  overlay.highlight
+                    ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                    : index === 0
+                    ? "top-4 left-4"
+                    : "bottom-4 right-4"
+                }`}
+              >
+                <div
+                  className={`px-4 py-2 md:px-6 md:py-3 rounded-lg font-bold animate-scale-in ${
+                    overlay.highlight
+                      ? "bg-primary text-primary-foreground text-2xl md:text-4xl shadow-glow scale-110"
+                      : "bg-background/90 backdrop-blur-sm text-foreground text-sm md:text-lg border border-border/50"
+                  }`}
+                >
+                  {overlay.text}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Gradient Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background/80 to-transparent" />
+        </div>
+
+        {/* CTA and Tagline */}
+        <div className="text-center mt-8 md:mt-12 space-y-6">
+          <Button
+            onClick={() => navigate("/calculator")}
+            size="lg"
+            className="text-base md:text-lg px-8 py-6 hover-scale shadow-lg"
+          >
+            <Calculator className="mr-2 h-5 w-5" />
+            Try AI BOQ Import
+          </Button>
+
+          <div className="flex items-center justify-center gap-3">
+            <img
+              src="/logo-optimized.webp?v=20251127"
+              alt="CarbonConstruct"
+              className="w-8 h-8"
+              width="32"
+              height="32"
+            />
+            <span className="text-lg md:text-xl font-semibold text-foreground">
+              CarbonConstruct
+            </span>
+            <span className="text-muted-foreground">•</span>
+            <span className="text-sm md:text-base text-muted-foreground italic">
+              Built by Builders
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
