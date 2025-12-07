@@ -1,4 +1,4 @@
-import { Database, CheckCircle, BarChart3, FileCheck, Clock, Layers, PieChart, AlertTriangle } from "lucide-react";
+import { Database, CheckCircle, BarChart3, FileCheck, Clock, Layers, PieChart, AlertTriangle, Shield, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -36,14 +36,14 @@ export default function MaterialDatabaseStatus() {
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium">
           <CheckCircle className="h-4 w-4" />
-          Database Validated
+          6-Layer Validation Framework v1.0
         </div>
         <h1 className="text-3xl md:text-4xl font-bold text-foreground">
           Materials Database Status
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Real-time validation statistics and data quality metrics for our EPD materials database. 
-          All emission factors are sourced from verified Environmental Product Declarations.
+          Real-time validation statistics using our comprehensive 6-layer validation framework. 
+          All emission factors validated against NABERS v2025.1 standards.
         </p>
       </div>
 
@@ -56,9 +56,7 @@ export default function MaterialDatabaseStatus() {
                 <Database className="h-5 w-5 text-emerald-700" />
               </div>
               <div>
-                {isLoading ? (
-                  <Skeleton className="h-8 w-16" />
-                ) : (
+                {isLoading ? <Skeleton className="h-8 w-16" /> : (
                   <p className="text-2xl font-bold">{stats?.totalMaterials.toLocaleString()}</p>
                 )}
                 <p className="text-xs text-muted-foreground">Total Materials</p>
@@ -74,9 +72,7 @@ export default function MaterialDatabaseStatus() {
                 <Layers className="h-5 w-5 text-blue-700" />
               </div>
               <div>
-                {isLoading ? (
-                  <Skeleton className="h-8 w-12" />
-                ) : (
+                {isLoading ? <Skeleton className="h-8 w-12" /> : (
                   <p className="text-2xl font-bold">{stats?.totalCategories}</p>
                 )}
                 <p className="text-xs text-muted-foreground">Categories</p>
@@ -92,9 +88,7 @@ export default function MaterialDatabaseStatus() {
                 <FileCheck className="h-5 w-5 text-amber-700" />
               </div>
               <div>
-                {isLoading ? (
-                  <Skeleton className="h-8 w-16" />
-                ) : (
+                {isLoading ? <Skeleton className="h-8 w-16" /> : (
                   <p className="text-2xl font-bold">{stats?.validationStatus.passRate}%</p>
                 )}
                 <p className="text-xs text-muted-foreground">Pass Rate</p>
@@ -110,14 +104,75 @@ export default function MaterialDatabaseStatus() {
                 <PieChart className="h-5 w-5 text-purple-700" />
               </div>
               <div>
-                {isLoading ? (
-                  <Skeleton className="h-8 w-12" />
-                ) : (
+                {isLoading ? <Skeleton className="h-8 w-12" /> : (
                   <p className="text-2xl font-bold">{stats?.totalSources}</p>
                 )}
                 <p className="text-xs text-muted-foreground">Data Sources</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Confidence Levels & Source Tiers */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Confidence Levels
+            </CardTitle>
+            <CardDescription>Material confidence distribution per Framework v1.0</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {isLoading ? <Skeleton className="h-32 w-full" /> : (
+              <>
+                <div className="flex items-center justify-between p-2 bg-emerald-50 rounded border border-emerald-200">
+                  <span className="text-sm flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-600" /> Verified EPD</span>
+                  <Badge className="bg-emerald-600">{stats?.confidenceLevelCounts.verified.toLocaleString()}</Badge>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-yellow-50 rounded border border-yellow-200">
+                  <span className="text-sm flex items-center gap-2"><AlertCircle className="h-4 w-4 text-yellow-600" /> Documented Variant</span>
+                  <Badge className="bg-yellow-600">{stats?.confidenceLevelCounts.documented.toLocaleString()}</Badge>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-orange-50 rounded border border-orange-200">
+                  <span className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-orange-600" /> Industry Average</span>
+                  <Badge className="bg-orange-600">{stats?.confidenceLevelCounts.industry_average.toLocaleString()}</Badge>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-red-50 rounded border border-red-200">
+                  <span className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-red-600" /> Needs Review</span>
+                  <Badge variant="destructive">{stats?.confidenceLevelCounts.needs_review.toLocaleString()}</Badge>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Source Credibility Tiers
+            </CardTitle>
+            <CardDescription>Data source classification per Layer 5</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {isLoading ? <Skeleton className="h-32 w-full" /> : (
+              <>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm"><span>Tier 1: EPD Australasia / NABERS</span><span className="font-medium">{stats?.sourceTierCounts.tier1.toLocaleString()}</span></div>
+                  <Progress value={(stats?.sourceTierCounts.tier1 || 0) / (stats?.totalMaterials || 1) * 100} className="h-2 bg-emerald-100" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm"><span>Tier 2: ICM / International EPD</span><span className="font-medium">{stats?.sourceTierCounts.tier2.toLocaleString()}</span></div>
+                  <Progress value={(stats?.sourceTierCounts.tier2 || 0) / (stats?.totalMaterials || 1) * 100} className="h-2 bg-amber-100" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm"><span>Tier 3: Requires Review</span><span className="font-medium">{stats?.sourceTierCounts.tier3.toLocaleString()}</span></div>
+                  <Progress value={(stats?.sourceTierCounts.tier3 || 0) / (stats?.totalMaterials || 1) * 100} className="h-2 bg-red-100" />
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
