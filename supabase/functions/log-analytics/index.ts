@@ -1,15 +1,16 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateRequest, PUBLIC_RATE_LIMIT } from '../_shared/request-validator.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// IP-based rate limiting to prevent abuse
+// IP-based rate limiting to prevent abuse (50 requests per hour per IP)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const MAX_REQUESTS_PER_WINDOW = 100; // 100 requests per hour per IP
+const RATE_LIMIT_WINDOW_MS = PUBLIC_RATE_LIMIT.windowMs;
+const MAX_REQUESTS_PER_WINDOW = PUBLIC_RATE_LIMIT.maxRequests;
 
 function checkIpRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -88,6 +89,21 @@ serve(async (req) => {
     }
 
     const body: AnalyticsRequest = await req.json();
+
+    // Validate payload structure and check for abuse
+    const validation = validateRequest(body);
+    if (!validation.valid) {
+      console.warn('[log-analytics] Request validation failed:', validation.reason, 'IP:', clientIP);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request payload' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Log honeypot triggers for abuse detection
+    if (validation.honeypotTriggered) {
+      console.warn('[log-analytics] Honeypot triggered from IP:', clientIP);
+    }
 
     if (!body.events || !Array.isArray(body.events) || body.events.length === 0) {
       return new Response(
