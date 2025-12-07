@@ -133,6 +133,11 @@ export default {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        "zoom-forward": {
+          "0%": { transform: "scale(0.5)", opacity: "0.3" },
+          "50%": { transform: "scale(1.3)", opacity: "1" },
+          "100%": { transform: "scale(1.6)", opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -141,6 +146,7 @@ export default {
         "scale-in": "scale-in 0.2s ease-out",
         "slide-up": "slide-up 0.3s ease-out",
         "shimmer": "shimmer 2s infinite linear",
+        "zoom-forward": "zoom-forward 0.8s ease-out forwards",
       },
     },
   },

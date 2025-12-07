@@ -7,14 +7,16 @@ interface Overlay {
   time: number;
   text: string;
   highlight?: boolean;
+  centered?: boolean;
+  zoomEffect?: boolean;
 }
 
 const overlays: Overlay[] = [
-  { time: 5, text: "Upload your BOQ" },
-  { time: 10, text: "52 materials" },
-  { time: 15, text: "15 seconds", highlight: true },
-  { time: 20, text: "Completely filled out" },
-  { time: 25, text: "Ready to calculate" },
+  { time: 3, text: "Upload your BOQ" },
+  { time: 6, text: "52 materials", centered: true, zoomEffect: true },
+  { time: 9, text: "15 seconds", centered: true, zoomEffect: true, highlight: true },
+  { time: 11, text: "Completely filled out" },
+  { time: 13, text: "Ready to calculate" },
 ];
 
 export const FeatureTeaser = () => {
@@ -26,13 +28,22 @@ export const FeatureTeaser = () => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Set 2x playback speed for faster visual impact
-    video.playbackRate = 2.0;
+    // Start at 2.5x speed
+    video.playbackRate = 2.5;
 
     const handleTimeUpdate = () => {
-      // Adjust timing for 2x speed (divide by 2)
-      const currentTime = video.currentTime * 2;
-      const visible = overlays.filter((o) => currentTime >= o.time && currentTime < o.time + 5);
+      const currentTime = video.currentTime;
+      
+      // Accelerate to 3.5x after the "15 seconds" hook (around 4 seconds actual time)
+      if (currentTime > 4) {
+        video.playbackRate = 3.5;
+      } else {
+        video.playbackRate = 2.5;
+      }
+      
+      // Calculate effective time based on accelerated playback
+      const effectiveTime = currentTime * 2.5;
+      const visible = overlays.filter((o) => effectiveTime >= o.time && effectiveTime < o.time + 3);
       setActiveOverlays(visible);
     };
 
@@ -76,12 +87,12 @@ export const FeatureTeaser = () => {
           </video>
 
           {/* Animated Overlays */}
-          <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
             {activeOverlays.map((overlay, index) => (
               <div
                 key={overlay.time}
-                className={`absolute transition-all duration-500 ${
-                  overlay.highlight
+                className={`absolute transition-all duration-300 ${
+                  overlay.centered || overlay.zoomEffect
                     ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                     : index === 0
                     ? "top-2 left-2 md:top-4 md:left-4"
@@ -89,10 +100,16 @@ export const FeatureTeaser = () => {
                 }`}
               >
                 <div
-                  className={`px-2 py-1 md:px-6 md:py-3 rounded-md md:rounded-lg font-bold animate-scale-in ${
-                    overlay.highlight
-                      ? "bg-primary text-primary-foreground text-lg md:text-4xl shadow-glow scale-105 md:scale-110"
-                      : "bg-background/90 backdrop-blur-sm text-foreground text-xs md:text-lg border border-border/50"
+                  className={`font-bold ${
+                    overlay.zoomEffect
+                      ? `animate-zoom-forward ${
+                          overlay.highlight
+                            ? "bg-primary text-primary-foreground text-3xl md:text-6xl lg:text-7xl px-4 py-2 md:px-8 md:py-4 rounded-xl shadow-glow"
+                            : "bg-accent text-accent-foreground text-2xl md:text-5xl lg:text-6xl px-3 py-2 md:px-6 md:py-3 rounded-lg shadow-elevated"
+                        }`
+                      : overlay.highlight
+                      ? "bg-primary text-primary-foreground text-lg md:text-4xl px-2 py-1 md:px-6 md:py-3 rounded-md md:rounded-lg shadow-glow scale-105 md:scale-110 animate-scale-in"
+                      : "bg-background/90 backdrop-blur-sm text-foreground text-xs md:text-lg px-2 py-1 md:px-6 md:py-3 rounded-md md:rounded-lg border border-border/50 animate-scale-in"
                   }`}
                 >
                   {overlay.text}
