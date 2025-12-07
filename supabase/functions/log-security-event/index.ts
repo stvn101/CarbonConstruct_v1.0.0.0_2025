@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface SecurityEvent {
-  event_type: 'auth_failure' | 'rate_limit_exceeded' | 'invalid_token' | 'suspicious_activity';
+  event_type: 'auth_failure' | 'rate_limit_exceeded' | 'invalid_token' | 'suspicious_activity' | 'honeypot_triggered';
   user_id?: string;
   ip_address?: string;
   endpoint?: string;
@@ -21,6 +21,7 @@ const ALERT_THRESHOLDS = {
   auth_failures_per_hour: 10,
   rate_limit_violations_per_hour: 20,
   suspicious_activity_per_hour: 5,
+  honeypot_triggers_per_hour: 5,
 };
 
 // Admin email for security alerts
@@ -200,6 +201,14 @@ serve(async (req) => {
           type: 'invalid_token',
           message: `High number of invalid token attempts detected: ${eventCounts['invalid_token']} in the last hour`,
           count: eventCounts['invalid_token']
+        });
+      }
+
+      if ((eventCounts['honeypot_triggered'] || 0) >= ALERT_THRESHOLDS.honeypot_triggers_per_hour) {
+        alerts.push({
+          type: 'honeypot',
+          message: `High number of honeypot triggers detected (likely bot attack): ${eventCounts['honeypot_triggered']} in the last hour`,
+          count: eventCounts['honeypot_triggered']
         });
       }
 

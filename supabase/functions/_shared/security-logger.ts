@@ -4,7 +4,7 @@
  */
 
 export interface SecurityEventData {
-  event_type: 'auth_failure' | 'rate_limit_exceeded' | 'invalid_token' | 'suspicious_activity';
+  event_type: 'auth_failure' | 'rate_limit_exceeded' | 'invalid_token' | 'suspicious_activity' | 'honeypot_triggered';
   user_id?: string;
   ip_address?: string;
   endpoint?: string;
