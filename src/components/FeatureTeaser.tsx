@@ -11,11 +11,11 @@ interface Overlay {
 }
 
 const overlays: Overlay[] = [
-  { time: 0, duration: 4, text: "Upload your BOQ" },
-  { time: 5, duration: 5, text: "52 materials", highlight: true },
-  { time: 11, duration: 5, text: "15 seconds", highlight: true },
-  { time: 17, duration: 4, text: "Completely filled out" },
-  { time: 22, duration: 4, text: "Ready to calculate" },
+  { time: 0, duration: 4.5, text: "Upload your BOQ" },
+  { time: 5.5, duration: 5.5, text: "52 materials", highlight: true },
+  { time: 12, duration: 5.5, text: "15 seconds", highlight: true },
+  { time: 18.5, duration: 4.5, text: "Completely filled out" },
+  { time: 24, duration: 4.5, text: "Ready to calculate" },
 ];
 
 export const FeatureTeaser = () => {
