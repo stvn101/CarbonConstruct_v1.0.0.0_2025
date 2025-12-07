@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings as SettingsIcon, Save, Check, Lock } from "lucide-react";
+import { Settings as SettingsIcon, Save, Check, Lock, Shield } from "lucide-react";
 import { UsageDisplay } from "@/components/UsageDisplay";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 import { CookieSettings } from "@/components/CookieSettings";
+import { DataExportButton } from "@/components/DataExportButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 
 interface UserSettings {
   defaultAssessmentPeriod: string;
@@ -371,6 +373,47 @@ const Settings = () => {
           </Card>
 
           <CookieSettings />
+
+          {user && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Privacy & Data
+                </CardTitle>
+                <CardDescription>
+                  Manage your data and privacy rights under GDPR and Australian Privacy Act
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-base">Export Your Data</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Download a complete copy of all your data stored in CarbonConstruct, including projects, calculations, reports, and preferences.
+                  </p>
+                  <DataExportButton />
+                </div>
+                <div className="pt-4 border-t space-y-2">
+                  <Label className="text-base">Your Privacy Rights</Label>
+                  <p className="text-sm text-muted-foreground">
+                    For data deletion requests or other privacy inquiries, please contact us at{" "}
+                    <a href="mailto:privacy@carbonconstruct.com.au" className="text-primary hover:underline">
+                      privacy@carbonconstruct.com.au
+                    </a>
+                  </p>
+                  <div className="flex gap-2 pt-2">
+                    <Link to="/privacy" className="text-sm text-primary hover:underline">
+                      Privacy Policy
+                    </Link>
+                    <span className="text-muted-foreground">•</span>
+                    <Link to="/terms" className="text-sm text-primary hover:underline">
+                      Terms of Service
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
