@@ -803,32 +803,44 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          account_status: string
           analytics_enabled: boolean | null
           cookie_consent: string | null
           created_at: string | null
+          deletion_scheduled_at: string | null
+          deletion_token: string | null
           id: string
           marketing_enabled: boolean | null
           preferences_data: Json | null
+          status_changed_at: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          account_status?: string
           analytics_enabled?: boolean | null
           cookie_consent?: string | null
           created_at?: string | null
+          deletion_scheduled_at?: string | null
+          deletion_token?: string | null
           id?: string
           marketing_enabled?: boolean | null
           preferences_data?: Json | null
+          status_changed_at?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          account_status?: string
           analytics_enabled?: boolean | null
           cookie_consent?: string | null
           created_at?: string | null
+          deletion_scheduled_at?: string | null
+          deletion_token?: string | null
           id?: string
           marketing_enabled?: boolean | null
           preferences_data?: Json | null
+          status_changed_at?: string | null
           updated_at?: string | null
           user_id?: string
         }
