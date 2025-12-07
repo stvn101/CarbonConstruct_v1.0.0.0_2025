@@ -656,6 +656,12 @@ export default function AdminMonitoring() {
                 Material Verification Report
               </Button>
             </Link>
+            <a href="/SECURITY_CONTROLS_SUMMARY.md" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Security Controls Summary
+              </Button>
+            </a>
             <SecurityAuditReportDownload />
           </div>
         </CardContent>
