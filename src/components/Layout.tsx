@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatAssistant } from "@/components/ChatAssistant";
+import { CookieConsent } from "@/components/CookieConsent";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -52,6 +53,7 @@ export function Layout({ children }: LayoutProps) {
           <Footer />
         </div>
         {user && <ChatAssistant />}
+        <CookieConsent />
       </div>
     </SidebarProvider>
   );
