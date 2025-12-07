@@ -12,6 +12,7 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
+import { FeatureTeaser } from "@/components/FeatureTeaser";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle } from "lucide-react";
 import { CalculationHistory } from "@/components/CalculationHistory";
 const Index = () => {
@@ -88,6 +89,9 @@ const Index = () => {
                 </div>
               </div>
             </div>
+
+            {/* Feature Teaser Video Section */}
+            <FeatureTeaser />
 
             <div className="space-y-3 md:space-y-4 animate-fade-in [animation-delay:0.4s]">
               <p className="text-sm md:text-base font-medium text-primary">
