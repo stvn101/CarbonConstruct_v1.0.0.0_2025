@@ -18,6 +18,7 @@ import { SecurityAuditReportDownload } from "@/components/SecurityAuditReport";
 import { SecurityDashboard } from "@/components/SecurityDashboard";
 import { MaterialValidationReport } from "@/components/MaterialValidationReport";
 import { BluescopeEPDImporter } from "@/components/BluescopeEPDImporter";
+import { BulkEPDUploader } from "@/components/BulkEPDUploader";
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -731,7 +732,16 @@ export default function AdminMonitoring() {
             <FileCheck className="h-4 w-4" />
             Validation
           </TabsTrigger>
+          <TabsTrigger value="epd-upload" className="gap-2">
+            <Upload className="h-4 w-4" />
+            EPD Upload
+          </TabsTrigger>
         </TabsList>
+
+        {/* EPD Upload Tab */}
+        <TabsContent value="epd-upload">
+          <BulkEPDUploader />
+        </TabsContent>
 
         {/* Validation Tab */}
         <TabsContent value="validation">
