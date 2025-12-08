@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { SecurityAuditReportDownload } from "@/components/SecurityAuditReport";
 import { SecurityDashboard } from "@/components/SecurityDashboard";
 import { MaterialValidationReport } from "@/components/MaterialValidationReport";
+import { BluescopeEPDImporter } from "@/components/BluescopeEPDImporter";
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -1117,6 +1118,9 @@ export default function AdminMonitoring() {
               </div>
             </CardContent>
           </Card>
+          
+          {/* BlueScope EPD Import */}
+          <BluescopeEPDImporter />
         </TabsContent>
 
         {/* Error Logs Tab */}
