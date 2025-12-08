@@ -11,6 +11,20 @@ export interface FavoriteMaterial {
   isPinned: boolean;
   isHidden: boolean;
   lastUsed: string;
+  // EPD Traceability fields
+  epdNumber?: string;
+  epdUrl?: string;
+  manufacturer?: string;
+  plantLocation?: string;
+  dataQualityTier?: string;
+  year?: number;
+  // Lifecycle breakdown (kgCO2e per unit)
+  ef_a1a3?: number;
+  ef_a4?: number;
+  ef_a5?: number;
+  ef_b1b5?: number;
+  ef_c1c4?: number;
+  ef_d?: number;
 }
 
 const STORAGE_KEY = 'carbonConstruct_favoriteMaterials';
@@ -133,13 +147,45 @@ export function useFavoriteMaterials() {
     unit: string;
     factor: number;
     source: string;
+    // EPD Traceability fields
+    epdNumber?: string;
+    epdUrl?: string;
+    manufacturer?: string;
+    plantLocation?: string;
+    dataQualityTier?: string;
+    year?: number;
+    // Lifecycle breakdown
+    ef_a1a3?: number;
+    ef_a4?: number;
+    ef_a5?: number;
+    ef_b1b5?: number;
+    ef_c1c4?: number;
+    ef_d?: number;
   }) => {
     setFavorites(prev => {
       const existing = prev.find(f => f.materialId === material.id);
       if (existing) {
+        // Update existing with latest EPD data and increment usage
         return prev.map(f => 
           f.materialId === material.id 
-            ? { ...f, usageCount: f.usageCount + 1, lastUsed: new Date().toISOString() }
+            ? { 
+                ...f, 
+                usageCount: f.usageCount + 1, 
+                lastUsed: new Date().toISOString(),
+                // Update EPD fields with latest data
+                epdNumber: material.epdNumber ?? f.epdNumber,
+                epdUrl: material.epdUrl ?? f.epdUrl,
+                manufacturer: material.manufacturer ?? f.manufacturer,
+                plantLocation: material.plantLocation ?? f.plantLocation,
+                dataQualityTier: material.dataQualityTier ?? f.dataQualityTier,
+                year: material.year ?? f.year,
+                ef_a1a3: material.ef_a1a3 ?? f.ef_a1a3,
+                ef_a4: material.ef_a4 ?? f.ef_a4,
+                ef_a5: material.ef_a5 ?? f.ef_a5,
+                ef_b1b5: material.ef_b1b5 ?? f.ef_b1b5,
+                ef_c1c4: material.ef_c1c4 ?? f.ef_c1c4,
+                ef_d: material.ef_d ?? f.ef_d,
+              }
             : f
         );
       } else {
@@ -153,7 +199,20 @@ export function useFavoriteMaterials() {
           usageCount: 1,
           isPinned: false,
           isHidden: false,
-          lastUsed: new Date().toISOString()
+          lastUsed: new Date().toISOString(),
+          // Store EPD fields
+          epdNumber: material.epdNumber,
+          epdUrl: material.epdUrl,
+          manufacturer: material.manufacturer,
+          plantLocation: material.plantLocation,
+          dataQualityTier: material.dataQualityTier,
+          year: material.year,
+          ef_a1a3: material.ef_a1a3,
+          ef_a4: material.ef_a4,
+          ef_a5: material.ef_a5,
+          ef_b1b5: material.ef_b1b5,
+          ef_c1c4: material.ef_c1c4,
+          ef_d: material.ef_d,
         }];
       }
     });

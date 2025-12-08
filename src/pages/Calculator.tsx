@@ -481,18 +481,32 @@ export default function Calculator() {
     setSelectedMaterials(prev => [...prev, newItem]);
     setMaterialSearch(''); // Clear search after adding
     
-    // Track usage for quick-add
+    // Track usage for quick-add with full EPD data
     trackMaterialUsage({
       id: material.id,
       name: material.material_name,
       category: material.material_category,
       unit: material.unit,
       factor: factor,
-      source: material.data_source
+      source: material.data_source,
+      // EPD Traceability
+      epdNumber: material.epd_number || undefined,
+      epdUrl: material.epd_url || undefined,
+      manufacturer: material.manufacturer || undefined,
+      plantLocation: material.plant_location || undefined,
+      dataQualityTier: material.data_quality_tier || undefined,
+      year: material.year || undefined,
+      // Lifecycle breakdown
+      ef_a1a3: material.ef_a1a3 || undefined,
+      ef_a4: material.ef_a4 || undefined,
+      ef_a5: material.ef_a5 || undefined,
+      ef_b1b5: material.ef_b1b5 || undefined,
+      ef_c1c4: material.ef_c1c4 || undefined,
+      ef_d: material.ef_d || undefined,
     });
   };
 
-  // Quick add from favorites
+  // Quick add from favorites - includes full EPD data
   const addFromQuickAdd = (fav: typeof quickAddMaterials[0]) => {
     const newItem: Material = {
       id: Date.now().toString() + Math.random(),
@@ -503,18 +517,44 @@ export default function Calculator() {
       factor: fav.factor,
       source: fav.source,
       quantity: 0,
-      isCustom: false
+      isCustom: false,
+      // EPD Traceability from stored favorite
+      epdNumber: fav.epdNumber,
+      epdUrl: fav.epdUrl,
+      manufacturer: fav.manufacturer,
+      plantLocation: fav.plantLocation,
+      dataQualityTier: fav.dataQualityTier,
+      year: fav.year,
+      // Lifecycle breakdown
+      ef_a1a3: fav.ef_a1a3,
+      ef_a4: fav.ef_a4,
+      ef_a5: fav.ef_a5,
+      ef_b1b5: fav.ef_b1b5,
+      ef_c1c4: fav.ef_c1c4,
+      ef_d: fav.ef_d,
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     
-    // Track usage
+    // Track usage with full EPD data
     trackMaterialUsage({
       id: fav.materialId,
       name: fav.materialName,
       category: fav.category,
       unit: fav.unit,
       factor: fav.factor,
-      source: fav.source
+      source: fav.source,
+      epdNumber: fav.epdNumber,
+      epdUrl: fav.epdUrl,
+      manufacturer: fav.manufacturer,
+      plantLocation: fav.plantLocation,
+      dataQualityTier: fav.dataQualityTier,
+      year: fav.year,
+      ef_a1a3: fav.ef_a1a3,
+      ef_a4: fav.ef_a4,
+      ef_a5: fav.ef_a5,
+      ef_b1b5: fav.ef_b1b5,
+      ef_c1c4: fav.ef_c1c4,
+      ef_d: fav.ef_d,
     });
   };
 
