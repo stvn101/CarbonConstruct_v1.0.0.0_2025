@@ -44,7 +44,20 @@ export const useSubscriptionStatus = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      // Get the current session to pass the user's JWT token
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        logger.warn('SubscriptionStatus:checkSubscription', 'No active session');
+        setLoading(false);
+        return;
+      }
+      
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+      });
       
       if (error) {
         // Check if it's a network error that should be retried
