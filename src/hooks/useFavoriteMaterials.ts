@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface FavoriteMaterial {
   materialId: string;
@@ -296,6 +297,54 @@ export function useFavoriteMaterials() {
     setFavorites([]);
   }, []);
 
+  // Sync favorites with latest EPD data from database
+  const syncWithDatabase = useCallback(async () => {
+    if (favorites.length === 0) return { synced: 0, total: 0 };
+
+    // Get all material IDs that aren't default pinned items
+    const materialIds = favorites
+      .filter(f => !f.materialId.startsWith('default_'))
+      .map(f => f.materialId);
+
+    if (materialIds.length === 0) return { synced: 0, total: 0 };
+
+    // Fetch latest EPD data from database
+    const { data: dbMaterials, error } = await supabase
+      .from('materials_epd')
+      .select('*')
+      .in('id', materialIds);
+
+    if (error || !dbMaterials) {
+      console.warn('Failed to sync EPD data:', error);
+      return { synced: 0, total: materialIds.length };
+    }
+
+    // Update favorites with latest EPD data
+    setFavorites(prev => prev.map(fav => {
+      const dbMaterial = dbMaterials.find(m => m.id === fav.materialId);
+      if (!dbMaterial) return fav;
+
+      return {
+        ...fav,
+        factor: Number(dbMaterial.ef_total) || fav.factor,
+        epdNumber: dbMaterial.epd_number || fav.epdNumber,
+        epdUrl: dbMaterial.epd_url || fav.epdUrl,
+        manufacturer: dbMaterial.manufacturer || fav.manufacturer,
+        plantLocation: dbMaterial.plant_location || fav.plantLocation,
+        dataQualityTier: dbMaterial.data_quality_tier || fav.dataQualityTier,
+        year: dbMaterial.year || fav.year,
+        ef_a1a3: dbMaterial.ef_a1a3 ? Number(dbMaterial.ef_a1a3) : fav.ef_a1a3,
+        ef_a4: dbMaterial.ef_a4 ? Number(dbMaterial.ef_a4) : fav.ef_a4,
+        ef_a5: dbMaterial.ef_a5 ? Number(dbMaterial.ef_a5) : fav.ef_a5,
+        ef_b1b5: dbMaterial.ef_b1b5 ? Number(dbMaterial.ef_b1b5) : fav.ef_b1b5,
+        ef_c1c4: dbMaterial.ef_c1c4 ? Number(dbMaterial.ef_c1c4) : fav.ef_c1c4,
+        ef_d: dbMaterial.ef_d ? Number(dbMaterial.ef_d) : fav.ef_d,
+      };
+    }));
+
+    return { synced: dbMaterials.length, total: materialIds.length };
+  }, [favorites]);
+
   return {
     favorites,
     quickAddMaterials,
@@ -305,6 +354,7 @@ export function useFavoriteMaterials() {
     unpinMaterial,
     hideMaterial,
     unhideMaterial,
-    clearAllFavorites
+    clearAllFavorites,
+    syncWithDatabase
   };
 }

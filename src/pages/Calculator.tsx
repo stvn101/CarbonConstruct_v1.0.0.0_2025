@@ -224,7 +224,7 @@ export default function Calculator() {
   });
   
   // Favorite materials for quick-add
-  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites } = useFavoriteMaterials();
+  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites, syncWithDatabase } = useFavoriteMaterials();
   
   // Category counts for browser - using EPD database
   const categoryCounts = useMemo(() => {
@@ -1219,6 +1219,7 @@ export default function Calculator() {
                         materials={quickAddMaterials}
                         onAddMaterial={addFromQuickAdd}
                         onHideMaterial={hideMaterial}
+                        onSyncEPD={syncWithDatabase}
                       />
                     </div>
                   ) : quickAddMaterials.length > 0 && (
