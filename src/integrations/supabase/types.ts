@@ -922,6 +922,48 @@ export type Database = {
       }
     }
     Views: {
+      user_preferences_safe: {
+        Row: {
+          account_status: string | null
+          analytics_enabled: boolean | null
+          cookie_consent: string | null
+          created_at: string | null
+          deletion_scheduled_at: string | null
+          id: string | null
+          marketing_enabled: boolean | null
+          preferences_data: Json | null
+          status_changed_at: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_status?: string | null
+          analytics_enabled?: boolean | null
+          cookie_consent?: string | null
+          created_at?: string | null
+          deletion_scheduled_at?: string | null
+          id?: string | null
+          marketing_enabled?: boolean | null
+          preferences_data?: Json | null
+          status_changed_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_status?: string | null
+          analytics_enabled?: boolean | null
+          cookie_consent?: string | null
+          created_at?: string | null
+          deletion_scheduled_at?: string | null
+          id?: string | null
+          marketing_enabled?: boolean | null
+          preferences_data?: Json | null
+          status_changed_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_subscriptions_safe: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -976,6 +1018,22 @@ export type Database = {
         Returns: boolean
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      get_user_preferences: {
+        Args: { p_user_id: string }
+        Returns: {
+          account_status: string
+          analytics_enabled: boolean
+          cookie_consent: string
+          created_at: string
+          deletion_scheduled_at: string
+          id: string
+          marketing_enabled: boolean
+          preferences_data: Json
+          status_changed_at: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_user_tier: {
         Args: { user_id_param: string }
         Returns: {
