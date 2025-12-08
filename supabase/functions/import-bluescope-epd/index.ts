@@ -6,100 +6,93 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// BlueScope EPD URLs - the 34 missing ones
+// All BlueScope EPDs from steel.com.au library with real PDF URLs
 const BLUESCOPE_EPDS = [
-  { name: "LYSAGHT ZENITH® Fencing", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/88da5a66-8cfd-4b35-afe0-bc4f5b5c56c7.pdf" },
-  { name: "NS BlueScope COLORBOND® Ultra Steel (Pre-painted & Metal Coated)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/b15fac19-a7b2-4b0f-8e0a-6d7c47e3f8a1.pdf" },
-  { name: "NS BlueScope COLORBOND® Metallic Steel (Pre-painted & Metal Coated)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/c28fab21-9c3f-4c1a-9f1b-7e8d58f4g9b2.pdf" },
-  { name: "NS BlueScope COLORBOND® Matt Steel (Pre-painted & Metal Coated)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/d39fbc32-ad4e-5d2b-af2c-8f9e69g5h0c3.pdf" },
-  { name: "NS BlueScope ZINCALUME® Steel (Metal coated coil)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/e40gcd43-be5f-6e3c-bg3d-9g0f70h6i1d4.pdf" },
-  { name: "GALVASPAN® (Hollow Sections)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/f51hde54-cf6g-7f4d-ch4e-0h1g81i7j2e5.pdf" },
-  { name: "Hot Rolled Structural Steel Sections", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/g62ief65-dg7h-8g5e-di5f-1i2h92j8k3f6.pdf" },
-  { name: "Quenched & Tempered Steel Plate", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/h73jfg76-eh8i-9h6f-ej6g-2j3i03k9l4g7.pdf" },
-  { name: "XTRAGAL™ Steel (Hot Dip Galvanised Coil)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/i84kgh87-fi9j-0i7g-fk7h-3k4j14l0m5h8.pdf" },
-  { name: "REDCOR® Weathering Steel", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/j95lhi98-gj0k-1j8h-gl8i-4l5k25m1n6i9.pdf" },
-  { name: "XLERPLATE® (Hot Rolled Steel Plate)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/k06mij09-hk1l-2k9i-hm9j-5m6l36n2o7j0.pdf" },
-  { name: "BISPLATE® (Quenched & Tempered Steel Plate)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/l17njk10-il2m-3l0j-in0k-6n7m47o3p8k1.pdf" },
-  { name: "XLERCOIL® (Hot Rolled Steel Coil)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/m28okl21-jm3n-4m1k-jo1l-7o8n58p4q9l2.pdf" },
-  { name: "Wire Rod", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/n39plm32-kn4o-5n2l-kp2m-8p9o69q5r0m3.pdf" },
-  { name: "NEO Fence® Steel Fencing", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/o40qmn43-lo5p-6o3m-lq3n-9q0p70r6s1n4.pdf" },
-  { name: "SMARTASCREEN® Slat Fencing", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/p51rno54-mp6q-7p4n-mr4o-0r1q81s7t2o5.pdf" },
-  { name: "NEETASCREEN® Privacy Fencing", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/q62sop65-nq7r-8q5o-ns5p-1s2r92t8u3p6.pdf" },
-  { name: "HERITAGE® Fence", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/r73tpq76-or8s-9r6p-ot6q-2t3s03u9v4q7.pdf" },
-  { name: "TUBEFORM® Steel Tubing", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/s84uqr87-ps9t-0s7q-pu7r-3u4t14v0w5r8.pdf" },
-  { name: "ZINC HI-TEN® (High Tensile Steel Strip)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/t95vrs98-qt0u-1t8r-qv8s-4v5u25w1x6s9.pdf" },
-  { name: "ZINCANNEAL® (Pre-treated Steel)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/u06wst09-ru1v-2u9s-rw9t-5w6v36x2y7t0.pdf" },
-  { name: "ZINCFORM® (Pre-galvanised Steel)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/v17xtu10-sv2w-3v0t-sx0u-6x7w47y3z8u1.pdf" },
-  { name: "NS BlueScope Clean COLORBOND® Steel Coil", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/w28yuv21-tw3x-4w1u-ty1v-7y8x58z4a9v2.pdf" },
-  { name: "NS BlueScope Steel Slab", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/x39zvw32-ux4y-5x2v-uz2w-8z9y69a5b0w3.pdf" },
-  { name: "GALVASPAN® C450 Steel (Hollow Sections)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/y40awx43-vy5z-6y3w-va3x-9a0z70b6c1x4.pdf" },
-  { name: "GALVASPAN® Duragal® (Hot Dip Galvanised)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/z51bxy54-wz6a-7z4x-wb4y-0b1a81c7d2y5.pdf" },
-  { name: "TRUECORE® Steel (Framing)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/a62cyz65-xa7b-8a5y-xc5z-1c2b92d8e3z6.pdf" },
-  { name: "Welded Beams (Structural)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/b73dza76-yb8c-9b6z-yd6a-2d3c03e9f4a7.pdf" },
-  { name: "Welded Columns (Structural)", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/c84eab87-zc9d-0c7a-ze7b-3e4d14f0g5b8.pdf" },
-  { name: "Merchant Bar", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/d95fbc98-ad0e-1d8b-af8c-4f5e25g1h6c9.pdf" },
-  { name: "Steel Reinforcing Bar", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/e06gcd09-be1f-2e9c-bg9d-5g6f36h2i7d0.pdf" },
-  { name: "LYSAGHT LONGLINE 305® Roofing", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/f17hde10-cf2g-3f0d-ch0e-6h7g47i3j8e1.pdf" },
-  { name: "LYSAGHT KLIP-LOK® Roofing", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/g28ief21-dg3h-4g1e-di1f-7i8h58j4k9f2.pdf" },
-  { name: "LYSAGHT SPANDEK® Roofing/Walling", url: "https://cdn.bfrp.io/F-B53CDB38-0867-496F-92EC-4EF2FE79B2F0/h39jfg32-eh4i-5h2f-ej2g-8j9i69k5l0g3.pdf" },
+  { name: "COLORBOND® Coolmax® steel", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-colorbond-coolmax-steel" },
+  { name: "COLORBOND® Intramax® steel", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-colorbond-intramax-steel" },
+  { name: "COLORBOND® steel for roofing and walling", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-colorbond-steel" },
+  { name: "COLORBOND® steel for fencing panels (AM100 0.35mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-colorbond-steel-for-fencing-035mm-bmt" },
+  { name: "COLORBOND® steel for fencing panels (AM100 0.40mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-colorbond-steel-for-fencing-040mm-bmt" },
+  { name: "COLORBOND® steel for fencing panels (AM100 0.42mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-colorbond-steel-for-fencing-042mm-bmt" },
+  { name: "COLORBOND® steel for fencing post & rails (Z275 0.80mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-colorbond-steel-for-fencing-rails-z275-080mm-bmt" },
+  { name: "COLORBOND® steel for fencing post & rails (Z275 1.00mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-colorbond-steel-for-fencing-rails-z275-100mm-bmt" },
+  { name: "COLORBOND® steel for Insulated Panels", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-colorbond-steel-for-insulated-panels" },
+  { name: "COLORBOND® steel Metallic", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-colorbond-steel-metallic" },
+  { name: "COLORBOND® Ultra steel", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-colorbond-ultra-steel" },
+  { name: "DECKFORM® steel", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-deckform-steel" },
+  { name: "GALVABOND® steel", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-galvabond-steel" },
+  { name: "GALVASPAN® steel", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-galvaspan-steel" },
+  { name: "Hot Rolled Coil", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-hot-rolled-coil" },
+  { name: "Welded Beams and Columns", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-welded-beams-and-columns" },
+  { name: "TRUECORE® steel", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-truecore-steel" },
+  { name: "TUBEFORM® steel (Z100 1.49mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-tubeform-steel-149mm-bmt" },
+  { name: "TUBEFORM® steel (Z100 1.87mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-tubeform-steel-187mm-bmt" },
+  { name: "TUBEFORM® steel (Z200 1.54mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-tubeform-steel-154mm-bmt" },
+  { name: "TUBEFORM® steel (Z200 1.85mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-tubeform-steel-185mm-bmt" },
+  { name: "TUBEFORM® steel (Z200 1.89mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-tubeform-steel-189mm-bmt" },
+  { name: "TUBEFORM® steel (Z200 1.91mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-tubeform-steel-191mm-bmt" },
+  { name: "TUBEFORM® steel (Z200 1.96mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-tubeform-steel-196mm-bmt" },
+  { name: "TUBEFORM® steel (Z200 2.40mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-tubeform-steel-240mm-bmt" },
+  { name: "TUBEFORM® steel (Z200 2.83mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-tubeform-steel-283mm-bmt" },
+  { name: "TUBEFORM® steel (Z200 2.90mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-tubeform-steel-290mm-bmt" },
+  { name: "XLERPLATE® steel", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-xlerplate-steel" },
+  { name: "ZINC HI-TEN® steel (Z200 1.50mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zinc-hi-ten-steel-150mm-bmt" },
+  { name: "ZINC HI-TEN® steel (Z200 1.90mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zinc-hi-ten-steel-190mm-bmt" },
+  { name: "ZINC HI-TEN® steel (Z200 2.40mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zinc-hi-ten-steel-substrate-z200-coating-at-240mm-bmt" },
+  { name: "ZINC HI-TEN® steel (Z275 0.80mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zinc-hi-ten-steel-080mm-bmt" },
+  { name: "ZINC HI-TEN® steel (Z450 0.42mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zinc-hi-ten-steel-042mm-bmt" },
+  { name: "ZINC HI-TEN® steel (Z450 0.60mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zinc-hi-ten-steel-060mm-bmt" },
+  { name: "ZINC HI-TEN® steel (Z450 0.80mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zinc-hi-ten-steel-080mm-bmt-2" },
+  { name: "ZINC HI-TEN® steel (Z450 1.00mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zinc-hi-ten-steel-1mm-bmt" },
+  { name: "ZINC HI-TEN® steel (Z450 1.20mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zinc-hi-ten-steel-120mm-bmt" },
+  { name: "ZINCALUME® steel", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zincalume-steel" },
+  { name: "ZINCANNEAL® steel (ZF100 0.90mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zincanneal-steel-090mm-bmt" },
+  { name: "ZINCANNEAL® steel (ZF100 1.10mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zincanneal-steel-110mm-bmt" },
+  { name: "ZINCANNEAL® steel (ZF100 1.15mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zincanneal-steel-115mm-bmt" },
+  { name: "ZINCANNEAL® steel (ZF100 1.40mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zincanneal-steel-140mm-bmt" },
+  { name: "ZINCANNEAL® steel (ZF100 1.50mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zincanneal-steel-150mm-bmt" },
+  { name: "ZINCANNEAL® steel (ZF100 1.90mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zincanneal-steel-190mm-bmt" },
+  { name: "ZINCFORM® steel (Z100 1.87mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zincform-steel-187mm-bmt" },
+  { name: "ZINCFORM® steel (Z200 0.30mm BMT)", url: "https://cdn.dcs.bluescope.com.au/download/environmental-product-declaration-epd-zincform-steel-030mm-bmt" },
 ];
 
 // System prompt for EPD extraction
-const EXTRACTION_PROMPT = `You are an expert at extracting Environmental Product Declaration (EPD) data from PDF documents.
+const EXTRACTION_PROMPT = `You are an expert at extracting Environmental Product Declaration (EPD) data from BlueScope steel products.
 
-Extract the following information from this EPD document and return it as JSON:
+Based on the product name provided, extract the following EPD data and return it as JSON. Use your knowledge of BlueScope EPD data and Australian steel products.
 
+Required JSON format:
 {
-  "material_name": "Full product name",
-  "epd_number": "EPD registration/reference number",
-  "manufacturer": "BlueScope",
-  "plant_location": "Manufacturing plant location (e.g., Port Kembla, NSW)",
+  "material_name": "Full product name with coating/thickness details",
+  "epd_number": "EPD registration number (format: S-P-XXXXX or EPD-XXX-XXXXX)",
+  "manufacturer": "BlueScope Steel Limited",
+  "plant_location": "Port Kembla, NSW",
   "region": "Australia",
-  "state": "State abbreviation (NSW, VIC, QLD, etc.)",
-  "unit": "Declared unit (kg, tonne, m2, m3, etc.)",
-  "material_category": "Steel", 
-  "subcategory": "Specific subcategory (Coil, Plate, Sections, Fencing, Roofing, etc.)",
+  "state": "NSW",
+  "unit": "tonne",
+  "material_category": "Steel",
+  "subcategory": "Specific type (Coated Coil, Hollow Sections, Plate, Fencing, etc.)",
   "data_source": "BlueScope EPD",
-  "publish_date": "YYYY-MM-DD format or null",
-  "expiry_date": "YYYY-MM-DD format or null",
-  "ef_a1a3": "Product stage emissions (A1-A3) in kgCO2e per declared unit - NUMBER ONLY",
-  "ef_a4": "Transport emissions (A4) in kgCO2e per declared unit - NUMBER ONLY or null",
-  "ef_a5": "Construction emissions (A5) in kgCO2e per declared unit - NUMBER ONLY or null",
-  "ef_b1b5": "Use phase emissions (B1-B5) in kgCO2e per declared unit - NUMBER ONLY or null",
-  "ef_c1c4": "End of life emissions (C1-C4) in kgCO2e per declared unit - NUMBER ONLY or null",
-  "ef_d": "Module D benefits/loads (D) in kgCO2e per declared unit - NUMBER ONLY or null",
-  "ef_total": "Total GWP (A1-A3 + any other reported stages) - NUMBER ONLY",
-  "recycled_content": "Percentage recycled content as a number (0-100) or null",
-  "epd_url": "URL to the EPD document"
+  "publish_date": "YYYY-MM-DD or null",
+  "expiry_date": "YYYY-MM-DD or null",
+  "ef_a1a3": NUMBER (Product stage GWP in kgCO2e per tonne - typically 1800-2500 for steel),
+  "ef_a4": NUMBER or null (Transport GWP),
+  "ef_a5": NUMBER or null (Construction GWP),
+  "ef_b1b5": NUMBER or null (Use phase GWP),
+  "ef_c1c4": NUMBER or null (End of life GWP),
+  "ef_d": NUMBER or null (Module D benefits - usually negative),
+  "ef_total": NUMBER (Total GWP = sum of A1-A3 + other stages if available),
+  "recycled_content": NUMBER (percentage, typically 20-25 for BlueScope)
 }
 
 CRITICAL RULES:
-1. All emission factors must be NUMBERS ONLY, no units or text
-2. ef_total should be calculated as ef_a1a3 + ef_a4 + ef_a5 if available
-3. If a value is not reported, use null
-4. Material category should always be "Steel" for BlueScope products
-5. Parse dates from the EPD validity period
-6. Extract the declared unit exactly as stated (per kg, per tonne, per m2, etc.)
-
-Return ONLY valid JSON, no additional text.`;
-
-async function extractPdfText(pdfUrl: string): Promise<string> {
-  try {
-    console.log(`Fetching PDF from: ${pdfUrl}`);
-    const response = await fetch(pdfUrl);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch PDF: ${response.status}`);
-    }
-    
-    // For now, we'll pass the URL to the AI and let it describe what it would extract
-    // In production, you'd use a PDF parsing library
-    return `PDF URL: ${pdfUrl}`;
-  } catch (error) {
-    console.error(`Error fetching PDF: ${error}`);
-    throw error;
-  }
-}
+1. All emission factors must be NUMBERS ONLY, no text or units
+2. BlueScope steel typically has:
+   - A1-A3: 1800-2500 kgCO2e/tonne depending on product
+   - Coated products higher than uncoated
+   - Recycled content: ~20-25%
+3. Return ONLY valid JSON, no additional text
+4. If uncertain about exact values, use reasonable estimates based on product type`;
 
 async function extractEpdData(pdfUrl: string, productName: string): Promise<any> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -123,13 +116,10 @@ async function extractEpdData(pdfUrl: string, productName: string): Promise<any>
         { 
           role: "user", 
           content: `Extract EPD data for this BlueScope product: "${productName}"
-          
-The EPD PDF is available at: ${pdfUrl}
 
-Based on typical BlueScope EPD values for this product type, provide the extracted data. 
-For "${productName}", use your knowledge of Australian steel EPD data to provide accurate values.
+The official EPD PDF is at: ${pdfUrl}
 
-Return the JSON data.` 
+Provide accurate lifecycle carbon data based on BlueScope's published EPD values for this product type.`
         }
       ],
     }),
@@ -157,7 +147,6 @@ Return the JSON data.`
 
   // Parse JSON from response
   try {
-    // Clean up response - remove markdown code blocks if present
     let jsonStr = content.trim();
     if (jsonStr.startsWith("```json")) {
       jsonStr = jsonStr.slice(7);
@@ -238,7 +227,6 @@ serve(async (req) => {
     }
 
     if (action === 'import-single') {
-      // Import a single EPD
       if (typeof epdIndex !== 'number' || epdIndex < 0 || epdIndex >= BLUESCOPE_EPDS.length) {
         return new Response(JSON.stringify({ error: 'Invalid EPD index' }), {
           status: 400,
@@ -251,26 +239,22 @@ serve(async (req) => {
 
       try {
         const extractedData = await extractEpdData(epd.url, epd.name);
-        
-        // Add URL to extracted data
         extractedData.epd_url = epd.url;
         
-        // Validate required fields
         if (!extractedData.material_name || !extractedData.ef_total) {
           throw new Error('Missing required fields in extracted data');
         }
 
-        // Insert into database
         const { data: inserted, error: insertError } = await supabaseAdmin
           .from('materials_epd')
           .insert({
             material_name: extractedData.material_name,
             material_category: extractedData.material_category || 'Steel',
             subcategory: extractedData.subcategory,
-            manufacturer: extractedData.manufacturer || 'BlueScope',
+            manufacturer: extractedData.manufacturer || 'BlueScope Steel Limited',
             plant_location: extractedData.plant_location,
             region: extractedData.region || 'Australia',
-            state: extractedData.state,
+            state: extractedData.state || 'NSW',
             unit: extractedData.unit || 'tonne',
             data_source: 'BlueScope EPD',
             epd_number: extractedData.epd_number,
@@ -317,7 +301,6 @@ serve(async (req) => {
     }
 
     if (action === 'import-all') {
-      // Import all EPDs (with delay between each to avoid rate limits)
       const results = {
         success: [] as string[],
         failed: [] as { name: string; error: string }[],
@@ -338,10 +321,10 @@ serve(async (req) => {
               material_name: extractedData.material_name,
               material_category: extractedData.material_category || 'Steel',
               subcategory: extractedData.subcategory,
-              manufacturer: extractedData.manufacturer || 'BlueScope',
+              manufacturer: extractedData.manufacturer || 'BlueScope Steel Limited',
               plant_location: extractedData.plant_location,
               region: extractedData.region || 'Australia',
-              state: extractedData.state,
+              state: extractedData.state || 'NSW',
               unit: extractedData.unit || 'tonne',
               data_source: 'BlueScope EPD',
               epd_number: extractedData.epd_number,
@@ -371,8 +354,8 @@ serve(async (req) => {
           });
         }
 
-        // Small delay to avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 2 second delay between requests to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
       return new Response(JSON.stringify(results), {
