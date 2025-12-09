@@ -144,7 +144,7 @@ async function extractTextWithAI(arrayBuffer: ArrayBuffer): Promise<string> {
   const uint8Array = new Uint8Array(arrayBuffer);
   const base64 = btoa(String.fromCharCode(...uint8Array));
 
-  const response = await fetch('https://ai.lovable.dev/api/v1/chat/completions', {
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${lovableApiKey}`,
@@ -158,26 +158,40 @@ async function extractTextWithAI(arrayBuffer: ArrayBuffer): Promise<string> {
           content: [
             {
               type: 'text',
-              text: `Extract ALL text content from this PDF document. Include all text you can see, preserving the general structure with line breaks between sections. Focus on extracting:
-- Product names and descriptions
-- Manufacturer information
-- Numbers, measurements, and values
-- Tables (format as plain text with clear separators)
-- Any certification or reference numbers
+              text: `You are an expert at extracting text from Environmental Product Declaration (EPD) PDF documents.
 
-Return ONLY the extracted text, no commentary or formatting notes.`
+Extract ALL text content from this PDF document. This is critical for compliance documentation.
+
+Focus on extracting:
+- Product names and descriptions
+- Manufacturer and company information
+- EPD registration/reference numbers (e.g., S-P-01234, EPD-IES-0012345)
+- All GWP (Global Warming Potential) values in tables:
+  - A1-A3 (Product stage)
+  - A4 (Transport)
+  - A5 (Installation)
+  - B1-B7 (Use stage)
+  - C1-C4 (End of life)
+  - Module D (Benefits)
+- Declared/functional unit (e.g., 1 kg, 1 m², 1 tonne)
+- Geographic scope
+- Valid until / expiry dates
+- Recycled content percentages
+- Plant/manufacturing location
+- Program operator (e.g., EPD Australasia, International EPD System)
+
+Format tables clearly with separators. Preserve numeric precision.
+Return ONLY the extracted text, no commentary.`
             },
             {
-              type: 'file',
-              file: {
-                filename: 'document.pdf',
-                file_data: `data:application/pdf;base64,${base64}`
+              type: 'image_url',
+              image_url: {
+                url: `data:application/pdf;base64,${base64}`
               }
             }
           ]
         }
       ],
-      max_tokens: 8000,
     }),
   });
 
