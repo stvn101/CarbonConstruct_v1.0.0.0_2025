@@ -38,6 +38,7 @@ interface MaterialSearchResultsProps {
   onAddMaterial: (materialId: string, factorType?: FactorType) => void;
   searchTerm: string;
   selectedCategory: string | null;
+  totalResultCount?: number;
 }
 
 function LCAMethodologyInfo() {
@@ -103,7 +104,8 @@ export function MaterialSearchResults({
   groupedMaterials, 
   onAddMaterial, 
   searchTerm,
-  selectedCategory 
+  selectedCategory,
+  totalResultCount 
 }: MaterialSearchResultsProps) {
   if (groupedMaterials.length === 0) {
     return (
@@ -112,6 +114,9 @@ export function MaterialSearchResults({
         <p className="text-sm text-muted-foreground">
           {searchTerm ? `No materials found for "${searchTerm}"` : "Select a category or search to browse materials"}
         </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Try searching for: concrete, steel, timber, plasterboard, insulation...
+        </p>
       </div>
     );
   }
@@ -119,9 +124,14 @@ export function MaterialSearchResults({
   return (
     <TooltipProvider>
       <div className="space-y-2">
-        {/* LCA Methodology Info */}
+        {/* Results count and LCA Methodology Info */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
           <div className="flex items-center gap-3 text-xs">
+            {totalResultCount !== undefined && totalResultCount > 0 && (
+              <span className="font-medium text-foreground bg-primary/10 px-2 py-0.5 rounded">
+                {totalResultCount.toLocaleString()} result{totalResultCount !== 1 ? 's' : ''}
+              </span>
+            )}
             <span className="inline-flex items-center gap-1 text-emerald-600">
               <FlaskConical className="h-3 w-3" /> Process
             </span>

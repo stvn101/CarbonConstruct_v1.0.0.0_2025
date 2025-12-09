@@ -288,21 +288,35 @@ export default function Calculator() {
       filtered = filtered.filter(m => m.material_category === selectedCategory);
     }
     
-    // Filter by search term
-    if (materialSearch.length >= 2) {
-      filtered = filtered.filter(m => 
-        m.material_name.toLowerCase().includes(materialSearch.toLowerCase()) ||
-        m.material_category.toLowerCase().includes(materialSearch.toLowerCase()) ||
-        (m.subcategory?.toLowerCase().includes(materialSearch.toLowerCase()) ?? false) ||
-        (m.manufacturer?.toLowerCase().includes(materialSearch.toLowerCase()) ?? false)
-      );
+    // Filter by search term - improved search logic
+    if (materialSearch.trim().length >= 2) {
+      const searchLower = materialSearch.toLowerCase().trim();
+      // Split search into words for multi-word matching
+      const searchWords = searchLower.split(/\s+/).filter(w => w.length > 0);
+      
+      filtered = filtered.filter(m => {
+        const nameL = m.material_name.toLowerCase();
+        const catL = m.material_category.toLowerCase();
+        const subL = m.subcategory?.toLowerCase() || '';
+        const mfrL = m.manufacturer?.toLowerCase() || '';
+        const locL = m.plant_location?.toLowerCase() || '';
+        
+        // All search words must match somewhere in the material
+        return searchWords.every(word => 
+          nameL.includes(word) ||
+          catL.includes(word) ||
+          subL.includes(word) ||
+          mfrL.includes(word) ||
+          locL.includes(word)
+        );
+      });
     }
     
     // For new UI, show results when category is selected OR search is active
     // For old UI, only show when search is active
     const shouldShow = useNewMaterialUI 
-      ? (selectedCategory || materialSearch.length >= 2 || selectedState)
-      : materialSearch.length >= 2;
+      ? (selectedCategory || materialSearch.trim().length >= 2 || selectedState)
+      : materialSearch.trim().length >= 2;
     
     if (!shouldShow) return [];
     
@@ -313,15 +327,19 @@ export default function Calculator() {
       groups.set(mat.material_category, existing);
     });
     
-    // Sort categories and limit items per category for performance
+    // Sort categories - no limit, show all matching results
     return Array.from(groups.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .slice(0, 30)
       .map(([cat, items]) => ({
         category: cat,
-        items: items.slice(0, 50) // Higher limit for better browsing
+        items: items // Show all matching items, no limit
       }));
   }, [dbMaterials, materialSearch, selectedCategory, selectedState, useNewMaterialUI]);
+  
+  // Total count of filtered materials for display
+  const filteredMaterialsCount = useMemo(() => 
+    groupedMaterials.reduce((acc, g) => acc + g.items.length, 0), 
+  [groupedMaterials]);
 
   // Auto-save to localStorage
   useEffect(() => {
@@ -1383,6 +1401,7 @@ export default function Calculator() {
                         onAddMaterial={addMaterialFromDb}
                         searchTerm={materialSearch}
                         selectedCategory={selectedCategory}
+                        totalResultCount={filteredMaterialsCount}
                       />
                     </div>
                   )}
