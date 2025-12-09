@@ -126,6 +126,73 @@ export function BulkEPDUploader() {
     return path;
   };
 
+  // Process a single file and return the result
+  const processSingleFile = async (
+    file: File, 
+    _fileIndex: number, 
+    session: any
+  ): Promise<ProcessedFile> => {
+    const result: ProcessedFile = {
+      fileName: file.name,
+      storagePath: null,
+      status: 'extracting',
+      products: [],
+      extractionConfidence: '',
+      extractionNotes: '',
+    };
+
+    try {
+      // 1. Upload PDF to storage
+      const storagePath = await uploadPDFToStorage(file);
+      result.storagePath = storagePath;
+
+      // 2. Extract text from PDF
+      const pdfText = await extractTextFromPDF(file);
+
+      if (!pdfText || pdfText.length < 50) {
+        throw new Error('Could not extract text from PDF. It may be image-based or corrupted.');
+      }
+
+      // 3. Send to AI for EPD extraction
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-epd-upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'extract',
+          pdfText,
+          fileName: file.name,
+          storagePath,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Extraction failed');
+      }
+
+      const extractionResult = await response.json();
+
+      return {
+        ...result,
+        status: 'extracted',
+        products: extractionResult.products || [],
+        extractionConfidence: extractionResult.extraction_confidence || 'unknown',
+        extractionNotes: extractionResult.extraction_notes || '',
+      };
+
+    } catch (error: any) {
+      console.error(`Error processing ${file.name}:`, error);
+      return {
+        ...result,
+        status: 'error',
+        error: error.message,
+      };
+    }
+  };
+
   const processFiles = async () => {
     if (files.length === 0) {
       toast.error('No files to process');
@@ -138,85 +205,69 @@ export function BulkEPDUploader() {
 
     const { data: { session } } = await supabase.auth.getSession();
 
-    for (let i = 0; i < files.length; i++) {
+    // Initialize all files as pending
+    const initialFiles: ProcessedFile[] = files.map(f => ({
+      fileName: f.name,
+      storagePath: null,
+      status: 'pending' as const,
+      products: [],
+      extractionConfidence: '',
+      extractionNotes: '',
+    }));
+    setProcessedFiles(initialFiles);
+
+    // Process files in batches of 3 for parallel processing
+    const BATCH_SIZE = 3;
+    const results: ProcessedFile[] = [];
+
+    for (let i = 0; i < files.length; i += BATCH_SIZE) {
+      const batch = files.slice(i, i + BATCH_SIZE);
       setCurrentFile(i);
-      const file = files[i];
+      
+      // Update status to extracting for this batch
+      setProcessedFiles(prev => prev.map((f, idx) => 
+        idx >= i && idx < i + BATCH_SIZE ? { ...f, status: 'extracting' } : f
+      ));
 
-      const newProcessed: ProcessedFile = {
-        fileName: file.name,
-        storagePath: null,
-        status: 'extracting',
-        products: [],
-        extractionConfidence: '',
-        extractionNotes: '',
-      };
+      toast.info(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(files.length/BATCH_SIZE)}...`);
 
-      setProcessedFiles(prev => [...prev, newProcessed]);
+      // Process batch in parallel
+      const batchResults = await Promise.all(
+        batch.map((file, batchIdx) => processSingleFile(file, i + batchIdx, session))
+      );
 
-      try {
-        // 1. Upload PDF to storage
-        toast.info(`Uploading ${file.name}...`);
-        const storagePath = await uploadPDFToStorage(file);
-
-        // 2. Extract text from PDF
-        toast.info(`Extracting text from ${file.name}...`);
-        const pdfText = await extractTextFromPDF(file);
-
-        if (!pdfText || pdfText.length < 50) {
-          throw new Error('Could not extract text from PDF. It may be image-based.');
-        }
-
-        // 3. Send to AI for EPD extraction
-        toast.info(`Analyzing ${file.name} with AI...`);
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-epd-upload`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            action: 'extract',
-            pdfText,
-            fileName: file.name,
-            storagePath,
-          }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Extraction failed');
-        }
-
-        const result = await response.json();
-
+      // Update results
+      batchResults.forEach((result, batchIdx) => {
+        const globalIdx = i + batchIdx;
         setProcessedFiles(prev => prev.map((f, idx) => 
-          idx === i ? {
-            ...f,
-            storagePath,
-            status: 'extracted',
-            products: result.products || [],
-            extractionConfidence: result.extraction_confidence || 'unknown',
-            extractionNotes: result.extraction_notes || '',
-          } : f
+          idx === globalIdx ? result : f
         ));
+        
+        if (result.status === 'extracted') {
+          toast.success(`${result.fileName}: ${result.products.length} products extracted`);
+        } else if (result.status === 'error') {
+          toast.error(`${result.fileName}: ${result.error}`);
+        }
+      });
 
-        toast.success(`Extracted ${result.products?.length || 0} products from ${file.name}`);
+      results.push(...batchResults);
 
-      } catch (error: any) {
-        console.error(`Error processing ${file.name}:`, error);
-        setProcessedFiles(prev => prev.map((f, idx) => 
-          idx === i ? {
-            ...f,
-            status: 'error',
-            error: error.message,
-          } : f
-        ));
-        toast.error(`Failed to process ${file.name}: ${error.message}`);
+      // Small delay between batches to avoid rate limiting
+      if (i + BATCH_SIZE < files.length) {
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
 
     setIsProcessing(false);
-    toast.success('Processing complete!');
+    
+    const successCount = results.filter(r => r.status === 'extracted').length;
+    const errorCount = results.filter(r => r.status === 'error').length;
+    
+    if (errorCount === 0) {
+      toast.success(`All ${successCount} files processed successfully!`);
+    } else {
+      toast.info(`Processed ${successCount} files, ${errorCount} failed.`);
+    }
   };
 
   const updateProduct = (fileIndex: number, productIndex: number, updates: Partial<ExtractedProduct>) => {
