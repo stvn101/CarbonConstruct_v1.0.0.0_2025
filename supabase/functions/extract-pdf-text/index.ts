@@ -90,13 +90,27 @@ serve(async (req) => {
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
 
-    // Extract text from PDF using basic text extraction
-    // This extracts text streams from the PDF structure
-    const text = extractTextFromPDF(uint8Array);
+    // Try basic text extraction first
+    let text = extractTextFromPDF(uint8Array);
+    
+    // If basic extraction failed or returned minimal text, use AI extraction
+    if (!text || text.trim().length < 100) {
+      console.log(`[extract-pdf-text] Basic extraction insufficient (${text?.length || 0} chars), using AI extraction`);
+      
+      try {
+        text = await extractTextWithAI(arrayBuffer);
+      } catch (aiError) {
+        console.error('[extract-pdf-text] AI extraction failed:', aiError);
+        return new Response(
+          JSON.stringify({ error: 'Could not extract text from PDF. The PDF may be corrupted or in an unsupported format.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     if (!text || text.trim().length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Could not extract text from PDF. The PDF may be image-based or protected.' }),
+        JSON.stringify({ error: 'Could not extract text from PDF. The PDF may be empty or corrupted.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -118,8 +132,67 @@ serve(async (req) => {
 });
 
 /**
- * Basic PDF text extraction
- * Extracts text content from PDF text streams
+ * Extract text from PDF using Lovable AI (Gemini) - handles image-based and complex PDFs
+ */
+async function extractTextWithAI(arrayBuffer: ArrayBuffer): Promise<string> {
+  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+  if (!lovableApiKey) {
+    throw new Error('LOVABLE_API_KEY not configured');
+  }
+
+  // Convert to base64
+  const uint8Array = new Uint8Array(arrayBuffer);
+  const base64 = btoa(String.fromCharCode(...uint8Array));
+
+  const response = await fetch('https://ai.lovable.dev/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${lovableApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `Extract ALL text content from this PDF document. Include all text you can see, preserving the general structure with line breaks between sections. Focus on extracting:
+- Product names and descriptions
+- Manufacturer information
+- Numbers, measurements, and values
+- Tables (format as plain text with clear separators)
+- Any certification or reference numbers
+
+Return ONLY the extracted text, no commentary or formatting notes.`
+            },
+            {
+              type: 'file',
+              file: {
+                filename: 'document.pdf',
+                file_data: `data:application/pdf;base64,${base64}`
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 8000,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('[extract-pdf-text] AI API error:', errorText);
+    throw new Error(`AI extraction failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
+/**
+ * Basic PDF text extraction - works for simple text-based PDFs
  */
 function extractTextFromPDF(data: Uint8Array): string {
   const decoder = new TextDecoder('latin1');
