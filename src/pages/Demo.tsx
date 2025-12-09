@@ -46,7 +46,9 @@ const comparisons = [
 const Demo = () => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
 
   const togglePlayback = () => {
     const video = videoRef.current;
@@ -61,12 +63,31 @@ const Demo = () => {
     }
   };
 
+  // Lazy load video when visible
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
-    if (video) {
+    if (video && isVisible) {
       video.playbackRate = 2.0;
     }
-  }, []);
+  }, [isVisible]);
 
   return (
     <>
@@ -95,19 +116,25 @@ const Demo = () => {
             </div>
 
             {/* Video Container */}
-            <div className="relative max-w-5xl mx-auto rounded-xl overflow-hidden shadow-2xl border border-border/50 bg-card">
-              <video
-                ref={videoRef}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full aspect-video object-cover"
-                poster="/hero-carbon-calc.webp"
-              >
-                <source src="/demo/boq-import-teaser.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+            <div ref={containerRef} className="relative max-w-5xl mx-auto rounded-xl overflow-hidden shadow-2xl border border-border/50 bg-card">
+              {isVisible ? (
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full aspect-video object-cover"
+                  poster="/hero-carbon-calc.webp"
+                >
+                  <source src="/demo/boq-import-teaser.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <div className="w-full aspect-video bg-muted flex items-center justify-center">
+                  <img src="/hero-carbon-calc.webp" alt="Loading video..." className="w-full h-full object-cover" />
+                </div>
+              )}
               
               {/* Play/Pause Button */}
               <button
