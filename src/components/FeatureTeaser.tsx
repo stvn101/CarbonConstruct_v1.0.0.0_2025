@@ -28,7 +28,9 @@ export const FeatureTeaser = () => {
   }
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [activeOverlays, setActiveOverlays] = useState<Overlay[]>([]);
+  const [isVisible, setIsVisible] = useState(false);
 
   const handleNavigate = useCallback(() => {
     if (navigate) {
@@ -38,9 +40,28 @@ export const FeatureTeaser = () => {
     }
   }, [navigate]);
 
+  // Lazy load video when visible
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !isVisible) return;
 
     // Slower playback for better readability
     video.playbackRate = 1.5;
@@ -58,7 +79,7 @@ export const FeatureTeaser = () => {
 
     video.addEventListener("timeupdate", handleTimeUpdate);
     return () => video.removeEventListener("timeupdate", handleTimeUpdate);
-  }, []);
+  }, [isVisible]);
 
   return (
     <section className="py-12 md:py-20 animate-fade-in">
@@ -80,20 +101,26 @@ export const FeatureTeaser = () => {
         </div>
 
         {/* Video Container */}
-        <div className="relative max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl border border-border/50 bg-card">
-          {/* Video Element */}
-          <video
-            ref={videoRef}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full aspect-video object-cover"
-            poster="/hero-carbon-calc.webp"
-          >
-            <source src="/demo/boq-import-teaser.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+        <div ref={containerRef} className="relative max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl border border-border/50 bg-card">
+          {/* Video Element - Lazy Loaded */}
+          {isVisible ? (
+            <video
+              ref={videoRef}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full aspect-video object-cover"
+              poster="/hero-carbon-calc.webp"
+            >
+              <source src="/demo/boq-import-teaser.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <div className="w-full aspect-video bg-muted flex items-center justify-center">
+              <img src="/hero-carbon-calc.webp" alt="Loading video..." className="w-full h-full object-cover" />
+            </div>
+          )}
 
           {/* Animated Overlays */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
