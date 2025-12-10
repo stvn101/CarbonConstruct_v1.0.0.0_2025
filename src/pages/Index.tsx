@@ -13,7 +13,7 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
 import { FeatureTeaser } from "@/components/FeatureTeaser";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle } from "lucide-react";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle, User, Shield, Leaf } from "lucide-react";
 import { CalculationHistory } from "@/components/CalculationHistory";
 const Index = () => {
   const {
@@ -93,16 +93,105 @@ const Index = () => {
             {/* Feature Teaser Video Section */}
             <FeatureTeaser />
 
+            {/* CTA Section */}
             <div className="space-y-3 md:space-y-4 animate-fade-in [animation-delay:0.4s]">
               <p className="text-sm md:text-base font-medium text-primary">
                 Free 14 day trial and Freemium option. No credit card required.
               </p>
-              <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
-                Get Started
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
+                  Start Free Trial
+                </Button>
+                <Button onClick={() => navigate("/pricing")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
+                  View Pricing
+                </Button>
+              </div>
               <p className="text-xs md:text-sm text-muted-foreground">
-                Sign up to start calculating your carbon footprint
+                No credit card required • Cancel anytime
               </p>
+            </div>
+
+            {/* Transparent Pricing Preview */}
+            <Card className="max-w-3xl mx-auto animate-fade-in [animation-delay:0.5s] border-primary/20 bg-gradient-to-br from-card/80 to-muted/30">
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-xl md:text-2xl">Transparent Pricing</CardTitle>
+                <CardDescription>Simple plans that grow with your projects</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                  <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50 border border-border/50">
+                    <div className="text-lg md:text-2xl font-bold text-primary">Free</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">$0/month</div>
+                    <div className="text-xs text-muted-foreground mt-1">1 project</div>
+                  </div>
+                  <div className="text-center p-3 md:p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-lg md:text-2xl font-bold text-primary">Pro</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">$29/month</div>
+                    <div className="text-xs text-muted-foreground mt-1">10 projects</div>
+                  </div>
+                  <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50 border border-border/50">
+                    <div className="text-lg md:text-2xl font-bold text-primary">Business</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">$99/month</div>
+                    <div className="text-xs text-muted-foreground mt-1">Unlimited</div>
+                  </div>
+                  <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50 border border-border/50">
+                    <div className="text-lg md:text-2xl font-bold text-primary">Enterprise</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Custom</div>
+                    <div className="text-xs text-muted-foreground mt-1">Contact us</div>
+                  </div>
+                </div>
+                <div className="text-center mt-4">
+                  <Button variant="link" onClick={() => navigate("/pricing")} className="text-primary">
+                    See full pricing details →
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Founder Section */}
+            <div className="max-w-4xl mx-auto animate-fade-in [animation-delay:0.6s]">
+              <Card className="border-accent/20 bg-gradient-to-br from-card to-accent/5">
+                <CardContent className="p-6 md:p-8">
+                  <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                    <div className="flex-shrink-0">
+                      <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+                        <User className="h-12 w-12 md:h-16 md:w-16 text-primary-foreground" />
+                      </div>
+                    </div>
+                    <div className="flex-1 text-center md:text-left space-y-3">
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-bold">From the Founder</h3>
+                        <p className="text-muted-foreground text-sm">Building for Australian Construction</p>
+                      </div>
+                      <blockquote className="text-sm md:text-base text-muted-foreground italic border-l-4 border-primary/30 pl-4">
+                        "I built CarbonConstruct because I saw firsthand how difficult carbon accounting was for Australian construction projects. 
+                        Between NCC Section J requirements, Green Star credits, and NABERS ratings, teams were drowning in spreadsheets. 
+                        This platform brings it all together with real Australian emission factors and compliance standards."
+                      </blockquote>
+                      <div className="flex items-center gap-2 justify-center md:justify-start">
+                        <Leaf className="h-4 w-4 text-primary" />
+                        <span className="text-xs text-muted-foreground">1% of every subscription supports carbon removal via Stripe Climate</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-muted-foreground animate-fade-in [animation-delay:0.7s]">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
+                <span>Bank-level encryption</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-primary" />
+                <span>NCC 2024 compliant</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Leaf className="h-4 w-4 text-primary" />
+                <span>Climate positive</span>
+              </div>
             </div>
           </div>
         </div>

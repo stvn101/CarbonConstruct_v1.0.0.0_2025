@@ -200,29 +200,32 @@ const Pricing = () => {
         })}
       </div>
 
-      {/* ROI Calculator Section */}
+      {/* Why CarbonConstruct Section - Honest Claims */}
       <Card className="mb-12">
         <CardHeader>
-          <CardTitle>Calculate Your ROI</CardTitle>
+          <CardTitle>Why CarbonConstruct?</CardTitle>
           <CardDescription>
-            See how much time and money you can save with automated carbon accounting
+            Built specifically for Australian construction compliance
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-3xl font-bold text-primary mb-2">40+</div>
-              <div className="text-sm text-muted-foreground">Hours saved per month on manual calculations</div>
+              <div className="text-3xl font-bold text-primary mb-2">8,000+</div>
+              <div className="text-sm text-muted-foreground">EPD materials in our database with verified emission factors</div>
             </div>
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-3xl font-bold text-primary mb-2">$15K+</div>
-              <div className="text-sm text-muted-foreground">Average annual savings on compliance costs</div>
+              <div className="text-3xl font-bold text-primary mb-2">4</div>
+              <div className="text-sm text-muted-foreground">Australian compliance frameworks supported (NCC, Green Star, NABERS, IS Rating)</div>
             </div>
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-3xl font-bold text-primary mb-2">99%</div>
-              <div className="text-sm text-muted-foreground">Accuracy with Australian emission factors</div>
+              <div className="text-3xl font-bold text-primary mb-2">EN 15978</div>
+              <div className="text-sm text-muted-foreground">Full lifecycle assessment methodology (A1-D stages)</div>
             </div>
           </div>
+          <p className="text-xs text-muted-foreground text-center mt-4">
+            All emission factors sourced from NABERS 2025 EPD List and ICE Database 2019
+          </p>
         </CardContent>
       </Card>
 

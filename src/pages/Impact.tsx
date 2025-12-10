@@ -2,7 +2,6 @@ import { Leaf, TrendingUp, Recycle, Globe, Target, Users, ExternalLink, Award, C
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { QuickCarbonCalculator } from '@/components/QuickCarbonCalculator';
 
 const Impact = () => {
@@ -240,43 +239,52 @@ const Impact = () => {
         </div>
       </div>
 
-      {/* Progress Towards Goals */}
+      {/* Our Commitments - Honest Progress Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Progress Towards Net Zero 2030</CardTitle>
-          <CardDescription>Our journey to carbon neutrality</CardDescription>
+          <CardTitle className="text-2xl">Our Sustainability Commitments</CardTitle>
+          <CardDescription>Transparent progress on our environmental goals</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="font-medium">Renewable Energy Usage</span>
-              <span className="text-muted-foreground">85%</span>
+              <span className="font-medium">Cloud Infrastructure (AWS/Vercel)</span>
+              <Badge variant="outline" className="text-xs">Powered by renewable commitments</Badge>
             </div>
-            <Progress value={85} className="h-2" />
+            <p className="text-xs text-muted-foreground">Our hosting providers have committed to 100% renewable energy</p>
           </div>
           
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="font-medium">Carbon Offset Contributions</span>
-              <span className="text-muted-foreground">70%</span>
+              <span className="font-medium">Stripe Climate Contribution</span>
+              <Badge variant="default" className="text-xs">Active</Badge>
             </div>
-            <Progress value={70} className="h-2" />
+            <p className="text-xs text-muted-foreground">1% of revenue automatically directed to carbon removal projects</p>
           </div>
           
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="font-medium">Paperless Operations</span>
-              <span className="text-muted-foreground">95%</span>
+              <span className="font-medium">Digital-First Operations</span>
+              <Badge variant="default" className="text-xs">100% Paperless</Badge>
             </div>
-            <Progress value={95} className="h-2" />
+            <p className="text-xs text-muted-foreground">All documentation and invoicing is fully digital</p>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="font-medium">Sustainable Partnerships</span>
-              <span className="text-muted-foreground">100%</span>
+              <span className="font-medium">Net Zero Goal</span>
+              <Badge variant="secondary" className="text-xs">Target: 2030</Badge>
             </div>
-            <Progress value={100} className="h-2" />
+            <p className="text-xs text-muted-foreground">Working toward carbon neutrality across all operations</p>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t text-xs text-muted-foreground">
+            <p>
+              <strong>Transparency note:</strong> We publish honest metrics. View our verified carbon removal contribution on 
+              <a href="https://climate.stripe.com/qDm9Cw" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">
+                Stripe Climate Dashboard
+              </a>.
+            </p>
           </div>
         </CardContent>
       </Card>
