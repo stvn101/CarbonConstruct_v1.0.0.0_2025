@@ -95,21 +95,31 @@ const Index = () => {
             {/* Feature Teaser Video Section */}
             <FeatureTeaser />
 
-            {/* CTA Section */}
-            <div className="space-y-3 md:space-y-4 animate-fade-in [animation-delay:0.4s]">
-              <p className="text-sm md:text-base font-medium text-primary">
-                Free 14 day trial and Freemium option. No credit card required.
-              </p>
+            {/* CTA Section - Freemium Emphasis */}
+            <div className="space-y-4 md:space-y-5 animate-fade-in [animation-delay:0.4s]">
+              <div className="flex flex-col items-center gap-2">
+                <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/30 px-4 py-1.5 text-sm font-semibold">
+                  <Leaf className="h-4 w-4 mr-1.5" />
+                  FOREVER FREE
+                </Badge>
+                <p className="text-lg md:text-xl font-bold text-foreground">
+                  Start Free. Stay Free. Forever.
+                </p>
+                <p className="text-sm md:text-base text-muted-foreground max-w-md">
+                  No credit card. No commitment. No expiration date.
+                </p>
+              </div>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
-                  Start Free Trial
+                <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700">
+                  <CheckCircle className="mr-2 h-5 w-5" />
+                  Start Free Forever
                 </Button>
-                <Button onClick={() => navigate("/pricing")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
-                  View Pricing
+                <Button onClick={() => navigate("/auth")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto border-primary/50">
+                  Start 14-Day Pro Trial
                 </Button>
               </div>
               <p className="text-xs md:text-sm text-muted-foreground">
-                No credit card required • Cancel anytime
+                Upgrade anytime when you need more • Keep your free account forever
               </p>
             </div>
 
@@ -323,39 +333,143 @@ const Index = () => {
               </Card>
             </div>
 
-            {/* Transparent Pricing Preview */}
-            <Card className="max-w-3xl mx-auto animate-fade-in [animation-delay:0.7s] border-primary/20 bg-gradient-to-br from-card/80 to-muted/30">
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-xl md:text-2xl">Transparent Pricing</CardTitle>
-                <CardDescription>Simple plans that grow with your projects</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                  <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50 border border-border/50">
-                    <div className="text-lg md:text-2xl font-bold text-primary">Free</div>
-                    <div className="text-xs md:text-sm text-muted-foreground">$0/month</div>
-                    <div className="text-xs text-muted-foreground mt-1">1 project</div>
+            {/* Free vs Pro Comparison */}
+            <div className="max-w-4xl mx-auto animate-fade-in [animation-delay:0.65s]">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Free vs Pro: Choose Your Path</h2>
+                <p className="text-muted-foreground">Start free and upgrade when you're ready</p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+                {/* Free Tier Card */}
+                <Card className="relative border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 overflow-hidden">
+                  <div className="absolute top-0 right-0">
+                    <Badge className="rounded-none rounded-bl-lg bg-emerald-500 text-white border-0 px-3 py-1">
+                      FOREVER FREE
+                    </Badge>
                   </div>
-                  <div className="text-center p-3 md:p-4 rounded-lg bg-primary/10 border border-primary/30">
-                    <div className="text-lg md:text-2xl font-bold text-primary">Pro</div>
-                    <div className="text-xs md:text-sm text-muted-foreground">$79/month</div>
-                    <div className="text-xs text-muted-foreground mt-1">10 projects</div>
+                  <CardHeader className="pt-8">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                        <CheckCircle className="h-6 w-6 text-emerald-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl text-emerald-600">Free</CardTitle>
+                        <CardDescription className="text-lg font-bold">$0/month forever</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ul className="space-y-3 text-sm">
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <span>1 active project</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <span>4,000+ EPD materials database</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <span>Basic carbon calculations</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <span>Standard PDF reports</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <span>NCC compliance checking</span>
+                      </li>
+                    </ul>
+                    <Button 
+                      onClick={() => navigate("/auth")} 
+                      className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      size="lg"
+                    >
+                      Get Started Free
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      No credit card required
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Pro Tier Card */}
+                <Card className="relative border-2 border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
+                  <div className="absolute top-0 right-0">
+                    <Badge className="rounded-none rounded-bl-lg bg-primary text-primary-foreground border-0 px-3 py-1">
+                      MOST POPULAR
+                    </Badge>
                   </div>
-                  <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50 border border-border/50">
-                    <div className="text-lg md:text-2xl font-bold text-primary">Business</div>
-                    <div className="text-xs md:text-sm text-muted-foreground">$249/month</div>
-                    <div className="text-xs text-muted-foreground mt-1">Unlimited</div>
+                  <CardHeader className="pt-8">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Award className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl text-primary">Pro</CardTitle>
+                        <CardDescription className="text-lg font-bold">$79/month</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ul className="space-y-3 text-sm">
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span><strong>10 active projects</strong></span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span>Everything in Free, plus:</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span>AI BOQ import & parsing</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span>EN 15978 lifecycle analysis</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span>Advanced compliance reports</span>
+                      </li>
+                    </ul>
+                    <Button 
+                      onClick={() => navigate("/auth")} 
+                      className="w-full"
+                      size="lg"
+                    >
+                      Start 14-Day Free Trial
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      Then $79/month • Cancel anytime
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="text-center mt-4">
+                <Button variant="link" onClick={() => navigate("/pricing")} className="text-primary">
+                  See Business & Enterprise plans →
+                </Button>
+              </div>
+            </div>
+
+            {/* Why Start Free Callout */}
+            <Card className="max-w-2xl mx-auto animate-fade-in [animation-delay:0.7s] border-emerald-500/30 bg-emerald-500/5">
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                    <Leaf className="h-5 w-5 text-emerald-600" />
                   </div>
-                  <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50 border border-border/50">
-                    <div className="text-lg md:text-2xl font-bold text-primary">Enterprise</div>
-                    <div className="text-xs md:text-sm text-muted-foreground">Custom</div>
-                    <div className="text-xs text-muted-foreground mt-1">Contact us</div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Why Start Free?</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Your free account never expires. Start with one project, explore the full materials database, 
+                      and generate compliant reports. When you're ready for more projects or advanced features, 
+                      upgrade seamlessly—your data stays with you.
+                    </p>
                   </div>
-                </div>
-                <div className="text-center mt-4">
-                  <Button variant="link" onClick={() => navigate("/pricing")} className="text-primary">
-                    See full pricing details →
-                  </Button>
                 </div>
               </CardContent>
             </Card>
