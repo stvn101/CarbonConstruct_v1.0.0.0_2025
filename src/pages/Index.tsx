@@ -13,8 +13,10 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
 import { FeatureTeaser } from "@/components/FeatureTeaser";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle, User, Shield, Leaf } from "lucide-react";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle, User, Shield, Leaf, Check, X, HardHat, Award, Building2 } from "lucide-react";
 import { CalculationHistory } from "@/components/CalculationHistory";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 const Index = () => {
   const {
     user,
@@ -111,8 +113,218 @@ const Index = () => {
               </p>
             </div>
 
+            {/* Comparison Table Section */}
+            <div className="max-w-5xl mx-auto animate-fade-in [animation-delay:0.5s]">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Why CarbonConstruct?</h2>
+                <p className="text-muted-foreground">See how we compare to traditional methods and generic tools</p>
+              </div>
+              <Card className="border-primary/20 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold">Feature</TableHead>
+                        <TableHead className="text-center font-semibold">
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-primary">CarbonConstruct</span>
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-center font-semibold">Manual Spreadsheets</TableHead>
+                        <TableHead className="text-center font-semibold">Generic Carbon Tools</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className="font-medium">Australian Compliance</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">NCC, Green Star, NABERS, IS Rating</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Manual research</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Basic or none</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Material Database</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">4,000+ verified EPDs</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Build your own</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Limited, international</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Supply Chain Integration</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">Real-time Scope 3</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Disconnected</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Bolted-on afterthought</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Built By</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <HardHat className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">17 years construction</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">N/A</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">Consultants</span>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Time to Report</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">Minutes</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">Days to weeks</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">Hours</span>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Data Sources</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">EPD Australasia, NABERS</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">Self-sourced, unverified</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">Varies, often unverified</span>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            </div>
+
+            {/* Founder Section - Expanded */}
+            <div className="max-w-5xl mx-auto animate-fade-in [animation-delay:0.6s]">
+              <Card className="border-accent/20 bg-gradient-to-br from-card via-card to-accent/5 overflow-hidden">
+                <CardContent className="p-6 md:p-8 lg:p-10">
+                  <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Left Column - Photo & Credentials */}
+                    <div className="flex flex-col items-center lg:items-start gap-4 lg:w-1/3">
+                      <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg ring-4 ring-primary/20">
+                        <User className="h-16 w-16 md:h-20 md:w-20 text-primary-foreground" />
+                      </div>
+                      <div className="text-center lg:text-left">
+                        <h3 className="text-xl md:text-2xl font-bold">Steven</h3>
+                        <p className="text-muted-foreground text-sm">Founder, CarbonConstruct</p>
+                        <p className="text-muted-foreground text-xs mt-1">Director, United Facade Pty Ltd</p>
+                      </div>
+                      {/* Credentials Badges */}
+                      <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                        <Badge variant="secondary" className="text-xs">
+                          <HardHat className="h-3 w-3 mr-1" />
+                          17 Years Construction
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          <Award className="h-3 w-3 mr-1" />
+                          Cert IV WHS
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          <Building2 className="h-3 w-3 mr-1" />
+                          MBA Queensland
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          <Leaf className="h-3 w-3 mr-1" />
+                          GBCA Member
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Right Column - Story */}
+                    <div className="flex-1 space-y-4">
+                      <h4 className="text-lg md:text-xl font-bold text-primary">
+                        Built By Someone Who's Actually Built Things
+                      </h4>
+                      
+                      <div className="space-y-3 text-sm md:text-base text-muted-foreground">
+                        <p>
+                          I've spent 17 years building things—commercial towers, partitions, steel-framed systems across Southeast Queensland, NSW, and Victoria. I know what actually happens on construction sites. I know where materials come from, how they move through projects, and where carbon accounting breaks down in practice.
+                        </p>
+                        <p>
+                          <strong className="text-foreground">Most carbon tools are built by people who've never stepped on a site. That's the problem.</strong>
+                        </p>
+                        <p>
+                          I'm a carpenter and plasterer by trade, and I built CarbonConstruct because the tools that exist don't work for how construction actually operates. They're compliance checkboxes built by consultants who don't understand material flows, supply chain realities, or what happens when you're speccing materials at 6am before a pour.
+                        </p>
+                        <p>
+                          CarbonConstruct isn't another calculator. It's infrastructure that makes carbon data, material sourcing, and project quoting exist in the same workflow. When you're speccing materials, the carbon is already there. Scope 3 downstream tracking isn't bolted on—it's integrated because I've lived the supply chain pressure points that most platforms completely miss.
+                        </p>
+                      </div>
+
+                      {/* Key Quote */}
+                      <blockquote className="border-l-4 border-primary pl-4 py-2 bg-primary/5 rounded-r-lg">
+                        <p className="text-sm md:text-base font-medium italic">
+                          "This is what construction carbon accountability looks like when it's built by someone who's actually built things."
+                        </p>
+                      </blockquote>
+
+                      <div className="flex items-center gap-2 pt-2">
+                        <Leaf className="h-4 w-4 text-primary" />
+                        <span className="text-xs text-muted-foreground">1% of every subscription supports carbon removal via Stripe Climate</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Transparent Pricing Preview */}
-            <Card className="max-w-3xl mx-auto animate-fade-in [animation-delay:0.5s] border-primary/20 bg-gradient-to-br from-card/80 to-muted/30">
+            <Card className="max-w-3xl mx-auto animate-fade-in [animation-delay:0.7s] border-primary/20 bg-gradient-to-br from-card/80 to-muted/30">
               <CardHeader className="text-center pb-2">
                 <CardTitle className="text-xl md:text-2xl">Transparent Pricing</CardTitle>
                 <CardDescription>Simple plans that grow with your projects</CardDescription>
@@ -126,12 +338,12 @@ const Index = () => {
                   </div>
                   <div className="text-center p-3 md:p-4 rounded-lg bg-primary/10 border border-primary/30">
                     <div className="text-lg md:text-2xl font-bold text-primary">Pro</div>
-                    <div className="text-xs md:text-sm text-muted-foreground">$29/month</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">$79/month</div>
                     <div className="text-xs text-muted-foreground mt-1">10 projects</div>
                   </div>
                   <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50 border border-border/50">
                     <div className="text-lg md:text-2xl font-bold text-primary">Business</div>
-                    <div className="text-xs md:text-sm text-muted-foreground">$99/month</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">$249/month</div>
                     <div className="text-xs text-muted-foreground mt-1">Unlimited</div>
                   </div>
                   <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50 border border-border/50">
@@ -148,38 +360,8 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            {/* Founder Section */}
-            <div className="max-w-4xl mx-auto animate-fade-in [animation-delay:0.6s]">
-              <Card className="border-accent/20 bg-gradient-to-br from-card to-accent/5">
-                <CardContent className="p-6 md:p-8">
-                  <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-                    <div className="flex-shrink-0">
-                      <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-                        <User className="h-12 w-12 md:h-16 md:w-16 text-primary-foreground" />
-                      </div>
-                    </div>
-                    <div className="flex-1 text-center md:text-left space-y-3">
-                      <div>
-                        <h3 className="text-xl md:text-2xl font-bold">From the Founder</h3>
-                        <p className="text-muted-foreground text-sm">Building for Australian Construction</p>
-                      </div>
-                      <blockquote className="text-sm md:text-base text-muted-foreground italic border-l-4 border-primary/30 pl-4">
-                        "I built CarbonConstruct because I saw firsthand how difficult carbon accounting was for Australian construction projects. 
-                        Between NCC Section J requirements, Green Star credits, and NABERS ratings, teams were drowning in spreadsheets. 
-                        This platform brings it all together with real Australian emission factors and compliance standards."
-                      </blockquote>
-                      <div className="flex items-center gap-2 justify-center md:justify-start">
-                        <Leaf className="h-4 w-4 text-primary" />
-                        <span className="text-xs text-muted-foreground">1% of every subscription supports carbon removal via Stripe Climate</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
             {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-muted-foreground animate-fade-in [animation-delay:0.7s]">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-muted-foreground animate-fade-in [animation-delay:0.8s]">
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-primary" />
                 <span>Bank-level encryption</span>
