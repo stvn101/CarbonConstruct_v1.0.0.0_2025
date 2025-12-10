@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, MapPin, Linkedin, Twitter, Github } from "lucide-react";
+import { Mail, MapPin, Linkedin, Facebook, Instagram } from "lucide-react";
 import logoImageWebp from "@/assets/carbonconstruct-logo-optimized.webp";
 
 export const Footer = () => {
@@ -20,14 +20,14 @@ export const Footer = () => {
               NCC compliant with Green Star and NABERS integration.
             </p>
             <div className="flex gap-3">
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href="https://linkedin.com/company/carbonconstruct" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                <Twitter className="h-5 w-5" />
+              <a href="https://facebook.com/carbonconstruct" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                <Facebook className="h-5 w-5" />
               </a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                <Github className="h-5 w-5" />
+              <a href="https://instagram.com/carbonconstruct" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                <Instagram className="h-5 w-5" />
               </a>
             </div>
           </div>
