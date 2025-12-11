@@ -66,7 +66,7 @@ export const UsageDisplay = () => {
             )}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6" aria-live="polite">
           {/* Projects Usage */}
           <div>
             <div className="flex items-center justify-between mb-2">
