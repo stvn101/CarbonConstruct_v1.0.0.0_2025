@@ -6,6 +6,7 @@ export interface SubscriptionTier {
   id: string;
   name: string;
   stripe_price_id: string | null;
+  stripe_price_id_yearly: string | null;
   price_monthly: number;
   price_annual: number | null;
   features: string[];
@@ -77,6 +78,7 @@ export const useSubscription = () => {
         id: string;
         name: string;
         stripe_price_id: string | null;
+        stripe_price_id_yearly: string | null;
         price_monthly: number;
         price_annual: number | null;
         features: unknown;
