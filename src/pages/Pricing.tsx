@@ -286,7 +286,7 @@ const Pricing = () => {
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Leaf className="h-3.5 w-3.5 text-primary" />
-                      <span>1% supports carbon removal</span>
+                      <span>0.5% supports carbon removal</span>
                     </div>
                   </div>
                 )}

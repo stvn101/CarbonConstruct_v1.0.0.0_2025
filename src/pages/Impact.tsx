@@ -7,7 +7,7 @@ import { QuickCarbonCalculator } from '@/components/QuickCarbonCalculator';
 const Impact = () => {
   const impactStats = [
     {
-      value: '1%',
+      value: '0.5%',
       label: 'Revenue to Carbon Removal',
       description: 'Every subscription contributes directly to verified carbon removal projects',
       icon: Leaf,
@@ -165,7 +165,7 @@ const Impact = () => {
           </div>
           <Button variant="outline" className="mt-4" asChild>
             <a href="https://climate.stripe.com/qDm9Cw" target="_blank" rel="noopener noreferrer">
-              View Our Climate Dashboard
+              Learn more about our Stripe Climate partnership
               <ExternalLink className="ml-2 h-4 w-4" />
             </a>
           </Button>
@@ -259,7 +259,7 @@ const Impact = () => {
               <span className="font-medium">Stripe Climate Contribution</span>
               <Badge variant="default" className="text-xs">Active</Badge>
             </div>
-            <p className="text-xs text-muted-foreground">1% of revenue automatically directed to carbon removal projects</p>
+            <p className="text-xs text-muted-foreground">0.5% of revenue automatically directed to carbon removal projects</p>
           </div>
           
           <div className="space-y-2">
