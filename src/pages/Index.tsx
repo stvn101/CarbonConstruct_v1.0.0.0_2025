@@ -303,7 +303,7 @@ const Index = () => {
                       
                       <div className="space-y-3 text-sm md:text-base text-muted-foreground">
                         <p>
-                          I've spent 17 years building things—commercial towers, partitions, steel-framed systems across Southeast Queensland, NSW, and Victoria. I know what actually happens on construction sites. I know where materials come from, how they move through projects, and where carbon accounting breaks down in practice.
+                          I've spent 17 years building things—commercial towers, partitions, steel-framed systems across Southeast Queensland. I know what actually happens on construction sites. I know where materials come from, how they move through projects, and where carbon accounting breaks down in practice.
                         </p>
                         <p>
                           <strong className="text-foreground">Most carbon tools are built by people who've never stepped on a site. That's the problem.</strong>
