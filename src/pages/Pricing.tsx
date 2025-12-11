@@ -31,8 +31,8 @@ const PRICING_TIERS = [
   {
     name: 'Professional',
     icon: Crown,
-    price: 49,
-    priceYearly: 470,
+    price: 79,
+    priceYearly: 790,
     description: 'For serious carbon tracking',
     stripePriceId: 'price_1Scw3eP7JT8gu0WnWKOJ5B6d',
     stripePriceIdYearly: 'price_1Scw3fP7JT8gu0WnQguub7mx',
@@ -52,8 +52,8 @@ const PRICING_TIERS = [
   {
     name: 'Business',
     icon: Building2,
-    price: 149,
-    priceYearly: 1430,
+    price: 249,
+    priceYearly: 2490,
     description: 'For teams and organisations',
     stripePriceId: 'price_1Scw3dP7JT8gu0WnsZsM7ip0',
     stripePriceIdYearly: 'price_1Scw3eP7JT8gu0WnUwLw5drx',
