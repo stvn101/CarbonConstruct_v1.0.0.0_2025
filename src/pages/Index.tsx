@@ -325,7 +325,7 @@ const Index = () => {
 
                       <div className="flex items-center gap-2 pt-2">
                         <Leaf className="h-4 w-4 text-primary" />
-                        <span className="text-xs text-muted-foreground">1% of every subscription supports carbon removal via Stripe Climate</span>
+                        <span className="text-xs text-muted-foreground">0.5% of every subscription supports carbon removal via Stripe Climate</span>
                       </div>
                     </div>
                   </div>

@@ -170,7 +170,7 @@ const Pricing = () => {
                 <Badge variant="secondary" className="text-xs">Stripe Climate</Badge>
               </h3>
               <p className="text-muted-foreground mb-3">
-                1% of every subscription goes directly to carbon removal through Stripe Climate. 
+                0.5% of every subscription goes directly to carbon removal through Stripe Climate. 
                 We're committed to helping reverse climate change while you track emissions.
               </p>
               <a 

@@ -148,7 +148,7 @@ const Impact = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            Through our partnership with Stripe Climate, <strong>1% of every subscription</strong> goes directly 
+            Through our partnership with Stripe Climate, <strong>0.5% of every subscription</strong> goes directly 
             to funding cutting-edge carbon removal technologies. We believe in supporting frontier solutions 
             that will scale to help reverse climate change.
           </p>
