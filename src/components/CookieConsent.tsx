@@ -62,7 +62,7 @@ export function CookieConsent() {
                 We use essential cookies for site functionality and analytics cookies to understand how you use CarbonConstruct. 
                 You can choose to accept or decline non-essential cookies.{" "}
                 <Link to="/cookies" className="text-primary hover:underline">
-                  Learn more
+                  View our cookie policy
                 </Link>
               </p>
             </div>
