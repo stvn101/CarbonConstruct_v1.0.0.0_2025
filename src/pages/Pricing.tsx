@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Check, Zap, Building2, Crown, ArrowRight, Leaf, ExternalLink, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -97,6 +98,7 @@ const Pricing = () => {
   const { tier_name: currentTierName } = useSubscriptionStatus();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
   const handleGetStarted = (tierName: string) => {
     if (tierName === 'Enterprise') {
@@ -115,13 +117,42 @@ const Pricing = () => {
       />
       
       {/* Header */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-4">
           Simple, Transparent Pricing
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Choose the plan that's right for your carbon accounting needs. All plans include Australian compliance standards.
         </p>
+      </div>
+
+      {/* Billing Period Toggle */}
+      <div className="flex items-center justify-center gap-4 mb-12">
+        <div className="inline-flex items-center bg-muted rounded-full p-1">
+          <button
+            onClick={() => setBillingPeriod('monthly')}
+            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+              billingPeriod === 'monthly'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingPeriod('yearly')}
+            className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+              billingPeriod === 'yearly'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Yearly
+            <Badge className="bg-emerald-600 text-white text-xs px-2 py-0.5">
+              Save 17%
+            </Badge>
+          </button>
+        </div>
       </div>
 
       {/* Stripe Climate Badge */}
@@ -211,15 +242,21 @@ const Pricing = () => {
                       <span className="text-sm text-muted-foreground ml-1">forever</span>
                       <p className="text-xs text-emerald-600 font-medium">No credit card required</p>
                     </div>
-                  ) : (
+                  ) : billingPeriod === 'monthly' ? (
                     <div className="space-y-1">
                       <span className="text-3xl font-bold text-foreground">${tier.price}</span>
                       <span className="text-sm text-muted-foreground">/month</span>
-                      {tier.priceYearly && (
-                        <p className="text-xs text-muted-foreground">
-                          or ${tier.priceYearly}/year (save ${(tier.price * 12 - tier.priceYearly)})
-                        </p>
-                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Billed monthly
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <span className="text-3xl font-bold text-foreground">${tier.priceYearly}</span>
+                      <span className="text-sm text-muted-foreground">/year</span>
+                      <p className="text-xs text-emerald-600 font-medium">
+                        ${Math.round(tier.priceYearly! / 12)}/mo · Save ${tier.price * 12 - tier.priceYearly!}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -271,7 +308,7 @@ const Pricing = () => {
                   </Button>
                 ) : tier.stripePriceId && user ? (
                   <CheckoutButton
-                    priceId={tier.stripePriceId}
+                    priceId={billingPeriod === 'yearly' && tier.stripePriceIdYearly ? tier.stripePriceIdYearly : tier.stripePriceId}
                     tierName={tier.name}
                     variant={isPopular ? 'default' : isForeverFree ? 'outline' : 'outline'}
                     className={`w-full ${isForeverFree ? 'border-emerald-500 text-emerald-600 hover:bg-emerald-500/10' : ''}`}
