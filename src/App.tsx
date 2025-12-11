@@ -58,7 +58,12 @@ const App = () => (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <MonitoringProvider>
             <Layout>
-              <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+              <Suspense fallback={
+                <div className="flex items-center justify-center min-h-screen" role="status" aria-live="polite">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" aria-hidden="true"></div>
+                  <span className="sr-only">Loading page content...</span>
+                </div>
+              }>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
