@@ -112,8 +112,16 @@ export const FeatureTeaser = () => {
               playsInline
               className="w-full aspect-video object-cover"
               poster="/hero-carbon-calc.webp"
+              aria-label="Demonstration of AI-powered BOQ import feature"
             >
               <source src="/demo/boq-import-teaser.mp4" type="video/mp4" />
+              <track 
+                kind="captions" 
+                src="/demo/boq-import-teaser.vtt" 
+                srcLang="en" 
+                label="English captions"
+                default
+              />
               Your browser does not support the video tag.
             </video>
           ) : (
@@ -160,7 +168,7 @@ export const FeatureTeaser = () => {
           <Button
             onClick={handleNavigate}
             size="lg"
-            className="text-base md:text-lg px-8 py-6 hover-scale shadow-lg"
+            className="text-base md:text-lg px-8 py-6 hover-scale shadow-lg bg-primary text-primary-foreground font-semibold"
           >
             <Calculator className="mr-2 h-5 w-5" />
             Try AI BOQ Import

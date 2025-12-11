@@ -98,7 +98,7 @@ const Index = () => {
             {/* CTA Section - Freemium Emphasis */}
             <div className="space-y-4 md:space-y-5 animate-fade-in [animation-delay:0.4s]">
               <div className="flex flex-col items-center gap-2">
-                <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/30 px-4 py-1.5 text-sm font-semibold">
+                <Badge className="bg-emerald-600/20 text-emerald-700 border-emerald-600/40 hover:bg-emerald-600/30 px-4 py-1.5 text-sm font-bold">
                   <Leaf className="h-4 w-4 mr-1.5" />
                   FOREVER FREE
                 </Badge>
@@ -110,7 +110,7 @@ const Index = () => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-semibold">
                   <CheckCircle className="mr-2 h-5 w-5" />
                   Start Free Forever
                 </Button>
@@ -341,19 +341,19 @@ const Index = () => {
               </div>
               <div className="grid md:grid-cols-2 gap-4 md:gap-6">
                 {/* Free Tier Card */}
-                <Card className="relative border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 overflow-hidden">
+                <Card className="relative border-2 border-emerald-600/50 bg-gradient-to-br from-emerald-600/5 to-emerald-600/10 overflow-hidden">
                   <div className="absolute top-0 right-0">
-                    <Badge className="rounded-none rounded-bl-lg bg-emerald-500 text-white border-0 px-3 py-1">
+                    <Badge className="rounded-none rounded-bl-lg bg-emerald-700 text-white border-0 px-3 py-1 font-semibold">
                       FOREVER FREE
                     </Badge>
                   </div>
                   <CardHeader className="pt-8">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                        <CheckCircle className="h-6 w-6 text-emerald-600" />
+                      <div className="w-12 h-12 rounded-full bg-emerald-600/20 flex items-center justify-center">
+                        <CheckCircle className="h-6 w-6 text-emerald-700" />
                       </div>
                       <div>
-                        <CardTitle className="text-2xl text-emerald-600">Free</CardTitle>
+                        <CardTitle className="text-2xl text-emerald-700 font-bold">Free</CardTitle>
                         <CardDescription className="text-lg font-bold">$0/month forever</CardDescription>
                       </div>
                     </div>
@@ -361,29 +361,29 @@ const Index = () => {
                   <CardContent className="space-y-4">
                     <ul className="space-y-3 text-sm">
                       <li className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <Check className="h-4 w-4 text-emerald-700 flex-shrink-0" />
                         <span>1 active project</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <Check className="h-4 w-4 text-emerald-700 flex-shrink-0" />
                         <span>4,000+ EPD materials database</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <Check className="h-4 w-4 text-emerald-700 flex-shrink-0" />
                         <span>Basic carbon calculations</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <Check className="h-4 w-4 text-emerald-700 flex-shrink-0" />
                         <span>Standard PDF reports</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <Check className="h-4 w-4 text-emerald-700 flex-shrink-0" />
                         <span>NCC compliance checking</span>
                       </li>
                     </ul>
                     <Button 
                       onClick={() => navigate("/auth")} 
-                      className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold"
                       size="lg"
                     >
                       Get Started Free
@@ -456,11 +456,11 @@ const Index = () => {
             </div>
 
             {/* Why Start Free Callout */}
-            <Card className="max-w-2xl mx-auto animate-fade-in [animation-delay:0.7s] border-emerald-500/30 bg-emerald-500/5">
+            <Card className="max-w-2xl mx-auto animate-fade-in [animation-delay:0.7s] border-emerald-600/30 bg-emerald-600/5">
               <CardContent className="p-4 md:p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                    <Leaf className="h-5 w-5 text-emerald-600" />
+                  <div className="w-10 h-10 rounded-full bg-emerald-600/20 flex items-center justify-center flex-shrink-0">
+                    <Leaf className="h-5 w-5 text-emerald-700" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Why Start Free?</h3>
