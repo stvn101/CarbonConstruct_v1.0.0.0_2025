@@ -34,7 +34,7 @@ All colors MUST be HSL.
 
     /* Muted: Subtle Grey-Green */
     --muted: 220 15% 85%;
-    --muted-foreground: 220 15% 40%;
+    --muted-foreground: 220 15% 32%;
 
     /* Scope Colors for Data Visualization - Maximum Vibrancy */
     --scope-1: 15 90% 58%;        /* Bright coral-red for direct emissions */
