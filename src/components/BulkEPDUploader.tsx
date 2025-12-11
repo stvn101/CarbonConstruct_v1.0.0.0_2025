@@ -468,7 +468,7 @@ export function BulkEPDUploader() {
                             ({(file.size / 1024 / 1024).toFixed(1)} MB)
                           </span>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => removeFile(i)}>
+                        <Button variant="ghost" size="icon" onClick={() => removeFile(i)} aria-label={`Remove file ${file.name}`}>
                           <XCircle className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
@@ -595,6 +595,7 @@ export function BulkEPDUploader() {
                                     variant="ghost" 
                                     size="icon"
                                     onClick={() => setEditingProduct({ fileIndex, productIndex })}
+                                    aria-label={`Edit ${product.product_name}`}
                                   >
                                     <Edit2 className="h-4 w-4" />
                                   </Button>
@@ -602,6 +603,7 @@ export function BulkEPDUploader() {
                                     variant="ghost" 
                                     size="icon"
                                     onClick={() => removeProduct(fileIndex, productIndex)}
+                                    aria-label={`Delete ${product.product_name}`}
                                   >
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                   </Button>

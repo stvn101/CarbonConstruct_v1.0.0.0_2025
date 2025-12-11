@@ -23,27 +23,27 @@ const otherItems = [{
   title: "Settings",
   url: "/settings",
   icon: Settings,
-  color: "text-muted-foreground"
+  color: "text-sidebar-foreground/70"
 }, {
   title: "Pricing",
   url: "/pricing",
   icon: DollarSign,
-  color: "text-muted-foreground"
+  color: "text-amber-400"
 }, {
   title: "Our Impact",
   url: "/impact",
   icon: Leaf,
-  color: "text-green-600"
+  color: "text-green-400"
 }, {
   title: "Roadmap",
   url: "/roadmap",
   icon: Map,
-  color: "text-blue-600"
+  color: "text-blue-400"
 }, {
   title: "Help & Resources",
   url: "/help",
   icon: HelpCircle,
-  color: "text-muted-foreground"
+  color: "text-cyan-400"
 }];
 export function AppSidebar() {
   useSidebar();
