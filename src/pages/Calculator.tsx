@@ -1697,7 +1697,7 @@ export default function Calculator() {
                   {/* Use Phase (B1-B7) */}
                   <Collapsible open={usePhaseOpen} onOpenChange={setUsePhaseOpen}>
                     <CollapsibleTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between hover:bg-amber-50 border-amber-200">
+                      <Button variant="outline" className="w-full justify-between hover:bg-amber-50 hover:text-amber-700 border-amber-200">
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-amber-600" />
                           <span>Use Phase (B1-B7)</span>
@@ -1721,7 +1721,7 @@ export default function Calculator() {
                   {/* End of Life (C1-C4) */}
                   <Collapsible open={endOfLifeOpen} onOpenChange={setEndOfLifeOpen}>
                     <CollapsibleTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between hover:bg-red-50 border-red-200">
+                      <Button variant="outline" className="w-full justify-between hover:bg-red-50 hover:text-red-700 border-red-200">
                         <div className="flex items-center gap-2">
                           <Trash2 className="h-4 w-4 text-red-600" />
                           <span>End of Life (C1-C4)</span>
@@ -1745,7 +1745,7 @@ export default function Calculator() {
                   {/* Module D (Benefits) */}
                   <Collapsible open={moduleDOpen} onOpenChange={setModuleDOpen}>
                     <CollapsibleTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between hover:bg-emerald-50 border-emerald-200">
+                      <Button variant="outline" className="w-full justify-between hover:bg-emerald-50 hover:text-emerald-700 border-emerald-200">
                         <div className="flex items-center gap-2">
                           <Leaf className="h-4 w-4 text-emerald-600" />
                           <span>Module D (Benefits)</span>
