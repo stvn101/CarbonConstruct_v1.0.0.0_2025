@@ -6,7 +6,7 @@ export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-muted/30 border-t border-border mt-auto">
+    <footer id="footer" role="contentinfo" className="bg-muted/30 border-t border-border mt-auto">
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
@@ -51,7 +51,7 @@ export const Footer = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-4">
+          <nav aria-label="Quick links" className="space-y-4">
             <h3 className="font-semibold text-foreground">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -80,10 +80,10 @@ export const Footer = () => {
                 </Link>
               </li>
             </ul>
-          </div>
+          </nav>
 
           {/* Resources */}
-          <div className="space-y-4">
+          <nav aria-label="Resources" className="space-y-4">
             <h3 className="font-semibold text-foreground">Resources</h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -122,7 +122,7 @@ export const Footer = () => {
                 </Link>
               </li>
             </ul>
-          </div>
+          </nav>
 
           {/* Contact */}
           <div className="space-y-4">

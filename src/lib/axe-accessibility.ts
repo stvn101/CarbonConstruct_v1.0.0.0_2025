@@ -11,24 +11,12 @@ export async function initAxeAccessibility(): Promise<void> {
       const ReactDOM = await import('react-dom');
       const axe = await import('@axe-core/react');
       
-      // Configure axe with WCAG 2.1 AA rules
+      // Configure axe with all WCAG 2.1 AA rules and best practices
       axe.default(React.default, ReactDOM.default, 1000, {
-        rules: [
-          // Enable all WCAG 2.1 AA rules
-          { id: 'color-contrast', enabled: true },
-          { id: 'keyboard', enabled: true },
-          { id: 'focus-visible', enabled: true },
-          { id: 'link-name', enabled: true },
-          { id: 'button-name', enabled: true },
-          { id: 'image-alt', enabled: true },
-          { id: 'label', enabled: true },
-          { id: 'aria-roles', enabled: true },
-          { id: 'aria-valid-attr', enabled: true },
-          { id: 'aria-valid-attr-value', enabled: true },
-        ],
+        runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']
       });
       
-      console.log('[Accessibility] axe-core initialized - violations will be logged to console');
+      console.log('[Accessibility] axe-core initialized with WCAG 2.1 AA rules - violations will be logged to console');
     } catch (error) {
       console.warn('[Accessibility] Failed to initialize axe-core:', error);
     }
