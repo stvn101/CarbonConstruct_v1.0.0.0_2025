@@ -90,11 +90,11 @@ export function useErrorTracking() {
     }
   }, [getBrowserInfo, flushErrors, scheduleFlush]);
 
-  // Flush on unmount or page unload
+  // Flush on unmount or when page becomes hidden
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (errorQueue.current.length > 0) {
-        // Use sendBeacon for reliability
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && errorQueue.current.length > 0) {
+        // Use sendBeacon for reliability when page is being hidden
         const errors = errorQueue.current.splice(0);
         navigator.sendBeacon?.(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/log-error`,
@@ -103,10 +103,10 @@ export function useErrorTracking() {
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (flushTimeoutRef.current) {
         clearTimeout(flushTimeoutRef.current);
       }
