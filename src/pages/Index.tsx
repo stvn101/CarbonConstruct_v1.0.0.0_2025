@@ -39,8 +39,19 @@ const Index = () => {
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
               <div className="flex items-center justify-center gap-4">
-              <img
-                  src="/logo-optimized.webp?v=20251127"
+              <picture>
+                <source 
+                  srcSet="/logo-56.webp" 
+                  media="(max-width: 768px)" 
+                  type="image/webp"
+                />
+                <source 
+                  srcSet="/logo-96.webp" 
+                  media="(min-width: 769px)" 
+                  type="image/webp"
+                />
+                <img
+                  src="/logo-96.webp"
                   alt="CarbonConstruct Logo"
                   className="w-16 h-16 md:w-24 md:h-24"
                   width="96"
@@ -48,6 +59,7 @@ const Index = () => {
                   fetchPriority="high"
                   loading="eager"
                 />
+              </picture>
                 <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                   CarbonConstruct
                 </h1>

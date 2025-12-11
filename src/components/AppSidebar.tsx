@@ -2,7 +2,7 @@ import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, Dol
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import logoImageWebp from "@/assets/carbonconstruct-logo-optimized.webp";
+const logoImage32 = "/logo-32.webp";
 const calculatorItems = [{
   title: "Dashboard",
   url: "/",
@@ -59,7 +59,7 @@ export function AppSidebar() {
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center cursor-pointer transition-all duration-500 ease-in-out">
                   <img 
-                    src={logoImageWebp} 
+                    src={logoImage32} 
                     alt="CarbonConstruct Logo" 
                     className="h-8 w-8 flex-shrink-0 object-contain"
                     width="32"
