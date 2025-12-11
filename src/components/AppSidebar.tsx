@@ -84,7 +84,7 @@ export function AppSidebar() {
             Carbon Calculator
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-1" role="navigation" aria-label="Carbon Calculator">
               {calculatorItems.map(item => {
               const active = isActive(item.url);
               return <SidebarMenuItem key={item.title}>
@@ -111,7 +111,7 @@ export function AppSidebar() {
             Tools
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-1" role="navigation" aria-label="Tools">
               {otherItems.map(item => {
               const active = isActive(item.url);
               return <SidebarMenuItem key={item.title}>
