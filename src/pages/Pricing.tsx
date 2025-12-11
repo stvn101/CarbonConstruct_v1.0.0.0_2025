@@ -211,7 +211,7 @@ const Pricing = () => {
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-3xl font-bold text-primary mb-2">8,000+</div>
+              <div className="text-3xl font-bold text-primary mb-2">4,000+</div>
               <div className="text-sm text-muted-foreground">EPD materials in our database with verified emission factors</div>
             </div>
             <div className="text-center p-4 border rounded-lg">

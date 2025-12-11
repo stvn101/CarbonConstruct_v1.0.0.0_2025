@@ -682,6 +682,7 @@ export type Database = {
           price_annual: number | null
           price_monthly: number
           stripe_price_id: string | null
+          stripe_price_id_yearly: string | null
           updated_at: string
         }
         Insert: {
@@ -695,6 +696,7 @@ export type Database = {
           price_annual?: number | null
           price_monthly?: number
           stripe_price_id?: string | null
+          stripe_price_id_yearly?: string | null
           updated_at?: string
         }
         Update: {
@@ -708,6 +710,7 @@ export type Database = {
           price_annual?: number | null
           price_monthly?: number
           stripe_price_id?: string | null
+          stripe_price_id_yearly?: string | null
           updated_at?: string
         }
         Relationships: []
