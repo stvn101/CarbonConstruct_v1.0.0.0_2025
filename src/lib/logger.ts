@@ -21,9 +21,13 @@ class Logger {
   private flushTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
-    // Flush errors on page unload
+    // Flush errors when page becomes hidden (modern replacement for beforeunload)
     if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', () => this.flushErrors());
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          this.flushErrors();
+        }
+      });
     }
   }
 
