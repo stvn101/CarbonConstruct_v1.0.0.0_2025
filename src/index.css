@@ -115,6 +115,11 @@ All colors MUST be HSL.
     @apply transition-colors duration-200;
   }
   
+  /* Focus-visible styles for all interactive links */
+  a:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background rounded-sm;
+  }
+  
   /* Print styles for PDF export */
   @media print {
     .print\:block {
