@@ -98,6 +98,10 @@ export const NABERS_RANGES: Record<string, RangeSpec[]> = {
   ],
 };
 
+// Tolerance thresholds for NABERS range validation (30% above/below expected ranges)
+export const NABERS_UPPER_TOLERANCE = 1.3; // 30% above maximum
+export const NABERS_LOWER_TOLERANCE = 0.7; // 30% below minimum
+
 // ============================================
 // PART 3: SOURCE CREDIBILITY TIERS
 // ============================================
@@ -259,7 +263,7 @@ export function determineConfidenceLevel(
       const maxRange = Math.max(...ranges.map(r => r.max));
       const minRange = Math.min(...ranges.map(r => r.min));
       
-      if (efTotal > maxRange * 1.3) {
+      if (efTotal > maxRange * NABERS_UPPER_TOLERANCE) {
         const variance = ((efTotal - maxRange) / maxRange * 100).toFixed(1);
         isOutlier = true;
         outlierReason = `${variance}% above NABERS maximum`;
@@ -272,7 +276,7 @@ export function determineConfidenceLevel(
           recommendedAction: 'Verify with manufacturer EPD or check grid/regional context'
         });
         if (confidenceLevel !== 'needs_review') confidenceLevel = 'documented';
-      } else if (efTotal < minRange * 0.7) {
+      } else if (efTotal < minRange * NABERS_LOWER_TOLERANCE) {
         const variance = ((minRange - efTotal) / minRange * 100).toFixed(1);
         isOutlier = true;
         outlierReason = `${variance}% below NABERS minimum`;
