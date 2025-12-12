@@ -25,6 +25,14 @@ export const useSubscriptionStatus = () => {
   });
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Retry strategy:
+   * - Retries up to MAX_RETRIES (3) times on network errors or unexpected exceptions.
+   * - Delay between retries increases linearly: RETRY_DELAY_MS (1000ms) * (retryCount + 1).
+   *   (e.g., 1s, 2s, 3s for retries 1, 2, 3)
+   * - Only shows a toast notification after all retries fail.
+   * - Used to handle transient network issues when invoking the 'check-subscription' Supabase function.
+   */
   const checkSubscription = async (retryCount = 0): Promise<void> => {
     const MAX_RETRIES = 3;
     const RETRY_DELAY_MS = 1000;
