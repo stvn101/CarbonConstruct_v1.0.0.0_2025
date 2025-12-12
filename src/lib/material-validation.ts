@@ -154,7 +154,7 @@ export interface MaterialValidation {
 }
 
 /**
- * Determines the confidence level for a material record based on validation framework rules (Part 5.1).
+ * Determines the confidence level for a material record based on validation framework rules (see Part 4).
  *
  * ## Return Value
  * Returns a {@link MaterialValidation} object with the following structure:
