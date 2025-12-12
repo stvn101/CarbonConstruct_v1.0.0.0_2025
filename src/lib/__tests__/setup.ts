@@ -3,31 +3,107 @@
  */
 
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
+
+// Re-export testing utilities for consistent imports
+export { render, renderHook, act, cleanup } from '@testing-library/react';
+export { screen, fireEvent, within } from '@testing-library/dom';
+
+// Custom waitFor implementation
+export const waitFor = async (
+  callback: () => void | Promise<void>,
+  options: { timeout?: number; interval?: number } = {}
+): Promise<void> => {
+  const { timeout = 1000, interval = 50 } = options;
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < timeout) {
+    try {
+      await callback();
+      return;
+    } catch {
+      await new Promise(resolve => setTimeout(resolve, interval));
+    }
+  }
+  
+  // Final attempt
+  await callback();
+};
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: () => null,
-  setItem: () => {},
-  removeItem: () => {},
-  clear: () => {},
+  getItem: vi.fn(() => null),
+  setItem: vi.fn(() => {}),
+  removeItem: vi.fn(() => {}),
+  clear: vi.fn(() => {}),
   length: 0,
-  key: () => null,
+  key: vi.fn(() => null),
 };
 
-// @ts-ignore
-global.localStorage = localStorageMock;
-
-// Mock window with all necessary methods
-// @ts-ignore
-global.window = global.window || {};
-Object.assign(global.window, {
-  localStorage: localStorageMock,
-  addEventListener: () => {},
-  removeEventListener: () => {},
-  location: {
-    reload: () => {}
-  },
-  HTMLElement: class HTMLElement {},
-  getSelection: () => null,
-  scrollTo: () => {}
+Object.defineProperty(global, 'localStorage', {
+  value: localStorageMock,
+  writable: true
 });
+
+// Mock window.location
+const locationMock = {
+  reload: vi.fn(),
+  href: 'http://localhost:3000',
+  origin: 'http://localhost:3000',
+  pathname: '/',
+  search: '',
+  hash: ''
+};
+
+Object.defineProperty(window, 'location', {
+  value: locationMock,
+  writable: true
+});
+
+// Mock window methods
+Object.assign(window, {
+  localStorage: localStorageMock,
+  scrollTo: vi.fn(),
+  getSelection: vi.fn(() => null),
+  matchMedia: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+  ResizeObserver: vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  })),
+  IntersectionObserver: vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  })),
+});
+
+// Mock HTMLElement methods used by Radix UI
+HTMLElement.prototype.scrollIntoView = vi.fn();
+HTMLElement.prototype.hasPointerCapture = vi.fn();
+HTMLElement.prototype.releasePointerCapture = vi.fn();
+HTMLElement.prototype.setPointerCapture = vi.fn();
+
+// Suppress console errors during tests
+const originalConsoleError = console.error;
+console.error = (...args: unknown[]) => {
+  const message = args[0];
+  if (
+    typeof message === 'string' &&
+    (message.includes('Warning: ReactDOM.render') ||
+      message.includes('Warning: An update to') ||
+      message.includes('act(...)'))
+  ) {
+    return;
+  }
+  originalConsoleError(...args);
+};
