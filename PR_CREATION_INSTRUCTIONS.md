@@ -2,11 +2,37 @@
 
 ## Current Situation
 
-PR #56 exists but is from the wrong head branch. We need to create a new PR or close #56 and create a fresh one.
+- **PR #56** exists from `copilot/merge-carbon-calculator-implementation` → `calculator-integration`
+- The actual requirement is to create a PR from `experiment` → `calculator-integration`
+- The `experiment` branch contains **22 files with 4,595 lines of code** (verified via commit analysis)
+- Files cannot be automatically downloaded from the private experiment branch
+
+## Solution Options
+
+### **Option 1: Create New PR from Web Interface (RECOMMENDED)**
+
+This is the simplest and most direct approach:
+
+1. Navigate to: https://github.com/stvn101/CarbonConstruct_v1.0.0.0_2025/compare/calculator-integration...experiment
+2. Click "Create pull request"
+3. Use the configuration below
+
+### Option 2: Use GitHub CLI
+
+Close PR #56 first if it exists, then:
+
+```bash
+gh pr close 56 --comment "Closing in favor of direct experiment→calculator-integration PR"
+gh pr create \
+  --base calculator-integration \
+  --head experiment \
+  --title "Merge carbon calculator implementation from experiment to calculator-integration" \
+  --body "See details in PR description template below"
+```
 
 ## Required PR Configuration
 
-**Title:** Merge carbon calculator implementation from experiment to calculator-integration
+**Title:** `Merge carbon calculator implementation from experiment to calculator-integration`
 
 **Base Branch:** `calculator-integration`  
 **Head Branch:** `experiment`
@@ -87,37 +113,36 @@ Documentation:
 3. Prepare merge to main after validation
 ```
 
-## How to Create the PR
+## Verified File List from Experiment Branch
 
-### Option 1: Using GitHub Web Interface
+The experiment branch (commit `92888811ddc01d1a721210a5df77c404faf6bada`) contains **22 files with 4,595 lines of code**:
 
-1. Go to: https://github.com/stvn101/CarbonConstruct_v1.0.0.0_2025/compare
-2. Set base branch to: `calculator-integration`
-3. Set compare branch to: `experiment`
-4. Click "Create pull request"
-5. Use the title and description above
-6. Create the PR
+| File | Lines | Type |
+|------|-------|------|
+| CALCULATOR_README.md | 407 | Documentation |
+| DELIVERY_SUMMARY.md | 306 | Documentation |
+| INTEGRATION_GUIDE.md | 389 | Documentation |
+| START_HERE.md | 272 | Documentation |
+| FILE_STRUCTURE.txt | 247 | Documentation |
+| QUICK_REFERENCE.txt | 251 | Documentation |
+| calculator_engine.py | 394 | Backend |
+| calculator.py | 227 | Backend |
+| database.py | 211 | Backend |
+| projects.py | 160 | Backend |
+| reports.py | 169 | Backend |
+| schemas.py | 181 | Backend |
+| main.py | 74 | Backend |
+| FuelCalculator.tsx | 266 | Frontend |
+| MaterialCalculator.tsx | 280 | Frontend |
+| calculator.ts | 264 | Frontend |
+| DEPLOY.sh | 82 | DevOps |
+| TEST.sh | 206 | DevOps |
+| requirements.txt | 21 | Config |
+| nger_materials_database_v2025_1.csv | 124 | Data |
+| nger_operational_factors_2024.csv | 64 | Data |
+| __init__.py | 0 | Backend |
 
-### Option 2: Using GitHub CLI
-
-```bash
-gh pr create \
-  --base calculator-integration \
-  --head experiment \
-  --title "Merge carbon calculator implementation from experiment to calculator-integration" \
-  --body-file PR_BODY.md
-```
-
-(Where PR_BODY.md contains the description from above)
-
-### Option 3: Close PR #56 and Create New One
-
-If PR #56 should be closed:
-
-```bash
-gh pr close 56
-gh pr create --base calculator-integration --head experiment --title "..." --body "..."
-```
+**Total:** 4,595 lines of production code
 
 ## Important Notes
 
