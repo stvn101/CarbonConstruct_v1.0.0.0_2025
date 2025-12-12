@@ -88,7 +88,10 @@ export function WhyFactorsVaryDialog() {
           </div>
 
           <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
-            <p className="font-medium text-foreground mb-1">💡 Best Practice</p>
+            <p className="font-medium text-foreground mb-1 flex items-center">
+              <Zap className="h-4 w-4 text-primary mr-2" aria-hidden="true" />
+              Best Practice
+            </p>
             <p className="text-xs text-muted-foreground">
               When available, select the material variant that matches your actual supplier's location 
               for the most accurate carbon assessment. Look for manufacturer-specific EPDs.
