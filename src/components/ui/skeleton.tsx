@@ -1,17 +1,10 @@
 import { cn } from "@/lib/utils";
 
-interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Custom loading text for screen readers */
-  loadingText?: string;
-}
-
-function Skeleton({ className, loadingText = "Loading...", ...props }: SkeletonProps) {
+function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div 
       className={cn("animate-pulse rounded-md bg-muted", className)} 
-      role="status"
-      aria-busy="true"
-      aria-label={loadingText}
+      aria-hidden="true"
       {...props} 
     />
   );

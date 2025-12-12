@@ -28,6 +28,7 @@ export const RETRY = {
   MAX_ATTEMPTS: 3,
   INITIAL_DELAY: 100, // milliseconds
   MAX_DELAY: 5000,
+  SUBSCRIPTION_CHECK_DELAY: 1000, // milliseconds - delay between subscription check retries
 } as const;
 
 export const PAGINATION = {
