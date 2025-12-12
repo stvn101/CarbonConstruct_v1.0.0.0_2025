@@ -12,8 +12,11 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle } from "lucide-react";
+import { FeatureTeaser } from "@/components/FeatureTeaser";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle, User, Shield, Leaf, Check, X, HardHat, Award, Building2 } from "lucide-react";
 import { CalculationHistory } from "@/components/CalculationHistory";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 const Index = () => {
   const {
     user,
@@ -36,8 +39,19 @@ const Index = () => {
           <div className="text-center space-y-6 md:space-y-8">
             <div className="space-y-3 md:space-y-4 animate-fade-in">
               <div className="flex items-center justify-center gap-4">
-              <img
-                  src="/logo-optimized.webp?v=20251127"
+              <picture>
+                <source 
+                  srcSet="/logo-56.webp" 
+                  media="(max-width: 768px)" 
+                  type="image/webp"
+                />
+                <source 
+                  srcSet="/logo-96.webp" 
+                  media="(min-width: 769px)" 
+                  type="image/webp"
+                />
+                <img
+                  src="/logo-96.webp"
                   alt="CarbonConstruct Logo"
                   className="w-16 h-16 md:w-24 md:h-24"
                   width="96"
@@ -45,6 +59,7 @@ const Index = () => {
                   fetchPriority="high"
                   loading="eager"
                 />
+              </picture>
                 <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                   CarbonConstruct
                 </h1>
@@ -89,16 +104,402 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="space-y-3 md:space-y-4 animate-fade-in [animation-delay:0.4s]">
-              <p className="text-sm md:text-base font-medium text-primary">
-                Free 14 day trial and Freemium option. No credit card required.
-              </p>
-              <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
-                Get Started
-              </Button>
+            {/* Feature Teaser Video Section */}
+            <FeatureTeaser />
+
+            {/* CTA Section - Freemium Emphasis */}
+            <div className="space-y-4 md:space-y-5 animate-fade-in [animation-delay:0.4s]">
+              <div className="flex flex-col items-center gap-2">
+                <Badge className="bg-emerald-600/20 text-emerald-700 border-emerald-600/40 hover:bg-emerald-600/30 px-4 py-1.5 text-sm font-bold">
+                  <Leaf className="h-4 w-4 mr-1.5" />
+                  FOREVER FREE
+                </Badge>
+                <p className="text-lg md:text-xl font-bold text-foreground">
+                  Start Free. Stay Free. Forever.
+                </p>
+                <p className="text-sm md:text-base text-muted-foreground max-w-md">
+                  No credit card. No commitment. No expiration date.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-semibold">
+                  <CheckCircle className="mr-2 h-5 w-5" />
+                  Start Free Forever
+                </Button>
+                <Button onClick={() => navigate("/auth")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto border-primary/50">
+                  Start 14-Day Pro Trial
+                </Button>
+              </div>
               <p className="text-xs md:text-sm text-muted-foreground">
-                Sign up to start calculating your carbon footprint
+                Upgrade anytime when you need more • Keep your free account forever
               </p>
+            </div>
+
+            {/* Comparison Table Section */}
+            <div className="max-w-5xl mx-auto animate-fade-in [animation-delay:0.5s]">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Why CarbonConstruct?</h2>
+                <p className="text-muted-foreground">See how we compare to traditional methods and generic tools</p>
+              </div>
+              <Card className="border-primary/20 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold">Feature</TableHead>
+                        <TableHead className="text-center font-semibold">
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-primary">CarbonConstruct</span>
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-center font-semibold">Manual Spreadsheets</TableHead>
+                        <TableHead className="text-center font-semibold">Generic Carbon Tools</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className="font-medium">Australian Compliance</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">NCC, Green Star, NABERS, IS Rating</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Manual research</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Basic or none</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Material Database</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">4,000+ verified EPDs</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Build your own</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Limited, international</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Supply Chain Integration</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">Real-time Scope 3</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Disconnected</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <X className="h-5 w-5 text-destructive/60" />
+                            <span className="text-xs text-muted-foreground">Bolted-on afterthought</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Built By</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <HardHat className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">17 years construction</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">N/A</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">Consultants</span>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Time to Report</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">Minutes</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">Days to weeks</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">Hours</span>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Data Sources</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Check className="h-5 w-5 text-primary" />
+                            <span className="text-xs text-muted-foreground">EPD Australasia, NABERS</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">Self-sourced, unverified</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-xs text-muted-foreground">Varies, often unverified</span>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            </div>
+
+            {/* Founder Section - Expanded */}
+            <div className="max-w-5xl mx-auto animate-fade-in [animation-delay:0.6s]">
+              <Card className="border-accent/20 bg-gradient-to-br from-card via-card to-accent/5 overflow-hidden">
+                <CardContent className="p-6 md:p-8 lg:p-10">
+                  <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Left Column - Photo & Credentials */}
+                    <div className="flex flex-col items-center lg:items-start gap-4 lg:w-1/3">
+                      <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg ring-4 ring-primary/20">
+                        <User className="h-16 w-16 md:h-20 md:w-20 text-primary-foreground" />
+                      </div>
+                      <div className="text-center lg:text-left">
+                        <h3 className="text-xl md:text-2xl font-bold">Steven</h3>
+                        <p className="text-muted-foreground text-sm">Founder, CarbonConstruct</p>
+                        <p className="text-muted-foreground text-xs mt-1">Director, United Facade Pty Ltd</p>
+                      </div>
+                      {/* Credentials Badges */}
+                      <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                        <Badge variant="secondary" className="text-xs">
+                          <HardHat className="h-3 w-3 mr-1" />
+                          17 Years Construction
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          <Award className="h-3 w-3 mr-1" />
+                          Cert IV WHS
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          <Building2 className="h-3 w-3 mr-1" />
+                          MBA Queensland
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          <Leaf className="h-3 w-3 mr-1" />
+                          GBCA Member
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Right Column - Story */}
+                    <div className="flex-1 space-y-4">
+                      <h4 className="text-lg md:text-xl font-bold text-primary">
+                        Built By Someone Who's Actually Built Things
+                      </h4>
+                      
+                      <div className="space-y-3 text-sm md:text-base text-muted-foreground">
+                        <p>
+                          I've spent 17 years building things—commercial towers, partitions, steel-framed systems across Southeast Queensland. I know what actually happens on construction sites. I know where materials come from, how they move through projects, and where carbon accounting breaks down in practice.
+                        </p>
+                        <p>
+                          <strong className="text-foreground">Most carbon tools are built by people who've never stepped on a site. That's the problem.</strong>
+                        </p>
+                        <p>
+                          I'm a carpenter and plasterer by trade, and I built CarbonConstruct because the tools that exist don't work for how construction actually operates. They're compliance checkboxes built by consultants who don't understand material flows, supply chain realities, or what happens when you're speccing materials at 6am before a pour.
+                        </p>
+                        <p>
+                          CarbonConstruct isn't another calculator. It's infrastructure that makes carbon data, material sourcing, and project quoting exist in the same workflow. When you're speccing materials, the carbon is already there. Scope 3 downstream tracking isn't bolted on—it's integrated because I've lived the supply chain pressure points that most platforms completely miss.
+                        </p>
+                      </div>
+
+                      {/* Key Quote */}
+                      <blockquote className="border-l-4 border-primary pl-4 py-2 bg-primary/5 rounded-r-lg">
+                        <p className="text-sm md:text-base font-medium italic">
+                          "This is what construction carbon accountability looks like when it's built by someone who's actually built things."
+                        </p>
+                      </blockquote>
+
+                      <div className="flex items-center gap-2 pt-2">
+                        <Leaf className="h-4 w-4 text-primary" />
+                        <span className="text-xs text-muted-foreground">0.5% of every subscription supports carbon removal via Stripe Climate</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Free vs Pro Comparison */}
+            <div className="max-w-4xl mx-auto animate-fade-in [animation-delay:0.65s]">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Free vs Pro: Choose Your Path</h2>
+                <p className="text-muted-foreground">Start free and upgrade when you're ready</p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+                {/* Free Tier Card */}
+                <Card className="relative border-2 border-emerald-600/50 bg-gradient-to-br from-emerald-600/5 to-emerald-600/10 overflow-hidden">
+                  <div className="absolute top-0 right-0">
+                    <Badge className="rounded-none rounded-bl-lg bg-emerald-700 text-white border-0 px-3 py-1 font-semibold">
+                      FOREVER FREE
+                    </Badge>
+                  </div>
+                  <CardHeader className="pt-8">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-emerald-600/20 flex items-center justify-center">
+                        <CheckCircle className="h-6 w-6 text-emerald-700" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl text-emerald-700 font-bold">Free</CardTitle>
+                        <CardDescription className="text-lg font-bold">$0/month forever</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ul className="space-y-3 text-sm">
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-700 flex-shrink-0" />
+                        <span>1 active project</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-700 flex-shrink-0" />
+                        <span>4,000+ EPD materials database</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-700 flex-shrink-0" />
+                        <span>Basic carbon calculations</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-700 flex-shrink-0" />
+                        <span>Standard PDF reports</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-emerald-700 flex-shrink-0" />
+                        <span>NCC compliance checking</span>
+                      </li>
+                    </ul>
+                    <Button 
+                      onClick={() => navigate("/auth")} 
+                      className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold"
+                      size="lg"
+                    >
+                      Get Started Free
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      No credit card required
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Pro Tier Card */}
+                <Card className="relative border-2 border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
+                  <div className="absolute top-0 right-0">
+                    <Badge className="rounded-none rounded-bl-lg bg-primary text-primary-foreground border-0 px-3 py-1">
+                      MOST POPULAR
+                    </Badge>
+                  </div>
+                  <CardHeader className="pt-8">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Award className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl text-primary">Pro</CardTitle>
+                        <CardDescription className="text-lg font-bold">$79/month</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ul className="space-y-3 text-sm">
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span><strong>10 active projects</strong></span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span>Everything in Free, plus:</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span>AI BOQ import & parsing</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span>EN 15978 lifecycle analysis</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span>Advanced compliance reports</span>
+                      </li>
+                    </ul>
+                    <Button 
+                      onClick={() => navigate("/auth")} 
+                      className="w-full"
+                      size="lg"
+                    >
+                      Start 14-Day Free Trial
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      Then $79/month • Cancel anytime
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="text-center mt-4">
+                <Button variant="link" onClick={() => navigate("/pricing")} className="text-primary">
+                  See Business & Enterprise plans →
+                </Button>
+              </div>
+            </div>
+
+            {/* Why Start Free Callout */}
+            <Card className="max-w-2xl mx-auto animate-fade-in [animation-delay:0.7s] border-emerald-600/30 bg-emerald-600/5">
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-emerald-600/20 flex items-center justify-center flex-shrink-0">
+                    <Leaf className="h-5 w-5 text-emerald-700" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Why Start Free?</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Your free account never expires. Start with one project, explore the full materials database, 
+                      and generate compliant reports. When you're ready for more projects or advanced features, 
+                      upgrade seamlessly—your data stays with you.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-muted-foreground animate-fade-in [animation-delay:0.8s]">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
+                <span>Bank-level encryption</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-primary" />
+                <span>NCC 2024 compliant</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Leaf className="h-4 w-4 text-primary" />
+                <span>Climate positive</span>
+              </div>
             </div>
           </div>
         </div>

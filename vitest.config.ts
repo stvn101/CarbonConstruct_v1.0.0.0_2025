@@ -11,6 +11,23 @@ export default defineConfig({
       inline: [/@supabase/]
     },
     cache: false,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/**/*.test.*',
+        'src/**/*.d.ts',
+        'src/main.tsx',
+        'src/vite-env.d.ts'
+      ],
+      thresholds: {
+        statements: 70,
+        branches: 70,
+        functions: 70,
+        lines: 70
+      }
+    }
   },
   resolve: {
     alias: {

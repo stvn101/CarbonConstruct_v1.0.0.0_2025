@@ -59,7 +59,7 @@ serve(async (req) => {
       });
       throw new Error("User not authenticated or email not available");
     }
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId: user.id.substring(0, 8) + '...' });
 
     // Check rate limit (10 checkout attempts per 15 minutes)
     const rateLimitResult = await checkRateLimit(
@@ -106,7 +106,7 @@ serve(async (req) => {
     logStep("Received request", { price_id, tier_name });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-      apiVersion: "2025-08-27.basil" 
+      apiVersion: "2024-12-18.acacia" 
     });
 
     // Check if customer exists

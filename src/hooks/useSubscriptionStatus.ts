@@ -25,7 +25,10 @@ export const useSubscriptionStatus = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  const checkSubscription = async () => {
+  const checkSubscription = async (retryCount = 0): Promise<void> => {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 1000;
+
     if (!user) {
       setStatus({
         subscribed: false,
@@ -41,15 +44,56 @@ export const useSubscriptionStatus = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      // Get the current session to pass the user's JWT token
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        logger.warn('SubscriptionStatus:checkSubscription', 'No active session');
+        setLoading(false);
+        return;
+      }
+      
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+      });
       
       if (error) {
+        // Check if it's a network error that should be retried
+        const isNetworkError = error.message?.includes('Failed to send') || 
+                               error.message?.includes('NetworkError') ||
+                               error.message?.includes('fetch');
+        
+        if (isNetworkError && retryCount < MAX_RETRIES) {
+          logger.warn('SubscriptionStatus:checkSubscription', `Network error, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * (retryCount + 1)));
+          return checkSubscription(retryCount + 1);
+        }
+        
         logger.error('SubscriptionStatus:checkSubscription', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to check subscription status',
-          variant: 'destructive',
-        });
+        // Only show toast on final failure after retries
+        if (retryCount >= MAX_RETRIES) {
+          toast({
+            title: 'Connection Issue',
+            description: (
+              <>
+                Unable to verify your subscription after {MAX_RETRIES} attempts.<br />
+                Please check your internet connection and try again. If the problem persists,&nbsp;
+                <a
+                  href="mailto:support@carboncompass.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-primary font-medium"
+                >
+                  contact support
+                </a>
+                .
+              </>
+            ),
+            variant: 'destructive',
+          });
+        }
         return;
       }
 
@@ -57,6 +101,12 @@ export const useSubscriptionStatus = () => {
         setStatus(data);
       }
     } catch (error) {
+      // Handle unexpected errors with retry logic
+      if (retryCount < MAX_RETRIES) {
+        logger.warn('SubscriptionStatus:checkSubscription', `Unexpected error, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * (retryCount + 1)));
+        return checkSubscription(retryCount + 1);
+      }
       logger.error('SubscriptionStatus:checkSubscription', error);
     } finally {
       setLoading(false);

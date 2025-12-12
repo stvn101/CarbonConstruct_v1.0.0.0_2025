@@ -10,12 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck } from "lucide-react";
+import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck, Bug, Zap, ShieldAlert } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { SecurityAuditReportDownload } from "@/components/SecurityAuditReport";
 import { SecurityDashboard } from "@/components/SecurityDashboard";
+import { MaterialValidationReport } from "@/components/MaterialValidationReport";
+import { BluescopeEPDImporter } from "@/components/BluescopeEPDImporter";
+import { BulkEPDUploader } from "@/components/BulkEPDUploader";
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -50,6 +53,101 @@ interface HealthStatus {
   total_latency: number;
   checks: Record<string, { status: string; latency?: number; error?: string }>;
   metrics?: { recent_errors_1h: number };
+}
+
+function SecuritySummaryWidget() {
+  const [stats, setStats] = useState({
+    honeypotTriggers: 0,
+    rateLimitViolations: 0,
+    authFailures: 0,
+    activeAlerts: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      
+      // Load security events from last 24h
+      const { data: events } = await supabase
+        .from("error_logs")
+        .select("error_type")
+        .like("error_type", "security_%")
+        .gte("created_at", twentyFourHoursAgo);
+
+      // Load active alerts
+      const { data: alerts } = await supabase
+        .from("alerts")
+        .select("id")
+        .like("alert_type", "security_%")
+        .eq("resolved", false);
+
+      if (events) {
+        setStats({
+          honeypotTriggers: events.filter(e => e.error_type === "security_honeypot_triggered").length,
+          rateLimitViolations: events.filter(e => e.error_type === "security_rate_limit_exceeded").length,
+          authFailures: events.filter(e => e.error_type === "security_auth_failure").length,
+          activeAlerts: alerts?.length || 0
+        });
+      }
+      setLoading(false);
+    };
+
+    loadStats();
+  }, []);
+
+  const getThreatLevel = () => {
+    if (stats.activeAlerts > 0 || stats.honeypotTriggers > 5) return { level: 'high', color: 'text-destructive', bg: 'bg-destructive/10' };
+    if (stats.rateLimitViolations > 10 || stats.authFailures > 5) return { level: 'medium', color: 'text-amber-500', bg: 'bg-amber-500/10' };
+    return { level: 'low', color: 'text-green-500', bg: 'bg-green-500/10' };
+  };
+
+  const threat = getThreatLevel();
+
+  if (loading) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <ShieldAlert className="h-5 w-5" />
+          Security Summary (24h)
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className={`p-3 rounded-lg ${threat.bg}`}>
+            <p className={`text-sm font-medium ${threat.color}`}>Threat Level</p>
+            <p className={`text-xl font-bold capitalize ${threat.color}`}>{threat.level}</p>
+          </div>
+          <div className="p-3 rounded-lg bg-muted">
+            <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <ShieldAlert className="h-3 w-3" /> Active Alerts
+            </p>
+            <p className="text-xl font-bold">{stats.activeAlerts}</p>
+          </div>
+          <div className="p-3 rounded-lg bg-muted">
+            <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <Bug className="h-3 w-3" /> Honeypot
+            </p>
+            <p className="text-xl font-bold">{stats.honeypotTriggers}</p>
+          </div>
+          <div className="p-3 rounded-lg bg-muted">
+            <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <Zap className="h-3 w-3" /> Rate Limits
+            </p>
+            <p className="text-xl font-bold">{stats.rateLimitViolations}</p>
+          </div>
+          <div className="p-3 rounded-lg bg-muted">
+            <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" /> Auth Failures
+            </p>
+            <p className="text-xl font-bold">{stats.authFailures}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function AdminMonitoring() {
@@ -560,10 +658,19 @@ export default function AdminMonitoring() {
                 Material Verification Report
               </Button>
             </Link>
+            <a href="/SECURITY_CONTROLS_SUMMARY.md" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Security Controls Summary
+              </Button>
+            </a>
             <SecurityAuditReportDownload />
           </div>
         </CardContent>
       </Card>
+
+      {/* Security Summary Widget */}
+      <SecuritySummaryWidget />
 
       {/* Service Health */}
       {healthStatus?.checks && (
@@ -621,7 +728,25 @@ export default function AdminMonitoring() {
             <Shield className="h-4 w-4" />
             Security
           </TabsTrigger>
+          <TabsTrigger value="validation" className="gap-2">
+            <FileCheck className="h-4 w-4" />
+            Validation
+          </TabsTrigger>
+          <TabsTrigger value="epd-upload" className="gap-2">
+            <Upload className="h-4 w-4" />
+            EPD Upload
+          </TabsTrigger>
         </TabsList>
+
+        {/* EPD Upload Tab */}
+        <TabsContent value="epd-upload">
+          <BulkEPDUploader />
+        </TabsContent>
+
+        {/* Validation Tab */}
+        <TabsContent value="validation">
+          <MaterialValidationReport />
+        </TabsContent>
 
         {/* Data Import Tab */}
         <TabsContent value="data" className="space-y-4">
@@ -1003,6 +1128,9 @@ export default function AdminMonitoring() {
               </div>
             </CardContent>
           </Card>
+          
+          {/* BlueScope EPD Import */}
+          <BluescopeEPDImporter />
         </TabsContent>
 
         {/* Error Logs Tab */}

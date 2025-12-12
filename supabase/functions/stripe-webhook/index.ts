@@ -21,7 +21,7 @@ serve(async (req) => {
     logStep("Webhook received");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-      apiVersion: "2025-08-27.basil" 
+      apiVersion: "2024-12-18.acacia" 
     });
 
     // Verify webhook signature
@@ -107,7 +107,7 @@ async function handleSubscriptionUpdate(
     // Get customer email
     const customerId = subscription.customer as string;
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-      apiVersion: "2025-08-27.basil" 
+      apiVersion: "2024-12-18.acacia" 
     });
     const customer = await stripe.customers.retrieve(customerId);
     
@@ -115,7 +115,7 @@ async function handleSubscriptionUpdate(
       throw new Error("Customer not found or has no email");
     }
 
-    logStep("Found customer", { email: customer.email });
+    logStep("Found customer");
 
     // Get user by email
     const { data: users, error: userError } = await supabaseClient.auth.admin.listUsers();
@@ -226,7 +226,7 @@ async function handleSubscriptionDeleted(
     // Get customer email before deletion
     const customerId = subscription.customer as string;
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-      apiVersion: "2025-08-27.basil" 
+      apiVersion: "2024-12-18.acacia" 
     });
     const customer = await stripe.customers.retrieve(customerId);
     const customerEmail = customer && !customer.deleted ? customer.email : null;
@@ -326,7 +326,7 @@ async function handleTrialWillEnd(
     // Get customer email for notification
     const customerId = subscription.customer as string;
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-      apiVersion: "2025-08-27.basil" 
+      apiVersion: "2024-12-18.acacia" 
     });
     const customer = await stripe.customers.retrieve(customerId);
     
@@ -335,7 +335,6 @@ async function handleTrialWillEnd(
     }
 
     logStep("Trial ending soon for customer", { 
-      email: customer.email,
       trialEnd: subscription.trial_end 
     });
 

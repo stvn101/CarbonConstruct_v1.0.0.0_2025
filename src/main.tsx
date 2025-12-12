@@ -5,6 +5,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
 import { initializeErrorTracking, trackErrorGlobal } from "./hooks/useErrorTracking";
 import { initTracing } from "./lib/tracing";
+import { initAxeAccessibility } from "./lib/axe-accessibility";
 import "./index.css";
 
 // Initialize tracing
@@ -12,6 +13,9 @@ initTracing();
 
 // Initialize global error tracking
 initializeErrorTracking();
+
+// Initialize axe-core accessibility testing (dev only)
+initAxeAccessibility();
 
 // Helper function to create safe error notification (prevents XSS)
 function createErrorNotification(errorMessage: string): HTMLDivElement {

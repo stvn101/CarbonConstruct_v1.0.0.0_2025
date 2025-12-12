@@ -35,18 +35,29 @@ export const MaterialComparison = memo(() => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
 
-  // Filter materials by search term
+  // Filter materials by search term with fuzzy matching
   const filteredMaterials = useMemo(() => {
-    if (searchTerm.length < 2) return [];
-    const term = searchTerm.toLowerCase();
+    if (searchTerm.length < 1) return [];
+    
+    // Split search into words for multi-term matching
+    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/).filter(w => w.length > 0);
+    if (searchWords.length === 0) return [];
+    
     return materials
-      .filter(m => 
-        m.material_name.toLowerCase().includes(term) ||
-        m.material_category.toLowerCase().includes(term) ||
-        m.subcategory?.toLowerCase().includes(term) ||
-        m.manufacturer?.toLowerCase().includes(term)
-      )
-      .slice(0, 15);
+      .filter(m => {
+        // Create searchable text from all relevant fields
+        const searchableText = [
+          m.material_name,
+          m.material_category,
+          m.subcategory,
+          m.manufacturer,
+          m.plant_location
+        ].filter(Boolean).join(' ').toLowerCase();
+        
+        // All search words must match somewhere in the searchable text
+        return searchWords.every(word => searchableText.includes(word));
+      })
+      .slice(0, 50); // Show more results
   }, [materials, searchTerm]);
 
   const addMaterial = (material: EPDMaterial) => {

@@ -224,7 +224,7 @@ export default function Calculator() {
   });
   
   // Favorite materials for quick-add
-  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites } = useFavoriteMaterials();
+  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites, syncWithDatabase } = useFavoriteMaterials();
   
   // Category counts for browser - using EPD database
   const categoryCounts = useMemo(() => {
@@ -288,21 +288,35 @@ export default function Calculator() {
       filtered = filtered.filter(m => m.material_category === selectedCategory);
     }
     
-    // Filter by search term
-    if (materialSearch.length >= 2) {
-      filtered = filtered.filter(m => 
-        m.material_name.toLowerCase().includes(materialSearch.toLowerCase()) ||
-        m.material_category.toLowerCase().includes(materialSearch.toLowerCase()) ||
-        (m.subcategory?.toLowerCase().includes(materialSearch.toLowerCase()) ?? false) ||
-        (m.manufacturer?.toLowerCase().includes(materialSearch.toLowerCase()) ?? false)
-      );
+    // Filter by search term - improved search logic
+    if (materialSearch.trim().length >= 2) {
+      const searchLower = materialSearch.toLowerCase().trim();
+      // Split search into words for multi-word matching
+      const searchWords = searchLower.split(/\s+/).filter(w => w.length > 0);
+      
+      filtered = filtered.filter(m => {
+        const nameL = m.material_name.toLowerCase();
+        const catL = m.material_category.toLowerCase();
+        const subL = m.subcategory?.toLowerCase() || '';
+        const mfrL = m.manufacturer?.toLowerCase() || '';
+        const locL = m.plant_location?.toLowerCase() || '';
+        
+        // All search words must match somewhere in the material
+        return searchWords.every(word => 
+          nameL.includes(word) ||
+          catL.includes(word) ||
+          subL.includes(word) ||
+          mfrL.includes(word) ||
+          locL.includes(word)
+        );
+      });
     }
     
     // For new UI, show results when category is selected OR search is active
     // For old UI, only show when search is active
     const shouldShow = useNewMaterialUI 
-      ? (selectedCategory || materialSearch.length >= 2 || selectedState)
-      : materialSearch.length >= 2;
+      ? (selectedCategory || materialSearch.trim().length >= 2 || selectedState)
+      : materialSearch.trim().length >= 2;
     
     if (!shouldShow) return [];
     
@@ -313,15 +327,19 @@ export default function Calculator() {
       groups.set(mat.material_category, existing);
     });
     
-    // Sort categories and limit items per category for performance
+    // Sort categories - no limit, show all matching results
     return Array.from(groups.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .slice(0, 30)
       .map(([cat, items]) => ({
         category: cat,
-        items: items.slice(0, 50) // Higher limit for better browsing
+        items: items // Show all matching items, no limit
       }));
   }, [dbMaterials, materialSearch, selectedCategory, selectedState, useNewMaterialUI]);
+  
+  // Total count of filtered materials for display
+  const filteredMaterialsCount = useMemo(() => 
+    groupedMaterials.reduce((acc, g) => acc + g.items.length, 0), 
+  [groupedMaterials]);
 
   // Auto-save to localStorage
   useEffect(() => {
@@ -481,18 +499,32 @@ export default function Calculator() {
     setSelectedMaterials(prev => [...prev, newItem]);
     setMaterialSearch(''); // Clear search after adding
     
-    // Track usage for quick-add
+    // Track usage for quick-add with full EPD data
     trackMaterialUsage({
       id: material.id,
       name: material.material_name,
       category: material.material_category,
       unit: material.unit,
       factor: factor,
-      source: material.data_source
+      source: material.data_source,
+      // EPD Traceability
+      epdNumber: material.epd_number || undefined,
+      epdUrl: material.epd_url || undefined,
+      manufacturer: material.manufacturer || undefined,
+      plantLocation: material.plant_location || undefined,
+      dataQualityTier: material.data_quality_tier || undefined,
+      year: material.year || undefined,
+      // Lifecycle breakdown
+      ef_a1a3: material.ef_a1a3 || undefined,
+      ef_a4: material.ef_a4 || undefined,
+      ef_a5: material.ef_a5 || undefined,
+      ef_b1b5: material.ef_b1b5 || undefined,
+      ef_c1c4: material.ef_c1c4 || undefined,
+      ef_d: material.ef_d || undefined,
     });
   };
 
-  // Quick add from favorites
+  // Quick add from favorites - includes full EPD data
   const addFromQuickAdd = (fav: typeof quickAddMaterials[0]) => {
     const newItem: Material = {
       id: Date.now().toString() + Math.random(),
@@ -503,18 +535,44 @@ export default function Calculator() {
       factor: fav.factor,
       source: fav.source,
       quantity: 0,
-      isCustom: false
+      isCustom: false,
+      // EPD Traceability from stored favorite
+      epdNumber: fav.epdNumber,
+      epdUrl: fav.epdUrl,
+      manufacturer: fav.manufacturer,
+      plantLocation: fav.plantLocation,
+      dataQualityTier: fav.dataQualityTier,
+      year: fav.year,
+      // Lifecycle breakdown
+      ef_a1a3: fav.ef_a1a3,
+      ef_a4: fav.ef_a4,
+      ef_a5: fav.ef_a5,
+      ef_b1b5: fav.ef_b1b5,
+      ef_c1c4: fav.ef_c1c4,
+      ef_d: fav.ef_d,
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     
-    // Track usage
+    // Track usage with full EPD data
     trackMaterialUsage({
       id: fav.materialId,
       name: fav.materialName,
       category: fav.category,
       unit: fav.unit,
       factor: fav.factor,
-      source: fav.source
+      source: fav.source,
+      epdNumber: fav.epdNumber,
+      epdUrl: fav.epdUrl,
+      manufacturer: fav.manufacturer,
+      plantLocation: fav.plantLocation,
+      dataQualityTier: fav.dataQualityTier,
+      year: fav.year,
+      ef_a1a3: fav.ef_a1a3,
+      ef_a4: fav.ef_a4,
+      ef_a5: fav.ef_a5,
+      ef_b1b5: fav.ef_b1b5,
+      ef_c1c4: fav.ef_c1c4,
+      ef_d: fav.ef_d,
     });
   };
 
@@ -1179,6 +1237,7 @@ export default function Calculator() {
                         materials={quickAddMaterials}
                         onAddMaterial={addFromQuickAdd}
                         onHideMaterial={hideMaterial}
+                        onSyncEPD={syncWithDatabase}
                       />
                     </div>
                   ) : quickAddMaterials.length > 0 && (
@@ -1342,6 +1401,7 @@ export default function Calculator() {
                         onAddMaterial={addMaterialFromDb}
                         searchTerm={materialSearch}
                         selectedCategory={selectedCategory}
+                        totalResultCount={filteredMaterialsCount}
                       />
                     </div>
                   )}
@@ -1637,7 +1697,7 @@ export default function Calculator() {
                   {/* Use Phase (B1-B7) */}
                   <Collapsible open={usePhaseOpen} onOpenChange={setUsePhaseOpen}>
                     <CollapsibleTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between hover:bg-amber-50 border-amber-200">
+                      <Button variant="outline" className="w-full justify-between hover:bg-amber-50 hover:text-amber-700 border-amber-200">
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-amber-600" />
                           <span>Use Phase (B1-B7)</span>
@@ -1661,7 +1721,7 @@ export default function Calculator() {
                   {/* End of Life (C1-C4) */}
                   <Collapsible open={endOfLifeOpen} onOpenChange={setEndOfLifeOpen}>
                     <CollapsibleTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between hover:bg-red-50 border-red-200">
+                      <Button variant="outline" className="w-full justify-between hover:bg-red-50 hover:text-red-700 border-red-200">
                         <div className="flex items-center gap-2">
                           <Trash2 className="h-4 w-4 text-red-600" />
                           <span>End of Life (C1-C4)</span>
@@ -1685,7 +1745,7 @@ export default function Calculator() {
                   {/* Module D (Benefits) */}
                   <Collapsible open={moduleDOpen} onOpenChange={setModuleDOpen}>
                     <CollapsibleTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between hover:bg-emerald-50 border-emerald-200">
+                      <Button variant="outline" className="w-full justify-between hover:bg-emerald-50 hover:text-emerald-700 border-emerald-200">
                         <div className="flex items-center gap-2">
                           <Leaf className="h-4 w-4 text-emerald-600" />
                           <span>Module D (Benefits)</span>
@@ -1748,7 +1808,7 @@ export default function Calculator() {
 
           {/* Right Column - Stats Panel */}
           <div className="lg:col-span-1">
-            <Card className="p-4 md:p-6 lg:sticky lg:top-6 bg-slate-800 text-white">
+            <Card className="p-4 md:p-6 lg:sticky lg:top-6 bg-slate-800 text-white" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
               <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Footprint</h3>
               <div className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-emerald-400">
                 {(calculations.total / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>

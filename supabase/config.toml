@@ -1,5 +1,11 @@
 project_id = "htruyldcvakkzpykfoxq"
 
+[functions.process-epd-upload]
+verify_jwt = true
+
+[functions.validate-materials]
+verify_jwt = true
+
 [functions.log-security-event]
 verify_jwt = false
 
@@ -16,6 +22,9 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.import-materials]
+verify_jwt = true
+
+[functions.import-bluescope-epd]
 verify_jwt = true
 
 [functions.chat]
@@ -70,4 +79,19 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.send-audit-report]
+verify_jwt = true
+
+[functions.export-user-data]
+verify_jwt = true
+
+[functions.schedule-deletion]
+verify_jwt = true
+
+[functions.cancel-deletion]
+verify_jwt = true
+
+[functions.suspend-account]
+verify_jwt = true
+
+[functions.delete-account]
 verify_jwt = true
