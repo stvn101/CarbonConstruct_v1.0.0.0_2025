@@ -308,6 +308,7 @@ export function useFavoriteMaterials() {
    * @returns {Promise<{ synced: number, total: number }>} An object containing:
    *   - synced: The number of materials successfully synchronized.
    *   - total: The total number of materials attempted to synchronize.
+   * @throws {Error} If a network failure, database unavailability, or unexpected error occurs during the synchronization process.
    */
   const syncWithDatabase = useCallback(async () => {
     if (favorites.length === 0) return { synced: 0, total: 0 };
