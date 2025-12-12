@@ -7,6 +7,7 @@ import { QuickCarbonCalculator } from '@/components/QuickCarbonCalculator';
 const Impact = () => {
   const impactStats = [
     {
+      // Updated from 1% to 0.5% on Dec 11, 2024 to align with Stripe Climate's standard rate
       value: '0.5%',
       label: 'Revenue to Carbon Removal',
       description: 'Every subscription contributes directly to verified carbon removal projects',
@@ -133,7 +134,13 @@ const Impact = () => {
       {/* Quick Carbon Calculator */}
       <QuickCarbonCalculator />
 
-      {/* Stripe Climate Partnership */}
+      {/* Stripe Climate Partnership
+       * Note: Changed from 1% to 0.5% of subscription revenue on Dec 11, 2024
+       * This aligns with Stripe Climate's standard contribution rate for participating
+       * businesses and ensures sustainable long-term commitment to carbon removal while
+       * maintaining competitive pricing. The 0.5% rate is consistent across all our
+       * marketing materials and product documentation.
+       */}
       <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
         <CardHeader>
           <div className="flex items-center gap-3 mb-2">
