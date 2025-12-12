@@ -39,6 +39,29 @@ export interface RangeSpec {
   notes?: string;
 }
 
+/**
+ * NABERS Range Validation Tolerance Thresholds
+ * 
+ * These constants define the acceptable variance from NABERS expected ranges
+ * before a material is flagged as an outlier requiring review.
+ * 
+ * RATIONALE FOR 30% TOLERANCE:
+ * - Regional variations: Australian grid mix varies by state (e.g., TAS hydro vs NSW coal)
+ * - Manufacturing processes: Recycled content, energy mix, and transportation differences
+ * - Supply chain factors: Import origin, local vs imported materials
+ * - Temporal factors: Technology improvements, seasonal energy mix changes
+ * 
+ * ADJUSTMENT GUIDANCE:
+ * - Increase tolerance (e.g., 1.4/0.6) for categories with high regional variance (e.g., Aluminium)
+ * - Decrease tolerance (e.g., 1.2/0.8) for standardized products (e.g., Cement)
+ * - Review quarterly as NABERS dataset evolves and manufacturing practices improve
+ * 
+ * @constant {number} NABERS_UPPER_TOLERANCE_MULTIPLIER - Multiplier for upper range threshold (130% = 1.3)
+ * @constant {number} NABERS_LOWER_TOLERANCE_MULTIPLIER - Multiplier for lower range threshold (70% = 0.7)
+ */
+export const NABERS_UPPER_TOLERANCE_MULTIPLIER = 1.3; // 30% above maximum
+export const NABERS_LOWER_TOLERANCE_MULTIPLIER = 0.7; // 30% below minimum
+
 // NABERS v2025.1 expected ranges by category
 export const NABERS_RANGES: Record<string, RangeSpec[]> = {
   // Concrete (Section 3.1)
@@ -259,7 +282,7 @@ export function determineConfidenceLevel(
       const maxRange = Math.max(...ranges.map(r => r.max));
       const minRange = Math.min(...ranges.map(r => r.min));
       
-      if (efTotal > maxRange * 1.3) {
+      if (efTotal > maxRange * NABERS_UPPER_TOLERANCE_MULTIPLIER) {
         const variance = ((efTotal - maxRange) / maxRange * 100).toFixed(1);
         isOutlier = true;
         outlierReason = `${variance}% above NABERS maximum`;
@@ -272,7 +295,7 @@ export function determineConfidenceLevel(
           recommendedAction: 'Verify with manufacturer EPD or check grid/regional context'
         });
         if (confidenceLevel !== 'needs_review') confidenceLevel = 'documented';
-      } else if (efTotal < minRange * 0.7) {
+      } else if (efTotal < minRange * NABERS_LOWER_TOLERANCE_MULTIPLIER) {
         const variance = ((minRange - efTotal) / minRange * 100).toFixed(1);
         isOutlier = true;
         outlierReason = `${variance}% below NABERS minimum`;
