@@ -183,9 +183,9 @@ export interface MaterialValidation {
  * Determines the confidence level for a material record based on the 5-layer validation framework.
  *
  * This function evaluates material data quality through comprehensive validation layers:
- * - Layer 1: Data integrity (null checks, negative values)
+ * - Layer 1: Data integrity (null checks, type validation, negative values)
  * - Layer 2: EPD registry verification (S-P-XXXXX pattern matching, expiry dates)
- * - Layer 3: NABERS range validation (statistical outlier detection)
+ * - Layer 3: NABERS range validation (expected ranges by category, statistical outlier detection)
  * - Layer 4: Unit consistency (per-category unit checks)
  * - Layer 5: Source credibility (Tier 1/2/3 classification)
  *
