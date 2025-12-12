@@ -1,7 +1,7 @@
 // CI Test User Credentials - Use environment variables in CI
 export const CI_TEST_USER = {
   email: process.env.TEST_USER_EMAIL || 'test-ci@carbonconstruct.com.au',
-  password: process.env.TEST_USER_PASSWORD || 'TestPassword123!',
+  password: process.env.TEST_USER_PASSWORD || '',
 };
 
 // Invalid credentials for testing failure scenarios
