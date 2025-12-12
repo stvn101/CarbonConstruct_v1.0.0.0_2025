@@ -5,14 +5,18 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   loadingText?: string;
 }
 
-function Skeleton({ className, loadingText = "Loading...", ...props }: SkeletonProps) {
+function Skeleton({ className, loadingText, ...props }: SkeletonProps) {
   return (
     <div 
       className={cn("animate-pulse rounded-md bg-muted", className)} 
-      role="status"
-      aria-label={loadingText}
-      {...props} 
-    />
+      aria-busy="true"
+      aria-live="polite"
+      {...props}
+    >
+      {loadingText && (
+        <span className="sr-only">{loadingText}</span>
+      )}
+    </div>
   );
 }
 
