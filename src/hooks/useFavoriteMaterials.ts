@@ -297,7 +297,18 @@ export function useFavoriteMaterials() {
     setFavorites([]);
   }, []);
 
-  // Sync favorites with latest EPD data from database
+  /**
+   * Synchronizes the local favorites list with the latest EPD data from the database.
+   *
+   * This function fetches updated material data for all non-default favorite materials
+   * and updates the local state accordingly. It should be called whenever you want to
+   * ensure that the user's favorite materials reflect the most current data from the database,
+   * such as after a data refresh or when the app resumes from a paused state.
+   *
+   * @returns {Promise<{ synced: number, total: number }>} An object containing:
+   *   - synced: The number of materials successfully synchronized.
+   *   - total: The total number of materials attempted to synchronize.
+   */
   const syncWithDatabase = useCallback(async () => {
     if (favorites.length === 0) return { synced: 0, total: 0 };
 
