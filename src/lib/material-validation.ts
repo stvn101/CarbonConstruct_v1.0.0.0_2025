@@ -1,13 +1,12 @@
 /**
  * CarbonConstruct Materials Database Validation Framework v1.0
  * 
- * Implements 6-layer validation architecture:
+ * Implements 5-layer validation architecture:
  * - Layer 1: Data Integrity (null checks, type validation, unit consistency)
  * - Layer 2: EPD Registry Verification (S-P-XXXXX pattern matching, validity)
  * - Layer 3: NABERS Range Validation (expected ranges by category)
  * - Layer 4: Unit Consistency (per-category unit checks)
  * - Layer 5: Source Credibility (Tier 1/2/3 classification)
- * - Layer 6: Outlier Detection (statistical analysis)
  */
 
 // ============================================
