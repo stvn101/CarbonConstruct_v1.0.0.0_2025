@@ -4,16 +4,8 @@ import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
 import { initializeErrorTracking, trackErrorGlobal } from "./hooks/useErrorTracking";
-import { initTracing } from "./lib/tracing";
 import { initAxeAccessibility } from "./lib/axe-accessibility";
 import "./index.css";
-
-// Initialize tracing (dev only, fails gracefully)
-try {
-  initTracing();
-} catch {
-  // Tracing is optional - silently skip if it fails
-}
 
 // Initialize global error tracking
 initializeErrorTracking();
