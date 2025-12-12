@@ -3,7 +3,7 @@
  */
 
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, beforeEach, afterEach } from 'vitest';
 
 // Re-export testing utilities for consistent imports
 export { render, renderHook, act, cleanup } from '@testing-library/react';
