@@ -9,6 +9,15 @@ import { vi, beforeEach, afterEach } from 'vitest';
 export { render, renderHook, act, cleanup } from '@testing-library/react';
 export { screen, fireEvent, within } from '@testing-library/dom';
 
+// Mock @radix-ui/react-tooltip to avoid provider errors in tests
+vi.mock('@radix-ui/react-tooltip', () => ({
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => children,
+  Tooltip: ({ children }: { children: React.ReactNode }) => children,
+  TooltipTrigger: ({ children }: { children: React.ReactNode }) => children,
+  TooltipContent: ({ children }: { children: React.ReactNode }) => children,
+  TooltipPortal: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Custom waitFor implementation
 export const waitFor = async (
   callback: () => void | Promise<void>,
@@ -30,15 +39,29 @@ export const waitFor = async (
   await callback();
 };
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(() => null),
-  setItem: vi.fn(() => {}),
-  removeItem: vi.fn(() => {}),
-  clear: vi.fn(() => {}),
-  length: 0,
-  key: vi.fn(() => null),
+// Mock localStorage with actual storage functionality
+const createLocalStorageMock = () => {
+  let store: Record<string, string> = {};
+
+  return {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: vi.fn((index: number) => Object.keys(store)[index] || null),
+  };
 };
+
+const localStorageMock = createLocalStorageMock();
 
 Object.defineProperty(global, 'localStorage', {
   value: localStorageMock,
