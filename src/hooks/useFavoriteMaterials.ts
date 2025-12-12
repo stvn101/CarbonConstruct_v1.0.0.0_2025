@@ -301,14 +301,39 @@ export function useFavoriteMaterials() {
    * Synchronizes the local favorites list with the latest EPD data from the database.
    *
    * This function fetches updated material data for all non-default favorite materials
-   * and updates the local state accordingly. It should be called whenever you want to
-   * ensure that the user's favorite materials reflect the most current data from the database,
-   * such as after a data refresh or when the app resumes from a paused state.
+   * from the `materials_epd` table and updates the local state accordingly. It performs
+   * a bulk query for efficiency and merges the latest EPD data with existing user preferences
+   * (usage count, pinned status, etc.).
    *
-   * @returns {Promise<{ synced: number, total: number }>} An object containing:
-   *   - synced: The number of materials successfully synchronized.
-   *   - total: The total number of materials attempted to synchronize.
-   * @throws {Error} If a network failure, database unavailability, or unexpected error occurs during the synchronization process.
+   * ## Invocation Context
+   * Call this function when you need to ensure favorite materials reflect current database values:
+   * - After a scheduled EPD data refresh
+   * - When the app resumes from background/paused state
+   * - On user-triggered "Sync Materials" action
+   * - Before generating compliance reports that require up-to-date emission factors
+   *
+   * ## Behavior
+   * - Skips default pinned materials (IDs starting with 'default_')
+   * - Queries Supabase `materials_epd` table using `.in()` for batch efficiency
+   * - Updates emission factors, EPD metadata, and lifecycle breakdown fields
+   * - Preserves user-specific data (usage count, pinned status, lastUsed timestamp)
+   * - Handles missing materials gracefully (keeps original data if not found in database)
+   *
+   * ## Error Handling
+   * If database query fails or network is unavailable, logs a warning and returns
+   * `{ synced: 0, total: materialIds.length }` to allow graceful degradation.
+   * The function does not throw errors to prevent breaking the UI.
+   *
+   * @returns {Promise<{ synced: number, total: number }>} Synchronization result containing:
+   *   - `synced`: Number of materials successfully updated from the database
+   *   - `total`: Total number of favorite materials queried (excludes defaults)
+   *
+   * @example
+   * ```typescript
+   * const { syncWithDatabase } = useFavoriteMaterials();
+   * const result = await syncWithDatabase();
+   * console.log(`Synced ${result.synced} of ${result.total} materials`);
+   * ```
    */
   const syncWithDatabase = useCallback(async () => {
     if (favorites.length === 0) return { synced: 0, total: 0 };

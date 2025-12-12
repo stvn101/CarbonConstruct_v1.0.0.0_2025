@@ -26,6 +26,49 @@ export const useSubscriptionStatus = () => {
   });
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Checks the user's subscription status via Supabase Edge Function with automatic retry logic.
+   *
+   * This function invokes the 'check-subscription' edge function to verify the user's current
+   * subscription tier and status with Stripe. Network failures are automatically retried with
+   * linear backoff to improve reliability in unstable network conditions.
+   *
+   * ## Retry Strategy
+   * - **Maximum Attempts**: 3 retries (defined by `RETRY.MAX_ATTEMPTS`)
+   * - **Backoff Calculation**: Linear backoff with `RETRY.SUBSCRIPTION_CHECK_DELAY` (1000ms) multiplied by attempt number
+   *   - Attempt 1: 1000ms delay (1s)
+   *   - Attempt 2: 2000ms delay (2s)
+   *   - Attempt 3: 3000ms delay (3s)
+   * - **Retriable Errors**: Network failures, fetch errors, or "Failed to send" messages
+   * - **Non-Retriable**: Authentication errors, invalid responses (fail immediately)
+   *
+   * ## Error Handling
+   * - Network errors trigger automatic retry with linear backoff delay
+   * - Toast notification only shown after final retry failure (prevents notification spam)
+   * - All errors logged via `logger.error` for debugging
+   * - Non-authenticated users skip subscription check (set to Free tier)
+   *
+   * ## Toast Notification
+   * Displayed only after exhausting all retry attempts with:
+   * - Error title: "Connection Issue"
+   * - Retry count in message
+   * - Support contact link
+   *
+   * @param retryCount - Internal counter for retry attempts (0-indexed). Do not pass manually.
+   * @returns {Promise<void>} Resolves when subscription status is updated or all retries exhausted.
+   *
+   * @example
+   * ```typescript
+   * // Called automatically on mount and user change
+   * useEffect(() => {
+   *   checkSubscription();
+   * }, [user]);
+   *
+   * // Manual refresh (e.g., after checkout)
+   * const { refetch } = useSubscriptionStatus();
+   * await refetch();
+   * ```
+   */
   const checkSubscription = async (retryCount = 0): Promise<void> => {
     if (!user) {
       setStatus({
