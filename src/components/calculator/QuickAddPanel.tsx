@@ -67,6 +67,7 @@ export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial, onSync
                   onClick={handleSync}
                   disabled={isSyncing}
                   className="h-7 px-2 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800"
+                  aria-label={isSyncing ? 'Syncing EPD data' : syncComplete ? 'EPD data synced' : 'Sync EPD data'}
                 >
                   {syncComplete ? (
                     <Check className="h-3.5 w-3.5 text-emerald-600" />
