@@ -105,10 +105,17 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Run E2E tests
-        run: npx playwright test --project=chromium
+      - name: Run E2E tests (Public)
+        run: npx playwright test --project=chromium --grep-invert "@authenticated"
         env:
           CI: true
+
+      - name: Run E2E tests (Authenticated)
+        run: npx playwright test --project=chromium --grep "@authenticated"
+        env:
+          CI: true
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -123,6 +130,51 @@ jobs:
         if: failure()
         with:
           name: test-screenshots
+          path: test-results/
+          retention-days: 7
+
+  e2e-auth-comprehensive:
+    name: E2E Auth Comprehensive Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build application
+        run: npm run build
+
+      - name: Run comprehensive auth E2E tests
+        run: npx playwright test auth-comprehensive --project=chromium
+        env:
+          CI: true
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+
+      - name: Upload auth test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: auth-e2e-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload auth test screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: auth-test-screenshots
           path: test-results/
           retention-days: 7
 
