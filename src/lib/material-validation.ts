@@ -154,12 +154,31 @@ export interface MaterialValidation {
 }
 
 /**
- * Determines confidence level based on framework rules (Part 5.1)
- * 
- * 🟢 GREEN - Verified EPD: EPD Australasia registered, NABERS cross-referenced
- * 🟡 YELLOW - Documented Variant: Regional/manufacturing variation documented
- * 🟠 ORANGE - Industry Average: ICM Database or similar
- * 🔴 RED - Needs Review: Outlier without explanation
+ * Determines the confidence level for a material record based on validation framework rules (Part 5.1).
+ *
+ * ## Return Value
+ * Returns a {@link MaterialValidation} object with the following structure:
+ * - `confidenceLevel` (`ConfidenceLevel`): The assigned confidence level for the material. One of:
+ *    - `'verified'`: Data is from a registered EPD (Environmental Product Declaration) and cross-referenced with NABERS. Indicates the highest level of trust.
+ *    - `'documented'`: Data is a documented regional or manufacturing variant, but not a registered EPD. Trusted, but with some caveats.
+ *    - `'industry_average'`: Data is from an industry average source (e.g., ICM Database). Useful for benchmarking, but less specific.
+ *    - `'needs_review'`: Data is an outlier or lacks sufficient documentation. Requires manual review before use.
+ * - `confidenceLabel` (`string`): Human-readable label for the confidence level (e.g., "Verified EPD", "Industry Average").
+ * - `confidenceColor` (`'green' | 'yellow' | 'orange' | 'red'`): Color code representing the confidence level for UI display.
+ * - `issues` (`ValidationIssue[]`): List of validation issues found for the material, if any.
+ * - `sourceTier` (`SourceTier`): Classification of the data source's credibility.
+ * - `isOutlier` (`boolean`): Whether the material's data is considered a statistical outlier.
+ * - `outlierReason` (`string | undefined`): Explanation if the material is an outlier.
+ * - `validUntil` (`string | undefined`): Expiry date for the data, if applicable.
+ *
+ * ## Confidence Levels
+ * - 🟢 **'verified'**: Data is from a registered EPD (Environmental Product Declaration) and cross-referenced with NABERS. Use with high confidence for compliance and reporting.
+ * - 🟡 **'documented'**: Data is a documented regional or manufacturing variant, but not a registered EPD. Suitable for most use cases, but may require additional verification for compliance.
+ * - 🟠 **'industry_average'**: Data is from an industry average source (e.g., ICM Database). Use for benchmarking or early design, but not for final compliance reporting.
+ * - 🔴 **'needs_review'**: Data is an outlier or lacks sufficient documentation. Manual review is required before use in compliance or reporting.
+ *
+ * @param material - The material record to evaluate.
+ * @returns {MaterialValidation} The validation result, including confidence level, issues, and source tier.
  */
 export function determineConfidenceLevel(
   material: {
