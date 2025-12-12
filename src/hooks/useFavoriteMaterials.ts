@@ -319,13 +319,14 @@ export function useFavoriteMaterials() {
    * - Preserves user-specific data (usage count, pinned status, lastUsed timestamp)
    * - Handles missing materials gracefully (keeps original data if not found in database)
    *
-   * ## Return Value Structure
+   * ## Error Handling
+   * If database query fails or network is unavailable, logs a warning and returns
+   * `{ synced: 0, total: materialIds.length }` to allow graceful degradation.
+   * The function does not throw errors to prevent breaking the UI.
+   *
    * @returns {Promise<{ synced: number, total: number }>} Synchronization result containing:
    *   - `synced`: Number of materials successfully updated from the database
    *   - `total`: Total number of favorite materials queried (excludes defaults)
-   *
-   * @throws {Error} Logs warning (does not throw) if database query fails or network is unavailable.
-   *   Returns `{ synced: 0, total: materialIds.length }` on error to allow graceful degradation.
    *
    * @example
    * ```typescript

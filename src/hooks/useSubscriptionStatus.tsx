@@ -43,7 +43,7 @@ export const useSubscriptionStatus = () => {
    * - **Non-Retriable**: Authentication errors, invalid responses (fail immediately)
    *
    * ## Error Handling
-   * - Network errors trigger automatic retry with exponential delay
+   * - Network errors trigger automatic retry with linear backoff delay
    * - Toast notification only shown after final retry failure (prevents notification spam)
    * - All errors logged via `logger.error` for debugging
    * - Non-authenticated users skip subscription check (set to Free tier)
