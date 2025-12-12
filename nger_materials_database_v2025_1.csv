@@ -1,0 +1,124 @@
+material_type,material_category,unit,data_quality,uncertainty_pct,a1a3_default_per_unit,a1a3_max_per_unit,a1a3_min_per_unit,a1a3_avg_per_unit,a1a3_default_per_kg,a1a3_max_per_kg,a1a3_min_per_kg,a1a3_avg_per_kg,carbon_storage_per_unit,carbon_storage_per_kg,conversion_factor,conversion_unit
+Concrete in-situ,≤10 MPa,m³,Tier 3,1.1,273.0,248.0,142.0,181.0,0.114,0.103,0.059,0.0755,0.0,0.0,2400.0,kg/m³
+Concrete in-situ,>10 MPa to ≤20 MPa,m³,Tier 1,1.02,371.0,364.0,136.0,201.0,0.155,0.152,0.0567,0.0836,0.0,0.0,2400.0,kg/m³
+Concrete in-situ,>20 MPa to ≤25 MPa,m³,Tier 1,1.02,426.0,417.0,149.0,222.0,0.177,0.174,0.0621,0.0924,0.0,0.0,2400.0,kg/m³
+Concrete in-situ,>25 MPa to ≤32 MPa,m³,Tier 1,1.02,468.0,459.0,167.0,249.0,0.195,0.191,0.0696,0.104,0.0,0.0,2400.0,kg/m³
+Concrete in-situ,>32 MPa to ≤40 MPa,m³,Tier 1,1.02,556.0,545.0,198.0,305.0,0.232,0.227,0.0825,0.127,0.0,0.0,2400.0,kg/m³
+Concrete in-situ,>40 MPa to ≤50 MPa,m³,Tier 1,1.02,621.0,609.0,101.0,354.0,0.259,0.254,0.0421,0.148,0.0,0.0,2400.0,kg/m³
+Concrete in-situ,>50 MPa to ≤65 MPa,m³,Tier 2,1.05,640.0,609.0,274.0,402.0,0.267,0.254,0.114,0.167,0.0,0.0,2400.0,kg/m³
+Concrete in-situ,>65 MPa to ≤80 MPa,m³,Tier 2,1.05,690.0,657.0,301.0,425.0,0.287,0.274,0.125,0.177,0.0,0.0,2400.0,kg/m³
+Concrete in-situ,>80 MPa +,m³,Tier 3,1.1,781.0,710.0,438.0,561.0,0.325,0.296,0.184,0.234,0.0,0.0,2400.0,kg/m³
+Concrete in-situ,Kerb,m³,Tier 1,1.02,468.0,459.0,167.0,249.0,0.195,0.191,0.0696,0.104,0.0,0.0,2400.0,kg/m³
+Concrete precast panel,Precast concrete panel (inc. reinforcing),tonne,Untiered,1.0,439.0,439.0,69.3,233.0,0.439,0.439,0.0693,0.233,0.0,0.0,1000.0,kg/tonne
+Concrete precast panel,Hollow core - precast concrete (inc. reinforcing),m³,Tier 4,1.2,428.0,357.0,317.0,339.0,0.29,0.242,0.215,0.229,0.0,0.0,1480.0,kg/m³
+Concrete block,Concrete block (exc. core fill or reinforcing),tonne,Tier 3,1.1,264.0,240.0,112.0,159.0,0.264,0.24,0.112,0.159,0.0,0.0,1000.0,kg/tonne
+Concrete block,Solid AAC (no fill or reinforcing),m³,Tier 4,1.2,278.0,232.0,150.0,190.0,0.724,0.603,0.334,0.437,0.0,0.0,435.0,kg/m³
+Reinforcing steel,Bar & mesh reinforcing steel,tonne,Tier 2,1.05,3650.0,3480.0,309.0,1600.0,3.65,3.48,0.309,1.6,0.0,0.0,1000.0,kg/tonne
+Reinforcing steel,Fibre & strand reinforcing steel,tonne,Tier 2,1.05,3650.0,3480.0,309.0,1600.0,3.65,3.48,0.309,1.6,0.0,0.0,1000.0,kg/tonne
+Structural steel,"Structural sections steel (welded beam, columns, angles, plates, piles etc) (hot rolled)",tonne,Tier 2,1.05,3910.0,3720.0,558.0,2270.0,3.91,3.72,0.558,2.27,0.0,0.0,1000.0,kg/tonne
+Structural steel,Structural formwork and decking steel (cold rolled - light weight),tonne,Tier 2,1.05,4050.0,3860.0,2730.0,3010.0,4.05,3.86,2.73,3.01,0.0,0.0,1000.0,kg/tonne
+Structural steel,Structural framing steel (cold rolled - lightweight),tonne,Tier 2,1.05,4050.0,3860.0,2730.0,3010.0,4.05,3.86,2.73,3.01,0.0,0.0,1000.0,kg/tonne
+Structural steel,"Galvanised structural sections steel (welded beam, columns, angles, plates, piles etc.) (hot rolled)",tonne,Tier 1,1.02,4190.0,4100.0,581.0,2400.0,4.19,4.1,0.581,2.4,0.0,0.0,1000.0,kg/tonne
+Structural steel,"Painted structural sections steel (welded beam, columns, angles, plates, piles etc.) (hot rolled)",tonne,Tier 2,1.05,4340.0,4130.0,580.0,2410.0,4.34,4.13,0.58,2.41,0.0,0.0,1000.0,kg/tonne
+Stainless steel,Stainless steel (general),tonne,Tier 4,1.2,5990.0,4990.0,2800.0,3510.0,5.99,4.99,2.8,3.51,0.0,0.0,1000.0,kg/tonne
+Timber,Softwood,m³,Tier 2,1.05,349.0,332.0,113.0,188.0,0.633,0.603,0.205,0.366,857.0,1.64,514.0,kg/m³
+Timber,Hardwood,m³,Tier 2,1.05,591.0,563.0,104.0,347.0,0.804,0.765,0.126,0.466,1170.0,1.54,744.0,kg/m³
+Timber,Timber poles - piles,m³,Tier 2,1.05,591.0,563.0,104.0,347.0,0.804,0.765,0.126,0.466,1170.0,1.54,744.0,kg/m³
+Timber (engineered),Plywood,m³,Tier 2,1.05,968.0,922.0,235.0,498.0,1.77,1.69,0.396,0.978,841.0,1.64,509.0,kg/m³
+Timber (engineered),Particleboard,m³,Tier 2,1.05,880.0,838.0,322.0,650.0,1.23,1.17,0.488,0.915,1140.0,1.62,711.0,kg/m³
+Timber (engineered),GLT & CLT (softwood),m³,Tier 2,1.05,565.0,539.0,53.8,242.0,1.26,1.2,0.114,0.467,823.0,1.61,518.0,kg/m³
+Timber (engineered),GLT & CLT (hardwood),m³,Tier 3,1.1,841.0,765.0,627.0,690.0,1.25,1.13,0.93,1.02,1090.0,1.61,674.0,kg/m³
+Timber (engineered),LVL,m³,Tier 3,1.1,442.0,402.0,94.4,298.0,1.0,0.913,0.155,0.587,843.0,1.6,507.0,kg/m³
+Timber (engineered),OSB,m³,Tier 4,1.2,461.0,384.0,101.0,194.0,0.767,0.64,0.165,0.318,1020.0,1.66,610.0,kg/m³
+Brick,Clay brick,tonne,Tier 4,1.2,464.0,387.0,47.8,184.0,0.464,0.387,0.0478,0.184,0.0,0.0,1000.0,kg/tonne
+Brick,Concrete brick ,tonne,Tier 3,1.1,264.0,240.0,112.0,159.0,0.264,0.24,0.112,0.159,0.0,0.0,1000.0,kg/tonne
+Brick,Stone brick,tonne,Tier 4,1.2,542.0,452.0,67.1,239.0,0.542,0.452,0.0671,0.239,0.0,0.0,1000.0,kg/tonne
+Aggregate,Quarried fill and base material,tonne,Tier 3,1.1,10.2,9.24,3.26,6.66,0.0102,0.00924,0.00326,0.00666,0.0,0.0,1000.0,kg/tonne
+Aggregate,Recycled fill material,tonne,Tier 4,1.2,11.5,9.55,0.492,3.82,0.0115,0.00955,0.000492,0.00382,0.0,0.0,1000.0,kg/tonne
+Aggregate,Stabilised sand,m³,Tier 2,1.05,361.0,344.0,67.8,185.0,0.206,0.197,0.0387,0.105,0.0,0.0,1760.0,kg/m³
+Asphalt,Asphalt,tonne,Tier 2,1.05,141.0,134.0,5.83,71.4,0.141,0.134,0.00583,0.0714,0.0,0.0,1000.0,kg/tonne
+Roof tiles,Clay and terracotta roof tiles,tonne,Tier 4,1.2,682.0,568.0,47.8,310.0,0.682,0.568,0.0478,0.31,0.0,0.0,1000.0,kg/tonne
+Roof tiles,Concrete roof tiles,tonne,Tier 3,1.1,264.0,240.0,112.0,159.0,0.264,0.24,0.112,0.159,0.0,0.0,1000.0,kg/tonne
+Steel cladding/roofing,Steel sheeting - metallic coat,m²,Tier 1,1.02,64.0,62.7,8.4,19.1,5.12,5.01,2.72,3.15,0.0,0.0,6.05,kg/m²
+Steel cladding/roofing,Steel sheeting - painted,m²,Tier 1,1.02,25.4,24.9,9.49,14.8,5.49,5.38,2.98,3.47,0.0,0.0,4.28,kg/m²
+Aluminium cladding/roofing,Aluminium sheeting,kg,Tier 4,1.2,20.8,17.4,5.48,11.8,20.8,17.4,5.48,11.8,0.0,0.0,1.0,kg/kg
+Cement cladding/roofing,GRC,tonne,Tier 4,1.2,869.0,724.0,408.0,544.0,0.869,0.724,0.408,0.544,0.0,0.0,1000.0,kg/tonne
+Cement cladding/roofing,Fibre cement board,m²,Tier 2,1.05,48.2,45.9,4.5,12.6,1.39,1.32,0.307,0.882,0.0251,0.00216,14.2,kg/m²
+Cement cladding/roofing,Plasterboard,m²,Tier 4,1.2,8.2,6.83,1.49,3.37,0.473,0.394,0.175,0.304,0.393,0.04,11.1,kg/m²
+Plastic cladding/roofing,Plastic sheeting,m³,Tier 4,1.2,13800.0,11500.0,485.0,7570.0,11.5,9.61,0.441,6.35,0.0,0.0,1190.0,kg/m³
+Timber cladding,Timber weatherboards,m³,Tier 2,1.05,349.0,332.0,31.6,195.0,0.725,0.69,0.0702,0.381,848.0,1.63,512.0,kg/m³
+Timber cladding,Plywood,m³,Tier 2,1.05,968.0,922.0,235.0,498.0,1.77,1.69,0.396,0.978,841.0,1.64,509.0,kg/m³
+Timber cladding,Particleboard,m³,Tier 2,1.05,880.0,838.0,322.0,650.0,1.23,1.17,0.488,0.915,1140.0,1.62,711.0,kg/m³
+Structural insulated panel,Panel - SIP ≤100mm,m²,Tier 2,1.05,67.2,64.0,7.15,42.3,5.16,4.92,1.1,3.64,0.0,0.0,11.6,kg/m²
+Structural insulated panel,Panel - SIP >100mm,m²,Tier 2,1.05,89.0,84.8,36.5,55.6,5.11,4.87,1.55,3.76,0.0,0.0,14.8,kg/m²
+Glazing,Glass (treated or untreated),kg,Tier 4,1.2,2.38,1.98,1.1,1.66,2.38,1.98,1.1,1.66,0.0,0.0,1.0,kg/kg
+Extruded aluminium,Aluminium extruded uncoated,tonne,Tier 2,1.05,30200.0,28800.0,3490.0,17400.0,30.2,28.8,3.49,17.4,0.0,0.0,1000.0,kg/tonne
+Extruded aluminium,Aluminium extruded powder coated,tonne,Tier 2,1.05,32000.0,30500.0,5150.0,18200.0,32.0,30.5,5.15,18.2,0.0,0.0,1000.0,kg/tonne
+Extruded aluminium,Aluminium extruded anodised,tonne,Tier 2,1.05,34200.0,32600.0,7290.0,19300.0,34.2,32.6,7.29,19.3,0.0,0.0,1000.0,kg/tonne
+External shading,Aluminium louvre,tonne,Tier 2,1.05,32000.0,30500.0,5150.0,18200.0,32.0,30.5,5.15,18.2,0.0,0.0,1000.0,kg/tonne
+External shading,Aluminium construction,tonne,Tier 2,1.05,32000.0,30500.0,5150.0,18200.0,32.0,30.5,5.15,18.2,0.0,0.0,1000.0,kg/tonne
+External shading,Steel construction,tonne,Tier 2,1.05,4050.0,3860.0,2730.0,3010.0,4.05,3.86,2.73,3.01,0.0,0.0,1000.0,kg/tonne
+Ceilings & walls,Steel frame,tonne,Tier 2,1.05,4050.0,3860.0,2730.0,3010.0,4.05,3.86,2.73,3.01,0.0,0.0,1000.0,kg/tonne
+Ceilings & walls,Timber frame,m³,Tier 2,1.05,349.0,332.0,113.0,188.0,0.633,0.603,0.205,0.366,857.0,1.64,514.0,kg/m³
+Ceilings & walls,AAC panel (inc. reinforced),kg,Tier 4,1.2,0.641,0.535,0.373,0.451,0.641,0.535,0.373,0.451,0.0,0.0,1.0,kg/kg
+Ceilings & walls,Plasterboard,m²,Tier 4,1.2,8.2,6.83,1.49,3.37,0.473,0.394,0.175,0.304,0.393,0.04,11.1,kg/m²
+Ceilings & walls,Ceiling tile,m²,Tier 3,1.1,7.95,7.23,1.3,4.28,1.44,1.31,0.182,0.875,0.0,0.0,4.89,kg/m²
+Ceilings & walls,Particleboard wall/ceiling,m³,Tier 2,1.05,663.0,631.0,177.0,433.0,1.01,0.959,0.286,0.662,1080.0,1.67,654.0,kg/m³
+Ceilings & walls,MDF,m³,Tier 2,1.05,1320.0,1250.0,526.0,815.0,1.83,1.74,0.714,1.13,1230.0,1.7,722.0,kg/m³
+Ceilings & walls,Fibre cement sheet,m²,Tier 2,1.05,48.2,45.9,4.5,12.6,1.39,1.32,0.307,0.882,0.0251,0.00216,14.2,kg/m²
+Ceilings & walls,Glass,kg,Tier 4,1.2,2.38,1.98,1.1,1.66,2.38,1.98,1.1,1.66,0.0,0.0,1.0,kg/kg
+Pavers/tiles,Concrete paver/tile,tonne,Tier 3,1.1,264.0,240.0,112.0,159.0,0.264,0.24,0.112,0.159,0.0,0.0,1000.0,kg/tonne
+Pavers/tiles,Ceramic paver/tile,kg,Tier 4,1.2,0.984,0.82,0.308,0.548,0.984,0.82,0.308,0.548,0.0,0.0,1.0,kg/kg
+Pavers/tiles,Stone paver/tile,tonne,Tier 4,1.2,542.0,452.0,67.1,239.0,0.542,0.452,0.0671,0.239,0.0,0.0,1000.0,kg/tonne
+Floors,Access flooring,m²,Tier 3,1.1,83.6,76.0,19.0,38.2,1.42,1.29,0.306,0.826,0.0,0.0,46.3,kg/m²
+Floors,Carpet flooring,m²,Tier 4,1.2,34.2,28.5,4.1,13.3,13.3,11.1,1.34,4.13,0.0,0.0,3.21,kg/m²
+Floors,Vinyl flooring,m²,Tier 3,1.1,37.8,34.4,5.63,15.9,8.64,7.85,0.868,3.12,0.0,0.0,5.1,kg/m²
+Floors,Rubber flooring,m²,Tier 4,1.2,19.5,16.2,0.378,8.69,10.2,8.54,0.43,3.94,0.0,0.0,2.2,kg/m²
+Floors,Timber flooring,m³,Tier 2,1.05,591.0,563.0,104.0,347.0,0.804,0.765,0.126,0.466,1170.0,1.54,744.0,kg/m³
+Floors,Laminate flooring,m²,Tier 4,1.2,5.69,4.74,2.67,3.71,0.814,0.679,0.384,0.531,0.0,0.0,6.98,kg/m²
+Floors,Hybrid flooring,m²,Tier 4,1.2,15.6,13.0,13.0,13.0,1.82,1.52,1.52,1.52,0.0,0.0,8.6,kg/m²
+Floors,Linoleum flooring,m²,Tier 3,1.1,3.99,3.63,3.6,3.61,1.72,1.56,1.23,1.34,0.0,0.0,2.69,kg/m²
+Floors,Epoxy flooring,kg,Tier 4,1.2,3.84,3.2,2.45,2.8,3.84,3.2,2.45,2.8,0.0,0.0,1.0,kg/kg
+Roller doors,Roller doors,m²,Tier 4,1.2,132.0,110.0,96.7,103.0,5.67,4.72,3.26,3.99,0.0,0.0,25.9,kg/m²
+Windows & doors,Window - aluminium frame - generic,m²,Untiered,1.0,255.0,255.0,46.7,159.0,11.1,11.1,2.03,6.93,0.0,0.0,23.0,kg/m²
+Windows & doors,Window - timber frame - generic,m²,Untiered,1.0,327.0,327.0,57.9,194.0,10.9,10.9,1.93,6.45,5.99,0.199,30.1,kg/m²
+Windows & doors,Door - timber with glazing - generic,m²,Untiered,1.0,78.4,78.4,35.0,54.5,1.85,1.85,0.825,1.28,27.4,0.646,42.4,kg/m²
+Windows & doors,Door - steel with glazing - generic,m²,Untiered,1.0,190.0,190.0,116.0,138.0,3.67,3.67,2.24,2.67,0.0,0.0,51.7,kg/m²
+Windows & doors,Door - fully glazed - minor aluminium frame - generic,m²,Untiered,1.0,322.0,322.0,76.4,199.0,7.32,7.32,1.74,4.53,0.0,0.0,44.0,kg/m²
+Windows & doors,Door - aluminium with glazing - generic,m²,Untiered,1.0,415.0,415.0,68.2,245.0,14.3,14.3,2.34,8.41,0.0,0.0,29.1,kg/m²
+Windows & doors,Door - timber solid - generic,m²,Untiered,1.0,117.0,117.0,62.3,82.8,1.89,1.89,1.0,1.34,68.8,1.11,62.0,kg/m²
+Windows & doors,Door - steel solid - generic,m²,Untiered,1.0,399.0,399.0,271.0,299.0,4.07,4.07,2.76,3.05,0.0,0.0,98.0,kg/m²
+Windows & doors,"Revolving door - glass, aluminium, steel - generic",m²,Untiered,1.0,1670.0,1670.0,360.0,1010.0,10.2,10.2,2.2,6.19,26.3,0.16,164.0,kg/m²
+Ceilings & walls,Wall system steel frame - 1 side plasterboard (92mm stud),m²,Untiered,1.0,15.0,15.0,8.31,10.6,1.02,1.02,0.567,0.72,0.496,0.0338,14.7,kg/m²
+Ceilings & walls,Wall system steel frame - 2 sides plasterboard (92mm stud),m²,Untiered,1.0,20.8,20.8,10.5,14.3,0.77,0.77,0.387,0.53,0.991,0.0366,27.1,kg/m²
+Ceilings & walls,Wall system steel frame - 2 sides plasterboard (150 mm stud),m²,Untiered,1.0,26.6,26.6,14.3,18.6,0.934,0.934,0.504,0.654,0.991,0.0348,28.5,kg/m²
+Ceilings & walls,Wall system steel frame - 1 side plasterboard (150 mm stud),m²,Untiered,1.0,20.7,20.7,12.2,14.8,1.29,1.29,0.758,0.923,0.496,0.0308,16.1,kg/m²
+Ceilings & walls,Wall system timber frame - 2 sides plasterboard ,m²,Untiered,1.0,15.0,15.0,5.4,9.44,0.5,0.5,0.18,0.315,9.43,0.315,30.0,kg/m²
+Ceilings & walls,Wall system timber frame - 1 side plasterboard ,m²,Untiered,1.0,9.12,9.12,3.23,5.66,0.52,0.52,0.184,0.322,8.94,0.509,17.6,kg/m²
+Ceilings & walls,AAC and steel based system - generic ,m²,Untiered,1.0,63.4,63.4,39.2,45.6,0.966,0.966,0.597,0.695,0.0,0.0,65.6,kg/m²
+Ceilings & walls,Ceiling system steel frame suspended (plasterboard),m²,Untiered,1.0,10.7,10.7,5.44,7.39,0.788,0.788,0.4,0.543,0.496,0.0364,13.6,kg/m²
+Ceilings & walls,Ceiling system steel frame suspended (fibre cement),m²,Untiered,1.0,19.9,19.9,6.59,13.1,1.66,1.66,0.549,1.1,0.0234,0.00195,12.0,kg/m²
+Ceilings & walls,Ceiling system steel frame suspended (mineral tile),m²,Untiered,1.0,12.2,12.2,4.2,8.08,1.94,1.94,0.666,1.28,0.0,0.0,6.3,kg/m²
+Ceilings & walls,Ceiling system aluminum frame suspended (powder coated aluminium),m²,Untiered,1.0,259.0,259.0,41.7,148.0,32.0,32.0,5.15,18.2,0.0,0.0,8.1,kg/m²
+Curtain wall,Aluminium unitised type 1: 100% DGU 8T-16-44.2,m²,Untiered,1.0,435.0,435.0,110.0,264.0,8.56,8.56,2.16,5.19,0.0,0.0,50.8,kg/m²
+Curtain wall,"Aluminium unitised type 2: aluminium cladding, 50% DGU 8T-16-44.2",m²,Untiered,1.0,656.0,656.0,129.0,382.0,16.9,16.9,3.33,9.88,0.0,0.0,38.7,kg/m²
+Curtain wall,"Aluminium unitised type 3: aluminium cladding with vertical fins, 50% DGU 8T-16-44.2",m²,Untiered,1.0,877.0,877.0,167.0,509.0,19.1,19.1,3.65,11.1,0.0,0.0,45.8,kg/m²
+Curtain wall,"Aluminium unitised type 4: aluminium cladding, 50% TGU 8T-16-6-16-44.2",m²,Untiered,1.0,664.0,664.0,138.0,390.0,14.3,14.3,2.97,8.4,0.0,0.0,46.4,kg/m²
+Curtain wall,"Aluminium unitised type 5: insulated shadow box, 50% DGU 8T-16-44.2",m²,Untiered,1.0,572.0,572.0,133.0,342.0,10.5,10.5,2.43,6.27,0.0,0.0,54.5,kg/m²
+Curtain wall,"Aluminium unitised type 6: GRC cladding, 50% DGU 8T-16-44.2",m²,Untiered,1.0,766.0,766.0,158.0,448.0,11.2,11.2,2.31,6.57,0.0,0.0,68.2,kg/m²
+Curtain wall,"Aluminium unitised type 7: opaque panel, 100% aluminium cladding",m²,Untiered,1.0,1190.0,1190.0,199.0,680.0,33.6,33.6,5.62,19.2,0.0,0.0,35.4,kg/m²
+Curtain wall,"Double skin type 1: deep cavity aluminium façade, 100% single + DGU 66.2 + 8T-16-44.2",m²,Untiered,1.0,1300.0,1300.0,363.0,802.0,9.7,9.7,2.7,5.96,0.0,0.0,135.0,kg/m²
+Curtain wall,"Double skin type 2: narrow cavity aluminium façade, 100% single + DGU 66.2 + 8T-16-44.2",m²,Untiered,1.0,674.0,674.0,179.0,412.0,7.74,7.74,2.06,4.73,0.0,0.0,87.0,kg/m²
+Lifts,"Category 5, 6 for high rise buildings (>10 floors)",#,Tier 4,1.2,311000.0,259000.0,99900.0,167000.0,0.0,0.0,0.0,0.0,0.0,0.0,,kg/#
+Lifts,"Category 3, 4 for medium rise buildings (4-10 floors)",#,Tier 4,1.2,141000.0,117000.0,4490.0,41500.0,0.0,0.0,0.0,0.0,0.0,0.0,,kg/#
+Lifts,"Category 1, 2 for low rise buildings (<4 floors)",#,Tier 4,1.2,34600.0,28800.0,4500.0,14200.0,0.0,0.0,0.0,0.0,0.0,0.0,,kg/#
+Escalator,Escalator,#,Tier 4,1.2,142000.0,118000.0,20300.0,50500.0,0.0,0.0,0.0,0.0,0.0,0.0,,0
+"Mechanical, electrical, and plumbing (MEP)","Low or mid rise office, hotel or retail building (≤10 floors)",m²,Untiered,1.0,67.0,67.0,41.3,55.3,3.11,3.11,2.77,2.95,0.0,0.0,18.8,kg/m²
+"Mechanical, electrical, and plumbing (MEP)",Residential building,m²,Untiered,1.0,57.4,57.4,41.2,46.8,2.69,2.69,2.26,2.26,0.0,0.0,20.7,kg/m²
+"Mechanical, electrical, and plumbing (MEP)",Warehouse or industrial building,m²,Untiered,1.0,13.4,13.4,11.8,12.6,2.77,2.77,1.59,2.18,0.0,0.0,5.77,kg/m²
+"Mechanical, electrical, and plumbing (MEP)","High rise office, hotel or retail building (>10 floors)",m²,Untiered,1.0,74.8,74.8,48.9,62.6,3.88,3.88,2.88,3.24,0.0,0.0,19.3,kg/m²
+"Mechanical, electrical, and plumbing (MEP)",Hospital or high services intensity building,m²,Untiered,1.0,74.8,74.8,55.1,66.0,3.95,3.95,2.91,3.29,0.0,0.0,20.1,kg/m²
+Other,Other,kg,Untiered,1.0,4.76,4.76,1.17,2.94,4.76,4.76,1.17,2.94,0.0,0.0,1.0,kg/kg
+Row,,17,9,,,18.0,19.0,20.0,,18.0,19.0,20.0,20.0,20.0,,
+Column,,4,2,,,4.0,4.0,4.0,,5.0,5.0,5.0,6.0,7.0,,
+1,1,1,1,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1

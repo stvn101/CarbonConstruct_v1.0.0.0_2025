@@ -1,0 +1,64 @@
+scope,category,subcategory,fuel_type,region,unit,co2_factor,ch4_factor,n2o_factor,total_co2e,ec_gj_per_unit,notes,nger_method,source
+1,Stationary Energy,Liquid Fuels,Diesel,Australia,L,2.68460,0.00010,0.00007,2.68534,38.6,Stationary combustion only - NOT transport,Method 1,NGA 2024 Table 1
+1,Stationary Energy,Liquid Fuels,Diesel,Australia,GJ,69.9,0.003,0.002,70.0,,Stationary combustion only - NOT transport,Method 1,NGA 2024 Table 1
+1,Transport,Liquid Fuels,Diesel,Australia,L,2.68460,0.00010,0.00019,2.68586,38.6,Transport use - registered vehicles,Method 1,NGA 2024 Table 1
+1,Transport,Liquid Fuels,Diesel Heavy Vehicle Euro IV+,Australia,L,2.68460,0.00010,0.00015,2.68572,38.6,Heavy vehicle Euro IV or later,Method 1,NGA 2024 Table 1
+1,Stationary Energy,Liquid Fuels,Petrol,Australia,L,2.31300,0.00007,0.00006,2.31366,34.2,Stationary combustion,Method 1,NGA 2024 Table 1
+1,Stationary Energy,Liquid Fuels,Petrol,Australia,GJ,67.6,0.002,0.002,67.7,,Stationary combustion,Method 1,NGA 2024 Table 1
+1,Transport,Liquid Fuels,Petrol,Australia,L,2.31300,0.00007,0.00012,2.31379,34.2,Transport use - registered vehicles,Method 1,NGA 2024 Table 1
+1,Stationary Energy,Liquid Fuels,Aviation Turbine Fuel,Australia,L,2.52700,0.00007,0.00006,2.52766,37.4,Jet A/A-1,Method 1,NGA 2024 Table 1
+1,Stationary Energy,Liquid Fuels,Aviation Gasoline,Australia,L,2.24600,0.00007,0.00006,2.24666,33.2,Aviation petrol,Method 1,NGA 2024 Table 1
+1,Stationary Energy,Liquid Fuels,Fuel Oil,Australia,L,2.77000,0.00007,0.00007,2.77067,40.9,Heavy fuel oil,Method 1,NGA 2024 Table 1
+1,Stationary Energy,Liquid Fuels,LPG,Australia,L,1.59000,0.00003,0.00001,1.59006,26.2,Liquefied petroleum gas,Method 1,NGA 2024 Table 1
+1,Stationary Energy,Gaseous Fuels,Natural Gas,NSW Metro,GJ,51.5,0.1,0.0001,51.6,,NSW metropolitan pipeline,Method 1,NGA 2024 Table 2
+1,Stationary Energy,Gaseous Fuels,Natural Gas,NSW Regional,GJ,51.5,0.1,0.0001,51.6,,NSW regional pipeline,Method 1,NGA 2024 Table 2
+1,Stationary Energy,Gaseous Fuels,Natural Gas,VIC Metro,GJ,51.4,0.1,0.0001,51.5,,VIC metropolitan pipeline,Method 1,NGA 2024 Table 2
+1,Stationary Energy,Gaseous Fuels,Natural Gas,VIC Regional,GJ,51.4,0.1,0.0001,51.5,,VIC regional pipeline,Method 1,NGA 2024 Table 2
+1,Stationary Energy,Gaseous Fuels,Natural Gas,QLD Metro,GJ,51.4,0.1,0.0001,51.5,,QLD metropolitan pipeline,Method 1,NGA 2024 Table 2
+1,Stationary Energy,Gaseous Fuels,Natural Gas,QLD Regional,GJ,51.4,0.1,0.0001,51.5,,QLD regional pipeline,Method 1,NGA 2024 Table 2
+1,Stationary Energy,Gaseous Fuels,Natural Gas,SA,GJ,51.3,0.1,0.0001,51.4,,SA pipeline network,Method 1,NGA 2024 Table 2
+1,Stationary Energy,Gaseous Fuels,Natural Gas,WA,GJ,51.4,0.1,0.0001,51.5,,WA pipeline network,Method 1,NGA 2024 Table 2
+1,Stationary Energy,Gaseous Fuels,Natural Gas,TAS,GJ,51.3,0.1,0.0001,51.4,,TAS pipeline network,Method 1,NGA 2024 Table 2
+1,Stationary Energy,Gaseous Fuels,Natural Gas,NT,GJ,54.6,0.1,0.0001,54.7,,NT pipeline network,Method 1,NGA 2024 Table 2
+1,Industrial Processes,Cement,Limestone Calcination,Australia,t,440,0,0,440,,CaCO3 calcination - raw material basis,Method 1 Process,NGER Determination
+1,Industrial Processes,Cement,Dolomite Calcination,Australia,t,477,0,0,477,,CaMg(CO3)2 calcination - raw material basis,Method 1 Process,NGER Determination
+1,Fugitive,Refrigerants,HFC-134a,Australia,kg,0,0,0,1300,,Global warming potential AR4,Method 1,NGA 2024 Table 6
+1,Fugitive,Refrigerants,R410A,Australia,kg,0,0,0,1924,,Blend 50% HFC-32 + 50% HFC-125,Method 1,NGA 2024 Table 6
+1,Fugitive,Refrigerants,HFC-32,Australia,kg,0,0,0,677,,Lower GWP alternative,Method 1,NGA 2024 Table 6
+1,Fugitive,Refrigerants,R407C,Australia,kg,0,0,0,1624,,Blend refrigerant,Method 1,NGA 2024 Table 6
+2,Purchased Electricity,Grid,Location-Based,NSW,kWh,0.66,0,0,0.66,,Includes ACT - location-based method,Method 1,NGA 2024 Table 4
+2,Purchased Electricity,Grid,Location-Based,VIC,kWh,0.77,0,0,0.77,,Location-based method,Method 1,NGA 2024 Table 4
+2,Purchased Electricity,Grid,Location-Based,QLD,kWh,0.66,0,0,0.66,,Location-based method,Method 1,NGA 2024 Table 4
+2,Purchased Electricity,Grid,Location-Based,SA,kWh,0.21,0,0,0.21,,High renewable penetration,Method 1,NGA 2024 Table 4
+2,Purchased Electricity,Grid,Location-Based,WA,kWh,0.48,0,0,0.48,,SWIS grid only,Method 1,NGA 2024 Table 4
+2,Purchased Electricity,Grid,Location-Based,TAS,kWh,0.16,0,0,0.16,,Hydropower dominated,Method 1,NGA 2024 Table 4
+2,Purchased Electricity,Grid,Location-Based,NT,kWh,0.51,0,0,0.51,,Darwin-Katherine system,Method 1,NGA 2024 Table 4
+2,Purchased Electricity,Grid,Market-Based,Australia,kWh,0,0,0,0,,100% GreenPower or LGCs - zero emissions,Method 2,NGA 2024 s3.5
+3,Fuel Extraction,Well-to-Tank,Diesel,Australia,GJ,3.6,0,0,3.6,,Upstream extraction & transport,Method 1,NGA 2024 Table 5
+3,Fuel Extraction,Well-to-Tank,Petrol,Australia,GJ,3.3,0,0,3.3,,Upstream extraction & transport,Method 1,NGA 2024 Table 5
+3,Fuel Extraction,Well-to-Tank,Natural Gas,NSW Metro,GJ,13.1,0,0,13.1,,Pipeline leakage & extraction,Method 1,NGA 2024 Table 5
+3,Fuel Extraction,Well-to-Tank,Natural Gas,VIC Metro,GJ,4.0,0,0,4.0,,VIC has lower leakage - 300% better than NSW!,Method 1,NGA 2024 Table 5
+3,Fuel Extraction,Well-to-Tank,Natural Gas,QLD Metro,GJ,8.8,0,0,8.8,,Pipeline leakage & extraction,Method 1,NGA 2024 Table 5
+3,Fuel Extraction,Well-to-Tank,Natural Gas,SA,GJ,7.2,0,0,7.2,,Pipeline leakage & extraction,Method 1,NGA 2024 Table 5
+3,Fuel Extraction,Well-to-Tank,Natural Gas,WA,GJ,7.6,0,0,7.6,,Pipeline leakage & extraction,Method 1,NGA 2024 Table 5
+3,Fuel Extraction,Well-to-Tank,Natural Gas,TAS,GJ,4.8,0,0,4.8,,Pipeline leakage & extraction,Method 1,NGA 2024 Table 5
+3,Transmission & Distribution,Electricity,Grid Losses,NSW,kWh,0.07,0,0,0.07,,T&D losses - location-based,Method 1,NGA 2024 Table 4
+3,Transmission & Distribution,Electricity,Grid Losses,VIC,kWh,0.07,0,0,0.07,,T&D losses - location-based,Method 1,NGA 2024 Table 4
+3,Transmission & Distribution,Electricity,Grid Losses,QLD,kWh,0.07,0,0,0.07,,T&D losses - location-based,Method 1,NGA 2024 Table 4
+3,Transmission & Distribution,Electricity,Grid Losses,SA,kWh,0.02,0,0,0.02,,T&D losses - location-based,Method 1,NGA 2024 Table 4
+3,Transmission & Distribution,Electricity,Grid Losses,WA,kWh,0.05,0,0,0.05,,T&D losses - location-based,Method 1,NGA 2024 Table 4
+3,Transmission & Distribution,Electricity,Grid Losses,TAS,kWh,0.02,0,0,0.02,,T&D losses - location-based,Method 1,NGA 2024 Table 4
+3,Waste,Solid Waste,C&D Waste Generic,Australia,t,0.2,0,0,0.2,,Generic construction & demolition - INERT MATERIALS ONLY,Method 1,NGA 2024 Table 8
+3,Waste,Solid Waste,Timber to Landfill,Australia,t,0.43,0,0,1.5,,DOC=0.43 with MCF calculation - MUST use for wood waste,Method 2,NGER Determination s1.91
+3,Waste,Solid Waste,Paper to Landfill,Australia,t,0.40,0,0,1.4,,DOC=0.40 with MCF calculation,Method 2,NGER Determination s1.91
+3,Waste,Solid Waste,Food to Landfill,Australia,t,0.15,0,0,0.5,,DOC=0.15 with MCF calculation,Method 2,NGER Determination s1.91
+3,Water,Potable Water,Supply & Treatment,NSW,kL,0.51,0,0,0.51,,Water supply embodied emissions,Regional,GHG Protocol
+3,Water,Potable Water,Supply & Treatment,VIC,kL,0.68,0,0,0.68,,Water supply embodied emissions,Regional,GHG Protocol
+3,Water,Potable Water,Supply & Treatment,QLD,kL,0.23,0,0,0.23,,Water supply embodied emissions,Regional,GHG Protocol
+3,Water,Potable Water,Supply & Treatment,SA,kL,0.36,0,0,0.36,,Water supply embodied emissions,Regional,GHG Protocol
+3,Water,Potable Water,Supply & Treatment,WA,kL,0.35,0,0,0.35,,Water supply embodied emissions,Regional,GHG Protocol
+3,Water,Wastewater,Treatment & Disposal,NSW,kL,0.79,0,0,0.79,,Wastewater treatment embodied emissions,Regional,GHG Protocol
+3,Water,Wastewater,Treatment & Disposal,VIC,kL,0.93,0,0,0.93,,Wastewater treatment embodied emissions,Regional,GHG Protocol
+3,Water,Wastewater,Treatment & Disposal,QLD,kL,0.32,0,0,0.32,,Wastewater treatment embodied emissions,Regional,GHG Protocol
+3,Water,Wastewater,Treatment & Disposal,SA,kL,0.55,0,0,0.55,,Wastewater treatment embodied emissions,Regional,GHG Protocol
+3,Water,Wastewater,Treatment & Disposal,WA,kL,0.49,0,0,0.49,,Wastewater treatment embodied emissions,Regional,GHG Protocol
