@@ -8,6 +8,7 @@ const Impact = () => {
   const impactStats = [
     {
       // Updated from 1% to 0.5% on Dec 11, 2024 to align with Stripe Climate's standard rate
+      // See comment above Stripe Climate Partnership section for full context
       value: '0.5%',
       label: 'Revenue to Carbon Removal',
       description: 'Every subscription contributes directly to verified carbon removal projects',
