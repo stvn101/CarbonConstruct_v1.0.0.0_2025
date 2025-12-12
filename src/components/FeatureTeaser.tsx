@@ -70,7 +70,7 @@ export const FeatureTeaser = () => {
       const currentTime = video.currentTime;
       
       // Calculate effective time based on playback speed
-      const effectiveTime = currentTime * 1.5;
+      const effectiveTime = currentTime * video.playbackRate;
       const visible = overlays.filter(
         (o) => effectiveTime >= o.time && effectiveTime < o.time + o.duration
       );
