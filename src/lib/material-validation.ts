@@ -180,31 +180,55 @@ export interface MaterialValidation {
 }
 
 /**
- * Determines the confidence level for a material record based on validation framework rules (see Part 4).
+ * Determines the confidence level for a material record based on the 5-layer validation framework.
  *
- * ## Return Value
- * Returns a {@link MaterialValidation} object with the following structure:
- * - `confidenceLevel` (`ConfidenceLevel`): The assigned confidence level for the material. One of:
- *    - `'verified'`: Data is from a registered EPD (Environmental Product Declaration) and cross-referenced with NABERS. Indicates the highest level of trust.
- *    - `'documented'`: Data is a documented regional or manufacturing variant, but not a registered EPD. Trusted, but with some caveats.
- *    - `'industry_average'`: Data is from an industry average source (e.g., ICM Database). Useful for benchmarking, but less specific.
- *    - `'needs_review'`: Data is an outlier or lacks sufficient documentation. Requires manual review before use.
- * - `confidenceLabel` (`string`): Human-readable label for the confidence level (e.g., "Verified EPD", "Industry Average").
- * - `confidenceColor` (`'green' | 'yellow' | 'orange' | 'red'`): Color code representing the confidence level for UI display.
- * - `issues` (`ValidationIssue[]`): List of validation issues found for the material, if any.
- * - `sourceTier` (`SourceTier`): Classification of the data source's credibility.
- * - `isOutlier` (`boolean`): Whether the material's data is considered a statistical outlier.
- * - `outlierReason` (`string | undefined`): Explanation if the material is an outlier.
- * - `validUntil` (`string | undefined`): Expiry date for the data, if applicable.
+ * This function evaluates material data quality through comprehensive validation layers:
+ * - Layer 1: Data integrity (null checks, negative values)
+ * - Layer 2: EPD registry verification (S-P-XXXXX pattern matching, expiry dates)
+ * - Layer 3: NABERS range validation (statistical outlier detection)
+ * - Layer 4: Unit consistency (per-category unit checks)
+ * - Layer 5: Source credibility (Tier 1/2/3 classification)
+ *
+ * ## Return Value Structure
+ * Returns a {@link MaterialValidation} object containing:
+ * - `confidenceLevel` (`ConfidenceLevel`): One of 'verified', 'documented', 'industry_average', or 'needs_review'
+ * - `confidenceLabel` (`string`): Human-readable label (e.g., "Verified EPD", "Industry Average")
+ * - `confidenceColor` (`'green' | 'yellow' | 'orange' | 'red'`): UI color code for visualization
+ * - `issues` (`ValidationIssue[]`): Array of validation issues with severity, layer, code, and recommended action
+ * - `sourceTier` (`SourceTier`): Source credibility classification (1 = highest, 3 = review required)
+ * - `isOutlier` (`boolean`): True if value exceeds NABERS range by >30%
+ * - `outlierReason` (`string | undefined`): Variance explanation if outlier detected
+ * - `validUntil` (`string | undefined`): EPD expiry date in ISO format
  *
  * ## Confidence Levels
- * - 🟢 **'verified'**: Data is from a registered EPD (Environmental Product Declaration) and cross-referenced with NABERS. Use with high confidence for compliance and reporting.
- * - 🟡 **'documented'**: Data is a documented regional or manufacturing variant, but not a registered EPD. Suitable for most use cases, but may require additional verification for compliance.
- * - 🟠 **'industry_average'**: Data is from an industry average source (e.g., ICM Database). Use for benchmarking or early design, but not for final compliance reporting.
- * - 🔴 **'needs_review'**: Data is an outlier or lacks sufficient documentation. Manual review is required before use in compliance or reporting.
+ * - 🟢 **'verified'**: Registered EPD cross-referenced with NABERS. Use for compliance reporting.
+ * - 🟡 **'documented'**: Regional/manufacturing variant. May require verification for compliance.
+ * - 🟠 **'industry_average'**: ICM Database source. Use for benchmarking, not final compliance.
+ * - 🔴 **'needs_review'**: Outlier or insufficient documentation. Requires manual review.
  *
- * @param material - The material record to evaluate.
- * @returns {MaterialValidation} The validation result, including confidence level, issues, and source tier.
+ * ## Use Case Guidance
+ * - **Compliance Reporting**: Only use 'verified' materials. 'documented' materials require additional verification.
+ * - **Benchmarking**: 'verified', 'documented', and 'industry_average' are acceptable for early design phase.
+ * - **Risk Assessment**: Review 'needs_review' materials with stakeholders before inclusion.
+ *
+ * @param material - The material record to evaluate, including EPD number, data source, emission factor, and metadata.
+ * @returns {MaterialValidation} Validation result with confidence level, issues array, source tier, and outlier detection.
+ *
+ * @example
+ * ```typescript
+ * const material = {
+ *   epd_number: 'S-P-12345',
+ *   data_source: 'EPD Australasia',
+ *   ef_total: 320,
+ *   material_category: 'Concrete',
+ *   unit: 'm³',
+ *   expiry_date: '2026-12-31'
+ * };
+ * const result = determineConfidenceLevel(material);
+ * // result.confidenceLevel === 'verified'
+ * // result.issues === []
+ * // result.sourceTier === 1
+ * ```
  */
 export function determineConfidenceLevel(
   material: {
