@@ -78,7 +78,7 @@ jobs:
           CI: true
 
   performance-audit:
-    name: Performance Audit
+    name: Performance Audit (Lighthouse)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -93,11 +93,27 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.13.x
+
       - name: Build application
         run: npm run build
 
       - name: Run Lighthouse CI
+        run: lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Upload Lighthouse report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-scheduled-report
+          path: .lighthouseci/
+          retention-days: 30
+
+      - name: Performance Summary
         run: |
-          npm install -g @lhci/cli
-          lhci autorun --collect.staticDistDir=./dist || true
-        continue-on-error: true
+          echo "## Lighthouse Performance Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Lighthouse CI completed. Check artifacts for detailed report." >> $GITHUB_STEP_SUMMARY
