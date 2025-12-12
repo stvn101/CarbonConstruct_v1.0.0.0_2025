@@ -1,5 +1,46 @@
 // Re-export all fixtures for easy importing
-export { test, expect, isAuthenticated, logout, signUpUser } from './auth.fixture';
+export { 
+  test, 
+  expect, 
+  isAuthenticated, 
+  logout, 
+  signUpUser,
+  // Failed login handlers
+  attemptLoginWithInvalidCredentials,
+  attemptLoginWithMalformedEmail,
+  // Rate limiting
+  triggerRateLimitByFailedLogins,
+  // Session management
+  simulateSessionTimeout,
+  simulateExpiredToken,
+  getSessionInfo,
+  // Password validation
+  testPasswordValidation,
+  testAllInvalidPasswords,
+  // Protected route guards
+  verifyRouteProtection,
+  verifyAllProtectedRoutes,
+  verifyAuthenticatedAccess,
+  // Concurrent sessions
+  testConcurrentSessions,
+  // OAuth error handling
+  simulateOAuthError,
+  // Account status
+  checkAccountStatus,
+  verifyAccountStatusAccess,
+} from './auth.fixture';
+
+// Re-export auth constants
+export {
+  CI_TEST_USER,
+  INVALID_CREDENTIALS,
+  INVALID_PASSWORDS,
+  PROTECTED_ROUTES,
+  OAUTH_ERROR_TYPES,
+  RATE_LIMIT,
+  ACCOUNT_STATUS,
+} from './auth.constants';
+
 export { 
   TEST_MATERIALS, 
   addMaterial, 
