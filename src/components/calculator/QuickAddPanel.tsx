@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { X, Zap, RefreshCw, Check } from "lucide-react";
 import { FavoriteMaterial } from "@/hooks/useFavoriteMaterials";
@@ -16,6 +16,16 @@ export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial, onSync
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncComplete, setSyncComplete] = useState(false);
   const { toast } = useToast();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSync = async () => {
     if (!onSyncEPD) return;
@@ -32,8 +42,15 @@ export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial, onSync
         description: `Updated ${result.synced} of ${result.total} materials with latest EPD data`,
       });
       
+      // Clear any existing timeout before setting a new one
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       // Reset the check icon after 3 seconds
-      setTimeout(() => setSyncComplete(false), 3000);
+      timeoutRef.current = setTimeout(() => {
+        setSyncComplete(false);
+        timeoutRef.current = null;
+      }, 3000);
     } catch {
       toast({
         title: "Sync Failed",
