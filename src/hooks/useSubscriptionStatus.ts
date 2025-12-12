@@ -76,7 +76,21 @@ export const useSubscriptionStatus = () => {
         if (retryCount >= MAX_RETRIES) {
           toast({
             title: 'Connection Issue',
-            description: 'Unable to verify subscription. Please check your connection.',
+            description: (
+              <>
+                Unable to verify your subscription after {MAX_RETRIES} attempts.<br />
+                Please check your internet connection and try again. If the problem persists,&nbsp;
+                <a
+                  href="mailto:support@carboncompass.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-primary font-medium"
+                >
+                  contact support
+                </a>
+                .
+              </>
+            ),
             variant: 'destructive',
           });
         }
