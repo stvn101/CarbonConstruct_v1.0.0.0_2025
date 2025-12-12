@@ -14,7 +14,7 @@ const positiveNumber = z.number().positive('Must be a positive number');
 const optionalString = z.string().optional();
 const requiredString = z.string().min(1, 'Required field');
 
-// State codes defined inline in schemas for Zod v4 compatibility
+// State codes are defined inline in schemas for clarity and maintainability
 
 /**
  * Scope 1 Form Data Schemas
