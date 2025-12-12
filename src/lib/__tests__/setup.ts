@@ -93,17 +93,24 @@ HTMLElement.prototype.hasPointerCapture = vi.fn();
 HTMLElement.prototype.releasePointerCapture = vi.fn();
 HTMLElement.prototype.setPointerCapture = vi.fn();
 
-// Suppress console errors during tests
+// Suppress specific React warnings during tests, but restore console.error after each test
 const originalConsoleError = console.error;
-console.error = (...args: unknown[]) => {
-  const message = args[0];
-  if (
-    typeof message === 'string' &&
-    (message.includes('Warning: ReactDOM.render') ||
-      message.includes('Warning: An update to') ||
-      message.includes('act(...)'))
-  ) {
-    return;
-  }
-  originalConsoleError(...args);
-};
+
+beforeEach(() => {
+  console.error = (...args: unknown[]) => {
+    const message = args[0];
+    if (
+      typeof message === 'string' &&
+      (message.includes('Warning: ReactDOM.render') ||
+        message.includes('Warning: An update to') ||
+        message.includes('act(...)'))
+    ) {
+      return;
+    }
+    originalConsoleError(...args);
+  };
+});
+
+afterEach(() => {
+  console.error = originalConsoleError;
+});
