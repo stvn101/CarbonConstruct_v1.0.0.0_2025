@@ -1,6 +1,6 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Plus, Database, FlaskConical, RefreshCcw, Info, MapPin } from "lucide-react";
+import { Plus, Database, FlaskConical, RefreshCcw, Info, MapPin, Ruler } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { UnitInfoTooltip } from "./UnitInfoTooltip";
 import { WhyFactorsVaryDialog } from "./RegionalVariantTooltip";
@@ -178,7 +178,8 @@ export function MaterialSearchResults({
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
                         <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground">
-                          📏 {item.unit}
+                          <Ruler className="h-3 w-3" />
+                          {item.unit}
                           <UnitInfoTooltip unit={item.unit} />
                         </span>
                         
