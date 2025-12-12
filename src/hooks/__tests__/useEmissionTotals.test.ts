@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@/lib/__tests__/setup';
 
 // Mock the Supabase client before importing the hook
 vi.mock('@/integrations/supabase/client', () => ({
