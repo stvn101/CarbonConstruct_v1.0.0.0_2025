@@ -11,6 +11,7 @@ function Skeleton({ className, loadingText = "Loading...", ...props }: SkeletonP
       className={cn("animate-pulse rounded-md bg-muted", className)} 
       role="status"
       aria-label={loadingText}
+      aria-busy="true"
       {...props} 
     />
   );
