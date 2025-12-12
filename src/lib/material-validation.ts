@@ -121,6 +121,10 @@ export const NABERS_RANGES: Record<string, RangeSpec[]> = {
   ],
 };
 
+// Tolerance thresholds for NABERS range validation (30% above/below expected ranges)
+export const NABERS_UPPER_TOLERANCE = 1.3; // 30% above maximum
+export const NABERS_LOWER_TOLERANCE = 0.7; // 30% below minimum
+
 // ============================================
 // PART 3: SOURCE CREDIBILITY TIERS
 // ============================================
