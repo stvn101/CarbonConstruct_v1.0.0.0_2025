@@ -1,18 +1,18 @@
 import { Link } from "react-router-dom";
-import { Mail, MapPin, Linkedin, Twitter, Github } from "lucide-react";
-import logoImageWebp from "@/assets/carbonconstruct-logo-optimized.webp";
+import { Mail, MapPin, Linkedin, Facebook, Instagram } from "lucide-react";
+const logoImage32 = "/logo-32.webp";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-muted/30 border-t border-border mt-auto">
+    <footer id="footer" role="contentinfo" className="bg-muted/30 border-t border-border mt-auto">
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <img src={logoImageWebp} alt="CarbonConstruct Logo" className="h-8 w-8" />
+              <img src={logoImage32} alt="CarbonConstruct Logo" className="h-8 w-8" width="32" height="32" />
               <span className="font-bold text-lg text-foreground">CarbonConstruct</span>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -20,20 +20,38 @@ export const Footer = () => {
               NCC compliant with Green Star and NABERS integration.
             </p>
             <div className="flex gap-3">
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href="https://www.linkedin.com/in/steven-j-carbonconstruct" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Follow CarbonConstruct on LinkedIn"
+              >
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                <Twitter className="h-5 w-5" />
+              <a 
+                href="https://www.facebook.com/share/1AdCKCCb4f/?mibextid=wwXIfr" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Follow CarbonConstruct on Facebook"
+              >
+                <Facebook className="h-5 w-5" />
               </a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                <Github className="h-5 w-5" />
+              <a 
+                href="https://www.instagram.com/carbonconstruct_tech?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Follow CarbonConstruct on Instagram"
+              >
+                <Instagram className="h-5 w-5" />
               </a>
             </div>
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-4">
+          <nav aria-label="Quick links" className="space-y-4">
             <h3 className="font-semibold text-foreground">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -62,10 +80,10 @@ export const Footer = () => {
                 </Link>
               </li>
             </ul>
-          </div>
+          </nav>
 
           {/* Resources */}
-          <div className="space-y-4">
+          <nav aria-label="Resources" className="space-y-4">
             <h3 className="font-semibold text-foreground">Resources</h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -84,6 +102,11 @@ export const Footer = () => {
                 </a>
               </li>
               <li>
+                <Link to="/materials/status" className="text-muted-foreground hover:text-primary transition-colors">
+                  Materials Database
+                </Link>
+              </li>
+              <li>
                 <Link to="/impact" className="text-muted-foreground hover:text-primary transition-colors">
                   Our Impact
                 </Link>
@@ -99,7 +122,7 @@ export const Footer = () => {
                 </Link>
               </li>
             </ul>
-          </div>
+          </nav>
 
           {/* Contact */}
           <div className="space-y-4">

@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatAssistant } from "@/components/ChatAssistant";
+import { CookieConsent } from "@/components/CookieConsent";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -12,16 +13,23 @@ export function Layout({ children }: LayoutProps) {
   const { user } = useAuth();
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      {/* Skip links for keyboard navigation */}
+    <>
+      {/* Skip links - MUST be first focusable elements */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
       >
         Skip to main content
       </a>
+      <a
+        href="#footer"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-52 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      >
+        Skip to footer
+      </a>
 
-      <div className="min-h-screen flex w-full bg-background">
+      <SidebarProvider defaultOpen={false}>
+        <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
 
         <div className="flex-1 flex flex-col">
@@ -51,8 +59,10 @@ export function Layout({ children }: LayoutProps) {
 
           <Footer />
         </div>
-        {user && <ChatAssistant />}
-      </div>
-    </SidebarProvider>
+          {user && <ChatAssistant />}
+          <CookieConsent />
+        </div>
+      </SidebarProvider>
+    </>
   );
 }

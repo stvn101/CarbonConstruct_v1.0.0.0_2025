@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@/lib/__tests__/setup';
 import { useEmissionCalculations, type Scope1FormData, type Scope2FormData, type Scope3FormData } from '../useEmissionCalculations';
 
 // Mock the dependencies

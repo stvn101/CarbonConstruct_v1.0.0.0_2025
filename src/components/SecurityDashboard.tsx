@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Shield, AlertTriangle, ShieldAlert, ShieldCheck, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Shield, AlertTriangle, ShieldAlert, ShieldCheck, RefreshCw, CheckCircle2, Bug, Zap, FlaskConical, Radio } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
 interface SecurityEvent {
   id: string;
@@ -30,22 +31,25 @@ interface SecurityAlert {
   created_at: string;
 }
 
+// Static helper for use in realtime callbacks (must be outside component)
+const getEventTypeLabelStatic = (type: string) => {
+  const labels: Record<string, string> = {
+    security_auth_failure: "Auth Failure",
+    security_rate_limit_exceeded: "Rate Limit",
+    security_invalid_token: "Invalid Token",
+    security_suspicious_activity: "Suspicious Activity",
+    security_honeypot_triggered: "Honeypot Trap",
+  };
+  return labels[type] || type.replace("security_", "").replace(/_/g, " ");
+};
+
 export function SecurityDashboard() {
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
   const [alerts, setAlerts] = useState<SecurityAlert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLive, setIsLive] = useState(false);
 
-  useEffect(() => {
-    loadSecurityData();
-  }, []);
-
-  const loadSecurityData = async () => {
-    setLoading(true);
-    await Promise.all([loadSecurityEvents(), loadAlerts()]);
-    setLoading(false);
-  };
-
-  const loadSecurityEvents = async () => {
+  const loadSecurityEvents = useCallback(async () => {
     const { data, error } = await supabase
       .from("error_logs")
       .select("*")
@@ -56,9 +60,9 @@ export function SecurityDashboard() {
     if (!error && data) {
       setSecurityEvents(data as SecurityEvent[]);
     }
-  };
+  }, []);
 
-  const loadAlerts = async () => {
+  const loadAlerts = useCallback(async () => {
     const { data, error } = await supabase
       .from("alerts")
       .select("*")
@@ -69,7 +73,91 @@ export function SecurityDashboard() {
     if (!error && data) {
       setAlerts(data as SecurityAlert[]);
     }
-  };
+  }, []);
+
+  const loadSecurityData = useCallback(async () => {
+    setLoading(true);
+    await Promise.all([loadSecurityEvents(), loadAlerts()]);
+    setLoading(false);
+  }, [loadSecurityEvents, loadAlerts]);
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    loadSecurityData();
+
+    // Subscribe to new security events (error_logs with security_ prefix)
+    const errorLogsChannel: RealtimeChannel = supabase
+      .channel('security-events')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'error_logs'
+        },
+        (payload) => {
+          const newEvent = payload.new as SecurityEvent;
+          // Only process security events
+          if (newEvent.error_type?.startsWith('security_')) {
+            setSecurityEvents(prev => [newEvent, ...prev.slice(0, 49)]);
+            setIsLive(true);
+            
+            // Show toast notification for security events
+            const eventLabel = getEventTypeLabelStatic(newEvent.error_type);
+            if (newEvent.error_type === 'security_honeypot_triggered') {
+              toast.warning(`🤖 Bot Detected: ${eventLabel}`, {
+                description: newEvent.error_message,
+                duration: 5000,
+              });
+            } else if (newEvent.error_type === 'security_rate_limit_exceeded') {
+              toast.warning(`⚡ ${eventLabel}`, {
+                description: newEvent.error_message,
+                duration: 5000,
+              });
+            } else {
+              toast.info(`🔒 ${eventLabel}`, {
+                description: newEvent.error_message,
+                duration: 4000,
+              });
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to new security alerts
+    const alertsChannel: RealtimeChannel = supabase
+      .channel('security-alerts')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'alerts'
+        },
+        (payload) => {
+          const newAlert = payload.new as SecurityAlert;
+          // Only process security alerts
+          if (newAlert.alert_type?.startsWith('security_')) {
+            setAlerts(prev => [newAlert, ...prev.slice(0, 19)]);
+            setIsLive(true);
+            
+            // Show prominent toast for new alerts
+            toast.error(`🚨 Security Alert: ${getEventTypeLabelStatic(newAlert.alert_type)}`, {
+              description: newAlert.message,
+              duration: 10000,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      supabase.removeChannel(errorLogsChannel);
+      supabase.removeChannel(alertsChannel);
+    };
+  }, [loadSecurityData]);
 
   const resolveAlert = async (alertId: string) => {
     const { error } = await supabase
@@ -85,14 +173,44 @@ export function SecurityDashboard() {
     }
   };
 
-  const getEventTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      security_auth_failure: "Auth Failure",
-      security_rate_limit_exceeded: "Rate Limit",
-      security_invalid_token: "Invalid Token",
-      security_suspicious_activity: "Suspicious Activity",
-    };
-    return labels[type] || type.replace("security_", "").replace(/_/g, " ");
+  const triggerTestEvent = async (eventType: 'honeypot' | 'rate_limit') => {
+    try {
+      if (eventType === 'honeypot') {
+        // Trigger honeypot by sending a request with the honeypot field
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/log-error`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            honeypot_field: 'test_bot_value',
+            error_type: 'test',
+            error_message: 'Test honeypot trigger'
+          })
+        });
+        toast.success('Honeypot test event triggered');
+      } else {
+        // Trigger multiple rapid requests to simulate rate limit
+        const promises = [];
+        for (let i = 0; i < 12; i++) {
+          promises.push(
+            fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/log-error`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                error_type: 'test',
+                error_message: `Rate limit test ${i}`
+              })
+            })
+          );
+        }
+        await Promise.all(promises);
+        toast.success('Rate limit test triggered (12 rapid requests)');
+      }
+      
+      // Reload data after a short delay
+      setTimeout(loadSecurityData, 2000);
+    } catch {
+      toast.error('Failed to trigger test event');
+    }
   };
 
   const getSeverityBadge = (severity: string) => {
@@ -106,6 +224,13 @@ export function SecurityDashboard() {
     }
   };
 
+  const getEventTypeBadge = (type: string) => {
+    if (type === 'security_honeypot_triggered') {
+      return <Badge className="bg-purple-500/20 text-purple-600 border-purple-300">Bot Detected</Badge>;
+    }
+    return null;
+  };
+
   // Calculate stats
   const unresolvedAlerts = alerts.filter(a => !a.resolved).length;
   const last24hEvents = securityEvents.filter(e => 
@@ -113,6 +238,7 @@ export function SecurityDashboard() {
   ).length;
   const authFailures = securityEvents.filter(e => e.error_type === "security_auth_failure").length;
   const rateLimitViolations = securityEvents.filter(e => e.error_type === "security_rate_limit_exceeded").length;
+  const honeypotTriggers = securityEvents.filter(e => e.error_type === "security_honeypot_triggered").length;
 
   if (loading) {
     return (
@@ -124,8 +250,16 @@ export function SecurityDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Live Status Indicator */}
+      {isLive && (
+        <div className="flex items-center gap-2 text-sm text-green-600 bg-green-500/10 px-3 py-2 rounded-lg w-fit">
+          <Radio className="h-4 w-4 animate-pulse" />
+          <span>Live updates active</span>
+        </div>
+      )}
+
       {/* Security Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -177,7 +311,54 @@ export function SecurityDashboard() {
             <p className="text-xs text-muted-foreground">Violations</p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Bug className="h-4 w-4 text-purple-500" />
+              Honeypot Traps
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{honeypotTriggers}</p>
+            <p className="text-xs text-muted-foreground">Bot detections</p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Test Security Alerts */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FlaskConical className="h-5 w-5 text-amber-500" />
+            Test Security Alerts
+          </CardTitle>
+          <CardDescription>Trigger test events to verify email notifications are working</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4">
+            <Button 
+              variant="outline" 
+              onClick={() => triggerTestEvent('honeypot')}
+              className="gap-2"
+            >
+              <Bug className="h-4 w-4" />
+              Trigger Honeypot Test
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => triggerTestEvent('rate_limit')}
+              className="gap-2"
+            >
+              <Zap className="h-4 w-4" />
+              Trigger Rate Limit Test
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mt-4">
+            Note: Email alerts are sent when thresholds are exceeded (5+ honeypot triggers/hour, 20+ rate limit violations/hour).
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Active Alerts */}
       <Card>
@@ -227,7 +408,7 @@ export function SecurityDashboard() {
                       )}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {getEventTypeLabel(alert.alert_type)}
+                      {getEventTypeLabelStatic(alert.alert_type)}
                     </TableCell>
                     <TableCell>{getSeverityBadge(alert.severity)}</TableCell>
                     <TableCell className="max-w-md truncate">{alert.message}</TableCell>
@@ -286,7 +467,10 @@ export function SecurityDashboard() {
                 {securityEvents.slice(0, 20).map((event) => (
                   <TableRow key={event.id}>
                     <TableCell className="font-medium">
-                      {getEventTypeLabel(event.error_type)}
+                      <div className="flex items-center gap-2">
+                        {getEventTypeLabelStatic(event.error_type)}
+                        {getEventTypeBadge(event.error_type)}
+                      </div>
                     </TableCell>
                     <TableCell>{getSeverityBadge(event.severity)}</TableCell>
                     <TableCell className="max-w-xs truncate">

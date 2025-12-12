@@ -2,7 +2,7 @@ import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, Dol
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import logoImageWebp from "@/assets/carbonconstruct-logo-optimized.webp";
+const logoImage32 = "/logo-32.webp";
 const calculatorItems = [{
   title: "Dashboard",
   url: "/",
@@ -23,27 +23,27 @@ const otherItems = [{
   title: "Settings",
   url: "/settings",
   icon: Settings,
-  color: "text-muted-foreground"
+  color: "text-sidebar-foreground/70"
 }, {
   title: "Pricing",
   url: "/pricing",
   icon: DollarSign,
-  color: "text-muted-foreground"
+  color: "text-amber-400"
 }, {
   title: "Our Impact",
   url: "/impact",
   icon: Leaf,
-  color: "text-green-600"
+  color: "text-green-400"
 }, {
   title: "Roadmap",
   url: "/roadmap",
   icon: Map,
-  color: "text-blue-600"
+  color: "text-blue-400"
 }, {
   title: "Help & Resources",
   url: "/help",
   icon: HelpCircle,
-  color: "text-muted-foreground"
+  color: "text-cyan-400"
 }];
 export function AppSidebar() {
   useSidebar();
@@ -59,7 +59,7 @@ export function AppSidebar() {
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center cursor-pointer transition-all duration-500 ease-in-out">
                   <img 
-                    src={logoImageWebp} 
+                    src={logoImage32} 
                     alt="CarbonConstruct Logo" 
                     className="h-8 w-8 flex-shrink-0 object-contain"
                     width="32"
@@ -84,7 +84,7 @@ export function AppSidebar() {
             Carbon Calculator
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-1" role="navigation" aria-label="Carbon Calculator">
               {calculatorItems.map(item => {
               const active = isActive(item.url);
               return <SidebarMenuItem key={item.title}>
@@ -111,7 +111,7 @@ export function AppSidebar() {
             Tools
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-1" role="navigation" aria-label="Tools">
               {otherItems.map(item => {
               const active = isActive(item.url);
               return <SidebarMenuItem key={item.title}>

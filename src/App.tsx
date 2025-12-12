@@ -29,6 +29,8 @@ const Roadmap = lazy(() => import("./pages/Roadmap"));
 const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
 const AccessibilityStatement = lazy(() => import("./pages/AccessibilityStatement"));
 const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
+const MaterialDatabaseStatus = lazy(() => import("./pages/MaterialDatabaseStatus"));
+const Demo = lazy(() => import("./pages/Demo"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,7 +58,12 @@ const App = () => (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <MonitoringProvider>
             <Layout>
-              <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+              <Suspense fallback={
+                <div className="flex items-center justify-center min-h-screen" role="status" aria-live="polite">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" aria-hidden="true"></div>
+                  <span className="sr-only">Loading page content...</span>
+                </div>
+              }>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
@@ -72,8 +79,11 @@ const App = () => (
                   <Route path="/cookies" element={<CookiePolicy />} />
                   <Route path="/roadmap" element={<Roadmap />} />
                   <Route path="/accessibility" element={<AccessibilityStatement />} />
+                  <Route path="/admin" element={<AdminMonitoring />} />
                   <Route path="/admin/monitoring" element={<AdminMonitoring />} />
                   <Route path="/admin/material-verification" element={<MaterialVerification />} />
+                  <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
+                  <Route path="/demo" element={<Demo />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

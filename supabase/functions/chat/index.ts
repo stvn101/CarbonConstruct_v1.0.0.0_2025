@@ -28,21 +28,29 @@ serve(async (req) => {
       );
     }
 
+    // Anon client for auth verification
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
+    // Service role client for rate limiting (requires elevated permissions)
+    const supabaseServiceClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
     );
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !userData.user) {
-      console.error("[chat] Authentication failed:", userError?.message);
+      console.error("[chat] Authentication failed");
       logSecurityEvent({
         event_type: 'invalid_token',
         ip_address: getClientIP(req),
         endpoint: 'chat',
-        details: userError?.message || 'Invalid or expired token'
+        details: 'Invalid or expired token'
       });
       return new Response(
         JSON.stringify({ error: "Unauthorized - Invalid token" }), 
@@ -51,11 +59,11 @@ serve(async (req) => {
     }
 
     const user = userData.user;
-    console.log(`[chat] Authenticated user: ${user.id}`);
+    console.log(`[chat] Authenticated user: ${user.id.substring(0, 8)}...`);
 
-    // Check rate limit (50 requests per 10 minutes for chat)
+    // Check rate limit using service role client (50 requests per 10 minutes for chat)
     const rateLimitResult = await checkRateLimit(
-      supabaseClient,
+      supabaseServiceClient,
       user.id,
       'chat',
       { windowMinutes: 10, maxRequests: 50 }
@@ -63,7 +71,7 @@ serve(async (req) => {
 
     if (!rateLimitResult.allowed) {
       const resetInSeconds = Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000);
-      console.warn(`[chat] User ${user.id}: Rate limit exceeded. Reset in ${resetInSeconds}s`);
+      console.warn(`[chat] Rate limit exceeded. Reset in ${resetInSeconds}s`);
       
       // Log security event for rate limit violation
       logSecurityEvent({
@@ -90,13 +98,13 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[chat] User ${user.id}: Rate limit OK (${rateLimitResult.remaining} remaining)`);
+    console.log(`[chat] Rate limit OK (${rateLimitResult.remaining} remaining)`);
 
     const { messages } = await req.json();
 
     // Validate messages is an array
     if (!Array.isArray(messages)) {
-      console.error(`[chat] User ${user.id}: Invalid messages type - expected array, got ${typeof messages}`);
+      console.error(`[chat] Invalid messages type - expected array`);
       return new Response(
         JSON.stringify({ error: "Messages must be an array" }), 
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -105,7 +113,7 @@ serve(async (req) => {
 
     // Validate array is not empty
     if (messages.length === 0) {
-      console.error(`[chat] User ${user.id}: Empty messages array`);
+      console.error(`[chat] Empty messages array`);
       return new Response(
         JSON.stringify({ error: "Messages array cannot be empty" }), 
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -114,7 +122,7 @@ serve(async (req) => {
 
     // Validate array length (prevent abuse)
     if (messages.length > 50) {
-      console.error(`[chat] User ${user.id}: Too many messages (${messages.length}, max 50)`);
+      console.error(`[chat] Too many messages (${messages.length}, max 50)`);
       return new Response(
         JSON.stringify({ error: "Too many messages - maximum 50 messages per request" }), 
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -128,7 +136,7 @@ serve(async (req) => {
 
       // Check message has required fields
       if (!msg.role || !msg.content) {
-        console.error(`[chat] User ${user.id}: Invalid message structure at index ${i} - missing role or content`);
+        console.error(`[chat] Invalid message structure at index ${i} - missing role or content`);
         return new Response(
           JSON.stringify({ error: `Invalid message at position ${i + 1} - must have 'role' and 'content' fields` }), 
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -137,7 +145,7 @@ serve(async (req) => {
 
       // Validate role
       if (!validRoles.includes(msg.role)) {
-        console.error(`[chat] User ${user.id}: Invalid role at index ${i}: ${msg.role}`);
+        console.error(`[chat] Invalid role at index ${i}`);
         return new Response(
           JSON.stringify({ error: `Invalid role at position ${i + 1} - must be 'user', 'assistant', or 'system'` }), 
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -146,7 +154,7 @@ serve(async (req) => {
 
       // Validate content is string
       if (typeof msg.content !== 'string') {
-        console.error(`[chat] User ${user.id}: Invalid content type at index ${i} - expected string, got ${typeof msg.content}`);
+        console.error(`[chat] Invalid content type at index ${i}`);
         return new Response(
           JSON.stringify({ error: `Invalid content at position ${i + 1} - must be a string` }), 
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -155,7 +163,7 @@ serve(async (req) => {
 
       // Validate content length
       if (msg.content.length > 10000) {
-        console.error(`[chat] User ${user.id}: Content too long at index ${i} (${msg.content.length} chars, max 10,000)`);
+        console.error(`[chat] Content too long at index ${i}`);
         return new Response(
           JSON.stringify({ error: `Message at position ${i + 1} exceeds maximum length of 10,000 characters` }), 
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -163,7 +171,7 @@ serve(async (req) => {
       }
     }
 
-    console.log(`[chat] User ${user.id}: Validated ${messages.length} messages`);
+    console.log(`[chat] Validated ${messages.length} messages`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -200,8 +208,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("AI gateway error:", response.status);
       return new Response(JSON.stringify({ error: "AI gateway error" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -212,8 +219,8 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
-    console.error("[chat] Error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    console.error("[chat] Error:", e instanceof Error ? e.message : "Unknown error");
+    return new Response(JSON.stringify({ error: "An error occurred" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

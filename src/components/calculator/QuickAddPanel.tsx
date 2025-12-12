@@ -1,14 +1,60 @@
+import { useState, useEffect, useRef } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { X, Zap } from "lucide-react";
+import { X, Zap, RefreshCw, Check } from "lucide-react";
 import { FavoriteMaterial } from "@/hooks/useFavoriteMaterials";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface QuickAddPanelProps {
   materials: FavoriteMaterial[];
   onAddMaterial: (material: FavoriteMaterial) => void;
   onHideMaterial: (materialId: string) => void;
+  onSyncEPD?: () => Promise<{ synced: number; total: number }>;
 }
 
-export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial }: QuickAddPanelProps) {
+export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial, onSyncEPD }: QuickAddPanelProps) {
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncComplete, setSyncComplete] = useState(false);
+  const { toast } = useToast();
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSync = async () => {
+    if (!onSyncEPD) return;
+    
+    setIsSyncing(true);
+    setSyncComplete(false);
+    
+    try {
+      const result = await onSyncEPD();
+      setSyncComplete(true);
+      
+      toast({
+        title: "EPD Data Synced",
+        description: `Updated ${result.synced} of ${result.total} materials with latest EPD data`,
+      });
+      
+      // Reset the check icon after 3 seconds
+      syncTimeoutRef.current = setTimeout(() => setSyncComplete(false), 3000);
+    } catch {
+      toast({
+        title: "Sync Failed",
+        description: "Could not refresh EPD data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   if (materials.length === 0) return null;
 
   return (
@@ -20,7 +66,35 @@ export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial }: Quic
           </div>
           <span className="text-sm font-semibold text-emerald-800">Quick Add</span>
         </div>
-        <span className="text-xs text-emerald-600">Your frequently used materials</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-emerald-600">Your frequently used materials</span>
+          {onSyncEPD && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSync}
+                  disabled={isSyncing}
+                  className="h-7 px-2 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800"
+                  aria-label={isSyncing ? 'Syncing EPD data' : syncComplete ? 'EPD data synced' : 'Sync EPD data'}
+                >
+                  {syncComplete ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  ) : (
+                    <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                  )}
+                  <span className="ml-1 text-xs hidden sm:inline">
+                    {isSyncing ? 'Syncing...' : syncComplete ? 'Synced' : 'Sync EPD'}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Refresh EPD data for all recently used materials</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       </div>
       
       <div className="flex flex-wrap gap-2">
@@ -61,6 +135,12 @@ export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial }: Quic
               <p className="text-xs text-muted-foreground">
                 {fav.category} • Used {fav.usageCount}x
               </p>
+              {fav.epdNumber && (
+                <p className="text-xs text-emerald-600">EPD: {fav.epdNumber}</p>
+              )}
+              {fav.manufacturer && (
+                <p className="text-xs text-muted-foreground">{fav.manufacturer}</p>
+              )}
             </TooltipContent>
           </Tooltip>
         ))}

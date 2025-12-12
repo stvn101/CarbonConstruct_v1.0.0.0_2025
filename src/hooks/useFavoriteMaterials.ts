@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface FavoriteMaterial {
   materialId: string;
@@ -11,6 +12,20 @@ export interface FavoriteMaterial {
   isPinned: boolean;
   isHidden: boolean;
   lastUsed: string;
+  // EPD Traceability fields
+  epdNumber?: string;
+  epdUrl?: string;
+  manufacturer?: string;
+  plantLocation?: string;
+  dataQualityTier?: string;
+  year?: number;
+  // Lifecycle breakdown (kgCO2e per unit)
+  ef_a1a3?: number;
+  ef_a4?: number;
+  ef_a5?: number;
+  ef_b1b5?: number;
+  ef_c1c4?: number;
+  ef_d?: number;
 }
 
 const STORAGE_KEY = 'carbonConstruct_favoriteMaterials';
@@ -133,13 +148,45 @@ export function useFavoriteMaterials() {
     unit: string;
     factor: number;
     source: string;
+    // EPD Traceability fields
+    epdNumber?: string;
+    epdUrl?: string;
+    manufacturer?: string;
+    plantLocation?: string;
+    dataQualityTier?: string;
+    year?: number;
+    // Lifecycle breakdown
+    ef_a1a3?: number;
+    ef_a4?: number;
+    ef_a5?: number;
+    ef_b1b5?: number;
+    ef_c1c4?: number;
+    ef_d?: number;
   }) => {
     setFavorites(prev => {
       const existing = prev.find(f => f.materialId === material.id);
       if (existing) {
+        // Update existing with latest EPD data and increment usage
         return prev.map(f => 
           f.materialId === material.id 
-            ? { ...f, usageCount: f.usageCount + 1, lastUsed: new Date().toISOString() }
+            ? { 
+                ...f, 
+                usageCount: f.usageCount + 1, 
+                lastUsed: new Date().toISOString(),
+                // Update EPD fields with latest data
+                epdNumber: material.epdNumber ?? f.epdNumber,
+                epdUrl: material.epdUrl ?? f.epdUrl,
+                manufacturer: material.manufacturer ?? f.manufacturer,
+                plantLocation: material.plantLocation ?? f.plantLocation,
+                dataQualityTier: material.dataQualityTier ?? f.dataQualityTier,
+                year: material.year ?? f.year,
+                ef_a1a3: material.ef_a1a3 ?? f.ef_a1a3,
+                ef_a4: material.ef_a4 ?? f.ef_a4,
+                ef_a5: material.ef_a5 ?? f.ef_a5,
+                ef_b1b5: material.ef_b1b5 ?? f.ef_b1b5,
+                ef_c1c4: material.ef_c1c4 ?? f.ef_c1c4,
+                ef_d: material.ef_d ?? f.ef_d,
+              }
             : f
         );
       } else {
@@ -153,7 +200,20 @@ export function useFavoriteMaterials() {
           usageCount: 1,
           isPinned: false,
           isHidden: false,
-          lastUsed: new Date().toISOString()
+          lastUsed: new Date().toISOString(),
+          // Store EPD fields
+          epdNumber: material.epdNumber,
+          epdUrl: material.epdUrl,
+          manufacturer: material.manufacturer,
+          plantLocation: material.plantLocation,
+          dataQualityTier: material.dataQualityTier,
+          year: material.year,
+          ef_a1a3: material.ef_a1a3,
+          ef_a4: material.ef_a4,
+          ef_a5: material.ef_a5,
+          ef_b1b5: material.ef_b1b5,
+          ef_c1c4: material.ef_c1c4,
+          ef_d: material.ef_d,
         }];
       }
     });
@@ -237,6 +297,91 @@ export function useFavoriteMaterials() {
     setFavorites([]);
   }, []);
 
+  /**
+   * Synchronizes the local favorites list with the latest EPD data from the database.
+   *
+   * This function fetches updated material data for all non-default favorite materials
+   * from the `materials_epd` table and updates the local state accordingly. It performs
+   * a bulk query for efficiency and merges the latest EPD data with existing user preferences
+   * (usage count, pinned status, etc.).
+   *
+   * ## Invocation Context
+   * Call this function when you need to ensure favorite materials reflect current database values:
+   * - After a scheduled EPD data refresh
+   * - When the app resumes from background/paused state
+   * - On user-triggered "Sync Materials" action
+   * - Before generating compliance reports that require up-to-date emission factors
+   *
+   * ## Behavior
+   * - Skips default pinned materials (IDs starting with 'default_')
+   * - Queries Supabase `materials_epd` table using `.in()` for batch efficiency
+   * - Updates emission factors, EPD metadata, and lifecycle breakdown fields
+   * - Preserves user-specific data (usage count, pinned status, lastUsed timestamp)
+   * - Handles missing materials gracefully (keeps original data if not found in database)
+   *
+   * ## Error Handling
+   * If database query fails or network is unavailable, logs a warning and returns
+   * `{ synced: 0, total: materialIds.length }` to allow graceful degradation.
+   * The function does not throw errors to prevent breaking the UI.
+   *
+   * @returns {Promise<{ synced: number, total: number }>} Synchronization result containing:
+   *   - `synced`: Number of materials successfully updated from the database
+   *   - `total`: Total number of favorite materials queried (excludes defaults)
+   *
+   * @example
+   * ```typescript
+   * const { syncWithDatabase } = useFavoriteMaterials();
+   * const result = await syncWithDatabase();
+   * console.log(`Synced ${result.synced} of ${result.total} materials`);
+   * ```
+   */
+  const syncWithDatabase = useCallback(async () => {
+    if (favorites.length === 0) return { synced: 0, total: 0 };
+
+    // Get all material IDs that aren't default pinned items
+    const materialIds = favorites
+      .filter(f => !f.materialId.startsWith('default_'))
+      .map(f => f.materialId);
+
+    if (materialIds.length === 0) return { synced: 0, total: 0 };
+
+    // Fetch latest EPD data from database
+    const { data: dbMaterials, error } = await supabase
+      .from('materials_epd')
+      .select('*')
+      .in('id', materialIds);
+
+    if (error || !dbMaterials) {
+      console.warn('Failed to sync EPD data:', error);
+      return { synced: 0, total: materialIds.length };
+    }
+
+    // Update favorites with latest EPD data
+    setFavorites(prev => prev.map(fav => {
+      const dbMaterial = dbMaterials.find(m => m.id === fav.materialId);
+      if (!dbMaterial) return fav;
+
+      return {
+        ...fav,
+        factor: Number(dbMaterial.ef_total) || fav.factor,
+        epdNumber: dbMaterial.epd_number || fav.epdNumber,
+        epdUrl: dbMaterial.epd_url || fav.epdUrl,
+        manufacturer: dbMaterial.manufacturer || fav.manufacturer,
+        plantLocation: dbMaterial.plant_location || fav.plantLocation,
+        dataQualityTier: dbMaterial.data_quality_tier || fav.dataQualityTier,
+        year: dbMaterial.year || fav.year,
+        ef_a1a3: dbMaterial.ef_a1a3 ? Number(dbMaterial.ef_a1a3) : fav.ef_a1a3,
+        ef_a4: dbMaterial.ef_a4 ? Number(dbMaterial.ef_a4) : fav.ef_a4,
+        ef_a5: dbMaterial.ef_a5 ? Number(dbMaterial.ef_a5) : fav.ef_a5,
+        ef_b1b5: dbMaterial.ef_b1b5 ? Number(dbMaterial.ef_b1b5) : fav.ef_b1b5,
+        ef_c1c4: dbMaterial.ef_c1c4 ? Number(dbMaterial.ef_c1c4) : fav.ef_c1c4,
+        ef_d: dbMaterial.ef_d ? Number(dbMaterial.ef_d) : fav.ef_d,
+      };
+    }));
+
+    return { synced: dbMaterials.length, total: materialIds.length };
+  }, [favorites]);
+
   return {
     favorites,
     quickAddMaterials,
@@ -246,6 +391,7 @@ export function useFavoriteMaterials() {
     unpinMaterial,
     hideMaterial,
     unhideMaterial,
-    clearAllFavorites
+    clearAllFavorites,
+    syncWithDatabase
   };
 }
