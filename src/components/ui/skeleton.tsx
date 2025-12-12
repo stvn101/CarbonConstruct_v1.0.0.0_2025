@@ -9,7 +9,7 @@ function Skeleton({ className, loadingText = "Loading...", ...props }: SkeletonP
   return (
     <div 
       className={cn("animate-pulse rounded-md bg-muted", className)} 
-      role="status"
+      aria-busy="true"
       aria-label={loadingText}
       {...props} 
     />
