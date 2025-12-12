@@ -16,6 +16,7 @@ pytest==7.4.4
 pytest-asyncio==0.23.3
 httpx==0.26.0  # For testing
 
-# CORS
-python-jose[cryptography]==3.3.0  # For future auth
+# Authentication (migrated from python-jose due to CVE-2024-33663)
+# PyJWT is the recommended secure alternative to python-jose
+pyjwt[crypto]==2.8.0  # For future auth - secure JWT implementation
 passlib[bcrypt]==1.7.4  # For future auth
