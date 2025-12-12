@@ -13,7 +13,7 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
 import { FeatureTeaser } from "@/components/FeatureTeaser";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle, User, Shield, Leaf, Check, X, HardHat, Award, Building2 } from "lucide-react";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle, User, Shield, Leaf, Check, X, HardHat, Award, Building2, Calendar } from "lucide-react";
 import { CalculationHistory } from "@/components/CalculationHistory";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -121,13 +121,22 @@ const Index = () => {
                   No credit card. No commitment. No expiration date.
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
                 <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-semibold">
                   <CheckCircle className="mr-2 h-5 w-5" />
                   Start Free Forever
                 </Button>
                 <Button onClick={() => navigate("/auth")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto border-primary/50">
                   Start 14-Day Pro Trial
+                </Button>
+                <Button 
+                  onClick={() => window.open('https://calendar.app.google/1SMFPsNBFS7V5pu37', '_blank')} 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto border-accent/50"
+                >
+                  <Calendar className="mr-2 h-5 w-5" />
+                  Book a Demo
                 </Button>
               </div>
               <p className="text-xs md:text-sm text-muted-foreground">
@@ -269,6 +278,17 @@ const Index = () => {
                   </Table>
                 </div>
               </Card>
+              <div className="text-center mt-4">
+                <p className="text-sm text-muted-foreground mb-2">Want a personalized walkthrough?</p>
+                <Button
+                  onClick={() => window.open('https://calendar.app.google/1SMFPsNBFS7V5pu37', '_blank')}
+                  variant="link"
+                  className="text-primary"
+                >
+                  <Calendar className="mr-1 h-4 w-4" />
+                  Book a Demo with Steven →
+                </Button>
+              </div>
             </div>
 
             {/* Founder Section - Expanded */}
@@ -339,6 +359,15 @@ const Index = () => {
                         <Leaf className="h-4 w-4 text-primary" />
                         <span className="text-xs text-muted-foreground">0.5% of every subscription supports carbon removal via Stripe Climate</span>
                       </div>
+                      
+                      <Button
+                        onClick={() => window.open('https://calendar.app.google/1SMFPsNBFS7V5pu37', '_blank')}
+                        variant="outline"
+                        className="mt-4 w-full sm:w-auto"
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        Book a Demo with Steven
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
