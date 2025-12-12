@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@/lib/__tests__/setup';
 import type { ReactNode } from 'react';
 
 // Create mock functions we can track
