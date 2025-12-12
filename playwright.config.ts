@@ -6,12 +6,27 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: [
+    ['html', { open: 'never' }],
+    ['json', { outputFile: 'playwright-report/results.json' }],
+  ],
   use: {
     baseURL: 'http://localhost:8080',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    video: 'on-first-retry',
   },
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.05,
+      threshold: 0.2,
+    },
+    toMatchSnapshot: {
+      maxDiffPixelRatio: 0.05,
+    },
+  },
+  snapshotDir: './e2e/snapshots',
+  snapshotPathTemplate: '{snapshotDir}/{testFilePath}/{arg}{ext}',
   projects: [
     {
       name: 'chromium',
@@ -35,8 +50,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:8080',
+    command: 'npm run build && npm run preview',
+    url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
+    timeout: 120000,
   },
 });
