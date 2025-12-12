@@ -50,7 +50,7 @@ test.describe('Mobile Responsiveness', () => {
     const box = await emailInput.boundingBox();
     
     // Input should be at least 44px tall for touch targets
-    expect(box?.height).toBeGreaterThanOrEqual(40);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
   });
 
   test('text should be readable without zooming', async ({ page }) => {
