@@ -9,6 +9,15 @@ import { vi, beforeEach, afterEach } from 'vitest';
 export { render, renderHook, act, cleanup } from '@testing-library/react';
 export { screen, fireEvent, within } from '@testing-library/dom';
 
+// Mock @radix-ui/react-tooltip to avoid provider errors in tests
+vi.mock('@radix-ui/react-tooltip', () => ({
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => children,
+  Tooltip: ({ children }: { children: React.ReactNode }) => children,
+  TooltipTrigger: ({ children }: { children: React.ReactNode }) => children,
+  TooltipContent: ({ children }: { children: React.ReactNode }) => children,
+  TooltipPortal: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Custom waitFor implementation
 export const waitFor = async (
   callback: () => void | Promise<void>,
