@@ -9,7 +9,7 @@ sqlite3  # Built into Python
 
 # PDF Generation (for future reports)
 weasyprint==60.2
-jinja2==3.1.3
+jinja2==3.1.6
 
 # Development
 pytest==7.4.4
