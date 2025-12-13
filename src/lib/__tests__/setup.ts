@@ -4,19 +4,44 @@
 
 import '@testing-library/jest-dom';
 import { vi, beforeEach, afterEach } from 'vitest';
+import * as React from 'react';
 
 // Re-export testing utilities for consistent imports
 export { render, renderHook, act, cleanup } from '@testing-library/react';
 export { screen, fireEvent, within } from '@testing-library/dom';
 
 // Mock @radix-ui/react-tooltip to avoid provider errors in tests
-vi.mock('@radix-ui/react-tooltip', () => ({
-  TooltipProvider: ({ children }: { children: React.ReactNode }) => children,
-  Tooltip: ({ children }: { children: React.ReactNode }) => children,
-  TooltipTrigger: ({ children }: { children: React.ReactNode }) => children,
-  TooltipContent: ({ children }: { children: React.ReactNode }) => children,
-  TooltipPortal: ({ children }: { children: React.ReactNode }) => children,
-}));
+// This mock hides tooltip content to prevent duplicate text in DOM during tests
+vi.mock('@radix-ui/react-tooltip', () => {
+  // Components that should pass through children
+  const PassThrough = ({ children }: { children?: React.ReactNode }) => children || null;
+
+  // Tooltip content should be hidden in tests (tooltips are hidden by default in production)
+  // This prevents duplicate text issues where tests find the same text in both
+  // the main component and the tooltip
+  const HiddenContent = () => null;
+
+  // Content component with forwardRef to match real API
+  const Content = React.forwardRef((_props: any, _ref: any) => null);
+  Content.displayName = 'TooltipContent';
+
+  return {
+    // Radix Primitives (what @radix-ui/react-tooltip exports)
+    Provider: PassThrough,
+    Root: PassThrough,
+    Trigger: PassThrough,
+    Content: Content,
+    Portal: HiddenContent,
+    Arrow: HiddenContent,
+
+    // Re-exports from our UI wrapper (for compatibility)
+    TooltipProvider: PassThrough,
+    Tooltip: PassThrough,
+    TooltipTrigger: PassThrough,
+    TooltipContent: Content,
+    TooltipPortal: HiddenContent,
+  };
+});
 
 // Custom waitFor implementation
 export const waitFor = async (
