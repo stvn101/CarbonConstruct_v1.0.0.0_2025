@@ -19,25 +19,25 @@ describe('ModuleDCalculator', () => {
     it('renders calculator card', () => {
       render(<ModuleDCalculator />);
 
-      expect(screen.getByText(/Module D/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Module D/i })).toBeInTheDocument();
     });
 
     it('displays recycling section', () => {
       render(<ModuleDCalculator />);
 
-      expect(screen.getByText(/Recycling/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Recycling/i)[0]).toBeInTheDocument();
     });
 
     it('displays reuse section', () => {
       render(<ModuleDCalculator />);
 
-      expect(screen.getByText(/Reuse/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Reuse/i)[0]).toBeInTheDocument();
     });
 
     it('displays energy recovery section', () => {
       render(<ModuleDCalculator />);
 
-      expect(screen.getByText(/Energy Recovery/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Energy Recovery/i)[0]).toBeInTheDocument();
     });
   });
 
@@ -109,13 +109,13 @@ describe('ModuleDCalculator', () => {
     it('includes steel in recycling materials', () => {
       render(<ModuleDCalculator />);
 
-      expect(screen.getByText(/Steel/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Steel/i)[0]).toBeInTheDocument();
     });
 
     it('includes aluminium in recycling materials', () => {
       render(<ModuleDCalculator />);
 
-      expect(screen.getByText(/Aluminium/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Aluminium/i)[0]).toBeInTheDocument();
     });
 
     it('includes timber in multiple sections', () => {
