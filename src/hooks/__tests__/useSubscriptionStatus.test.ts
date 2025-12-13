@@ -5,8 +5,8 @@
  * Tests Stripe subscription status verification via edge function
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, waitFor } from '@/lib/__tests__/setup';
 
 // Mock dependencies
 const mockInvoke = vi.fn();
@@ -45,8 +45,7 @@ import { useSubscriptionStatus } from '../useSubscriptionStatus';
 describe('useSubscriptionStatus', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
-    
+
     mockGetSession.mockResolvedValue({
       data: {
         session: {
@@ -54,10 +53,6 @@ describe('useSubscriptionStatus', () => {
         },
       },
     });
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   describe('initial state', () => {
@@ -95,12 +90,10 @@ describe('useSubscriptionStatus', () => {
 
       const { result } = renderHook(() => useSubscriptionStatus());
 
-      await act(async () => {
-        await vi.runAllTimersAsync();
-      });
-
-      expect(result.current.subscribed).toBe(true);
-      expect(result.current.tier_name).toBe('Pro');
+      await waitFor(() => {
+        expect(result.current.subscribed).toBe(true);
+        expect(result.current.tier_name).toBe('Pro');
+      }, { timeout: 3000 });
     });
 
     it('should include authorization header with JWT token', async () => {
@@ -108,15 +101,13 @@ describe('useSubscriptionStatus', () => {
 
       renderHook(() => useSubscriptionStatus());
 
-      await act(async () => {
-        await vi.runAllTimersAsync();
-      });
-
-      expect(mockInvoke).toHaveBeenCalledWith('check-subscription', {
-        headers: {
-          Authorization: 'Bearer test-token',
-        },
-      });
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalledWith('check-subscription', {
+          headers: {
+            Authorization: 'Bearer test-token',
+          },
+        });
+      }, { timeout: 3000 });
     });
   });
 
@@ -146,11 +137,9 @@ describe('useSubscriptionStatus', () => {
 
       const { result } = renderHook(() => useSubscriptionStatus());
 
-      await act(async () => {
-        await vi.runAllTimersAsync();
-      });
-
-      expect(result.current.product_id).toBe('prod_123');
+      await waitFor(() => {
+        expect(result.current.product_id).toBe('prod_123');
+      }, { timeout: 3000 });
     });
 
     it('should return subscription_end date', async () => {
@@ -168,11 +157,9 @@ describe('useSubscriptionStatus', () => {
 
       const { result } = renderHook(() => useSubscriptionStatus());
 
-      await act(async () => {
-        await vi.runAllTimersAsync();
-      });
-
-      expect(result.current.subscription_end).toBe('2025-12-31T00:00:00Z');
+      await waitFor(() => {
+        expect(result.current.subscription_end).toBe('2025-12-31T00:00:00Z');
+      }, { timeout: 3000 });
     });
   });
 });

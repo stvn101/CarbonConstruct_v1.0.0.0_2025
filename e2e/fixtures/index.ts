@@ -61,6 +61,24 @@ export {
   setProjectDetails
 } from './reports.fixture';
 
+// Navigation fixtures
+export {
+  SIDEBAR_ROUTES,
+  FOOTER_INTERNAL_LINKS,
+  FOOTER_EXTERNAL_LINKS,
+  TOOLS_PAGES_WITH_DEMO_BUTTON,
+  DEMO_PAGE_LINKS,
+  LANDING_PAGE_LINKS,
+  GOOGLE_CALENDAR_URL,
+  verifyInternalNavigation,
+  verifyExternalLink,
+  isExternalLinkSecure,
+  verifyInternalLink,
+  verifySidebarActiveState,
+  getAllLinks,
+  verifyPageLoaded,
+} from './navigation.fixture';
+
 // Common test utilities
 export async function waitForNetworkIdle(page: import('@playwright/test').Page): Promise<void> {
   await page.waitForLoadState('networkidle');

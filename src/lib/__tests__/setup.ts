@@ -3,11 +3,71 @@
  */
 
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, beforeEach, afterEach } from 'vitest';
+import * as React from 'react';
 
 // Re-export testing utilities for consistent imports
 export { render, renderHook, act, cleanup } from '@testing-library/react';
 export { screen, fireEvent, within } from '@testing-library/dom';
+
+// Shared mock components for consistent behavior across tests
+const PassThrough = ({ children }: { children?: React.ReactNode }) => children || null;
+const HiddenContent = () => null;
+
+// Mock @radix-ui/react-tooltip to avoid provider errors in tests
+// This mock hides tooltip content to prevent duplicate text in DOM during tests
+vi.mock('@radix-ui/react-tooltip', () => {
+  // Content component with forwardRef to match real API
+  const Content = React.forwardRef((_props: any, _ref: any) => null);
+  Content.displayName = 'TooltipContent';
+
+  return {
+    // Radix Primitives (what @radix-ui/react-tooltip exports)
+    Provider: PassThrough,
+    Root: PassThrough,
+    Trigger: PassThrough,
+    Content: Content,
+    Portal: HiddenContent,
+    Arrow: HiddenContent,
+
+    // Re-exports from our UI wrapper (for compatibility)
+    TooltipProvider: PassThrough,
+    Tooltip: PassThrough,
+    TooltipTrigger: PassThrough,
+    TooltipContent: Content,
+    TooltipPortal: HiddenContent,
+    
+    // Default export (some components may use default import)
+    default: {
+      Provider: PassThrough,
+      Root: PassThrough,
+      Trigger: PassThrough,
+      Content: Content,
+      Portal: HiddenContent,
+      Arrow: HiddenContent,
+    },
+  };
+});
+
+// Mock recharts to avoid rendering issues in tests
+vi.mock('recharts', () => ({
+  ResponsiveContainer: PassThrough,
+  BarChart: PassThrough,
+  PieChart: PassThrough,
+  LineChart: PassThrough,
+  AreaChart: PassThrough,
+  ComposedChart: PassThrough,
+  Bar: HiddenContent,
+  Pie: HiddenContent,
+  Line: HiddenContent,
+  Area: HiddenContent,
+  Cell: HiddenContent,
+  XAxis: HiddenContent,
+  YAxis: HiddenContent,
+  CartesianGrid: HiddenContent,
+  Legend: HiddenContent,
+  Tooltip: HiddenContent,
+}));
 
 // Custom waitFor implementation
 export const waitFor = async (
@@ -30,15 +90,29 @@ export const waitFor = async (
   await callback();
 };
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(() => null),
-  setItem: vi.fn(() => {}),
-  removeItem: vi.fn(() => {}),
-  clear: vi.fn(() => {}),
-  length: 0,
-  key: vi.fn(() => null),
+// Mock localStorage with actual storage functionality
+const createLocalStorageMock = () => {
+  let store: Record<string, string> = {};
+
+  return {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: vi.fn((index: number) => Object.keys(store)[index] || null),
+  };
 };
+
+const localStorageMock = createLocalStorageMock();
 
 Object.defineProperty(global, 'localStorage', {
   value: localStorageMock,

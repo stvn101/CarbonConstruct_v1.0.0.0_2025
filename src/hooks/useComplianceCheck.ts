@@ -174,7 +174,17 @@ export const useComplianceCheck = (
     ];
 
     const nccCompliantCount = nccRequirements.filter(r => r.met).length;
-    const nccStatus = 
+    const nccCriticalRequirementsMet = nccRequirements
+      .filter(r => r.threshold !== undefined) // Only check requirements with thresholds
+      .filter(r => r.met).length;
+    const nccCriticalRequirementsTotal = nccRequirements
+      .filter(r => r.threshold !== undefined).length;
+    
+    // Force non-compliant for very large emissions (5x over any limit) OR if all critical requirements fail
+    const isExtremelyHighEmissions = upfrontIntensity > nccLimit * 5 || emissionsPerSqm > nccEnergyTarget * 5;
+    const nccStatus: 'compliant' | 'partial' | 'non-compliant' = 
+      isExtremelyHighEmissions ? 'non-compliant' :
+      nccCriticalRequirementsMet === 0 && nccCriticalRequirementsTotal > 0 ? 'non-compliant' :
       nccCompliantCount === nccRequirements.length ? 'compliant' :
       nccCompliantCount > 0 ? 'partial' : 'non-compliant';
 

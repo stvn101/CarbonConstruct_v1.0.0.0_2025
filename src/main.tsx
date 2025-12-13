@@ -8,8 +8,12 @@ import { initTracing } from "./lib/tracing";
 import { initAxeAccessibility } from "./lib/axe-accessibility";
 import "./index.css";
 
-// Initialize tracing
-initTracing();
+// Initialize tracing (dev only, fails gracefully)
+try {
+  initTracing();
+} catch {
+  // Tracing is optional - silently skip if it fails
+}
 
 // Initialize global error tracking
 initializeErrorTracking();

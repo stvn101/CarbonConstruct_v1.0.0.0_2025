@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+#### Fixed python-jose Algorithm Confusion Vulnerability (December 12, 2025)
+
+**CVE-2024-33663**: Migrated from vulnerable `python-jose` to secure `PyJWT` library to address critical algorithm confusion vulnerability with OpenSSH ECDSA keys.
+
+**Impact:** 
+- **Severity:** Critical
+- **Vulnerability:** python-jose through version 3.3.0 has algorithm confusion issues with OpenSSH ECDSA keys and other key formats (similar to CVE-2022-29217)
+- **Risk:** Could allow attackers to forge JWT tokens by exploiting key format confusion
+
+**Resolution:**
+- Replaced `python-jose[cryptography]==3.3.0` with `pyjwt[crypto]==2.8.0` in requirements.txt
+- PyJWT is actively maintained and does not have this vulnerability
+- This change is preemptive as Python dependencies are planned for future authentication features
+- Current application uses Supabase for authentication (unaffected)
+
+**Files updated:**
+- `requirements.txt` - Migrated to PyJWT for future Python backend authentication
+
+**Note:** This fix addresses a dependency listed for future use. The current production application uses Supabase for all authentication and is not vulnerable.
+
 ### Changed
 
 #### Stripe Climate Contribution Rate Update (December 11, 2025)

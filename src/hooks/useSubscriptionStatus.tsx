@@ -12,6 +12,7 @@ export interface SubscriptionStatus {
   price_id: string | null;
   subscription_end: string | null;
   trial_end: string | null;
+  is_trialing: boolean;
 }
 
 export const useSubscriptionStatus = () => {
@@ -23,6 +24,7 @@ export const useSubscriptionStatus = () => {
     price_id: null,
     subscription_end: null,
     trial_end: null,
+    is_trialing: false,
   });
   const [loading, setLoading] = useState(true);
 
@@ -78,6 +80,7 @@ export const useSubscriptionStatus = () => {
         price_id: null,
         subscription_end: null,
         trial_end: null,
+        is_trialing: false,
       });
       setLoading(false);
       return;
@@ -117,21 +120,7 @@ export const useSubscriptionStatus = () => {
         if (retryCount >= RETRY.MAX_ATTEMPTS) {
           toast({
             title: 'Connection Issue',
-            description: (
-              <>
-                Unable to verify your subscription after {RETRY.MAX_ATTEMPTS} attempts.<br />
-                Please check your internet connection and try again. If the problem persists,&nbsp;
-                <a
-                  href="mailto:support@carboncompass.ai"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-primary font-medium"
-                >
-                  contact support
-                </a>
-                .
-              </>
-            ),
+            description: `Unable to verify your subscription after ${RETRY.MAX_ATTEMPTS} attempts. Please check your internet connection and try again.`,
             variant: 'destructive',
           });
         }
@@ -139,7 +128,14 @@ export const useSubscriptionStatus = () => {
       }
 
       if (data) {
-        setStatus(data);
+        // Check if currently in trial period
+        const isTrialing = data.trial_end 
+          ? new Date(data.trial_end) > new Date() 
+          : false;
+        setStatus({
+          ...data,
+          is_trialing: isTrialing,
+        });
       }
     } catch (error) {
       // Handle unexpected errors with retry logic

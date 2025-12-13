@@ -40,8 +40,8 @@ const milestones: Milestone[] = [
   {
     title: "Data & Performance",
     description: "EPD database and platform optimization",
-    status: "in-progress",
-    quarter: "Q3 2025",
+    status: "completed",
+    quarter: "Q2 2025",
     features: [
       "4,000+ EPD materials database import",
       "EPD-centric schema for compliance",
@@ -52,8 +52,8 @@ const milestones: Milestone[] = [
   {
     title: "Security Hardening",
     description: "Enterprise-grade security and validation",
-    status: "in-progress",
-    quarter: "Q3 2025",
+    status: "completed",
+    quarter: "Q2 2025",
     features: [
       "Server-side input validation",
       "Rate limiting across endpoints",

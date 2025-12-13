@@ -11,7 +11,7 @@ export default function CookiePolicy() {
         </div>
         <h1 className="text-4xl font-bold mb-2">Cookie Policy</h1>
         <p className="text-muted-foreground">
-          Last Updated: November 2024
+          Last Updated: December 2025
         </p>
       </div>
 
@@ -284,8 +284,8 @@ export default function CookiePolicy() {
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg space-y-2">
                   <p className="text-sm"><strong>Email:</strong> privacy@carbonconstruct.com.au</p>
-                  <p className="text-sm"><strong>Phone:</strong> 1300 CARBON (227 266)</p>
-                  <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Privacy Officer, Sydney, NSW, Australia</p>
+                  <p className="text-sm"><strong>Phone:</strong> 0459 148 862</p>
+                  <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Privacy Officer, Lawnton, Queensland, Australia</p>
                 </div>
               </section>
 

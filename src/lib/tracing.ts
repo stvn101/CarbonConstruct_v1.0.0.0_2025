@@ -1,27 +1,46 @@
-import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
-import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { resourceFromAttributes } from "@opentelemetry/resources";
-import { SEMRESATTRS_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
-import { registerInstrumentations } from "@opentelemetry/instrumentation";
-import { DocumentLoadInstrumentation } from "@opentelemetry/instrumentation-document-load";
-import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
-
+// Tracing is only enabled in local development
+// Early exit for production to prevent any module loading issues
 export function initTracing() {
-  // Only initialize tracing in local development
+  // Skip tracing entirely in production
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return; // Skip tracing in production
+      return;
     }
   }
 
+  // Use dynamic imports to prevent module loading issues in production
+  initTracingAsync().catch(() => {
+    // Silently fail - tracing is optional
+  });
+}
+
+async function initTracingAsync() {
   try {
+    const [
+      { WebTracerProvider },
+      { SimpleSpanProcessor },
+      { OTLPTraceExporter },
+      { resourceFromAttributes },
+      { SEMRESATTRS_SERVICE_NAME },
+      { registerInstrumentations },
+      { DocumentLoadInstrumentation },
+      { FetchInstrumentation },
+    ] = await Promise.all([
+      import("@opentelemetry/sdk-trace-web"),
+      import("@opentelemetry/sdk-trace-base"),
+      import("@opentelemetry/exporter-trace-otlp-http"),
+      import("@opentelemetry/resources"),
+      import("@opentelemetry/semantic-conventions"),
+      import("@opentelemetry/instrumentation"),
+      import("@opentelemetry/instrumentation-document-load"),
+      import("@opentelemetry/instrumentation-fetch"),
+    ]);
+
     const resource = resourceFromAttributes({
-      [SEMRESATTRS_SERVICE_NAME]: "loval-carbon-compass",
+      [SEMRESATTRS_SERVICE_NAME]: "carbonconstruct",
     });
 
-    // Use the AI Toolkit's OTLP endpoint
     const exporter = new OTLPTraceExporter({
       url: "http://localhost:4318/v1/traces",
     });
@@ -46,14 +65,14 @@ export function initTracing() {
       instrumentations: [
         new DocumentLoadInstrumentation(),
         new FetchInstrumentation({
-          // Propagate trace headers to Supabase backend
           propagateTraceHeaderCorsUrls,
         }),
       ],
     });
 
-    console.log("Tracing initialized");
+    console.log("Tracing initialized (dev only)");
   } catch (error) {
-    console.error("Failed to initialize tracing:", error);
+    // Silently fail - tracing is optional and only for dev
+    console.warn("Tracing initialization skipped:", error);
   }
 }

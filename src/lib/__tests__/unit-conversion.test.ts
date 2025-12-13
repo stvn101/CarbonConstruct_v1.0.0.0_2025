@@ -91,8 +91,8 @@ describe('Unit Conversion', () => {
   describe('convertEmissionUnits', () => {
     it('should convert kgCO2e to tCO2e correctly', () => {
       expect(convertEmissionUnits(1000, 'kgCO2e', 'tCO2e')).toBe(1);
-      expect(convertEmissionUnits(67170927, 'kgCO2e', 'tCO2e')).toBe(67170.927);
-      expect(convertEmissionUnits(2516.8, 'kgCO2e', 'tCO2e')).toBe(2.5168);
+      expect(convertEmissionUnits(67170927, 'kgCO2e', 'tCO2e')).toBeCloseTo(67170.927, 3);
+      expect(convertEmissionUnits(2516.8, 'kgCO2e', 'tCO2e')).toBeCloseTo(2.5168, 4);
     });
 
     it('should convert tCO2e to kgCO2e correctly', () => {

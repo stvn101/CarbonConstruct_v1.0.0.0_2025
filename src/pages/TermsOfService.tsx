@@ -11,7 +11,7 @@ export default function TermsOfService() {
         </div>
         <h1 className="text-4xl font-bold mb-2">Terms of Service</h1>
         <p className="text-muted-foreground">
-          Last Updated: November 2024
+          Last Updated: December 2025
         </p>
       </div>
 
@@ -316,8 +316,8 @@ export default function TermsOfService() {
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg space-y-2">
                   <p className="text-sm"><strong>Email:</strong> legal@carbonconstruct.com.au</p>
-                  <p className="text-sm"><strong>Phone:</strong> 1300 CARBON (227 266)</p>
-                  <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Legal Department, Sydney, NSW, Australia</p>
+                  <p className="text-sm"><strong>Phone:</strong> 0459 148 862</p>
+                  <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Legal Department, Lawnton, Queensland, Australia</p>
                 </div>
               </section>
 

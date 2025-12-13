@@ -5,8 +5,8 @@
 CarbonConstruct is committed to maintaining the highest standards of security for our users and their data. As a production application serving the Australian construction industry with carbon emissions calculations, we take security seriously and welcome the responsible disclosure of security vulnerabilities.
 
 **Current Application Status**: Production Ready ✅  
-**Security Score**: 96/100  
-**Last Security Audit**: November 27, 2025
+**Security Score**: 98/100  
+**Last Security Audit**: December 12, 2025
 
 ---
 

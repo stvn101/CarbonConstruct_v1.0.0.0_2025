@@ -306,7 +306,7 @@ const Impact = () => {
             </Button>
             <Button size="lg" variant="outline" asChild>
               <a href="https://climate.stripe.com/qDm9Cw" target="_blank" rel="noopener noreferrer">
-                Learn More
+                Learn More About Our Impact
                 <ExternalLink className="ml-2 h-4 w-4" />
               </a>
             </Button>

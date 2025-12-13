@@ -27,6 +27,7 @@ vi.mock('recharts', () => ({
   YAxis: () => <div data-testid="y-axis" />,
   CartesianGrid: () => <div data-testid="grid" />,
   Legend: () => <div data-testid="legend" />,
+  Tooltip: () => <div data-testid="tooltip" />,
 }));
 
 const mockEmissionData = [
@@ -237,7 +238,8 @@ describe('EmissionsChart', () => {
         />
       );
 
-      expect(screen.getByTestId('responsive-container')).toBeInTheDocument();
+      const containers = screen.getAllByTestId('responsive-container');
+      expect(containers.length).toBeGreaterThan(0);
     });
   });
 

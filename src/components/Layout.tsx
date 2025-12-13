@@ -4,6 +4,9 @@ import { ChatAssistant } from "@/components/ChatAssistant";
 import { CookieConsent } from "@/components/CookieConsent";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { useLocation } from "react-router-dom";
+import { Play } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +14,11 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const { user } = useAuth();
+  const location = useLocation();
+  
+  // Check if on a Tools section page (but NOT on demo page - it has its own Book a Demo)
+  const toolsPages = ['/settings', '/pricing', '/impact', '/roadmap', '/help'];
+  const isToolsPage = toolsPages.some(page => location.pathname.startsWith(page));
 
   return (
     <>
@@ -39,6 +47,14 @@ export function Layout({ children }: LayoutProps) {
             aria-label="Main navigation"
           >
             <SidebarTrigger className="mr-2 md:mr-4" aria-label="Toggle sidebar navigation" />
+            {isToolsPage && (
+              <a href="https://calendar.app.google/1SMFPsNBFS7V5pu37" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="mr-4">
+                  <Play className="h-4 w-4 mr-2" />
+                  Book a Demo
+                </Button>
+              </a>
+            )}
             <div className="flex-1" />
             <div
               className="text-xs md:text-sm text-muted-foreground hidden sm:block"
