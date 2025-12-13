@@ -248,6 +248,20 @@ const Demo = () => {
                 <Calculator className="mr-2 h-5 w-5" />
                 Try AI BOQ Import Now
               </Button>
+              <a 
+                href="https://calendar.app.google/1SMFPsNBFS7V5pu37" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 py-6"
+                >
+                  <Play className="mr-2 h-5 w-5" />
+                  Book a Demo with Steven
+                </Button>
+              </a>
               <Button
                 onClick={() => navigate("/pricing")}
                 variant="outline"
