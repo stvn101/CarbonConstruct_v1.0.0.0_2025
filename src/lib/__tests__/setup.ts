@@ -40,6 +40,40 @@ vi.mock('@radix-ui/react-tooltip', () => {
     TooltipTrigger: PassThrough,
     TooltipContent: Content,
     TooltipPortal: HiddenContent,
+    
+    // Default export (some components may use default import)
+    default: {
+      Provider: PassThrough,
+      Root: PassThrough,
+      Trigger: PassThrough,
+      Content: Content,
+      Portal: HiddenContent,
+      Arrow: HiddenContent,
+    },
+  };
+});
+
+// Mock recharts to avoid rendering issues in tests
+vi.mock('recharts', () => {
+  const PassThrough = ({ children }: { children?: React.ReactNode }) => children || null;
+  
+  return {
+    ResponsiveContainer: PassThrough,
+    BarChart: PassThrough,
+    PieChart: PassThrough,
+    LineChart: PassThrough,
+    AreaChart: PassThrough,
+    ComposedChart: PassThrough,
+    Bar: () => null,
+    Pie: PassThrough,
+    Line: () => null,
+    Area: () => null,
+    Cell: () => null,
+    XAxis: () => null,
+    YAxis: () => null,
+    CartesianGrid: () => null,
+    Legend: () => null,
+    Tooltip: () => null,
   };
 });
 
