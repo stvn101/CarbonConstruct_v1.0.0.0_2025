@@ -7,6 +7,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useSubscription } from '@/hooks/useSubscription';
 
 export interface EPDMaterial {
   id: string;
@@ -76,6 +77,10 @@ export function useEPDMaterials() {
   const [selectedState, setSelectedState] = useState<string>('all');
   const [selectedManufacturer, setSelectedManufacturer] = useState<string>('all');
 
+  // Get subscription tier to determine database access
+  const { currentTier } = useSubscription();
+  const hasFullDatabaseAccess = currentTier?.limits?.full_database !== false;
+
   // Use TanStack Query for caching - materials rarely change
   const { 
     data: materials = [], 
@@ -89,29 +94,41 @@ export function useEPDMaterials() {
     gcTime: 30 * 60 * 1000, // 30 minutes cache retention
   });
 
+  // Filter to ICM-only for Free tier users
+  const accessibleMaterials = useMemo(() => {
+    if (hasFullDatabaseAccess) {
+      return materials;
+    }
+    // Free tier: only ICM database materials
+    return materials.filter(m => 
+      m.data_source?.toLowerCase().includes('icm') || 
+      m.data_source?.toLowerCase().includes('icm database')
+    );
+  }, [materials, hasFullDatabaseAccess]);
+
   const error = queryError instanceof Error ? queryError.message : queryError ? 'Failed to fetch materials' : null;
 
-  // Get unique categories
+  // Get unique categories from accessible materials
   const categories = useMemo(() => {
-    const cats = [...new Set(materials.map(m => m.material_category))];
+    const cats = [...new Set(accessibleMaterials.map(m => m.material_category))];
     return cats.sort();
-  }, [materials]);
+  }, [accessibleMaterials]);
 
-  // Get unique states
+  // Get unique states from accessible materials
   const states = useMemo(() => {
-    const sts = [...new Set(materials.map(m => m.state).filter(Boolean))];
+    const sts = [...new Set(accessibleMaterials.map(m => m.state).filter(Boolean))];
     return sts.sort() as string[];
-  }, [materials]);
+  }, [accessibleMaterials]);
 
-  // Get unique manufacturers
+  // Get unique manufacturers from accessible materials
   const manufacturers = useMemo(() => {
-    const mfrs = [...new Set(materials.map(m => m.manufacturer).filter(Boolean))];
+    const mfrs = [...new Set(accessibleMaterials.map(m => m.manufacturer).filter(Boolean))];
     return mfrs.sort() as string[];
-  }, [materials]);
+  }, [accessibleMaterials]);
 
-  // Filter materials based on search and filters
+  // Filter materials based on search and filters (from accessible materials only)
   const filteredMaterials = useMemo(() => {
-    let result = materials;
+    let result = accessibleMaterials;
 
     // Filter by category
     if (selectedCategory !== 'all') {
@@ -141,7 +158,7 @@ export function useEPDMaterials() {
     }
 
     return result;
-  }, [materials, searchTerm, selectedCategory, selectedState, selectedManufacturer]);
+  }, [accessibleMaterials, searchTerm, selectedCategory, selectedState, selectedManufacturer]);
 
   // Group materials by category
   const groupedMaterials = useMemo((): GroupedEPDMaterials[] => {
@@ -185,11 +202,14 @@ export function useEPDMaterials() {
   return {
     // Data
     materials: filteredMaterials,
-    allMaterials: materials,
+    allMaterials: accessibleMaterials,
     groupedMaterials,
     categories,
     states,
     manufacturers,
+    
+    // Access info
+    hasFullDatabaseAccess,
     
     // State
     searchTerm,
@@ -211,7 +231,7 @@ export function useEPDMaterials() {
     getUnitLabel,
     
     // Stats
-    totalMaterials: materials.length,
+    totalMaterials: accessibleMaterials.length,
     filteredCount: filteredMaterials.length,
   };
 }
