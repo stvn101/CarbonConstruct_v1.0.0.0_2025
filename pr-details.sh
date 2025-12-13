@@ -5,8 +5,9 @@
 
 set -e  # Exit on error
 
-REPO_OWNER="stvn101"
-REPO_NAME="CarbonConstruct_v1.0.0.0_2025"
+# Get repository info from git remote or use defaults
+REPO_OWNER="${REPO_OWNER:-stvn101}"
+REPO_NAME="${REPO_NAME:-CarbonConstruct_v1.0.0.0_2025}"
 
 # Color codes for output
 RED='\033[0;31m'
@@ -52,6 +53,17 @@ if ! command -v gh &> /dev/null; then
     exit 1
 fi
 
+# Check if jq is installed
+if ! command -v jq &> /dev/null; then
+    echo -e "${RED}ERROR: jq is not installed.${NC}"
+    echo "jq is required for JSON parsing."
+    echo "Install it using:"
+    echo "  macOS: brew install jq"
+    echo "  Ubuntu/Debian: sudo apt install jq"
+    echo "  Windows: choco install jq"
+    exit 1
+fi
+
 # Check if authenticated
 if ! gh auth status &> /dev/null; then
     echo -e "${RED}ERROR: Not authenticated with GitHub CLI.${NC}"
@@ -65,7 +77,10 @@ show_pr_summary() {
     echo -e "${CYAN}Fetching ${state} pull requests...${NC}"
     echo ""
     
-    PRS=$(gh pr list --repo "${REPO_OWNER}/${REPO_NAME}" --state "${state}" --json number,title,author,createdAt,updatedAt,state,url,headRefName,baseRefName,mergeable,reviewDecision,additions,deletions 2>/dev/null)
+    # Fetch PR data with all required fields
+    PRS=$(gh pr list --repo "${REPO_OWNER}/${REPO_NAME}" --state "${state}" \
+        --json number,title,author,createdAt,updatedAt,state,url,headRefName,baseRefName,mergeable,reviewDecision,additions,deletions \
+        2>/dev/null)
     
     if [ -z "$PRS" ] || [ "$PRS" = "[]" ]; then
         echo -e "${YELLOW}No ${state} pull requests found.${NC}"
@@ -77,8 +92,23 @@ show_pr_summary() {
     echo -e "${GREEN}Found ${PR_COUNT} ${state} pull request(s)${NC}"
     echo ""
     
+    # Define format string for better readability
+    FORMAT_STRING='
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+        "PR #\(.number): \(.title)\n" +
+        "  Author: \(.author.login)\n" +
+        "  Branch: \(.headRefName) → \(.baseRefName)\n" +
+        "  State: \(.state)\n" +
+        "  Mergeable: \(.mergeable // "unknown")\n" +
+        "  Review Decision: \(.reviewDecision // "pending")\n" +
+        "  Created: \(.createdAt)\n" +
+        "  Updated: \(.updatedAt)\n" +
+        "  Changes: +\(.additions) -\(.deletions)\n" +
+        "  URL: \(.url)\n"
+    '
+    
     # Display each PR
-    echo "$PRS" | jq -r '.[] | "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nPR #\(.number): \(.title)\n  Author: \(.author.login)\n  Branch: \(.headRefName) → \(.baseRefName)\n  State: \(.state)\n  Mergeable: \(.mergeable // "unknown")\n  Review Decision: \(.reviewDecision // "pending")\n  Created: \(.createdAt)\n  Updated: \(.updatedAt)\n  Changes: +\(.additions) -\(.deletions)\n  URL: \(.url)\n"'
+    echo "$PRS" | jq -r ".[] | $FORMAT_STRING"
 }
 
 # Function to show detailed PR information

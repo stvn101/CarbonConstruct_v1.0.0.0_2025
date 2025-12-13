@@ -16,12 +16,14 @@ This guide provides comprehensive information about managing pull requests in th
 
 ### Prerequisites
 - GitHub CLI (`gh`) installed and authenticated
+- `jq` command-line JSON processor (required for the PR details script)
 - Repository access permissions
 - Git configured locally
 
 ### Installation
+
+#### Install GitHub CLI
 ```bash
-# Install GitHub CLI (if not already installed)
 # macOS
 brew install gh
 
@@ -33,6 +35,18 @@ winget install --id GitHub.cli
 
 # Authenticate
 gh auth login
+```
+
+#### Install jq (JSON processor)
+```bash
+# macOS
+brew install jq
+
+# Ubuntu/Debian
+sudo apt install jq
+
+# Windows (via Chocolatey)
+choco install jq
 ```
 
 ## PR Details Script
