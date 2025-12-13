@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmissionTotals } from "@/hooks/useEmissionTotals";
 import { useComplianceCheck } from "@/hooks/useComplianceCheck";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import ProjectSelector from "@/components/ProjectSelector";
 import { EmissionsChart } from "@/components/EmissionsChart";
 import { ComplianceCard } from "@/components/ComplianceCard";
@@ -13,7 +14,7 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
 import { FeatureTeaser } from "@/components/FeatureTeaser";
-import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle, User, Shield, Leaf, Check, X, HardHat, Award, Building2, Calendar } from "lucide-react";
+import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle, User, Shield, Leaf, Check, X, HardHat, Award, Building2, Calendar, Crown, Clock } from "lucide-react";
 import { CalculationHistory } from "@/components/CalculationHistory";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ const Index = () => {
     refetch
   } = useEmissionTotals();
   const compliance = useComplianceCheck(totals);
+  const { tier_name, subscribed, is_trialing } = useSubscriptionStatus();
   if (!user) {
     return <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
         <SEOHead canonicalPath="/" />
@@ -542,9 +544,27 @@ const Index = () => {
       {/* Header with user actions - Mobile Optimized */}
       <div className="flex flex-col gap-3 md:gap-4 sm:flex-row sm:justify-between sm:items-start">
         <div className="space-y-1">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Carbon Assessment Dashboard
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Carbon Assessment Dashboard
+            </h1>
+            {/* Subscription Badge */}
+            {subscribed && tier_name !== 'Free' && (
+              <Badge className={`${is_trialing ? 'bg-amber-600/20 text-amber-700 border-amber-600/40' : 'bg-primary/20 text-primary border-primary/40'} px-2 py-0.5 text-xs font-semibold`}>
+                {is_trialing ? (
+                  <>
+                    <Clock className="h-3 w-3 mr-1" />
+                    {tier_name} Trial
+                  </>
+                ) : (
+                  <>
+                    <Crown className="h-3 w-3 mr-1" />
+                    {tier_name}
+                  </>
+                )}
+              </Badge>
+            )}
+          </div>
           <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Welcome back! Select a project to continue.</p>
         </div>
         <div className="flex gap-2">

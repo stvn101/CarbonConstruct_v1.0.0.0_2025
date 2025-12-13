@@ -60,14 +60,17 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer");
 
-    // Get active subscriptions
+    // Get active OR trialing subscriptions (trials count as valid subscriptions)
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      limit: 10,
     });
 
-    const hasActiveSub = subscriptions.data.length > 0;
+    // Filter to active OR trialing status (trial users should have full access)
+    const validSubscriptions = subscriptions.data.filter(s => 
+      s.status === "active" || s.status === "trialing"
+    );
+    const hasActiveSub = validSubscriptions.length > 0;
     let productId = null;
     let priceId = null;
     let subscriptionEnd = null;
@@ -75,7 +78,7 @@ serve(async (req) => {
     let tierName = 'Free';
 
     if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
+      const subscription = validSubscriptions[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       
       if (subscription.trial_end) {
@@ -85,17 +88,31 @@ serve(async (req) => {
       productId = subscription.items.data[0].price.product as string;
       priceId = subscription.items.data[0].price.id;
       
-      logStep("Active subscription found", { 
+      logStep("Valid subscription found", { 
+        status: subscription.status,
         endDate: subscriptionEnd,
-        trialEnd
+        trialEnd,
+        isTrialing: subscription.status === "trialing"
       });
 
-      // Get tier info from database
-      const { data: tierData } = await supabaseClient
+      // Get tier info from database (check both monthly and yearly price IDs)
+      let tierData = null;
+      const { data: monthlyTier } = await supabaseClient
         .from('subscription_tiers')
-        .select('name')
+        .select('name, id')
         .eq('stripe_price_id', priceId)
         .maybeSingle();
+      
+      if (monthlyTier) {
+        tierData = monthlyTier;
+      } else {
+        const { data: yearlyTier } = await supabaseClient
+          .from('subscription_tiers')
+          .select('name, id')
+          .eq('stripe_price_id_yearly', priceId)
+          .maybeSingle();
+        tierData = yearlyTier;
+      }
       
       if (tierData) {
         tierName = tierData.name;
@@ -108,11 +125,8 @@ serve(async (req) => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      const { data: tierInfo } = await supabaseClient
-        .from('subscription_tiers')
-        .select('id')
-        .eq('stripe_price_id', priceId)
-        .maybeSingle();
+      // Use the tierData we already fetched above for the tier ID
+      const tierInfo = tierData;
 
       if (existingSub && tierInfo) {
         await supabaseClient

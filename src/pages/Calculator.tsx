@@ -5,13 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
 import { useUsageTracking } from "@/hooks/useUsageTracking";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
@@ -207,7 +209,13 @@ export default function Calculator() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { canPerformAction } = useUsageTracking();
+  useSubscriptionStatus();
+  const { currentTier } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  
+  // Feature access checks based on subscription tier
+  const canAccessEN15978 = currentTier?.limits?.en15978_calculators ?? false;
+  const canAccessMaterialComparer = currentTier?.limits?.material_comparer ?? false;
   
   // Fetch materials from EPD database (Supabase materials_epd table)
   const { materials: dbMaterials, loading: materialsLoading, states } = useEPDMaterials();
@@ -1203,21 +1211,34 @@ export default function Calculator() {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 md:mb-4">
                     <h3 className="font-bold text-base md:text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
                     <div className="flex items-center gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 text-xs md:text-sm"
-                          >
-                            <Scale className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                            Compare
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto">
-                          <MaterialComparison />
-                        </DialogContent>
-                      </Dialog>
+                      {canAccessMaterialComparer ? (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 text-xs md:text-sm"
+                            >
+                              <Scale className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                              Compare
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto">
+                            <MaterialComparison />
+                          </DialogContent>
+                        </Dialog>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="bg-muted/50 text-muted-foreground border-muted text-xs md:text-sm"
+                          onClick={() => setUpgradeModalOpen(true)}
+                        >
+                          <Lock className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                          Compare
+                          <Crown className="h-3 w-3 ml-1 text-amber-500" />
+                        </Button>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -1692,76 +1713,109 @@ export default function Calculator() {
                   <div className="flex items-center gap-2 px-1">
                     <Badge variant="outline" className="text-xs">EN 15978</Badge>
                     <span className="text-sm font-medium text-muted-foreground">Whole Life Carbon Stages</span>
+                    {!canAccessEN15978 && (
+                      <Badge className="bg-amber-100 text-amber-700 text-xs ml-auto">
+                        <Crown className="h-3 w-3 mr-1" />
+                        Pro Feature
+                      </Badge>
+                    )}
                   </div>
                   
-                  {/* Use Phase (B1-B7) */}
-                  <Collapsible open={usePhaseOpen} onOpenChange={setUsePhaseOpen}>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between hover:bg-amber-50 hover:text-amber-700 border-amber-200">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-amber-600" />
-                          <span>Use Phase (B1-B7)</span>
-                          {usePhaseEmissions && usePhaseEmissions.total > 0 && (
-                            <Badge className="bg-amber-100 text-amber-700 text-xs">
-                              {(usePhaseEmissions.total / 1000).toFixed(2)} tCO₂e
-                            </Badge>
-                          )}
-                        </div>
-                        {usePhaseOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2">
-                      <UsePhaseCalculator 
-                        buildingSqm={buildingSqm} 
-                        onTotalsChange={setUsePhaseEmissions}
-                      />
-                    </CollapsibleContent>
-                  </Collapsible>
+                  {canAccessEN15978 ? (
+                    <>
+                      {/* Use Phase (B1-B7) */}
+                      <Collapsible open={usePhaseOpen} onOpenChange={setUsePhaseOpen}>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="outline" className="w-full justify-between hover:bg-amber-50 hover:text-amber-700 border-amber-200">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-amber-600" />
+                              <span>Use Phase (B1-B7)</span>
+                              {usePhaseEmissions && usePhaseEmissions.total > 0 && (
+                                <Badge className="bg-amber-100 text-amber-700 text-xs">
+                                  {(usePhaseEmissions.total / 1000).toFixed(2)} tCO₂e
+                                </Badge>
+                              )}
+                            </div>
+                            {usePhaseOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-2">
+                          <UsePhaseCalculator 
+                            buildingSqm={buildingSqm} 
+                            onTotalsChange={setUsePhaseEmissions}
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
 
-                  {/* End of Life (C1-C4) */}
-                  <Collapsible open={endOfLifeOpen} onOpenChange={setEndOfLifeOpen}>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between hover:bg-red-50 hover:text-red-700 border-red-200">
-                        <div className="flex items-center gap-2">
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                          <span>End of Life (C1-C4)</span>
-                          {endOfLifeEmissions && endOfLifeEmissions.total > 0 && (
-                            <Badge className="bg-red-100 text-red-700 text-xs">
-                              {(endOfLifeEmissions.total / 1000).toFixed(2)} tCO₂e
-                            </Badge>
-                          )}
-                        </div>
-                        {endOfLifeOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2">
-                      <EndOfLifeCalculator 
-                        buildingSqm={buildingSqm} 
-                        onTotalsChange={setEndOfLifeEmissions}
-                      />
-                    </CollapsibleContent>
-                  </Collapsible>
+                      {/* End of Life (C1-C4) */}
+                      <Collapsible open={endOfLifeOpen} onOpenChange={setEndOfLifeOpen}>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="outline" className="w-full justify-between hover:bg-red-50 hover:text-red-700 border-red-200">
+                            <div className="flex items-center gap-2">
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                              <span>End of Life (C1-C4)</span>
+                              {endOfLifeEmissions && endOfLifeEmissions.total > 0 && (
+                                <Badge className="bg-red-100 text-red-700 text-xs">
+                                  {(endOfLifeEmissions.total / 1000).toFixed(2)} tCO₂e
+                                </Badge>
+                              )}
+                            </div>
+                            {endOfLifeOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-2">
+                          <EndOfLifeCalculator 
+                            buildingSqm={buildingSqm} 
+                            onTotalsChange={setEndOfLifeEmissions}
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
 
-                  {/* Module D (Benefits) */}
-                  <Collapsible open={moduleDOpen} onOpenChange={setModuleDOpen}>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between hover:bg-emerald-50 hover:text-emerald-700 border-emerald-200">
-                        <div className="flex items-center gap-2">
-                          <Leaf className="h-4 w-4 text-emerald-600" />
-                          <span>Module D (Benefits)</span>
-                          {moduleDEmissions && moduleDEmissions.total !== 0 && (
-                            <Badge className="bg-emerald-100 text-emerald-700 text-xs">
-                              {(moduleDEmissions.total / 1000).toFixed(2)} tCO₂e
-                            </Badge>
-                          )}
+                      {/* Module D (Benefits) */}
+                      <Collapsible open={moduleDOpen} onOpenChange={setModuleDOpen}>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="outline" className="w-full justify-between hover:bg-emerald-50 hover:text-emerald-700 border-emerald-200">
+                            <div className="flex items-center gap-2">
+                              <Leaf className="h-4 w-4 text-emerald-600" />
+                              <span>Module D (Benefits)</span>
+                              {moduleDEmissions && moduleDEmissions.total !== 0 && (
+                                <Badge className="bg-emerald-100 text-emerald-700 text-xs">
+                                  {(moduleDEmissions.total / 1000).toFixed(2)} tCO₂e
+                                </Badge>
+                              )}
+                            </div>
+                            {moduleDOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-2">
+                          <ModuleDCalculator onTotalsChange={setModuleDEmissions} />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </>
+                  ) : (
+                    <Card className="p-4 bg-muted/30 border-dashed">
+                      <div className="text-center space-y-3">
+                        <div className="flex justify-center">
+                          <Lock className="h-8 w-8 text-muted-foreground" />
                         </div>
-                        {moduleDOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2">
-                      <ModuleDCalculator onTotalsChange={setModuleDEmissions} />
-                    </CollapsibleContent>
-                  </Collapsible>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">EN 15978 Lifecycle Calculators</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Use Phase (B1-B7), End of Life (C1-C4), and Module D calculations are available with Pro
+                          </p>
+                        </div>
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          onClick={() => setUpgradeModalOpen(true)}
+                          className="mt-2"
+                        >
+                          <Crown className="h-4 w-4 mr-2" />
+                          Upgrade to Pro
+                        </Button>
+                      </div>
+                    </Card>
+                  )}
                 </div>
               </div>
             )}
