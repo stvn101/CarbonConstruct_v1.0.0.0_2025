@@ -40,6 +40,20 @@ serve(async (req) => {
 
     logStep("Token received", { token: token.substring(0, 8) + '...' });
 
+    // Verify authenticated user
+    const authHeader = req.headers.get('Authorization');
+    const jwtToken = authHeader?.replace('Bearer ', '');
+    
+    if (!jwtToken) {
+      throw new Error("Authentication required");
+    }
+    
+    const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(jwtToken);
+    
+    if (userError || !userData?.user) {
+      throw new Error("Invalid authentication");
+    }
+
     // Find the user with this deletion token
     const { data: preferences, error: findError } = await supabaseAdmin
       .from('user_preferences')
@@ -50,6 +64,12 @@ serve(async (req) => {
 
     if (findError || !preferences) {
       throw new Error("Invalid or expired cancellation link");
+    }
+
+    // Verify authenticated user matches the token owner
+    if (userData.user.id !== preferences.user_id) {
+      logStep("Token ownership mismatch", { authenticatedUser: userData.user.id });
+      throw new Error("Token does not belong to authenticated user");
     }
 
     // Check if deletion hasn't already happened
