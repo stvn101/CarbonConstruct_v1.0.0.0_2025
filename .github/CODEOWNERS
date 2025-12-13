@@ -1,0 +1,16 @@
+# CarbonConstruct Code Owners
+
+# Default owners
+* @carbonconstruct/core-team
+
+# Security-sensitive files
+supabase/functions/ @carbonconstruct/security
+src/contexts/AuthContext.tsx @carbonconstruct/security
+.github/workflows/ @carbonconstruct/devops
+
+# Calculator core
+src/hooks/useEmission*.ts @carbonconstruct/calculator
+src/hooks/useUnifiedCalculations.ts @carbonconstruct/calculator
+
+# Compliance
+src/hooks/useComplianceCheck.ts @carbonconstruct/compliance

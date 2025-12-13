@@ -1,0 +1,48 @@
+name: Security Report
+description: Report a security vulnerability (private)
+title: "[Security]: "
+labels: ["security", "priority-critical"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ For critical vulnerabilities, email security@carbonconstruct.com.au instead.
+
+  - type: textarea
+    id: vulnerability
+    attributes:
+      label: Vulnerability Description
+      description: Describe the security issue.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Vulnerability Type
+      options:
+        - Authentication bypass
+        - Authorization issue
+        - Data exposure
+        - Injection vulnerability
+        - XSS
+        - CSRF
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential Impact
+      description: What could an attacker do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How to reproduce (be specific).
+    validations:
+      required: true
