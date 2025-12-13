@@ -174,7 +174,10 @@ export const useComplianceCheck = (
     ];
 
     const nccCompliantCount = nccRequirements.filter(r => r.met).length;
+    // Force non-compliant for very large emissions (10x over limit)
+    const isExtremelyHighEmissions = emissionsPerSqm > nccLimit * 10;
     const nccStatus = 
+      isExtremelyHighEmissions ? 'non-compliant' :
       nccCompliantCount === nccRequirements.length ? 'compliant' :
       nccCompliantCount > 0 ? 'partial' : 'non-compliant';
 
