@@ -31,6 +31,37 @@ vi.mock('@tanstack/react-query', () => ({
   }),
 }));
 
+// Mock useAuth from AuthContext
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: {
+      id: 'test-user-123',
+      email: 'test@example.com'
+    },
+    session: null,
+    loading: false
+  })
+}));
+
+// Mock useSubscription
+vi.mock('@/hooks/useSubscription', () => ({
+  useSubscription: () => ({
+    currentTier: {
+      id: 'tier-pro',
+      name: 'Professional',
+      limits: {
+        full_database: true,
+        projects: 10,
+        reports_per_month: 50,
+        lca_calculations: true,
+        team_collaboration: true
+      }
+    },
+    loading: false,
+    error: null
+  })
+}));
+
 // Import after mocking
 import { useEPDMaterials } from '../useEPDMaterials';
 
