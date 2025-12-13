@@ -6,6 +6,7 @@ on:
 
 env:
   NODE_VERSION: '20'
+  GITHUB_TOKEN: ${{ secrets.TOKEN_COPILOT_USE }}
 
 jobs:
   preview:
