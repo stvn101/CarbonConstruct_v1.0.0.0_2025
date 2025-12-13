@@ -30,6 +30,11 @@ const otherItems = [{
   icon: DollarSign,
   color: "text-amber-400"
 }, {
+  title: "AI BOQ Demo",
+  url: "/demo",
+  icon: Play,
+  color: "text-purple-400"
+}, {
   title: "Our Impact",
   url: "/impact",
   icon: Leaf,
@@ -39,12 +44,6 @@ const otherItems = [{
   url: "/roadmap",
   icon: Map,
   color: "text-blue-400"
-}, {
-  title: "Book a Demo",
-  url: "https://calendar.app.google/1SMFPsNBFS7V5pu37",
-  icon: Play,
-  color: "text-purple-400",
-  external: true
 }, {
   title: "Help & Resources",
   url: "/help",
