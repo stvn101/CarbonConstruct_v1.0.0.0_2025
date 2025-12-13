@@ -30,6 +30,7 @@ const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
 const AccessibilityStatement = lazy(() => import("./pages/AccessibilityStatement"));
 const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
 const MaterialDatabaseStatus = lazy(() => import("./pages/MaterialDatabaseStatus"));
+const Demo = lazy(() => import("./pages/Demo"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,8 +83,8 @@ const App = () => (
                   <Route path="/admin/monitoring" element={<AdminMonitoring />} />
                   <Route path="/admin/material-verification" element={<MaterialVerification />} />
                   <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
+                  <Route path="/demo" element={<Demo />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
