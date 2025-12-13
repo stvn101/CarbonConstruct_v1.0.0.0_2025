@@ -20,9 +20,8 @@ const PRICING_TIERS = [
     stripePriceId: null,
     stripePriceIdYearly: null,
     features: [
-      '3 projects',
-      '10 calculations/month',
-      'Basic material database',
+      '1 project',
+      'ICM material database only',
       'PDF reports',
       'Email support',
     ],
