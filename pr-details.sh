@@ -94,10 +94,10 @@ show_pr_summary() {
     
     # Define format string for better readability
     FORMAT_STRING='
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+        "----------------------------------------\n" +
         "PR #\(.number): \(.title)\n" +
         "  Author: \(.author.login)\n" +
-        "  Branch: \(.headRefName) → \(.baseRefName)\n" +
+        "  Branch: \(.headRefName) -> \(.baseRefName)\n" +
         "  State: \(.state)\n" +
         "  Mergeable: \(.mergeable // "unknown")\n" +
         "  Review Decision: \(.reviewDecision // "pending")\n" +
