@@ -10,17 +10,13 @@ import * as React from 'react';
 export { render, renderHook, act, cleanup } from '@testing-library/react';
 export { screen, fireEvent, within } from '@testing-library/dom';
 
+// Shared mock components for consistent behavior across tests
+const PassThrough = ({ children }: { children?: React.ReactNode }) => children || null;
+const HiddenContent = () => null;
+
 // Mock @radix-ui/react-tooltip to avoid provider errors in tests
 // This mock hides tooltip content to prevent duplicate text in DOM during tests
 vi.mock('@radix-ui/react-tooltip', () => {
-  // Components that should pass through children
-  const PassThrough = ({ children }: { children?: React.ReactNode }) => children || null;
-
-  // Tooltip content should be hidden in tests (tooltips are hidden by default in production)
-  // This prevents duplicate text issues where tests find the same text in both
-  // the main component and the tooltip
-  const HiddenContent = () => null;
-
   // Content component with forwardRef to match real API
   const Content = React.forwardRef((_props: any, _ref: any) => null);
   Content.displayName = 'TooltipContent';
@@ -54,28 +50,24 @@ vi.mock('@radix-ui/react-tooltip', () => {
 });
 
 // Mock recharts to avoid rendering issues in tests
-vi.mock('recharts', () => {
-  const PassThrough = ({ children }: { children?: React.ReactNode }) => children || null;
-  
-  return {
-    ResponsiveContainer: PassThrough,
-    BarChart: PassThrough,
-    PieChart: PassThrough,
-    LineChart: PassThrough,
-    AreaChart: PassThrough,
-    ComposedChart: PassThrough,
-    Bar: () => null,
-    Pie: PassThrough,
-    Line: () => null,
-    Area: () => null,
-    Cell: () => null,
-    XAxis: () => null,
-    YAxis: () => null,
-    CartesianGrid: () => null,
-    Legend: () => null,
-    Tooltip: () => null,
-  };
-});
+vi.mock('recharts', () => ({
+  ResponsiveContainer: PassThrough,
+  BarChart: PassThrough,
+  PieChart: PassThrough,
+  LineChart: PassThrough,
+  AreaChart: PassThrough,
+  ComposedChart: PassThrough,
+  Bar: HiddenContent,
+  Pie: HiddenContent,
+  Line: HiddenContent,
+  Area: HiddenContent,
+  Cell: HiddenContent,
+  XAxis: HiddenContent,
+  YAxis: HiddenContent,
+  CartesianGrid: HiddenContent,
+  Legend: HiddenContent,
+  Tooltip: HiddenContent,
+}));
 
 // Custom waitFor implementation
 export const waitFor = async (
