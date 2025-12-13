@@ -16,8 +16,8 @@ export function Layout({ children }: LayoutProps) {
   const { user } = useAuth();
   const location = useLocation();
   
-  // Check if on a Tools section page
-  const toolsPages = ['/settings', '/pricing', '/impact', '/roadmap', '/help', '/demo'];
+  // Check if on a Tools section page (but NOT on demo page - it has its own Book a Demo)
+  const toolsPages = ['/settings', '/pricing', '/impact', '/roadmap', '/help'];
   const isToolsPage = toolsPages.some(page => location.pathname.startsWith(page));
 
   return (
