@@ -5,7 +5,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Play } from "lucide-react";
 
 interface LayoutProps {
@@ -48,12 +48,12 @@ export function Layout({ children }: LayoutProps) {
           >
             <SidebarTrigger className="mr-2 md:mr-4" aria-label="Toggle sidebar navigation" />
             {isToolsPage && (
-              <Link to="/demo">
+              <a href="https://calendar.app.google/1SMFPsNBFS7V5pu37" target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" size="sm" className="mr-4">
                   <Play className="h-4 w-4 mr-2" />
-                  Demo
+                  Book a Demo
                 </Button>
-              </Link>
+              </a>
             )}
             <div className="flex-1" />
             <div
