@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Carousel,
@@ -5,8 +6,10 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { Calculator, FileBarChart, Layers, CheckCircle, Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const features = [
   {
@@ -37,8 +40,30 @@ const features = [
 ];
 
 export function FeatureCarousel() {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Track current slide
+  useEffect(() => {
+    if (!api) return;
+    setCurrent(api.selectedScrollSnap());
+    api.on("select", () => setCurrent(api.selectedScrollSnap()));
+  }, [api]);
+
+  // Auto-play logic (5s interval, pause on hover)
+  useEffect(() => {
+    if (!api || isPaused) return;
+    const interval = setInterval(() => api.scrollNext(), 5000);
+    return () => clearInterval(interval);
+  }, [api, isPaused]);
+
   return (
-    <div className="w-full max-w-5xl mx-auto px-4">
+    <div 
+      className="w-full max-w-5xl mx-auto px-4"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
       <div className="text-center mb-8">
         <h2 className="text-2xl md:text-3xl font-bold mb-2 text-foreground">
           Powerful Tools for Carbon Assessment
@@ -49,6 +74,7 @@ export function FeatureCarousel() {
       </div>
       
       <Carousel
+        setApi={setApi}
         opts={{
           align: "start",
           loop: true,
@@ -75,6 +101,23 @@ export function FeatureCarousel() {
         <CarouselPrevious className="hidden sm:flex -left-4 glass border-primary/20" />
         <CarouselNext className="hidden sm:flex -right-4 glass border-primary/20" />
       </Carousel>
+
+      {/* Dot indicators */}
+      <div className="flex justify-center gap-2 mt-6">
+        {features.map((_, index) => (
+          <button
+            key={index}
+            aria-label={`Go to slide ${index + 1}`}
+            className={cn(
+              "h-2 rounded-full transition-all duration-300",
+              current === index 
+                ? "w-6 bg-primary" 
+                : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+            )}
+            onClick={() => api?.scrollTo(index)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

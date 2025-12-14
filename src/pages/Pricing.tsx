@@ -155,7 +155,7 @@ const Pricing = () => {
       </div>
 
       {/* Stripe Climate Badge */}
-      <Card className="mb-12 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
+      <Card variant="glass" className="mb-12 border-primary/20">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left">
             <div className="flex-shrink-0">
@@ -186,8 +186,9 @@ const Pricing = () => {
         </CardContent>
       </Card>
 
-      {/* Pricing Cards - Fixed Height Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 items-stretch">
+      {/* Pricing Cards - Glass Cards on Dark Surface */}
+      <section className="carbon-surface py-10 -mx-4 px-4 rounded-2xl mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
         {PRICING_TIERS.map((tier) => {
           const Icon = tier.icon;
           const isCurrentTier = currentTierName === tier.name || (currentTierName === 'Pro' && tier.name === 'Professional');
@@ -197,13 +198,14 @@ const Pricing = () => {
 
           return (
             <Card 
-              key={tier.name} 
+              key={tier.name}
+              variant="glass"
               className={`relative flex flex-col h-full ${
                 isPopular 
                   ? 'border-primary border-2 shadow-xl scale-[1.02] z-10' 
                   : isForeverFree 
-                    ? 'border-emerald-500/50 border-2 bg-emerald-500/5' 
-                    : ''
+                    ? 'border-emerald-500/50 border-2' 
+                    : 'border-border/30'
               }`}
             >
               {/* Badges */}
@@ -329,10 +331,11 @@ const Pricing = () => {
             </Card>
           );
         })}
-      </div>
+        </div>
+      </section>
 
       {/* Why CarbonConstruct Section */}
-      <Card className="mb-12">
+      <Card variant="glass" className="mb-12 carbon-surface">
         <CardHeader>
           <CardTitle>Why CarbonConstruct?</CardTitle>
           <CardDescription>
