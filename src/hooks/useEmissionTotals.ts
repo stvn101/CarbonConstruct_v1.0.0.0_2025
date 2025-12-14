@@ -24,6 +24,7 @@ interface EmissionDetails {
   category: string;
   emissions: number;
   percentage: number;
+  [key: string]: string | number; // Index signature for chart compatibility
 }
 
 export const useEmissionTotals = () => {
