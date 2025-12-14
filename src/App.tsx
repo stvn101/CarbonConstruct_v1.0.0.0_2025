@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { PageTransition } from "@/components/PageTransition";
 
 // Eager load only the index page for faster initial render
 import Index from "./pages/Index";
@@ -65,30 +66,32 @@ const App = () => (
                   <span className="sr-only">Loading page content...</span>
                 </div>
               }>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/calculator" element={<Calculator />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/help" element={<Help />} />
-                  <Route path="/pricing" element={<Pricing />} />
-                  <Route path="/impact" element={<Impact />} />
-                  <Route path="/install" element={<Install />} />
-                  <Route path="/privacy" element={<PrivacyPolicy />} />
-                  <Route path="/terms" element={<TermsOfService />} />
-                  <Route path="/cookies" element={<CookiePolicy />} />
-                  <Route path="/roadmap" element={<Roadmap />} />
-                  <Route path="/accessibility" element={<AccessibilityStatement />} />
-                  <Route path="/admin" element={<AdminMonitoring />} />
-                  <Route path="/admin/monitoring" element={<AdminMonitoring />} />
-                  <Route path="/admin/material-verification" element={<MaterialVerification />} />
-                  <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
-                  <Route path="/demo" element={<Demo />} />
-                  <Route path="/design-system" element={<DesignSystem />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <PageTransition>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/calculator" element={<Calculator />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/help" element={<Help />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/impact" element={<Impact />} />
+                    <Route path="/install" element={<Install />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<TermsOfService />} />
+                    <Route path="/cookies" element={<CookiePolicy />} />
+                    <Route path="/roadmap" element={<Roadmap />} />
+                    <Route path="/accessibility" element={<AccessibilityStatement />} />
+                    <Route path="/admin" element={<AdminMonitoring />} />
+                    <Route path="/admin/monitoring" element={<AdminMonitoring />} />
+                    <Route path="/admin/material-verification" element={<MaterialVerification />} />
+                    <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
+                    <Route path="/demo" element={<Demo />} />
+                    <Route path="/design-system" element={<DesignSystem />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </PageTransition>
               </Suspense>
             </Layout>
           </MonitoringProvider>
