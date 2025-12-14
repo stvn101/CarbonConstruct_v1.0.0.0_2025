@@ -120,9 +120,14 @@ export function FeatureCarousel() {
               <Card 
                 className={cn(
                   "h-full glass-dark border transition-all duration-300 relative overflow-hidden group",
+                  "animate-slide-up",
                   feature.accentColor,
                   "hover:shadow-glass-hover hover:-translate-y-1"
                 )}
+                style={{ 
+                  animationDelay: `${index * 0.08}s`,
+                  animationFillMode: 'forwards'
+                }}
               >
                 {/* Gradient overlay */}
                 <div className={cn("absolute inset-0 opacity-50", feature.gradient)} />
@@ -134,11 +139,18 @@ export function FeatureCarousel() {
                 
                 <CardHeader className="pb-2 relative z-10">
                   {/* Icon with ambient glow */}
-                  <div className={cn(
-                    "w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all duration-300",
-                    feature.iconBg,
-                    "group-hover:scale-110 group-hover:shadow-lg"
-                  )}>
+                  <div 
+                    className={cn(
+                      "w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all duration-300",
+                      "animate-pop-in",
+                      feature.iconBg,
+                      "group-hover:scale-110 group-hover:shadow-lg"
+                    )}
+                    style={{ 
+                      animationDelay: `${index * 0.08 + 0.15}s`,
+                      animationFillMode: 'forwards'
+                    }}
+                  >
                     <feature.icon className={cn("h-7 w-7", feature.iconColor)} />
                   </div>
                   <CardTitle className="text-lg text-white">{feature.title}</CardTitle>
