@@ -398,8 +398,8 @@ const Pricing = () => {
         </p>
         <div ref={stripePricingTableRef} className="w-full">
           <stripe-pricing-table
-            pricing-table-id="prctbl_1SULtHP7JT8gu0Wn7fABNU0I"
-            publishable-key="pk_live_51RKejrP7JT8gu0WngS6oEMcUaQdgGb5XaYcEy5e2kq6Dx75lgaizFV1Fk2lmpgE7nGav6F0fDlMhSYcgecftwpu800mMRyCFJz"
+            pricing-table-id={import.meta.env.VITE_STRIPE_PRICING_TABLE_ID}
+            publishable-key={import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY}
           />
         </div>
       </div>
