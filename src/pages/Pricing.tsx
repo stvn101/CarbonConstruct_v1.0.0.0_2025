@@ -110,7 +110,6 @@ const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
-  const stripePricingTableRef = useRef<HTMLDivElement>(null);
 
   // Load Stripe pricing table script safely
   useEffect(() => {
