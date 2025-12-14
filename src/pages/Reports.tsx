@@ -286,7 +286,7 @@ const Reports = () => {
       </div>
 
       {/* Report Template Selector */}
-      <Card>
+      <Card variant="glass" className="glass-glow-hover">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -357,7 +357,7 @@ const Reports = () => {
 
       {/* Company Branding - Only for Pro Yearly, Business, Enterprise */}
       {canCustomBrand ? (
-        <Card>
+        <Card variant="glass" className="glass-glow-hover">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building className="h-5 w-5" />
@@ -426,7 +426,7 @@ const Reports = () => {
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-muted">
+        <Card variant="glass" className="border-muted">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building className="h-5 w-5" />
@@ -444,7 +444,7 @@ const Reports = () => {
       )}
 
       {/* Data Completeness Indicator */}
-      <Card>
+      <Card variant="glass" className="glass-glow-hover">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5" />
