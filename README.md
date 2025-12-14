@@ -89,6 +89,21 @@ View and manage pull requests easily:
 
 For complete documentation, see [PR_MANAGEMENT_GUIDE.md](./PR_MANAGEMENT_GUIDE.md).
 
+## Design System Documentation
+
+View the comprehensive Tailwind CSS configuration for Carbon Construct:
+
+- **[TAILWIND_CONFIGURATION.md](./TAILWIND_CONFIGURATION.md)** - Complete documentation of colors, gradients, animations, and design tokens
+- **[TAILWIND_EXAMPLES.md](./TAILWIND_EXAMPLES.md)** - Practical code examples and visual patterns
+- **[TAILWIND_QUICK_REFERENCE.md](./TAILWIND_QUICK_REFERENCE.md)** - Quick reference guide for developers
+
+The design system features:
+- Professional twilight theme optimized for data visualization
+- Custom color palettes for emission scopes, LCA phases, and compliance frameworks
+- Vibrant gradients and smooth animations
+- Accessible, high-contrast color combinations
+- Responsive utilities and modern shadows
+
 ## What technologies are used for this project?
 
 This project is built with:
