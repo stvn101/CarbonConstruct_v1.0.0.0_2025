@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Check, Zap, Building2, Crown, ArrowRight, Leaf, ExternalLink, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,18 @@ import { CheckoutButton } from '@/components/CheckoutButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { SEOHead } from '@/components/SEOHead';
+
+// TypeScript declaration for Stripe pricing table custom element
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'stripe-pricing-table': {
+        'pricing-table-id': string;
+        'publishable-key': string;
+      };
+    }
+  }
+}
 
 // Static pricing tiers with new Stripe price IDs (14-day trial enabled)
 const PRICING_TIERS = [
@@ -98,6 +110,23 @@ const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
+
+  // Load Stripe pricing table script safely
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://js.stripe.com/v3/pricing-table.js';
+    script.async = true;
+
+    // Only append if not already loaded
+    const existingScript = document.querySelector('script[src="https://js.stripe.com/v3/pricing-table.js"]');
+    if (!existingScript) {
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      // Cleanup if needed (optional - Stripe script can stay loaded)
+    };
+  }, []);
 
   const handleGetStarted = (tierName: string) => {
     if (tierName === 'Enterprise') {

@@ -3,7 +3,8 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Cache bust: 2025-12-07T11:55 - Force aggressive cache clear v21
+// Cache bust: 2025-12-14T08:15 - React 19 scheduler override fix v24
+// Note: Using npm overrides to force scheduler@0.23.2 (React 19 compatible)
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -27,18 +28,22 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: [
-      'react', 
-      'react-dom', 
-      'react/jsx-runtime', 
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
       'react/jsx-dev-runtime',
       'react-dom/client',
-      '@radix-ui/react-toast', 
-      'sonner', 
+      '@radix-ui/react-toast',
+      'sonner',
       'next-themes',
       '@supabase/supabase-js',
       'react-router-dom',
       'class-variance-authority',
       'embla-carousel-react',
+    ],
+    exclude: [
+      '@axe-core/react',  // Excluded: React 17 compatibility issues (disabled in code)
+      'lovable-tagger',   // Excluded: May cause version conflicts in Lovable cloud
     ],
     force: true,
     esbuildOptions: {
