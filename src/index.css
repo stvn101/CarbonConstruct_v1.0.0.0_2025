@@ -423,10 +423,10 @@ All colors MUST be HSL.
     --chart-7: 30 95% 58%;        /* Bright orange */
     --chart-8: 340 80% 60%;       /* Hot pink */
 
-    /* Status Colors - Clear & Vibrant */
+    /* Status Colors - Clear & Vibrant (WCAG AA compliant) */
     --success: 142 70% 45%;
-    --warning: 48 95% 55%;
-    --destructive: 0 85% 62%;
+    --warning: 48 95% 45%;
+    --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 100%;
 
     /* Interface Elements */
