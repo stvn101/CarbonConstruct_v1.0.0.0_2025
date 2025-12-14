@@ -344,18 +344,18 @@ const Pricing = () => {
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center p-4 border rounded-lg">
+            <Card variant="glass" className="text-center p-4 border-border/30">
               <div className="text-3xl font-bold text-primary mb-2">4,000+</div>
               <div className="text-sm text-muted-foreground">EPD materials in our database with verified emission factors</div>
-            </div>
-            <div className="text-center p-4 border rounded-lg">
+            </Card>
+            <Card variant="glass" className="text-center p-4 border-border/30">
               <div className="text-3xl font-bold text-primary mb-2">4</div>
               <div className="text-sm text-muted-foreground">Australian compliance frameworks supported (NCC, Green Star, NABERS, IS Rating)</div>
-            </div>
-            <div className="text-center p-4 border rounded-lg">
+            </Card>
+            <Card variant="glass" className="text-center p-4 border-border/30">
               <div className="text-3xl font-bold text-primary mb-2">EN 15978</div>
               <div className="text-sm text-muted-foreground">Full lifecycle assessment methodology (A1-D stages)</div>
-            </div>
+            </Card>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-4">
             All emission factors sourced from NABERS 2025 EPD List and ICE Database 2019
@@ -384,41 +384,63 @@ const Pricing = () => {
       </div>
 
       {/* FAQ Section */}
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
-        <div className="space-y-6">
-          <div>
-            <h3 className="font-semibold mb-2">Can I switch plans at any time?</h3>
-            <p className="text-muted-foreground">
-              Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any charges.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">What compliance standards do you support?</h3>
-            <p className="text-muted-foreground">
-              We support Australian NCC 2024, GBCA Green Star, NABERS, and ISO 14040-44 LCA methodologies. All emission factors are Australian-specific and regularly updated.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">Is there a free trial for Pro and Business plans?</h3>
-            <p className="text-muted-foreground">
-              Yes! All paid plans include a 14-day free trial. No credit card required to start your trial.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">What payment methods do you accept?</h3>
-            <p className="text-muted-foreground">
-              We accept all major credit cards, PayPal, and can arrange invoicing for Business and Enterprise plans.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">Do you offer custom enterprise solutions?</h3>
-            <p className="text-muted-foreground">
-              Absolutely! Our Enterprise plan is fully customizable with pricing tailored to your organisation's needs. Contact our sales team to discuss your specific requirements.
-            </p>
-          </div>
-        </div>
-      </div>
+      <Card variant="glass" className="max-w-3xl mx-auto carbon-surface">
+        <CardHeader>
+          <CardTitle className="text-3xl text-center">Frequently Asked Questions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Card variant="glass" className="border-border/30">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">Can I switch plans at any time?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any charges.
+              </p>
+            </CardContent>
+          </Card>
+          <Card variant="glass" className="border-border/30">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">What compliance standards do you support?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                We support Australian NCC 2024, GBCA Green Star, NABERS, and ISO 14040-44 LCA methodologies. All emission factors are Australian-specific and regularly updated.
+              </p>
+            </CardContent>
+          </Card>
+          <Card variant="glass" className="border-border/30">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">Is there a free trial for Pro and Business plans?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                Yes! All paid plans include a 14-day free trial. No credit card required to start your trial.
+              </p>
+            </CardContent>
+          </Card>
+          <Card variant="glass" className="border-border/30">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">What payment methods do you accept?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                We accept all major credit cards, PayPal, and can arrange invoicing for Business and Enterprise plans.
+              </p>
+            </CardContent>
+          </Card>
+          <Card variant="glass" className="border-border/30">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">Do you offer custom enterprise solutions?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                Absolutely! Our Enterprise plan is fully customizable with pricing tailored to your organisation's needs. Contact our sales team to discuss your specific requirements.
+              </p>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 };
