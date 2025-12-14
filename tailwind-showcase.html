@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Construct - Tailwind Configuration Showcase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // NOTE: These color values are synchronized with src/index.css and tailwind.config.ts
+        // If you update colors in the main configuration, update them here as well
+        // Last synced: 2025-12-14
+        // Source: src/index.css :root variables
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        scope: {
+                            1: 'hsl(15 90% 58%)',    // --scope-1
+                            2: 'hsl(48 95% 55%)',    // --scope-2
+                            3: 'hsl(156 60% 42%)',   // --scope-3
+                        },
+                        lca: {
+                            material: 'hsl(280 75% 60%)',      // --lca-material
+                            transport: 'hsl(200 90% 55%)',     // --lca-transport
+                            construction: 'hsl(30 95% 58%)',   // --lca-construction
+                            eol: 'hsl(340 80% 60%)',          // --lca-eol
+                        },
+                        compliance: {
+                            ncc: 'hsl(210 90% 55%)',    // --ncc-blue
+                            gbca: 'hsl(142 75% 48%)',   // --gbca-green
+                            nabers: 'hsl(180 80% 48%)', // --nabers-teal
+                        },
+                        chart: {
+                            1: 'hsl(15 90% 58%)',    // --chart-1
+                            2: 'hsl(48 95% 55%)',    // --chart-2
+                            3: 'hsl(142 70% 45%)',   // --chart-3
+                            4: 'hsl(210 90% 55%)',   // --chart-4
+                            5: 'hsl(280 75% 60%)',   // --chart-5
+                            6: 'hsl(180 80% 48%)',   // --chart-6
+                            7: 'hsl(30 95% 58%)',    // --chart-7
+                            8: 'hsl(340 80% 60%)',   // --chart-8
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: hsl(220 15% 92%);
+            color: hsl(220 15% 12%);
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="mb-12 text-center">
+            <h1 class="text-5xl font-bold mb-4">Carbon Construct</h1>
+            <h2 class="text-3xl text-gray-700 mb-2">Tailwind Configuration Showcase</h2>
+            <p class="text-lg text-gray-600">Professional twilight theme for carbon emissions tracking</p>
+        </header>
+
+        <!-- Emission Scope Colors -->
+        <section class="mb-12 bg-white rounded-xl p-8 shadow-lg">
+            <h3 class="text-2xl font-bold mb-6 border-b pb-3">Emission Scope Colors</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="border-l-4 border-scope-1 bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-12 h-12 bg-scope-1 rounded-full"></div>
+                        <h4 class="text-xl font-bold text-scope-1">Scope 1</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">Direct Emissions</p>
+                    <p class="text-3xl font-bold text-scope-1">1,234 tCO₂e</p>
+                    <p class="text-xs text-gray-500 mt-2">HSL(15 90% 58%) - Coral Red</p>
+                </div>
+
+                <div class="border-l-4 border-scope-2 bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-12 h-12 bg-scope-2 rounded-full"></div>
+                        <h4 class="text-xl font-bold text-scope-2">Scope 2</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">Energy Emissions</p>
+                    <p class="text-3xl font-bold text-scope-2">567 tCO₂e</p>
+                    <p class="text-xs text-gray-500 mt-2">HSL(48 95% 55%) - Golden Amber</p>
+                </div>
+
+                <div class="border-l-4 border-scope-3 bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-12 h-12 bg-scope-3 rounded-full"></div>
+                        <h4 class="text-xl font-bold text-scope-3">Scope 3</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">Value Chain</p>
+                    <p class="text-3xl font-bold text-scope-3">890 tCO₂e</p>
+                    <p class="text-xs text-gray-500 mt-2">HSL(156 60% 42%) - Forest Green</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- LCA Phase Colors -->
+        <section class="mb-12 bg-white rounded-xl p-8 shadow-lg">
+            <h3 class="text-2xl font-bold mb-6 border-b pb-3">Life Cycle Assessment Phases</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-lca-material text-white p-6 rounded-lg text-center shadow-md hover:scale-105 transition-transform">
+                    <div class="w-16 h-16 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                        <span class="text-2xl">📦</span>
+                    </div>
+                    <h4 class="font-bold text-lg mb-1">Material</h4>
+                    <p class="text-xs opacity-90">HSL(280 75% 60%)</p>
+                </div>
+
+                <div class="bg-lca-transport text-white p-6 rounded-lg text-center shadow-md hover:scale-105 transition-transform">
+                    <div class="w-16 h-16 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                        <span class="text-2xl">🚚</span>
+                    </div>
+                    <h4 class="font-bold text-lg mb-1">Transport</h4>
+                    <p class="text-xs opacity-90">HSL(200 90% 55%)</p>
+                </div>
+
+                <div class="bg-lca-construction text-white p-6 rounded-lg text-center shadow-md hover:scale-105 transition-transform">
+                    <div class="w-16 h-16 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                        <span class="text-2xl">🏗️</span>
+                    </div>
+                    <h4 class="font-bold text-lg mb-1">Construction</h4>
+                    <p class="text-xs opacity-90">HSL(30 95% 58%)</p>
+                </div>
+
+                <div class="bg-lca-eol text-white p-6 rounded-lg text-center shadow-md hover:scale-105 transition-transform">
+                    <div class="w-16 h-16 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center">
+                        <span class="text-2xl">♻️</span>
+                    </div>
+                    <h4 class="font-bold text-lg mb-1">End of Life</h4>
+                    <p class="text-xs opacity-90">HSL(340 80% 60%)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Compliance Framework Colors -->
+        <section class="mb-12 bg-white rounded-xl p-8 shadow-lg">
+            <h3 class="text-2xl font-bold mb-6 border-b pb-3">Compliance Frameworks</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="border-2 border-compliance-ncc bg-compliance-ncc/10 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-compliance-ncc">NCC</span>
+                        <span class="text-2xl">✓</span>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2">National Construction Code</p>
+                    <p class="text-xs text-gray-500 mt-1">HSL(210 90% 55%)</p>
+                </div>
+
+                <div class="border-2 border-compliance-gbca bg-compliance-gbca/10 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-compliance-gbca">GBCA</span>
+                        <span class="text-2xl">★</span>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2">Green Building Council</p>
+                    <p class="text-xs text-gray-500 mt-1">HSL(142 75% 48%)</p>
+                </div>
+
+                <div class="border-2 border-compliance-nabers bg-compliance-nabers/10 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-compliance-nabers">NABERS</span>
+                        <span class="text-2xl">⚡</span>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2">Energy Rating System</p>
+                    <p class="text-xs text-gray-500 mt-1">HSL(180 80% 48%)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart Color Palette -->
+        <section class="mb-12 bg-white rounded-xl p-8 shadow-lg">
+            <h3 class="text-2xl font-bold mb-6 border-b pb-3">Chart Color Palette (8 Colors)</h3>
+            <div class="grid grid-cols-4 md:grid-cols-8 gap-4">
+                <div class="text-center">
+                    <div class="w-full h-20 bg-chart-1 rounded-lg shadow-md mb-2"></div>
+                    <p class="text-xs font-medium">Chart 1</p>
+                    <p class="text-xs text-gray-500">Coral Red</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-20 bg-chart-2 rounded-lg shadow-md mb-2"></div>
+                    <p class="text-xs font-medium">Chart 2</p>
+                    <p class="text-xs text-gray-500">Golden Amber</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-20 bg-chart-3 rounded-lg shadow-md mb-2"></div>
+                    <p class="text-xs font-medium">Chart 3</p>
+                    <p class="text-xs text-gray-500">Forest Green</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-20 bg-chart-4 rounded-lg shadow-md mb-2"></div>
+                    <p class="text-xs font-medium">Chart 4</p>
+                    <p class="text-xs text-gray-500">Electric Blue</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-20 bg-chart-5 rounded-lg shadow-md mb-2"></div>
+                    <p class="text-xs font-medium">Chart 5</p>
+                    <p class="text-xs text-gray-500">Royal Purple</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-20 bg-chart-6 rounded-lg shadow-md mb-2"></div>
+                    <p class="text-xs font-medium">Chart 6</p>
+                    <p class="text-xs text-gray-500">Teal</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-20 bg-chart-7 rounded-lg shadow-md mb-2"></div>
+                    <p class="text-xs font-medium">Chart 7</p>
+                    <p class="text-xs text-gray-500">Bright Orange</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-20 bg-chart-8 rounded-lg shadow-md mb-2"></div>
+                    <p class="text-xs font-medium">Chart 8</p>
+                    <p class="text-xs text-gray-500">Hot Pink</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-600 mt-12 pb-8">
+            <p class="text-sm">Carbon Construct v1.0.0 • Professional Carbon Emissions Calculator</p>
+            <p class="text-xs mt-2">Design System: Twilight Theme • Project uses Tailwind CSS 3.4.17</p>
+            <p class="text-xs text-gray-500 mt-1">Note: This showcase uses Tailwind CDN (latest version) for standalone viewing</p>
+        </footer>
+    </div>
+</body>
+</html>
