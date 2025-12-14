@@ -4,22 +4,10 @@ import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
 import { initializeErrorTracking, trackErrorGlobal } from "./hooks/useErrorTracking";
-import { initTracing } from "./lib/tracing";
-import { initAxeAccessibility } from "./lib/axe-accessibility";
 import "./index.css";
-
-// Initialize tracing (dev only, fails gracefully)
-try {
-  initTracing();
-} catch {
-  // Tracing is optional - silently skip if it fails
-}
 
 // Initialize global error tracking
 initializeErrorTracking();
-
-// Initialize axe-core accessibility testing (dev only)
-initAxeAccessibility();
 
 // Helper function to create safe error notification (prevents XSS)
 function createErrorNotification(errorMessage: string): HTMLDivElement {
@@ -57,9 +45,10 @@ function createErrorNotification(errorMessage: string): HTMLDivElement {
   content.appendChild(title);
   content.appendChild(message);
 
-  // Close button
+  // Close button with accessible name
   const closeBtn = document.createElement('button');
   closeBtn.className = 'ml-2 hover:opacity-70';
+  closeBtn.setAttribute('aria-label', 'Dismiss error notification');
   closeBtn.addEventListener('click', () => notification.remove());
 
   const closeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
