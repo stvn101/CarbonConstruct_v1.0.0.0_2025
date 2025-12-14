@@ -284,5 +284,5 @@ npm run build  # Production build with purging
 ---
 
 **Last Updated**: December 2025  
-**Tailwind Version**: 3.4.17  
+**Tailwind Version**: 4.x.x  
 **Design System**: Carbon Construct v1.0.0
