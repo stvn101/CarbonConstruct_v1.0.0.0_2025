@@ -4,22 +4,25 @@
  * These colors are derived from the design system CSS variables in src/index.css
  * and converted to hex values for use in PDF components (@react-pdf/renderer).
  * 
- * When updating colors, ensure they align with the HSL values defined in index.css
- * and maintain WCAG AA contrast ratios for accessibility.
+ * Note: Comments show approximate HSL values for reference. The hex values are the
+ * source of truth for rendering. Small variations from CSS variables are expected
+ * due to HSL-to-hex conversion and the need for specific shades in PDF contexts.
+ * 
+ * When updating colors, ensure they maintain WCAG AA contrast ratios for accessibility.
  */
 
 // Base Colors
 export const PDF_COLORS = {
   // Background & Foreground
   white: '#ffffff',
-  background: '#e8eaed', // hsl(220 15% 92%)
-  foreground: '#1f2328', // hsl(220 15% 12%)
+  background: '#e8eaed', // Approximately hsl(220, 9%, 90%)
+  foreground: '#1f2328', // Approximately hsl(220, 15%, 12%)
   
-  // Primary - Forest Green (from --primary: 156 55% 35%)
-  primaryGreen: '#287856',
-  primaryGreenLight: '#2d9168',
-  primaryGreenDark: '#1e5a41',
-  primaryGreenVeryLight: '#e6f4ed',
+  // Primary - Forest Green (derived from --primary: 156 55% 35%)
+  primaryGreen: '#287856', // Approximately hsl(156, 55%, 32%)
+  primaryGreenLight: '#2d9168', // Lighter variant
+  primaryGreenDark: '#1e5a41', // Darker variant
+  primaryGreenVeryLight: '#e6f4ed', // Very light tint for backgrounds
   
   // Secondary - Carbon Blue-Grey
   secondaryBlue: '#596d87',
@@ -45,7 +48,7 @@ export const PDF_COLORS = {
   backgroundVeryLight: '#fafafa',
   
   // Status Colors - derived from CSS variables
-  success: '#22c55e', // hsl(142 70% 45%)
+  success: '#22c55e', // Approximately hsl(142, 71%, 45%)
   successDark: '#16a34a',
   successVeryDark: '#15803d',
   successLight: '#4ade80',
@@ -53,7 +56,7 @@ export const PDF_COLORS = {
   successBackground: '#f0fdf4',
   successBackgroundAlt: '#e8f5e9',
   
-  warning: '#f59e0b', // hsl(48 95% 55%)
+  warning: '#f59e0b', // Approximately hsl(43, 96%, 50%)
   warningDark: '#d97706',
   warningVeryDark: '#b45309',
   warningAlt: '#ff9800',
@@ -66,7 +69,7 @@ export const PDF_COLORS = {
   errorBackground: '#fef2f2',
   errorLight: '#fca5a5',
   
-  info: '#3b82f6', // hsl(210 90% 55%)
+  info: '#3b82f6', // Approximately hsl(217, 91%, 60%)
   infoDark: '#2563eb',
   infoVeryDark: '#1e40af',
   infoLight: '#60a5fa',
@@ -74,41 +77,41 @@ export const PDF_COLORS = {
   infoBackground: '#eff6ff',
   infoBackgroundAlt: '#f0f5ff',
   
-  // Chart & Data Visualization - from --chart-* variables
+  // Chart & Data Visualization - derived from --chart-* variables
   chart: {
-    coral: '#ef5350',      // chart-1: hsl(15 90% 58%)
-    amber: '#ffa726',      // chart-2: hsl(48 95% 55%)
-    green: '#22c55e',      // chart-3: hsl(142 70% 45%)
-    blue: '#3b82f6',       // chart-4: hsl(210 90% 55%)
-    purple: '#ab47bc',     // chart-5: hsl(280 75% 60%)
-    teal: '#26a69a',       // chart-6: hsl(180 80% 48%)
-    orange: '#ff7043',     // chart-7: hsl(30 95% 58%)
-    pink: '#ec407a',       // chart-8: hsl(340 80% 60%)
+    coral: '#ef5350',      // chart-1: Coral red for scope 1
+    amber: '#ffa726',      // chart-2: Amber for scope 2
+    green: '#22c55e',      // chart-3: Green for scope 3
+    blue: '#3b82f6',       // chart-4: Blue for data viz
+    purple: '#ab47bc',     // chart-5: Purple for materials
+    teal: '#26a69a',       // chart-6: Teal for compliance
+    orange: '#ff7043',     // chart-7: Orange for construction
+    pink: '#ec407a',       // chart-8: Pink for end-of-life
   },
   
-  // Scope Colors - from --scope-* variables
+  // Scope Colors - derived from --scope-* variables
   scope: {
-    direct: '#ff7043',     // scope-1: hsl(15 90% 58%) - direct emissions
-    energy: '#ffa726',     // scope-2: hsl(48 95% 55%) - energy
-    valueChain: '#287856', // scope-3: hsl(156 60% 42%) - value chain
+    direct: '#ff7043',     // scope-1: Direct emissions
+    energy: '#ffa726',     // scope-2: Energy emissions
+    valueChain: '#287856', // scope-3: Value chain emissions
   },
   
-  // LCA Colors - from --lca-* variables
+  // LCA Colors - derived from --lca-* variables
   lca: {
-    material: '#ab47bc',   // hsl(280 75% 60%)
-    transport: '#29b6f6',  // hsl(200 90% 55%)
-    construction: '#ff7043', // hsl(30 95% 58%)
-    endOfLife: '#ec407a',  // hsl(340 80% 60%)
+    material: '#ab47bc',   // Materials phase
+    transport: '#29b6f6',  // Transport phase
+    construction: '#ff7043', // Construction phase
+    endOfLife: '#ec407a',  // End-of-life phase
   },
   
   // Compliance Framework Colors
   compliance: {
-    ncc: '#3b82f6',       // hsl(210 90% 55%)
-    gbca: '#22c55e',      // hsl(142 75% 48%)
-    nabers: '#26a69a',    // hsl(180 80% 48%)
-    en15978: '#2563eb',   // hsl(220 85% 55%)
-    climateActive: '#16a34a', // hsl(152 80% 45%)
-    isRating: '#9333ea',  // hsl(270 70% 55%)
+    ncc: '#3b82f6',       // NCC framework
+    gbca: '#22c55e',      // Green Building Council Australia
+    nabers: '#26a69a',    // NABERS rating
+    en15978: '#2563eb',   // EN 15978 standard
+    climateActive: '#16a34a', // Climate Active
+    isRating: '#9333ea',  // IS Rating
   },
   
   // Specific Use Case Colors
