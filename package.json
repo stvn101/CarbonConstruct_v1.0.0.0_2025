@@ -6,6 +6,9 @@
   "description": "Professional carbon emissions calculator for Australian construction projects",
   "author": "CarbonConstruct Team",
   "license": "UNLICENSED",
+  "overrides": {
+    "scheduler": "0.23.2"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
