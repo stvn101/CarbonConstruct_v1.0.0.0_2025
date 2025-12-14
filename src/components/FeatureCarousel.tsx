@@ -89,7 +89,7 @@ export const FeatureCarousel = ({ autoplay = false, className = '' }: FeatureCar
           {FEATURES.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+              <CarouselItem key={feature.title} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full hover:shadow-lg transition-shadow duration-300">
                   <CardHeader>
                     <div className="flex items-start justify-between mb-3">
