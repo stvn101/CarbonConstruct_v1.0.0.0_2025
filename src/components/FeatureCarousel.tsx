@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Carousel,
@@ -57,6 +57,19 @@ export function FeatureCarousel() {
     const interval = setInterval(() => api.scrollNext(), 5000);
     return () => clearInterval(interval);
   }, [api, isPaused]);
+
+  // Keyboard shortcut: spacebar to toggle pause/play
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.code === "Space" && e.target === document.body) {
+      e.preventDefault();
+      setIsPaused(prev => !prev);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   return (
     <div 
