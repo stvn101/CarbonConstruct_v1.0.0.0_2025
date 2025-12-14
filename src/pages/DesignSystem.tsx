@@ -3,6 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton, SkeletonCard, SkeletonText } from "@/components/ui/skeleton";
+import { MotionButton } from "@/components/ui/motion-button";
+import { MotionInput } from "@/components/ui/motion-input";
+import { SkeletonPage } from "@/components/SkeletonPage";
 import { useInViewAnimation, useStaggeredAnimation } from "@/hooks/useInViewAnimation";
 import { 
   Sparkles, 
@@ -139,6 +142,22 @@ const DesignSystem = () => {
                 <strong>Variants:</strong> <code>glass</code>, <code>glassOutline</code><br />
                 <strong>Effects:</strong> <code>.glow-ring</code>, <code>.shimmer-hover</code>
               </p>
+            </div>
+
+            {/* Motion Components */}
+            <div className="mt-12">
+              <h3 className="font-semibold mb-4">Micro-interaction Buttons & Inputs</h3>
+              <div className="flex flex-wrap gap-4 mb-6">
+                <MotionButton variant="default">Motion Button</MotionButton>
+                <MotionButton variant="glass">Glass Motion</MotionButton>
+                <MotionButton variant="outline">Outline Motion</MotionButton>
+              </div>
+              <div className="max-w-sm">
+                <MotionInput placeholder="Focus me for animation..." />
+              </div>
+              <code className="text-xs bg-muted px-2 py-1 rounded mt-4 inline-block">
+                {"<MotionButton />"} {"<MotionInput />"}
+              </code>
             </div>
           </div>
         </section>
@@ -284,6 +303,56 @@ const DesignSystem = () => {
               </p>
               <code className="text-xs bg-muted px-2 py-1 rounded mt-4 inline-block">.text-gradient-animated</code>
             </div>
+          </div>
+        </section>
+
+        {/* Skeleton Page Variants */}
+        <section className="py-16 md:py-24 carbon-surface">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold mb-4">Skeleton Page Variants</h2>
+            <p className="text-muted-foreground mb-8">Full-page loading skeletons for different layouts.</p>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="glass rounded-xl overflow-hidden">
+                <div className="p-4 border-b border-white/10">
+                  <Badge variant="outline">Dashboard</Badge>
+                </div>
+                <div className="h-64 overflow-hidden scale-50 origin-top-left" style={{ width: '200%' }}>
+                  <SkeletonPage variant="dashboard" />
+                </div>
+              </div>
+              
+              <div className="glass rounded-xl overflow-hidden">
+                <div className="p-4 border-b border-white/10">
+                  <Badge variant="outline">Cards</Badge>
+                </div>
+                <div className="h-64 overflow-hidden scale-50 origin-top-left" style={{ width: '200%' }}>
+                  <SkeletonPage variant="cards" />
+                </div>
+              </div>
+              
+              <div className="glass rounded-xl overflow-hidden">
+                <div className="p-4 border-b border-white/10">
+                  <Badge variant="outline">Form</Badge>
+                </div>
+                <div className="h-64 overflow-hidden scale-50 origin-top-left" style={{ width: '200%' }}>
+                  <SkeletonPage variant="form" />
+                </div>
+              </div>
+              
+              <div className="glass rounded-xl overflow-hidden">
+                <div className="p-4 border-b border-white/10">
+                  <Badge variant="outline">List</Badge>
+                </div>
+                <div className="h-64 overflow-hidden scale-50 origin-top-left" style={{ width: '200%' }}>
+                  <SkeletonPage variant="list" />
+                </div>
+              </div>
+            </div>
+
+            <code className="text-xs bg-muted px-2 py-1 rounded mt-6 inline-block">
+              {"<SkeletonPage variant=\"dashboard\" />"}
+            </code>
           </div>
         </section>
 
