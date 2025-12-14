@@ -36,7 +36,9 @@ export default defineConfig(({ mode }) => ({
       'sonner', 
       'next-themes',
       '@supabase/supabase-js',
-      'react-router-dom'
+      'react-router-dom',
+      'class-variance-authority',
+      'embla-carousel-react',
     ],
     force: true,
     esbuildOptions: {
