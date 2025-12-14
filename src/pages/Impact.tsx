@@ -111,10 +111,10 @@ const Impact = () => {
         {impactStats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
-            <Card key={idx} className="hover-scale border-2 animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
+            <Card key={idx} variant="glass" className="hover-scale border-2 animate-fade-in glass-glow-hover" style={{ animationDelay: `${idx * 100}ms` }}>
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-lg bg-muted ${stat.color}`}>
+                  <div className={`p-3 rounded-lg bg-muted/50 backdrop-blur-sm ${stat.color}`}>
                     <Icon className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
@@ -130,7 +130,7 @@ const Impact = () => {
       </div>
 
       {/* Stripe Climate Partnership */}
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+      <Card variant="glass" className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 glass-glow-hover">
         <CardHeader>
           <div className="flex items-center gap-3 mb-2">
             <Award className="h-8 w-8 text-primary" />
@@ -179,7 +179,7 @@ const Impact = () => {
         
         <div className="grid md:grid-cols-2 gap-6">
           {carbonRemovalProjects.map((project, idx) => (
-            <Card key={idx} className="hover-scale animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
+            <Card key={idx} variant="glass" className="hover-scale animate-fade-in glass-glow-hover" style={{ animationDelay: `${idx * 100}ms` }}>
               <CardHeader>
                 <div className="flex items-start justify-between mb-2">
                   <CardTitle className="text-xl">{project.name}</CardTitle>
@@ -212,7 +212,7 @@ const Impact = () => {
           {initiatives.map((initiative, idx) => {
             const Icon = initiative.icon;
             return (
-              <Card key={idx} className="animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
+              <Card key={idx} variant="glass" className="animate-fade-in glass-glow-hover" style={{ animationDelay: `${idx * 100}ms` }}>
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
                     <div className="p-3 rounded-lg bg-primary/10">
@@ -236,7 +236,7 @@ const Impact = () => {
       </div>
 
       {/* Our Commitments - Honest Progress Section */}
-      <Card>
+      <Card variant="glass" className="glass-glow-hover">
         <CardHeader>
           <CardTitle className="text-2xl">Our Sustainability Commitments</CardTitle>
           <CardDescription>Transparent progress on our environmental goals</CardDescription>
@@ -286,8 +286,9 @@ const Impact = () => {
       </Card>
 
       {/* Call to Action */}
-      <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 text-center">
-        <CardContent className="py-12 px-6">
+      <section className="carbon-surface rounded-2xl">
+        <Card variant="glass" className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 text-center">
+          <CardContent className="py-12 px-6">
           <Leaf className="h-12 w-12 text-primary mx-auto mb-4" />
           <h2 className="text-3xl font-bold mb-4">Join Us in Making an Impact</h2>
           <p className="text-lg text-muted-foreground mb-6 max-w-2xl mx-auto">
@@ -308,7 +309,8 @@ const Impact = () => {
             </Button>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </section>
     </div>
   );
 };

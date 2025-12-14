@@ -185,13 +185,13 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background noise-texture p-4">
       <SEOHead 
         title="Sign In" 
         description="Sign in or create an account to access CarbonConstruct carbon emissions calculator for Australian construction projects."
         canonicalPath="/auth"
       />
-      <Card className="w-full max-w-md">
+      <Card variant="glass" className="w-full max-w-md glass-glow-hover">
         <CardHeader className="text-center">
           <div className="flex flex-col items-center gap-3 mb-2">
             <img 
