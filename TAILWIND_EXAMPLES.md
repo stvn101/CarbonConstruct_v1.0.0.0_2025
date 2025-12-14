@@ -253,7 +253,6 @@ This document provides visual code examples demonstrating how the Tailwind confi
 
 ```tsx
 // Note: recharts is included in package.json dependencies (v3.5.1)
-// Install with: npm install --legacy-peer-deps
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 <BarChart width={600} height={400} data={emissionsData}>
