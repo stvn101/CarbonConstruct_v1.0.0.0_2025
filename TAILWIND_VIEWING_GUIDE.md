@@ -149,16 +149,14 @@ git log --oneline --all -- tailwind.config.ts src/index.css
 
 > **Note:** The following commands assume your default branch is named `main`. Some repositories use `master` or another name. To check your default branch, run `git branch -r` or `git branch`. Replace `<default-branch>` in the commands below with your actual default branch name.
 
-```bash
-# View Tailwind config from default branch
-git show <default-branch>:tailwind.config.ts
+# View Tailwind config from the main branch
+git show main:tailwind.config.ts
 
-# Compare with current branch
-git diff <default-branch> -- tailwind.config.ts
+# Compare the current branch's config with main
+git diff main -- tailwind.config.ts
 
-# View CSS variables from default branch
-git show <default-branch>:src/index.css
-```
+# View CSS variables from the main branch
+git show main:src/index.css
 
 ## 🎓 Learning Path
 
