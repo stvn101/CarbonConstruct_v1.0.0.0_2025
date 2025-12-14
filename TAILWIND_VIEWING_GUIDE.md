@@ -100,6 +100,7 @@ To see the Tailwind configuration in action within the actual application:
 
 ```bash
 # 1. Install dependencies
+# Use --legacy-peer-deps due to React 19 compatibility issues with next-themes (see repo notes)
 npm install --legacy-peer-deps
 
 # 2. Start development server
