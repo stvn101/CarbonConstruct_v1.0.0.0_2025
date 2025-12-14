@@ -21,6 +21,8 @@ import { CalculationHistory } from "@/components/CalculationHistory";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { FloatingParticles } from "@/components/FloatingParticles";
+import { ParallaxSection } from "@/components/ParallaxSection";
+import { AnimatedStatCard } from "@/components/AnimatedCounter";
 const Index = () => {
   const {
     user,
@@ -111,17 +113,21 @@ const Index = () => {
             </div>
 
             {/* Feature Teaser Video Section */}
-            <FeatureTeaser />
+            <ParallaxSection speed={0.3}>
+              <FeatureTeaser />
+            </ParallaxSection>
 
             {/* Feature Carousel - Glass Cards */}
-            <section className="carbon-surface py-12 -mx-4 px-4 rounded-xl">
+            <ParallaxSection speed={0.2} className="carbon-surface py-12 -mx-4 px-4 rounded-xl">
               <FeatureCarousel />
-            </section>
+            </ParallaxSection>
 
             {/* Quick Carbon Estimator */}
-            <div className="max-w-3xl mx-auto">
-              <QuickCarbonCalculator />
-            </div>
+            <ParallaxSection speed={0.15}>
+              <div className="max-w-3xl mx-auto">
+                <QuickCarbonCalculator />
+              </div>
+            </ParallaxSection>
 
             {/* CTA Section - Freemium Emphasis */}
             <div className="space-y-4 md:space-y-5 animate-fade-in [animation-delay:0.4s]">
@@ -603,63 +609,45 @@ const Index = () => {
 
       {/* Emissions Overview - Animated Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-primary/20 col-span-2 lg:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Emissions</CardTitle>
-            <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-primary">
-              {emissionsLoading ? "..." : totals.total.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">tCO₂e per year</p>
-          </CardContent>
-        </Card>
-
-      <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope1/20 [animation-delay:0.1s]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Scope 1</CardTitle>
-            <Factory className="h-4 w-4 md:h-5 md:w-5 text-scope1" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-scope1">
-              {emissionsLoading ? "..." : totals.scope1.toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">
-              {emissionsLoading ? "..." : totals.total > 0 ? (totals.scope1 / totals.total * 100).toFixed(1) : "0"}% of total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope2/20 [animation-delay:0.2s]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Scope 2</CardTitle>
-            <Zap className="h-4 w-4 md:h-5 md:w-5 text-scope2" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-scope2">
-              {emissionsLoading ? "..." : totals.scope2.toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">
-              {emissionsLoading ? "..." : totals.total > 0 ? (totals.scope2 / totals.total * 100).toFixed(1) : "0"}% of total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope3/20 [animation-delay:0.3s]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Scope 3</CardTitle>
-            <Truck className="h-4 w-4 md:h-5 md:w-5 text-scope3" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-scope3">
-              {emissionsLoading ? "..." : totals.scope3.toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">
-              {emissionsLoading ? "..." : totals.total > 0 ? (totals.scope3 / totals.total * 100).toFixed(1) : "0"}% of total
-            </p>
-          </CardContent>
-        </Card>
+        {emissionsLoading ? (
+          <>
+            <div className="glass animate-pulse h-28 rounded-xl col-span-2 lg:col-span-1" />
+            <div className="glass animate-pulse h-28 rounded-xl" />
+            <div className="glass animate-pulse h-28 rounded-xl" />
+            <div className="glass animate-pulse h-28 rounded-xl" />
+          </>
+        ) : (
+          <>
+            <AnimatedStatCard
+              value={totals.total}
+              label="tCO₂e per year"
+              decimals={1}
+              icon={<TrendingDown className="h-5 w-5 text-primary" />}
+              className="col-span-2 lg:col-span-1 border-primary/20"
+            />
+            <AnimatedStatCard
+              value={totals.scope1}
+              label={`${totals.total > 0 ? (totals.scope1 / totals.total * 100).toFixed(1) : "0"}% of total`}
+              decimals={1}
+              icon={<Factory className="h-5 w-5 text-scope1" />}
+              className="border-scope1/20"
+            />
+            <AnimatedStatCard
+              value={totals.scope2}
+              label={`${totals.total > 0 ? (totals.scope2 / totals.total * 100).toFixed(1) : "0"}% of total`}
+              decimals={1}
+              icon={<Zap className="h-5 w-5 text-scope2" />}
+              className="border-scope2/20"
+            />
+            <AnimatedStatCard
+              value={totals.scope3}
+              label={`${totals.total > 0 ? (totals.scope3 / totals.total * 100).toFixed(1) : "0"}% of total`}
+              decimals={1}
+              icon={<Truck className="h-5 w-5 text-scope3" />}
+              className="border-scope3/20"
+            />
+          </>
+        )}
       </div>
 
       {/* Unified Calculator - Prominent CTA */}
