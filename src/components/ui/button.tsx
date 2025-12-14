@@ -21,6 +21,8 @@ const buttonVariants = cva(
         ocean: "bg-gradient-ocean text-white hover:shadow-glow hover:scale-105 shadow-md font-semibold",
         success: "bg-success text-white hover:brightness-110 shadow-md",
         warning: "bg-warning text-white hover:brightness-110 shadow-md",
+        glass: "bg-white/15 backdrop-blur-lg border border-white/20 text-white hover:bg-white/25 hover:shadow-[0_0_20px_hsla(156,55%,45%,0.3)] font-medium transition-all",
+        glassOutline: "bg-transparent backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 font-medium transition-all",
       },
       size: {
         default: "h-10 px-4 py-2",
