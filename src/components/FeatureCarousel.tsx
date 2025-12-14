@@ -8,7 +8,7 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { Calculator, FileBarChart, Layers, CheckCircle, Zap } from "lucide-react";
+import { Calculator, FileBarChart, Layers, CheckCircle, Zap, Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const features = [
@@ -102,21 +102,30 @@ export function FeatureCarousel() {
         <CarouselNext className="hidden sm:flex -right-4 glass border-primary/20" />
       </Carousel>
 
-      {/* Dot indicators */}
-      <div className="flex justify-center gap-2 mt-6">
-        {features.map((_, index) => (
-          <button
-            key={index}
-            aria-label={`Go to slide ${index + 1}`}
-            className={cn(
-              "h-2 rounded-full transition-all duration-300",
-              current === index 
-                ? "w-6 bg-primary" 
-                : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-            )}
-            onClick={() => api?.scrollTo(index)}
-          />
-        ))}
+      {/* Controls: Dot indicators + Pause/Play button */}
+      <div className="flex justify-center items-center gap-4 mt-6">
+        <div className="flex gap-2">
+          {features.map((_, index) => (
+            <button
+              key={index}
+              aria-label={`Go to slide ${index + 1}`}
+              className={cn(
+                "h-2 rounded-full transition-all duration-300",
+                current === index 
+                  ? "w-6 bg-primary" 
+                  : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              )}
+              onClick={() => api?.scrollTo(index)}
+            />
+          ))}
+        </div>
+        <button
+          onClick={() => setIsPaused(!isPaused)}
+          aria-label={isPaused ? "Resume carousel auto-play" : "Pause carousel auto-play"}
+          className="p-2 rounded-full glass border border-primary/20 hover:bg-primary/10 transition-colors"
+        >
+          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+        </button>
       </div>
     </div>
   );
