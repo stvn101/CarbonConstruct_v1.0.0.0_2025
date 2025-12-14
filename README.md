@@ -12,9 +12,11 @@ This repository uses the following branch structure:
 - **`development`** - Active development branch for ongoing work
 - **`experiment`** - Experimental features and proof-of-concepts
 
-### Branch Cleanup
+### Branch and PR Management
 
-The repository has been restructured. For cleanup instructions, see [BRANCH_CLEANUP_GUIDE.md](./BRANCH_CLEANUP_GUIDE.md).
+The repository has been restructured. For management instructions, see:
+- [BRANCH_CLEANUP_GUIDE.md](./BRANCH_CLEANUP_GUIDE.md) - Branch cleanup and management
+- [PR_MANAGEMENT_GUIDE.md](./PR_MANAGEMENT_GUIDE.md) - Pull request management and details
 
 ## How can I edit this code?
 
@@ -61,6 +63,31 @@ npm run dev
 - Select the "Codespaces" tab.
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
+
+## Developer Tools
+
+### Pull Request Management
+
+View and manage pull requests easily:
+
+```bash
+# View all open PRs
+./pr-details.sh
+
+# View closed PRs
+./pr-details.sh summary closed
+
+# View details for a specific PR
+./pr-details.sh details <PR_NUMBER>
+
+# View all PRs (open, closed, merged)
+./pr-details.sh all
+
+# Get help
+./pr-details.sh help
+```
+
+For complete documentation, see [PR_MANAGEMENT_GUIDE.md](./PR_MANAGEMENT_GUIDE.md).
 
 ## What technologies are used for this project?
 
