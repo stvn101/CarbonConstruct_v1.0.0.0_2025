@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu } from "lucide-react";
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+import { PDF_COLORS } from '@/constants/pdfColors';
 
 
 interface VerificationResult {
@@ -76,37 +77,37 @@ interface ValidationSummary {
 const pdfStyles = StyleSheet.create({
   page: {
     flexDirection: 'column',
-    backgroundColor: '#ffffff',
+    backgroundColor: PDF_COLORS.white,
     padding: 40,
     fontFamily: 'Helvetica',
   },
   header: {
     marginBottom: 20,
-    borderBottom: '2px solid #2d5a27',
+    borderBottom: `2px solid ${PDF_COLORS.primaryGreen}`,
     paddingBottom: 15,
     textAlign: 'center',
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2d5a27',
+    color: PDF_COLORS.primaryGreen,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 12,
-    color: '#666666',
+    color: PDF_COLORS.textGray,
     marginBottom: 5,
   },
   aiVerificationBadge: {
     marginTop: 10,
     padding: 8,
-    backgroundColor: '#eff6ff',
+    backgroundColor: PDF_COLORS.infoBackground,
     borderRadius: 4,
-    border: '1px solid #93c5fd',
+    border: `1px solid ${PDF_COLORS.infoVeryLight}`,
   },
   aiBadgeText: {
     fontSize: 10,
-    color: '#1e40af',
+    color: PDF_COLORS.infoVeryDark,
     textAlign: 'center',
   },
   section: {
@@ -115,9 +116,9 @@ const pdfStyles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#2d5a27',
+    color: PDF_COLORS.primaryGreen,
     marginBottom: 10,
-    borderBottom: '1px solid #cccccc',
+    borderBottom: `1px solid ${PDF_COLORS.borderDark}`,
     paddingBottom: 5,
   },
   summaryRow: {
@@ -132,20 +133,20 @@ const pdfStyles = StyleSheet.create({
     textAlign: 'center',
   },
   summaryBoxGreen: {
-    backgroundColor: '#f0fdf4',
-    border: '1px solid #86efac',
+    backgroundColor: PDF_COLORS.successBackground,
+    border: `1px solid ${PDF_COLORS.successVeryLight}`,
   },
   summaryBoxYellow: {
-    backgroundColor: '#fefce8',
-    border: '1px solid #fde047',
+    backgroundColor: PDF_COLORS.warningBackground,
+    border: `1px solid ${PDF_COLORS.warning}`,
   },
   summaryBoxRed: {
-    backgroundColor: '#fef2f2',
-    border: '1px solid #fca5a5',
+    backgroundColor: PDF_COLORS.errorBackground,
+    border: `1px solid ${PDF_COLORS.errorLight}`,
   },
   summaryBoxBlue: {
-    backgroundColor: '#eff6ff',
-    border: '1px solid #93c5fd',
+    backgroundColor: PDF_COLORS.infoBackground,
+    border: `1px solid ${PDF_COLORS.infoVeryLight}`,
   },
   summaryValue: {
     fontSize: 18,
@@ -157,69 +158,69 @@ const pdfStyles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: PDF_COLORS.backgroundMediumGray,
     padding: 6,
-    borderBottom: '1px solid #d1d5db',
+    borderBottom: `1px solid ${PDF_COLORS.borderMedium}`,
   },
   tableHeaderCell: {
     fontSize: 8,
     fontWeight: 'bold',
-    color: '#374151',
+    color: PDF_COLORS.textMedium,
   },
   tableRow: {
     flexDirection: 'row',
     padding: 5,
-    borderBottom: '1px solid #e5e7eb',
+    borderBottom: `1px solid ${PDF_COLORS.borderLight}`,
   },
   tableCell: {
     fontSize: 7,
-    color: '#4b5563',
+    color: PDF_COLORS.textGray,
   },
   passText: {
-    color: '#16a34a',
+    color: PDF_COLORS.successDark,
   },
   warnText: {
-    color: '#ca8a04',
+    color: PDF_COLORS.warningDark,
   },
   failText: {
-    color: '#dc2626',
+    color: PDF_COLORS.error,
   },
   paragraph: {
     fontSize: 10,
-    color: '#4b5563',
+    color: PDF_COLORS.textGray,
     marginBottom: 8,
     lineHeight: 1.5,
   },
   certificationBox: {
     marginTop: 20,
     padding: 15,
-    border: '2px solid #22c55e',
+    border: `2px solid ${PDF_COLORS.success}`,
     borderRadius: 4,
     textAlign: 'center',
   },
   certTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#16a34a',
+    color: PDF_COLORS.successDark,
     marginBottom: 8,
   },
   certText: {
     fontSize: 9,
-    color: '#4b5563',
+    color: PDF_COLORS.textGray,
   },
   footer: {
     marginTop: 20,
     paddingTop: 10,
-    borderTop: '1px solid #e5e7eb',
+    borderTop: `1px solid ${PDF_COLORS.borderLight}`,
     fontSize: 8,
-    color: '#9ca3af',
+    color: PDF_COLORS.textLightGray,
     textAlign: 'center',
   },
   sourceBox: {
     padding: 8,
     marginBottom: 5,
     borderRadius: 4,
-    backgroundColor: '#f9fafb',
+    backgroundColor: PDF_COLORS.backgroundVeryLight,
   },
   sourceTitle: {
     fontSize: 10,
@@ -228,19 +229,19 @@ const pdfStyles = StyleSheet.create({
   },
   sourceDesc: {
     fontSize: 8,
-    color: '#6b7280',
+    color: PDF_COLORS.textGray,
   },
   validationSection: {
     marginTop: 15,
     padding: 10,
-    backgroundColor: '#fafafa',
+    backgroundColor: PDF_COLORS.backgroundVeryLight,
     borderRadius: 4,
   },
   validationTitle: {
     fontSize: 11,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#374151',
+    color: PDF_COLORS.textMedium,
   },
   validationItem: {
     flexDirection: 'row',
@@ -249,12 +250,12 @@ const pdfStyles = StyleSheet.create({
   },
   validationLabel: {
     fontSize: 9,
-    color: '#6b7280',
+    color: PDF_COLORS.textGray,
   },
   validationValue: {
     fontSize: 9,
     fontWeight: 'bold',
-    color: '#374151',
+    color: PDF_COLORS.textMedium,
   },
 });
 
@@ -334,20 +335,20 @@ const PDFVerificationDocument: React.FC<PDFVerificationDocumentProps> = ({
           <Text style={pdfStyles.sectionTitle}>Validation Summary</Text>
           <View style={pdfStyles.summaryRow}>
             <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxGreen]}>
-              <Text style={[pdfStyles.summaryValue, { color: '#16a34a' }]}>{summary.passCount.toLocaleString()}</Text>
-              <Text style={[pdfStyles.summaryLabel, { color: '#15803d' }]}>Validated</Text>
+              <Text style={[pdfStyles.summaryValue, { color: PDF_COLORS.successDark }]}>{summary.passCount.toLocaleString()}</Text>
+              <Text style={[pdfStyles.summaryLabel, { color: PDF_COLORS.successVeryDark }]}>Validated</Text>
             </View>
             <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxYellow]}>
-              <Text style={[pdfStyles.summaryValue, { color: '#ca8a04' }]}>{summary.warnCount}</Text>
-              <Text style={[pdfStyles.summaryLabel, { color: '#a16207' }]}>Review Required</Text>
+              <Text style={[pdfStyles.summaryValue, { color: PDF_COLORS.warningDark }]}>{summary.warnCount}</Text>
+              <Text style={[pdfStyles.summaryLabel, { color: PDF_COLORS.warningVeryDark }]}>Review Required</Text>
             </View>
             <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxRed]}>
-              <Text style={[pdfStyles.summaryValue, { color: '#dc2626' }]}>{summary.failCount}</Text>
-              <Text style={[pdfStyles.summaryLabel, { color: '#b91c1c' }]}>Failed</Text>
+              <Text style={[pdfStyles.summaryValue, { color: PDF_COLORS.error }]}>{summary.failCount}</Text>
+              <Text style={[pdfStyles.summaryLabel, { color: PDF_COLORS.errorDark }]}>Failed</Text>
             </View>
             <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxBlue]}>
-              <Text style={[pdfStyles.summaryValue, { color: '#2563eb' }]}>{summary.passRate.toFixed(1)}%</Text>
-              <Text style={[pdfStyles.summaryLabel, { color: '#1d4ed8' }]}>Pass Rate</Text>
+              <Text style={[pdfStyles.summaryValue, { color: PDF_COLORS.infoDark }]}>{summary.passRate.toFixed(1)}%</Text>
+              <Text style={[pdfStyles.summaryLabel, { color: PDF_COLORS.infoVeryDark }]}>Pass Rate</Text>
             </View>
           </View>
         </View>
@@ -357,31 +358,31 @@ const PDFVerificationDocument: React.FC<PDFVerificationDocumentProps> = ({
           <Text style={pdfStyles.validationTitle}>Data Integrity Validation</Text>
           <View style={pdfStyles.validationItem}>
             <Text style={pdfStyles.validationLabel}>Missing ef_total values:</Text>
-            <Text style={[pdfStyles.validationValue, { color: summary.missingData.efTotal === 0 ? '#16a34a' : '#dc2626' }]}>
+            <Text style={[pdfStyles.validationValue, { color: summary.missingData.efTotal === 0 ? PDF_COLORS.successDark : PDF_COLORS.error }]}>
               {summary.missingData.efTotal} {summary.missingData.efTotal === 0 ? '✓' : '✗'}
             </Text>
           </View>
           <View style={pdfStyles.validationItem}>
             <Text style={pdfStyles.validationLabel}>Missing A1-A3 factors:</Text>
-            <Text style={[pdfStyles.validationValue, { color: summary.missingData.a1a3 === 0 ? '#16a34a' : '#dc2626' }]}>
+            <Text style={[pdfStyles.validationValue, { color: summary.missingData.a1a3 === 0 ? PDF_COLORS.successDark : PDF_COLORS.error }]}>
               {summary.missingData.a1a3} {summary.missingData.a1a3 === 0 ? '✓' : '✗'}
             </Text>
           </View>
           <View style={pdfStyles.validationItem}>
             <Text style={pdfStyles.validationLabel}>Missing material names:</Text>
-            <Text style={[pdfStyles.validationValue, { color: summary.missingData.names === 0 ? '#16a34a' : '#dc2626' }]}>
+            <Text style={[pdfStyles.validationValue, { color: summary.missingData.names === 0 ? PDF_COLORS.successDark : PDF_COLORS.error }]}>
               {summary.missingData.names} {summary.missingData.names === 0 ? '✓' : '✗'}
             </Text>
           </View>
           <View style={pdfStyles.validationItem}>
             <Text style={pdfStyles.validationLabel}>Missing units:</Text>
-            <Text style={[pdfStyles.validationValue, { color: summary.missingData.units === 0 ? '#16a34a' : '#dc2626' }]}>
+            <Text style={[pdfStyles.validationValue, { color: summary.missingData.units === 0 ? PDF_COLORS.successDark : PDF_COLORS.error }]}>
               {summary.missingData.units} {summary.missingData.units === 0 ? '✓' : '✗'}
             </Text>
           </View>
           <View style={pdfStyles.validationItem}>
             <Text style={pdfStyles.validationLabel}>Missing categories:</Text>
-            <Text style={[pdfStyles.validationValue, { color: summary.missingData.categories === 0 ? '#16a34a' : '#dc2626' }]}>
+            <Text style={[pdfStyles.validationValue, { color: summary.missingData.categories === 0 ? PDF_COLORS.successDark : PDF_COLORS.error }]}>
               {summary.missingData.categories} {summary.missingData.categories === 0 ? '✓' : '✗'}
             </Text>
           </View>
@@ -417,15 +418,15 @@ const PDFVerificationDocument: React.FC<PDFVerificationDocumentProps> = ({
           <Text style={pdfStyles.sectionTitle}>Data Source Distribution</Text>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
-              <Text style={[pdfStyles.sourceTitle, { color: '#16a34a' }]}>{summary.sourceDistribution.epdAustralasia.toLocaleString()}</Text>
+              <Text style={[pdfStyles.sourceTitle, { color: PDF_COLORS.successDark }]}>{summary.sourceDistribution.epdAustralasia.toLocaleString()}</Text>
               <Text style={pdfStyles.sourceDesc}>EPD Australasia</Text>
             </View>
             <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
-              <Text style={[pdfStyles.sourceTitle, { color: '#2563eb' }]}>{summary.sourceDistribution.icmDatabase.toLocaleString()}</Text>
+              <Text style={[pdfStyles.sourceTitle, { color: PDF_COLORS.infoDark }]}>{summary.sourceDistribution.icmDatabase.toLocaleString()}</Text>
               <Text style={pdfStyles.sourceDesc}>ICM Database 2019</Text>
             </View>
             <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
-              <Text style={[pdfStyles.sourceTitle, { color: '#7c3aed' }]}>{summary.sourceDistribution.epdInternational.toLocaleString()}</Text>
+              <Text style={[pdfStyles.sourceTitle, { color: PDF_COLORS.chart.purple }]}>{summary.sourceDistribution.epdInternational.toLocaleString()}</Text>
               <Text style={pdfStyles.sourceDesc}>EPD International</Text>
             </View>
             <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
