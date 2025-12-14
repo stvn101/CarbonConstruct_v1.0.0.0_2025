@@ -1,6 +1,6 @@
-# Tailwind Quick Reference - Carbon Construct
+# Tailwind Quick Reference - Carbon Compass AI Guide
 
-A quick reference guide for developers working with the Carbon Construct Tailwind configuration.
+A quick reference guide for developers working with the Carbon Compass AI Guide Tailwind configuration.
 
 ## 🎨 Color Classes Quick Reference
 
