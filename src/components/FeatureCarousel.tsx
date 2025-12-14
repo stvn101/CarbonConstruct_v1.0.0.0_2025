@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import { CheckCircle, Zap, Pause, Play, Scale, Upload, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useInViewAnimation } from "@/hooks/useInViewAnimation";
 
 const features = [
   {
@@ -63,6 +64,7 @@ export function FeatureCarousel() {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const { ref: carouselRef, isInView } = useInViewAnimation<HTMLDivElement>();
 
   // Track current slide
   useEffect(() => {
@@ -93,6 +95,7 @@ export function FeatureCarousel() {
 
   return (
     <div 
+      ref={carouselRef}
       className="w-full max-w-5xl mx-auto px-4"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -119,14 +122,14 @@ export function FeatureCarousel() {
             <CarouselItem key={index} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
               <Card 
                 className={cn(
-                  "h-full glass-dark border transition-all duration-300 relative overflow-hidden group",
-                  "animate-slide-up",
+                  "h-full glass-dark border transition-all duration-500 relative overflow-hidden group",
+                  isInView ? "animate-slide-up opacity-100" : "opacity-0 translate-y-8",
                   feature.accentColor,
                   "hover:shadow-glass-hover hover:-translate-y-1"
                 )}
                 style={{ 
-                  animationDelay: `${index * 0.08}s`,
-                  animationFillMode: 'forwards'
+                  animationDelay: `${index * 100}ms`,
+                  transitionDelay: `${index * 100}ms`,
                 }}
               >
                 {/* Gradient overlay */}
@@ -141,14 +144,14 @@ export function FeatureCarousel() {
                   {/* Icon with ambient glow */}
                   <div 
                     className={cn(
-                      "w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all duration-300",
-                      "animate-pop-in",
+                      "w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all duration-500",
+                      isInView ? "animate-pop-in opacity-100 scale-100" : "opacity-0 scale-75",
                       feature.iconBg,
                       "group-hover:scale-110 group-hover:shadow-lg"
                     )}
                     style={{ 
-                      animationDelay: `${index * 0.08 + 0.15}s`,
-                      animationFillMode: 'forwards'
+                      animationDelay: `${index * 100 + 150}ms`,
+                      transitionDelay: `${index * 100 + 150}ms`,
                     }}
                   >
                     <feature.icon className={cn("h-7 w-7", feature.iconColor)} />
