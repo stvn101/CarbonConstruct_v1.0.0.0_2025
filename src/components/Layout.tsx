@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "react-router-dom";
 import { Play } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -56,11 +57,14 @@ export function Layout({ children }: LayoutProps) {
               </a>
             )}
             <div className="flex-1" />
-            <div
-              className="text-xs md:text-sm text-muted-foreground hidden sm:block"
-              aria-label="Compliance information"
-            >
-              Australian NCC Compliant • Green Star Ready
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <div
+                className="text-xs md:text-sm text-muted-foreground hidden sm:block"
+                aria-label="Compliance information"
+              >
+                Australian NCC Compliant • Green Star Ready
+              </div>
             </div>
           </header>
 

@@ -1053,7 +1053,7 @@ export default function Calculator() {
           {/* Left Column - Inputs */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Project Config */}
-            <div className="bg-card rounded-lg shadow-sm border p-3 md:p-5 relative">
+            <div className="glass rounded-lg p-3 md:p-5 relative glass-glow-hover">
               <h3 className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 md:mb-4">Project Details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 <Input 
@@ -1095,7 +1095,7 @@ export default function Calculator() {
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b bg-card rounded-t-lg">
+            <div className="flex border-b glass rounded-t-lg">
               <button 
                 onClick={() => setActiveTab('inputs')} 
                 className={`flex-1 py-3 text-sm font-medium ${activeTab === 'inputs' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground'}`}
@@ -1114,10 +1114,11 @@ export default function Calculator() {
               <div className="space-y-6">
                 {/* AI Import Banner with Drag & Drop */}
                 <Card 
-                  className={`relative overflow-hidden transition-all duration-200 ${
+                  variant="glass"
+                  className={`relative overflow-hidden transition-all duration-200 glass-glow-hover ${
                     isDragOver 
-                      ? 'bg-purple-100 border-purple-400 border-2 border-dashed' 
-                      : 'bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200'
+                      ? 'bg-purple-100/80 dark:bg-purple-900/30 border-purple-400 border-2 border-dashed' 
+                      : 'border-purple-200/50 dark:border-purple-700/30'
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -1181,7 +1182,7 @@ export default function Calculator() {
                 </Card>
 
                 {/* Energy Section */}
-                <Card className="p-4 md:p-6">
+                <Card variant="glass" className="p-4 md:p-6 glass-glow-hover">
                   <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">Energy (Scope 1 & 2)</h3>
                   <div className="bg-slate-50 p-2 md:p-3 rounded border mb-3 md:mb-4">
                     <FactorRow 
@@ -1207,7 +1208,7 @@ export default function Calculator() {
                 </Card>
 
                 {/* Materials Section */}
-                <Card className="p-4 md:p-6">
+                <Card variant="glass" className="p-4 md:p-6 glass-glow-hover">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 md:mb-4">
                     <h3 className="font-bold text-base md:text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
                     <div className="flex items-center gap-2">
@@ -1821,7 +1822,7 @@ export default function Calculator() {
             )}
 
             {activeTab === 'report' && (
-              <Card className="p-4 md:p-8 text-center">
+              <Card variant="glass" className="p-4 md:p-8 text-center glass-glow-hover">
                 <div className="inline-block p-3 md:p-4 bg-emerald-50 rounded-full text-emerald-600 mb-4">
                   <CloudUpload className="h-8 w-8 md:h-12 md:w-12" />
                 </div>
@@ -1862,7 +1863,7 @@ export default function Calculator() {
 
           {/* Right Column - Stats Panel */}
           <div className="lg:col-span-1">
-            <Card className="p-4 md:p-6 lg:sticky lg:top-6 bg-slate-800 text-white" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
+            <Card variant="glassDark" className="p-4 md:p-6 lg:sticky lg:top-6 text-white glow-ring" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
               <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Footprint</h3>
               <div className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-emerald-400">
                 {(calculations.total / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>
