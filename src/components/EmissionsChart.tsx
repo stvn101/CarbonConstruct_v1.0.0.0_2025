@@ -7,6 +7,7 @@ interface EmissionData {
   category: string;
   emissions: number;
   percentage: number;
+  [key: string]: string | number; // Index signature for chart compatibility
 }
 
 interface EmissionsChartProps {
@@ -55,7 +56,7 @@ export const EmissionsChart = memo(({ type, title, description, data, colors = V
                   cx="50%"
                   cy="45%"
                   outerRadius="70%"
-                  label={({ percentage }) => `${percentage.toFixed(1)}%`}
+                  label={({ percent }) => `${((percent || 0) * 100).toFixed(1)}%`}
                   labelLine={false}
                 >
                 {data.map((_entry, index) => (

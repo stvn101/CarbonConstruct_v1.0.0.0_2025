@@ -1,124 +1,145 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Calculator, Database, FileText, TrendingDown, Users, Zap, Shield, BarChart3 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { Calculator, FileBarChart, Layers, CheckCircle, Zap, Pause, Play } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const FEATURES = [
+const features = [
+  {
+    icon: Layers,
+    title: "Material Comparer",
+    description: "Compare carbon footprints across 4,000+ verified EPD materials side-by-side.",
+  },
+  {
+    icon: FileBarChart,
+    title: "Bulk EPD Uploader",
+    description: "Upload and process multiple EPD PDFs at once with AI-powered extraction.",
+  },
   {
     icon: Calculator,
-    title: 'Carbon Calculator',
-    description: 'Calculate embodied carbon for construction materials with Australian-specific emission factors',
-    badge: 'Core Feature',
-    gradient: 'from-blue-500/10 to-blue-600/10',
-    iconColor: 'text-blue-600',
+    title: "LCA Dashboard",
+    description: "Full EN 15978 lifecycle assessment with A-D stage breakdown visualization.",
   },
   {
-    icon: Database,
-    title: '4,000+ EPD Materials',
-    description: 'Access comprehensive database of verified Environmental Product Declarations',
-    badge: 'Database',
-    gradient: 'from-emerald-500/10 to-emerald-600/10',
-    iconColor: 'text-emerald-600',
-  },
-  {
-    icon: FileText,
-    title: 'Professional Reports',
-    description: 'Generate compliance-ready PDF reports with custom branding',
-    badge: 'Reporting',
-    gradient: 'from-purple-500/10 to-purple-600/10',
-    iconColor: 'text-purple-600',
-  },
-  {
-    icon: TrendingDown,
-    title: 'Lifecycle Assessment',
-    description: 'Full EN 15978 methodology covering A1-D lifecycle stages',
-    badge: 'LCA',
-    gradient: 'from-orange-500/10 to-orange-600/10',
-    iconColor: 'text-orange-600',
-  },
-  {
-    icon: Shield,
-    title: 'Australian Compliance',
-    description: 'Built for NCC 2024, Green Star, NABERS, and IS Rating requirements',
-    badge: 'Compliance',
-    gradient: 'from-red-500/10 to-red-600/10',
-    iconColor: 'text-red-600',
-  },
-  {
-    icon: BarChart3,
-    title: 'Advanced Analytics',
-    description: 'Visualize emissions with interactive charts and hotspot analysis',
-    badge: 'Analytics',
-    gradient: 'from-indigo-500/10 to-indigo-600/10',
-    iconColor: 'text-indigo-600',
-  },
-  {
-    icon: Users,
-    title: 'Team Collaboration',
-    description: 'Share projects and collaborate with your team in real-time',
-    badge: 'Pro Feature',
-    gradient: 'from-pink-500/10 to-pink-600/10',
-    iconColor: 'text-pink-600',
+    icon: CheckCircle,
+    title: "Compliance Cards",
+    description: "Instant NCC, Green Star, NABERS, and IS Rating compliance checks.",
   },
   {
     icon: Zap,
-    title: 'AI Recommendations',
-    description: 'Get intelligent suggestions to reduce your project carbon footprint',
-    badge: 'AI Powered',
-    gradient: 'from-yellow-500/10 to-yellow-600/10',
-    iconColor: 'text-yellow-600',
+    title: "Quick Calculator",
+    description: "Get instant carbon estimates without signing up. Try it above!",
   },
 ];
 
-interface FeatureCarouselProps {
-  autoplay?: boolean;
-  className?: string;
-}
+export function FeatureCarousel() {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
-export const FeatureCarousel = ({ autoplay = false, className = '' }: FeatureCarouselProps) => {
+  // Track current slide
+  useEffect(() => {
+    if (!api) return;
+    setCurrent(api.selectedScrollSnap());
+    api.on("select", () => setCurrent(api.selectedScrollSnap()));
+  }, [api]);
+
+  // Auto-play logic (5s interval, pause on hover)
+  useEffect(() => {
+    if (!api || isPaused) return;
+    const interval = setInterval(() => api.scrollNext(), 5000);
+    return () => clearInterval(interval);
+  }, [api, isPaused]);
+
+  // Keyboard shortcut: spacebar to toggle pause/play
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.code === "Space" && e.target === document.body) {
+      e.preventDefault();
+      setIsPaused(prev => !prev);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
   return (
-    <div className={cn('w-full max-w-6xl mx-auto px-4', className)}>
+    <div 
+      className="w-full max-w-5xl mx-auto px-4"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div className="text-center mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-foreground">
+          Powerful Tools for Carbon Assessment
+        </h2>
+        <p className="text-muted-foreground">
+          Everything you need for professional construction carbon reporting
+        </p>
+      </div>
+      
       <Carousel
+        setApi={setApi}
         opts={{
-          align: 'start',
-          loop: autoplay,
+          align: "start",
+          loop: true,
         }}
         className="w-full"
       >
         <CarouselContent className="-ml-2 md:-ml-4">
-          {FEATURES.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <CarouselItem key={feature.title} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                <Card className="h-full hover:shadow-lg transition-shadow duration-300">
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className={`p-3 rounded-lg bg-gradient-to-br ${feature.gradient}`}>
-                        <Icon className={`h-6 w-6 ${feature.iconColor}`} />
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {feature.badge}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm leading-relaxed">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              </CarouselItem>
-            );
-          })}
+          {features.map((feature, index) => (
+            <CarouselItem key={index} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+              <Card variant="glass" className="h-full border-primary/10">
+                <CardHeader className="pb-2">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                    <feature.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+          ))}
         </CarouselContent>
-        <div className="hidden md:block">
-          <CarouselPrevious />
-          <CarouselNext />
-        </div>
+        <CarouselPrevious className="hidden sm:flex -left-4 glass border-primary/20" />
+        <CarouselNext className="hidden sm:flex -right-4 glass border-primary/20" />
       </Carousel>
+
+      {/* Controls: Dot indicators + Pause/Play button */}
+      <div className="flex justify-center items-center gap-4 mt-6">
+        <div className="flex gap-2">
+          {features.map((_, index) => (
+            <button
+              key={index}
+              aria-label={`Go to slide ${index + 1}`}
+              className={cn(
+                "h-2 rounded-full transition-all duration-300",
+                current === index 
+                  ? "w-6 bg-primary" 
+                  : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              )}
+              onClick={() => api?.scrollTo(index)}
+            />
+          ))}
+        </div>
+        <button
+          onClick={() => setIsPaused(!isPaused)}
+          aria-label={isPaused ? "Resume carousel auto-play" : "Pause carousel auto-play"}
+          className="p-2 rounded-full glass border border-primary/20 hover:bg-primary/10 transition-colors"
+        >
+          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+        </button>
+      </div>
     </div>
   );
-};
-
-export default FeatureCarousel;
+}

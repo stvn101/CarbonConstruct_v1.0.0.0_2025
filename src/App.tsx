@@ -55,7 +55,7 @@ const App = () => (
     <AuthProvider>
       <ProjectProvider>
         <Toaster />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <BrowserRouter>
           <MonitoringProvider>
             <Layout>
               <Suspense fallback={

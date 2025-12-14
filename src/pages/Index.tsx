@@ -14,6 +14,8 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
 import { FeatureTeaser } from "@/components/FeatureTeaser";
+import { QuickCarbonCalculator } from "@/components/QuickCarbonCalculator";
+import { FeatureCarousel } from "@/components/FeatureCarousel";
 import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw, CheckCircle, User, Shield, Leaf, Check, X, HardHat, Award, Building2, Calendar, Crown, Clock } from "lucide-react";
 import { CalculationHistory } from "@/components/CalculationHistory";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -108,6 +110,16 @@ const Index = () => {
 
             {/* Feature Teaser Video Section */}
             <FeatureTeaser />
+
+            {/* Feature Carousel - Glass Cards */}
+            <section className="carbon-surface py-12 -mx-4 px-4 rounded-xl">
+              <FeatureCarousel />
+            </section>
+
+            {/* Quick Carbon Estimator */}
+            <div className="max-w-3xl mx-auto">
+              <QuickCarbonCalculator />
+            </div>
 
             {/* CTA Section - Freemium Emphasis */}
             <div className="space-y-4 md:space-y-5 animate-fade-in [animation-delay:0.4s]">

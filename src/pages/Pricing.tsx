@@ -184,7 +184,7 @@ const Pricing = () => {
       </div>
 
       {/* Stripe Climate Badge */}
-      <Card className="mb-12 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
+      <Card variant="glass" className="mb-12 border-primary/20">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left">
             <div className="flex-shrink-0">
@@ -215,8 +215,9 @@ const Pricing = () => {
         </CardContent>
       </Card>
 
-      {/* Pricing Cards - Fixed Height Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 items-stretch">
+      {/* Pricing Cards - Glass Cards on Dark Surface */}
+      <section className="carbon-surface py-10 -mx-4 px-4 rounded-2xl mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
         {PRICING_TIERS.map((tier) => {
           const Icon = tier.icon;
           const isCurrentTier = currentTierName === tier.name || (currentTierName === 'Pro' && tier.name === 'Professional');
@@ -226,13 +227,14 @@ const Pricing = () => {
 
           return (
             <Card 
-              key={tier.name} 
+              key={tier.name}
+              variant="glass"
               className={`relative flex flex-col h-full ${
                 isPopular 
                   ? 'border-primary border-2 shadow-xl scale-[1.02] z-10' 
                   : isForeverFree 
-                    ? 'border-emerald-500/50 border-2 bg-emerald-500/5' 
-                    : ''
+                    ? 'border-emerald-500/50 border-2' 
+                    : 'border-border/30'
               }`}
             >
               {/* Badges */}
@@ -358,10 +360,11 @@ const Pricing = () => {
             </Card>
           );
         })}
-      </div>
+        </div>
+      </section>
 
       {/* Why CarbonConstruct Section */}
-      <Card className="mb-12">
+      <Card variant="glass" className="mb-12 carbon-surface">
         <CardHeader>
           <CardTitle>Why CarbonConstruct?</CardTitle>
           <CardDescription>
@@ -370,18 +373,18 @@ const Pricing = () => {
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center p-4 border rounded-lg">
+            <Card variant="glass" className="text-center p-4 border-border/30">
               <div className="text-3xl font-bold text-primary mb-2">4,000+</div>
               <div className="text-sm text-muted-foreground">EPD materials in our database with verified emission factors</div>
-            </div>
-            <div className="text-center p-4 border rounded-lg">
+            </Card>
+            <Card variant="glass" className="text-center p-4 border-border/30">
               <div className="text-3xl font-bold text-primary mb-2">4</div>
               <div className="text-sm text-muted-foreground">Australian compliance frameworks supported (NCC, Green Star, NABERS, IS Rating)</div>
-            </div>
-            <div className="text-center p-4 border rounded-lg">
+            </Card>
+            <Card variant="glass" className="text-center p-4 border-border/30">
               <div className="text-3xl font-bold text-primary mb-2">EN 15978</div>
               <div className="text-sm text-muted-foreground">Full lifecycle assessment methodology (A1-D stages)</div>
-            </div>
+            </Card>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-4">
             All emission factors sourced from NABERS 2025 EPD List and ICE Database 2019
@@ -390,55 +393,87 @@ const Pricing = () => {
       </Card>
 
       {/* Stripe Pricing Table Embed */}
-      <div className="mb-12">
-        <h2 className="text-3xl font-bold text-center mb-4">Or Choose Your Plan with Stripe</h2>
-        <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Select your subscription directly through our secure Stripe checkout
-        </p>
-        <div ref={stripePricingTableRef} className="w-full">
-          <stripe-pricing-table
-            pricing-table-id={import.meta.env.VITE_STRIPE_PRICING_TABLE_ID}
-            publishable-key={import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY}
+      <Card variant="glass" className="mb-12 carbon-surface">
+        <CardHeader>
+          <CardTitle className="text-3xl text-center">Or Choose Your Plan with Stripe</CardTitle>
+          <CardDescription className="text-center max-w-2xl mx-auto">
+            Select your subscription directly through our secure Stripe checkout
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div 
+            className="w-full" 
+            dangerouslySetInnerHTML={{
+              __html: `
+                <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+                <stripe-pricing-table 
+                  pricing-table-id="prctbl_1SULtHP7JT8gu0Wn7fABNU0I"
+                  publishable-key="pk_live_51RKejrP7JT8gu0WngS6oEMcUaQdgGb5XaYcEy5e2kq6Dx75lgaizFV1Fk2lmpgE7nGav6F0fDlMhSYcgecftwpu800mMRyCFJz">
+                </stripe-pricing-table>
+              `
+            }}
           />
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* FAQ Section */}
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
-        <div className="space-y-6">
-          <div>
-            <h3 className="font-semibold mb-2">Can I switch plans at any time?</h3>
-            <p className="text-muted-foreground">
-              Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any charges.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">What compliance standards do you support?</h3>
-            <p className="text-muted-foreground">
-              We support Australian NCC 2024, GBCA Green Star, NABERS, and ISO 14040-44 LCA methodologies. All emission factors are Australian-specific and regularly updated.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">Is there a free trial for Pro and Business plans?</h3>
-            <p className="text-muted-foreground">
-              Yes! All paid plans include a 14-day free trial. No credit card required to start your trial.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">What payment methods do you accept?</h3>
-            <p className="text-muted-foreground">
-              We accept all major credit cards, PayPal, and can arrange invoicing for Business and Enterprise plans.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">Do you offer custom enterprise solutions?</h3>
-            <p className="text-muted-foreground">
-              Absolutely! Our Enterprise plan is fully customizable with pricing tailored to your organisation's needs. Contact our sales team to discuss your specific requirements.
-            </p>
-          </div>
-        </div>
-      </div>
+      <Card variant="glass" className="max-w-3xl mx-auto carbon-surface">
+        <CardHeader>
+          <CardTitle className="text-3xl text-center">Frequently Asked Questions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Card variant="glass" className="border-border/30">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">Can I switch plans at any time?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any charges.
+              </p>
+            </CardContent>
+          </Card>
+          <Card variant="glass" className="border-border/30">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">What compliance standards do you support?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                We support Australian NCC 2024, GBCA Green Star, NABERS, and ISO 14040-44 LCA methodologies. All emission factors are Australian-specific and regularly updated.
+              </p>
+            </CardContent>
+          </Card>
+          <Card variant="glass" className="border-border/30">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">Is there a free trial for Pro and Business plans?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                Yes! All paid plans include a 14-day free trial. No credit card required to start your trial.
+              </p>
+            </CardContent>
+          </Card>
+          <Card variant="glass" className="border-border/30">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">What payment methods do you accept?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                We accept all major credit cards, PayPal, and can arrange invoicing for Business and Enterprise plans.
+              </p>
+            </CardContent>
+          </Card>
+          <Card variant="glass" className="border-border/30">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">Do you offer custom enterprise solutions?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                Absolutely! Our Enterprise plan is fully customizable with pricing tailored to your organisation's needs. Contact our sales team to discuss your specific requirements.
+              </p>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 };
