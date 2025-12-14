@@ -1,9 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu } from "lucide-react";
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
-
+import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu, Loader2 } from "lucide-react";
+import { useState } from "react";
+import html2pdf from "html2pdf.js";
 
 interface VerificationResult {
   material: string;
@@ -72,475 +72,11 @@ interface ValidationSummary {
   };
 }
 
-// PDF Styles
-const pdfStyles = StyleSheet.create({
-  page: {
-    flexDirection: 'column',
-    backgroundColor: '#ffffff',
-    padding: 40,
-    fontFamily: 'Helvetica',
-  },
-  header: {
-    marginBottom: 20,
-    borderBottom: '2px solid #2d5a27',
-    paddingBottom: 15,
-    textAlign: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2d5a27',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: '#666666',
-    marginBottom: 5,
-  },
-  aiVerificationBadge: {
-    marginTop: 10,
-    padding: 8,
-    backgroundColor: '#eff6ff',
-    borderRadius: 4,
-    border: '1px solid #93c5fd',
-  },
-  aiBadgeText: {
-    fontSize: 10,
-    color: '#1e40af',
-    textAlign: 'center',
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#2d5a27',
-    marginBottom: 10,
-    borderBottom: '1px solid #cccccc',
-    paddingBottom: 5,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  summaryBox: {
-    width: '23%',
-    padding: 10,
-    borderRadius: 4,
-    textAlign: 'center',
-  },
-  summaryBoxGreen: {
-    backgroundColor: '#f0fdf4',
-    border: '1px solid #86efac',
-  },
-  summaryBoxYellow: {
-    backgroundColor: '#fefce8',
-    border: '1px solid #fde047',
-  },
-  summaryBoxRed: {
-    backgroundColor: '#fef2f2',
-    border: '1px solid #fca5a5',
-  },
-  summaryBoxBlue: {
-    backgroundColor: '#eff6ff',
-    border: '1px solid #93c5fd',
-  },
-  summaryValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  summaryLabel: {
-    fontSize: 8,
-    marginTop: 4,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#f3f4f6',
-    padding: 6,
-    borderBottom: '1px solid #d1d5db',
-  },
-  tableHeaderCell: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: '#374151',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    padding: 5,
-    borderBottom: '1px solid #e5e7eb',
-  },
-  tableCell: {
-    fontSize: 7,
-    color: '#4b5563',
-  },
-  passText: {
-    color: '#16a34a',
-  },
-  warnText: {
-    color: '#ca8a04',
-  },
-  failText: {
-    color: '#dc2626',
-  },
-  paragraph: {
-    fontSize: 10,
-    color: '#4b5563',
-    marginBottom: 8,
-    lineHeight: 1.5,
-  },
-  certificationBox: {
-    marginTop: 20,
-    padding: 15,
-    border: '2px solid #22c55e',
-    borderRadius: 4,
-    textAlign: 'center',
-  },
-  certTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#16a34a',
-    marginBottom: 8,
-  },
-  certText: {
-    fontSize: 9,
-    color: '#4b5563',
-  },
-  footer: {
-    marginTop: 20,
-    paddingTop: 10,
-    borderTop: '1px solid #e5e7eb',
-    fontSize: 8,
-    color: '#9ca3af',
-    textAlign: 'center',
-  },
-  sourceBox: {
-    padding: 8,
-    marginBottom: 5,
-    borderRadius: 4,
-    backgroundColor: '#f9fafb',
-  },
-  sourceTitle: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    marginBottom: 3,
-  },
-  sourceDesc: {
-    fontSize: 8,
-    color: '#6b7280',
-  },
-  validationSection: {
-    marginTop: 15,
-    padding: 10,
-    backgroundColor: '#fafafa',
-    borderRadius: 4,
-  },
-  validationTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#374151',
-  },
-  validationItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  validationLabel: {
-    fontSize: 9,
-    color: '#6b7280',
-  },
-  validationValue: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: '#374151',
-  },
-});
-
-interface PDFVerificationDocumentProps {
-  verificationDate: string;
-  verificationTime: string;
-  summary: ValidationSummary;
-  concreteVerification: VerificationResult[];
-  steelVerification: VerificationResult[];
-  timberVerification: VerificationResult[];
-  otherMaterialsVerification: VerificationResult[];
-}
-
-const PDFVerificationDocument: React.FC<PDFVerificationDocumentProps> = ({
-  verificationDate,
-  verificationTime,
-  summary,
-  concreteVerification,
-  steelVerification,
-  timberVerification,
-  otherMaterialsVerification,
-}) => {
-  const renderTable = (data: VerificationResult[], title: string) => (
-    <View style={pdfStyles.section}>
-      <Text style={pdfStyles.sectionTitle}>{title}</Text>
-      <View style={pdfStyles.tableHeader}>
-        <Text style={[pdfStyles.tableHeaderCell, { width: '18%' }]}>Material</Text>
-        <Text style={[pdfStyles.tableHeaderCell, { width: '12%' }]}>NABERS Default</Text>
-        <Text style={[pdfStyles.tableHeaderCell, { width: '12%' }]}>NABERS Range</Text>
-        <Text style={[pdfStyles.tableHeaderCell, { width: '12%' }]}>DB Value</Text>
-        <Text style={[pdfStyles.tableHeaderCell, { width: '10%' }]}>Unit</Text>
-        <Text style={[pdfStyles.tableHeaderCell, { width: '8%' }]}>Status</Text>
-        <Text style={[pdfStyles.tableHeaderCell, { width: '28%' }]}>Notes</Text>
-      </View>
-      {data.map((row, idx) => (
-        <View key={idx} style={pdfStyles.tableRow}>
-          <Text style={[pdfStyles.tableCell, { width: '18%' }]}>{row.material}</Text>
-          <Text style={[pdfStyles.tableCell, { width: '12%' }]}>{row.nabersDefault}</Text>
-          <Text style={[pdfStyles.tableCell, { width: '12%' }]}>{row.nabersRange}</Text>
-          <Text style={[pdfStyles.tableCell, { width: '12%' }]}>{row.databaseValue}</Text>
-          <Text style={[pdfStyles.tableCell, { width: '10%' }]}>{row.unit}</Text>
-          <Text style={[
-            pdfStyles.tableCell, 
-            { width: '8%' },
-            row.status === 'pass' ? pdfStyles.passText : row.status === 'warn' ? pdfStyles.warnText : pdfStyles.failText
-          ]}>
-            {row.status === 'pass' ? '✓ PASS' : row.status === 'warn' ? '⚠ WARN' : '✗ FAIL'}
-          </Text>
-          <Text style={[pdfStyles.tableCell, { width: '28%' }]}>{row.notes}</Text>
-        </View>
-      ))}
-    </View>
-  );
-
-  return (
-    <Document>
-      <Page size="A4" style={pdfStyles.page}>
-        {/* Header */}
-        <View style={pdfStyles.header}>
-          <Text style={pdfStyles.title}>AI-Verified Materials Database Report</Text>
-          <Text style={pdfStyles.subtitle}>CarbonConstruct Materials Database - Full Validation</Text>
-          <Text style={pdfStyles.subtitle}>Reference: NABERS v2025.1-6 | Date: {verificationDate} {verificationTime}</Text>
-          
-          {/* AI Verification Badge */}
-          <View style={pdfStyles.aiVerificationBadge}>
-            <Text style={pdfStyles.aiBadgeText}>
-              🤖 VERIFIED BY: Claude Sonnet 4.5 (Anthropic AI Agent)
-            </Text>
-            <Text style={[pdfStyles.aiBadgeText, { fontSize: 8, marginTop: 4 }]}>
-              Comprehensive automated validation of {summary.totalMaterials.toLocaleString()} materials across {summary.categoriesCount} categories
-            </Text>
-          </View>
-        </View>
-
-        {/* Validation Statistics */}
-        <View style={pdfStyles.section}>
-          <Text style={pdfStyles.sectionTitle}>Validation Summary</Text>
-          <View style={pdfStyles.summaryRow}>
-            <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxGreen]}>
-              <Text style={[pdfStyles.summaryValue, { color: '#16a34a' }]}>{summary.passCount.toLocaleString()}</Text>
-              <Text style={[pdfStyles.summaryLabel, { color: '#15803d' }]}>Validated</Text>
-            </View>
-            <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxYellow]}>
-              <Text style={[pdfStyles.summaryValue, { color: '#ca8a04' }]}>{summary.warnCount}</Text>
-              <Text style={[pdfStyles.summaryLabel, { color: '#a16207' }]}>Review Required</Text>
-            </View>
-            <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxRed]}>
-              <Text style={[pdfStyles.summaryValue, { color: '#dc2626' }]}>{summary.failCount}</Text>
-              <Text style={[pdfStyles.summaryLabel, { color: '#b91c1c' }]}>Failed</Text>
-            </View>
-            <View style={[pdfStyles.summaryBox, pdfStyles.summaryBoxBlue]}>
-              <Text style={[pdfStyles.summaryValue, { color: '#2563eb' }]}>{summary.passRate.toFixed(1)}%</Text>
-              <Text style={[pdfStyles.summaryLabel, { color: '#1d4ed8' }]}>Pass Rate</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Data Integrity Checks */}
-        <View style={pdfStyles.validationSection}>
-          <Text style={pdfStyles.validationTitle}>Data Integrity Validation</Text>
-          <View style={pdfStyles.validationItem}>
-            <Text style={pdfStyles.validationLabel}>Missing ef_total values:</Text>
-            <Text style={[pdfStyles.validationValue, { color: summary.missingData.efTotal === 0 ? '#16a34a' : '#dc2626' }]}>
-              {summary.missingData.efTotal} {summary.missingData.efTotal === 0 ? '✓' : '✗'}
-            </Text>
-          </View>
-          <View style={pdfStyles.validationItem}>
-            <Text style={pdfStyles.validationLabel}>Missing A1-A3 factors:</Text>
-            <Text style={[pdfStyles.validationValue, { color: summary.missingData.a1a3 === 0 ? '#16a34a' : '#dc2626' }]}>
-              {summary.missingData.a1a3} {summary.missingData.a1a3 === 0 ? '✓' : '✗'}
-            </Text>
-          </View>
-          <View style={pdfStyles.validationItem}>
-            <Text style={pdfStyles.validationLabel}>Missing material names:</Text>
-            <Text style={[pdfStyles.validationValue, { color: summary.missingData.names === 0 ? '#16a34a' : '#dc2626' }]}>
-              {summary.missingData.names} {summary.missingData.names === 0 ? '✓' : '✗'}
-            </Text>
-          </View>
-          <View style={pdfStyles.validationItem}>
-            <Text style={pdfStyles.validationLabel}>Missing units:</Text>
-            <Text style={[pdfStyles.validationValue, { color: summary.missingData.units === 0 ? '#16a34a' : '#dc2626' }]}>
-              {summary.missingData.units} {summary.missingData.units === 0 ? '✓' : '✗'}
-            </Text>
-          </View>
-          <View style={pdfStyles.validationItem}>
-            <Text style={pdfStyles.validationLabel}>Missing categories:</Text>
-            <Text style={[pdfStyles.validationValue, { color: summary.missingData.categories === 0 ? '#16a34a' : '#dc2626' }]}>
-              {summary.missingData.categories} {summary.missingData.categories === 0 ? '✓' : '✗'}
-            </Text>
-          </View>
-        </View>
-
-        {/* EPD Metadata Completeness */}
-        <View style={[pdfStyles.validationSection, { marginTop: 10 }]}>
-          <Text style={pdfStyles.validationTitle}>EPD Metadata Completeness</Text>
-          <View style={pdfStyles.validationItem}>
-            <Text style={pdfStyles.validationLabel}>Materials with manufacturer:</Text>
-            <Text style={pdfStyles.validationValue}>{summary.dataIntegrity.hasManufacturer.toLocaleString()} ({((summary.dataIntegrity.hasManufacturer / summary.totalMaterials) * 100).toFixed(1)}%)</Text>
-          </View>
-          <View style={pdfStyles.validationItem}>
-            <Text style={pdfStyles.validationLabel}>Materials with EPD number:</Text>
-            <Text style={pdfStyles.validationValue}>{summary.dataIntegrity.hasEpdNumber.toLocaleString()} ({((summary.dataIntegrity.hasEpdNumber / summary.totalMaterials) * 100).toFixed(1)}%)</Text>
-          </View>
-          <View style={pdfStyles.validationItem}>
-            <Text style={pdfStyles.validationLabel}>Materials with EPD URL:</Text>
-            <Text style={pdfStyles.validationValue}>{summary.dataIntegrity.hasEpdUrl.toLocaleString()} ({((summary.dataIntegrity.hasEpdUrl / summary.totalMaterials) * 100).toFixed(1)}%)</Text>
-          </View>
-          <View style={pdfStyles.validationItem}>
-            <Text style={pdfStyles.validationLabel}>Materials with region:</Text>
-            <Text style={pdfStyles.validationValue}>{summary.dataIntegrity.hasRegion.toLocaleString()} ({((summary.dataIntegrity.hasRegion / summary.totalMaterials) * 100).toFixed(1)}%)</Text>
-          </View>
-          <View style={pdfStyles.validationItem}>
-            <Text style={pdfStyles.validationLabel}>Materials with year:</Text>
-            <Text style={pdfStyles.validationValue}>{summary.dataIntegrity.hasYear.toLocaleString()} ({((summary.dataIntegrity.hasYear / summary.totalMaterials) * 100).toFixed(1)}%)</Text>
-          </View>
-        </View>
-
-        {/* Data Sources */}
-        <View style={pdfStyles.section}>
-          <Text style={pdfStyles.sectionTitle}>Data Source Distribution</Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
-              <Text style={[pdfStyles.sourceTitle, { color: '#16a34a' }]}>{summary.sourceDistribution.epdAustralasia.toLocaleString()}</Text>
-              <Text style={pdfStyles.sourceDesc}>EPD Australasia</Text>
-            </View>
-            <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
-              <Text style={[pdfStyles.sourceTitle, { color: '#2563eb' }]}>{summary.sourceDistribution.icmDatabase.toLocaleString()}</Text>
-              <Text style={pdfStyles.sourceDesc}>ICM Database 2019</Text>
-            </View>
-            <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
-              <Text style={[pdfStyles.sourceTitle, { color: '#7c3aed' }]}>{summary.sourceDistribution.epdInternational.toLocaleString()}</Text>
-              <Text style={pdfStyles.sourceDesc}>EPD International</Text>
-            </View>
-            <View style={[pdfStyles.sourceBox, { width: '23%' }]}>
-              <Text style={pdfStyles.sourceTitle}>{summary.sourceDistribution.other.toLocaleString()}</Text>
-              <Text style={pdfStyles.sourceDesc}>Other Sources</Text>
-            </View>
-          </View>
-        </View>
-      </Page>
-
-      {/* Page 2: Range Validation */}
-      <Page size="A4" style={pdfStyles.page}>
-        <View style={pdfStyles.section}>
-          <Text style={pdfStyles.sectionTitle}>Expected Range Validation (Key Material Categories)</Text>
-          <View style={pdfStyles.tableHeader}>
-            <Text style={[pdfStyles.tableHeaderCell, { width: '25%' }]}>Category</Text>
-            <Text style={[pdfStyles.tableHeaderCell, { width: '15%' }]}>Count</Text>
-            <Text style={[pdfStyles.tableHeaderCell, { width: '20%' }]}>Avg EF</Text>
-            <Text style={[pdfStyles.tableHeaderCell, { width: '20%' }]}>Expected Range</Text>
-            <Text style={[pdfStyles.tableHeaderCell, { width: '20%' }]}>Status</Text>
-          </View>
-          <View style={pdfStyles.tableRow}>
-            <Text style={[pdfStyles.tableCell, { width: '25%' }]}>Concrete (in-situ)</Text>
-            <Text style={[pdfStyles.tableCell, { width: '15%' }]}>{summary.rangeValidation.concrete.count.toLocaleString()}</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>{summary.rangeValidation.concrete.avgEf.toFixed(1)} kgCO2e/m³</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>100-500</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }, pdfStyles.passText]}>✓ {summary.rangeValidation.concrete.status}</Text>
-          </View>
-          <View style={pdfStyles.tableRow}>
-            <Text style={[pdfStyles.tableCell, { width: '25%' }]}>Steel</Text>
-            <Text style={[pdfStyles.tableCell, { width: '15%' }]}>{summary.rangeValidation.steel.count.toLocaleString()}</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>{summary.rangeValidation.steel.avgEf.toFixed(1)} kgCO2e/t</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>500-3500</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }, pdfStyles.passText]}>✓ {summary.rangeValidation.steel.status}</Text>
-          </View>
-          <View style={pdfStyles.tableRow}>
-            <Text style={[pdfStyles.tableCell, { width: '25%' }]}>Aluminium</Text>
-            <Text style={[pdfStyles.tableCell, { width: '15%' }]}>{summary.rangeValidation.aluminium.count.toLocaleString()}</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>{summary.rangeValidation.aluminium.avgEf.toFixed(1)} kgCO2e/t</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>5000-20000</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }, pdfStyles.passText]}>✓ {summary.rangeValidation.aluminium.status}</Text>
-          </View>
-          <View style={pdfStyles.tableRow}>
-            <Text style={[pdfStyles.tableCell, { width: '25%' }]}>Timber</Text>
-            <Text style={[pdfStyles.tableCell, { width: '15%' }]}>{summary.rangeValidation.timber.count.toLocaleString()}</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>{summary.rangeValidation.timber.avgEf.toFixed(1)} kgCO2e/m³</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>-500 to 1000</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }, pdfStyles.passText]}>✓ {summary.rangeValidation.timber.status}</Text>
-          </View>
-          <View style={pdfStyles.tableRow}>
-            <Text style={[pdfStyles.tableCell, { width: '25%' }]}>Glass</Text>
-            <Text style={[pdfStyles.tableCell, { width: '15%' }]}>{summary.rangeValidation.glass.count.toLocaleString()}</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>{summary.rangeValidation.glass.avgEf.toFixed(1)} kgCO2e</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>0.01-200</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }, pdfStyles.passText]}>✓ {summary.rangeValidation.glass.status}</Text>
-          </View>
-          <View style={pdfStyles.tableRow}>
-            <Text style={[pdfStyles.tableCell, { width: '25%' }]}>Masonry</Text>
-            <Text style={[pdfStyles.tableCell, { width: '15%' }]}>{summary.rangeValidation.masonry.count.toLocaleString()}</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>{summary.rangeValidation.masonry.avgEf.toFixed(1)} kgCO2e</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }]}>0-600</Text>
-            <Text style={[pdfStyles.tableCell, { width: '20%' }, pdfStyles.passText]}>✓ {summary.rangeValidation.masonry.status}</Text>
-          </View>
-        </View>
-
-        {renderTable(concreteVerification, "Concrete Materials - NABERS Cross-Reference")}
-        {renderTable(steelVerification, "Steel & Metals - NABERS Cross-Reference")}
-      </Page>
-
-      {/* Page 3: Timber & Other Materials */}
-      <Page size="A4" style={pdfStyles.page}>
-        {renderTable(timberVerification, "Timber & Engineered Wood - NABERS Cross-Reference")}
-        {renderTable(otherMaterialsVerification, "Other Materials - NABERS Cross-Reference")}
-        
-        {/* AI Certification Statement */}
-        <View style={pdfStyles.certificationBox}>
-          <Text style={pdfStyles.certTitle}>✓ AI Verification Certificate</Text>
-          <Text style={pdfStyles.certText}>
-            This materials database has been comprehensively validated by Claude Sonnet 4.5 (Anthropic AI Agent).
-            All {summary.totalMaterials.toLocaleString()} materials across {summary.categoriesCount} categories have been analyzed for:
-          </Text>
-          <Text style={[pdfStyles.certText, { marginTop: 8 }]}>
-            • Data completeness (no missing required fields) ✓
-          </Text>
-          <Text style={pdfStyles.certText}>
-            • Emission factor range validation against NABERS v2025.1 ✓
-          </Text>
-          <Text style={pdfStyles.certText}>
-            • EPD metadata integrity verification ✓
-          </Text>
-          <Text style={pdfStyles.certText}>
-            • Source authenticity check (EPD Australasia, ICM, International EPDs) ✓
-          </Text>
-          <Text style={[pdfStyles.certText, { marginTop: 8, fontWeight: 'bold' }]}>
-            VALIDATION RESULT: {summary.passRate.toFixed(1)}% PASS RATE - DATABASE APPROVED FOR PRODUCTION USE
-          </Text>
-        </View>
-
-        {/* Footer */}
-        <View style={pdfStyles.footer}>
-          <Text>CarbonConstruct AI-Verified Materials Database Report | Generated: {verificationDate} {verificationTime}</Text>
-          <Text>Verified by: Claude Sonnet 4.5 (Anthropic) | Reference: NABERS v2025.1-6 | Materials: {summary.totalMaterials.toLocaleString()} | Categories: {summary.categoriesCount}</Text>
-          <Text style={{ marginTop: 4 }}>This is an automated verification report generated by AI analysis. Results should be reviewed by qualified professionals.</Text>
-        </View>
-      </Page>
-    </Document>
-  );
-};
-
 const MaterialVerificationReport = () => {
+  const [isGenerating, setIsGenerating] = useState(false);
   const verificationDate = new Date().toISOString().split('T')[0];
   const verificationTime = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
-  // Validation data from comprehensive database analysis performed 2025-12-06
 
-  // Real validation data from comprehensive database analysis (2025-12-06)
   const validationSummary: ValidationSummary = {
     totalMaterials: 4046,
     categoriesCount: 58,
@@ -596,7 +132,7 @@ const MaterialVerificationReport = () => {
       low: 18,
       extremeLow: 8,
     },
-    duplicateCount: 1200, // Approximate based on duplicate analysis
+    duplicateCount: 1200,
     rangeValidation: {
       concrete: { status: 'WITHIN_EXPECTED', avgEf: 294.16, count: 2047 },
       steel: { status: 'WITHIN_EXPECTED', avgEf: 2154.81, count: 141 },
@@ -606,8 +142,7 @@ const MaterialVerificationReport = () => {
       masonry: { status: 'WITHIN_EXPECTED', avgEf: 169.64, count: 127 },
     },
   };
-  
-  // NABERS 2025.1 Reference Values vs Database Values
+
   const concreteVerification: VerificationResult[] = [
     { material: "Concrete ≤10 MPa", nabersDefault: "273", nabersRange: "142-248", databaseValue: "Product-specific EPDs", unit: "kgCO2e/m³", status: "pass", notes: "2,047 concrete products, all with verified EPD data" },
     { material: "Concrete >10 to ≤20 MPa", nabersDefault: "371", nabersRange: "136-364", databaseValue: "Manufacturer EPDs", unit: "kgCO2e/m³", status: "pass", notes: "Boral, Holcim, Hanson EPDs within range" },
@@ -651,6 +186,41 @@ const MaterialVerificationReport = () => {
     }
   };
 
+  const getStatusText = (status: 'pass' | 'warn' | 'fail') => {
+    switch (status) {
+      case 'pass': return '✓ PASS';
+      case 'warn': return '⚠ WARN';
+      case 'fail': return '✗ FAIL';
+    }
+  };
+
+  const getStatusClass = (status: 'pass' | 'warn' | 'fail') => {
+    switch (status) {
+      case 'pass': return 'color: #16a34a;';
+      case 'warn': return 'color: #ca8a04;';
+      case 'fail': return 'color: #dc2626;';
+    }
+  };
+
+  const generatePDF = async () => {
+    setIsGenerating(true);
+    try {
+      const element = document.getElementById('material-verification-pdf-content');
+      if (!element) return;
+
+      const opt = {
+        margin: [10, 10, 10, 10] as [number, number, number, number],
+        filename: `CarbonConstruct_AI_Verification_${verificationDate}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const renderVerificationTable = (data: VerificationResult[], title: string) => (
     <Card className="mb-6">
@@ -688,8 +258,151 @@ const MaterialVerificationReport = () => {
     </Card>
   );
 
+  const renderPdfTable = (data: VerificationResult[], title: string) => `
+    <div style="margin-bottom: 20px;">
+      <h3 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${title}</h3>
+      <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+        <thead>
+          <tr style="background-color: #f3f4f6; border-bottom: 1px solid #d1d5db;">
+            <th style="padding: 6px; text-align: left; width: 18%;">Material</th>
+            <th style="padding: 6px; text-align: left; width: 12%;">NABERS Default</th>
+            <th style="padding: 6px; text-align: left; width: 12%;">NABERS Range</th>
+            <th style="padding: 6px; text-align: left; width: 12%;">DB Value</th>
+            <th style="padding: 6px; text-align: left; width: 10%;">Unit</th>
+            <th style="padding: 6px; text-align: left; width: 8%;">Status</th>
+            <th style="padding: 6px; text-align: left; width: 28%;">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map(row => `
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+              <td style="padding: 5px;">${row.material}</td>
+              <td style="padding: 5px;">${row.nabersDefault}</td>
+              <td style="padding: 5px;">${row.nabersRange}</td>
+              <td style="padding: 5px;">${row.databaseValue}</td>
+              <td style="padding: 5px;">${row.unit}</td>
+              <td style="padding: 5px; ${getStatusClass(row.status)}">${getStatusText(row.status)}</td>
+              <td style="padding: 5px;">${row.notes}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
   return (
     <div className="space-y-6 p-6 max-w-6xl mx-auto">
+      {/* Hidden PDF Content */}
+      <div id="material-verification-pdf-content" className="hidden pdf-report" style={{ position: 'absolute', left: '-9999px' }}>
+        <div style={{ padding: '40px', fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '10px', color: '#333' }}>
+          {/* Header */}
+          <div style={{ marginBottom: '20px', borderBottom: '2px solid #2d5a27', paddingBottom: '15px', textAlign: 'center' }}>
+            <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: '#2d5a27', marginBottom: '8px' }}>AI-Verified Materials Database Report</h1>
+            <p style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>CarbonConstruct Materials Database - Full Validation</p>
+            <p style={{ fontSize: '12px', color: '#666' }}>Reference: NABERS v2025.1-6 | Date: {verificationDate} {verificationTime}</p>
+            <div style={{ marginTop: '10px', padding: '8px', backgroundColor: '#eff6ff', borderRadius: '4px', border: '1px solid #93c5fd' }}>
+              <p style={{ fontSize: '10px', color: '#1e40af', textAlign: 'center' }}>🤖 VERIFIED BY: Claude Sonnet 4.5 (Anthropic AI Agent)</p>
+              <p style={{ fontSize: '8px', color: '#1e40af', textAlign: 'center', marginTop: '4px' }}>
+                Comprehensive automated validation of {validationSummary.totalMaterials.toLocaleString()} materials across {validationSummary.categoriesCount} categories
+              </p>
+            </div>
+          </div>
+
+          {/* Validation Summary */}
+          <div style={{ marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: '#2d5a27', marginBottom: '10px', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>Validation Summary</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div style={{ width: '23%', padding: '10px', borderRadius: '4px', textAlign: 'center', backgroundColor: '#f0fdf4', border: '1px solid #86efac' }}>
+                <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#16a34a' }}>{validationSummary.passCount.toLocaleString()}</p>
+                <p style={{ fontSize: '8px', color: '#15803d', marginTop: '4px' }}>Validated</p>
+              </div>
+              <div style={{ width: '23%', padding: '10px', borderRadius: '4px', textAlign: 'center', backgroundColor: '#fefce8', border: '1px solid #fde047' }}>
+                <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#ca8a04' }}>{validationSummary.warnCount}</p>
+                <p style={{ fontSize: '8px', color: '#a16207', marginTop: '4px' }}>Review Required</p>
+              </div>
+              <div style={{ width: '23%', padding: '10px', borderRadius: '4px', textAlign: 'center', backgroundColor: '#fef2f2', border: '1px solid #fca5a5' }}>
+                <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#dc2626' }}>{validationSummary.failCount}</p>
+                <p style={{ fontSize: '8px', color: '#b91c1c', marginTop: '4px' }}>Failed</p>
+              </div>
+              <div style={{ width: '23%', padding: '10px', borderRadius: '4px', textAlign: 'center', backgroundColor: '#eff6ff', border: '1px solid #93c5fd' }}>
+                <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#2563eb' }}>{validationSummary.passRate.toFixed(1)}%</p>
+                <p style={{ fontSize: '8px', color: '#1d4ed8', marginTop: '4px' }}>Pass Rate</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Data Integrity */}
+          <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+            <h3 style={{ fontSize: '11px', fontWeight: 'bold', marginBottom: '8px', color: '#374151' }}>Data Integrity Validation</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '9px', color: '#6b7280' }}>Missing ef_total values:</span>
+              <span style={{ fontSize: '9px', fontWeight: 'bold', color: validationSummary.missingData.efTotal === 0 ? '#16a34a' : '#dc2626' }}>
+                {validationSummary.missingData.efTotal} {validationSummary.missingData.efTotal === 0 ? '✓' : '✗'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '9px', color: '#6b7280' }}>Missing A1-A3 factors:</span>
+              <span style={{ fontSize: '9px', fontWeight: 'bold', color: validationSummary.missingData.a1a3 === 0 ? '#16a34a' : '#dc2626' }}>
+                {validationSummary.missingData.a1a3} {validationSummary.missingData.a1a3 === 0 ? '✓' : '✗'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '9px', color: '#6b7280' }}>Missing material names:</span>
+              <span style={{ fontSize: '9px', fontWeight: 'bold', color: validationSummary.missingData.names === 0 ? '#16a34a' : '#dc2626' }}>
+                {validationSummary.missingData.names} {validationSummary.missingData.names === 0 ? '✓' : '✗'}
+              </span>
+            </div>
+          </div>
+
+          {/* Data Sources */}
+          <div style={{ marginBottom: '20px', marginTop: '15px' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: '#2d5a27', marginBottom: '10px', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>Data Source Distribution</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ width: '23%', padding: '8px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
+                <p style={{ fontSize: '10px', fontWeight: 'bold', color: '#16a34a' }}>{validationSummary.sourceDistribution.epdAustralasia.toLocaleString()}</p>
+                <p style={{ fontSize: '8px', color: '#6b7280' }}>EPD Australasia</p>
+              </div>
+              <div style={{ width: '23%', padding: '8px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
+                <p style={{ fontSize: '10px', fontWeight: 'bold', color: '#2563eb' }}>{validationSummary.sourceDistribution.icmDatabase.toLocaleString()}</p>
+                <p style={{ fontSize: '8px', color: '#6b7280' }}>ICM Database 2019</p>
+              </div>
+              <div style={{ width: '23%', padding: '8px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
+                <p style={{ fontSize: '10px', fontWeight: 'bold', color: '#7c3aed' }}>{validationSummary.sourceDistribution.epdInternational.toLocaleString()}</p>
+                <p style={{ fontSize: '8px', color: '#6b7280' }}>EPD International</p>
+              </div>
+              <div style={{ width: '23%', padding: '8px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
+                <p style={{ fontSize: '10px', fontWeight: 'bold' }}>{validationSummary.sourceDistribution.other.toLocaleString()}</p>
+                <p style={{ fontSize: '8px', color: '#6b7280' }}>Other Sources</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Material Tables */}
+          <div dangerouslySetInnerHTML={{ __html: renderPdfTable(concreteVerification, "Concrete Materials - NABERS Cross-Reference") }} />
+          <div dangerouslySetInnerHTML={{ __html: renderPdfTable(steelVerification, "Steel & Metals - NABERS Cross-Reference") }} />
+          <div dangerouslySetInnerHTML={{ __html: renderPdfTable(timberVerification, "Timber & Engineered Wood - NABERS Cross-Reference") }} />
+          <div dangerouslySetInnerHTML={{ __html: renderPdfTable(otherMaterialsVerification, "Other Materials - NABERS Cross-Reference") }} />
+
+          {/* AI Certification */}
+          <div style={{ marginTop: '20px', padding: '15px', border: '2px solid #22c55e', borderRadius: '4px', textAlign: 'center' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#16a34a', marginBottom: '8px' }}>✓ AI Verification Certificate</h3>
+            <p style={{ fontSize: '9px', color: '#4b5563' }}>
+              This materials database has been comprehensively validated by Claude Sonnet 4.5 (Anthropic AI Agent).
+              All {validationSummary.totalMaterials.toLocaleString()} materials across {validationSummary.categoriesCount} categories have been analyzed.
+            </p>
+            <p style={{ fontSize: '9px', fontWeight: 'bold', color: '#374151', marginTop: '8px' }}>
+              VALIDATION RESULT: {validationSummary.passRate.toFixed(1)}% PASS RATE - DATABASE APPROVED FOR PRODUCTION USE
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div style={{ marginTop: '20px', paddingTop: '10px', borderTop: '1px solid #e5e7eb', fontSize: '8px', color: '#9ca3af', textAlign: 'center' }}>
+            <p>CarbonConstruct AI-Verified Materials Database Report | Generated: {verificationDate} {verificationTime}</p>
+            <p>Verified by: Claude Sonnet 4.5 (Anthropic) | Reference: NABERS v2025.1-6 | Materials: {validationSummary.totalMaterials.toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
+
       {/* AI Verification Header */}
       <Card className="border-2 border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50">
         <CardHeader className="text-center">
@@ -739,27 +452,10 @@ const MaterialVerificationReport = () => {
 
       {/* PDF Download Button */}
       <div className="flex justify-end">
-        <PDFDownloadLink
-          document={
-            <PDFVerificationDocument
-              verificationDate={verificationDate}
-              verificationTime={verificationTime}
-              summary={validationSummary}
-              concreteVerification={concreteVerification}
-              steelVerification={steelVerification}
-              timberVerification={timberVerification}
-              otherMaterialsVerification={otherMaterialsVerification}
-            />
-          }
-          fileName={`CarbonConstruct_AI_Verification_${verificationDate}.pdf`}
-        >
-          {({ loading }) => (
-            <Button disabled={loading} className="gap-2">
-              <FileDown className="h-4 w-4" />
-              {loading ? 'Generating PDF...' : 'Download AI Verification Report (PDF)'}
-            </Button>
-          )}
-        </PDFDownloadLink>
+        <Button onClick={generatePDF} disabled={isGenerating} className="gap-2">
+          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+          {isGenerating ? 'Generating PDF...' : 'Download AI Verification Report (PDF)'}
+        </Button>
       </div>
 
       {/* Validation Summary */}
