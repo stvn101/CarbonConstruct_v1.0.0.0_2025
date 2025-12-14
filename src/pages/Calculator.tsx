@@ -33,6 +33,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { UsePhaseCalculator, UsePhaseEmissions } from "@/components/calculator/UsePhaseCalculator";
 import { EndOfLifeCalculator, EndOfLifeEmissions } from "@/components/calculator/EndOfLifeCalculator";
 import { ModuleDCalculator, ModuleDEmissions } from "@/components/calculator/ModuleDCalculator";
+import { SkeletonPage } from "@/components/SkeletonPage";
 
 interface Material {
   id: string;
@@ -1017,6 +1018,11 @@ export default function Calculator() {
         </Card>
       </div>
     );
+  }
+
+  // Show loading skeleton while materials database is loading
+  if (materialsLoading) {
+    return <SkeletonPage variant="form" />;
   }
 
   return (

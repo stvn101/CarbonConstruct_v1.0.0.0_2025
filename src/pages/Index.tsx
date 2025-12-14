@@ -20,6 +20,7 @@ import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw,
 import { CalculationHistory } from "@/components/CalculationHistory";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { FloatingParticles } from "@/components/FloatingParticles";
 const Index = () => {
   const {
     user,
@@ -37,7 +38,8 @@ const Index = () => {
   const compliance = useComplianceCheck(totals);
   const { tier_name, subscribed, is_trialing } = useSubscriptionStatus();
   if (!user) {
-    return <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background noise-texture">
+    return <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background noise-texture relative">
+        <FloatingParticles count={25} />
         <SEOHead canonicalPath="/" />
         <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="text-center space-y-6 md:space-y-8">
