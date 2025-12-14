@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FileDown } from 'lucide-react';
 import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
+import { PDF_COLORS } from '@/constants/pdfColors';
 
 export interface ReportBranding {
   companyName?: string;
@@ -19,7 +20,7 @@ export interface PDFReportOptions {
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
-    backgroundColor: '#ffffff',
+    backgroundColor: PDF_COLORS.white,
     padding: 40,
     fontFamily: 'Helvetica',
     position: 'relative',
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
     right: '10%',
     transform: 'rotate(-35deg)',
     fontSize: 48,
-    color: '#e8e8e8',
+    color: PDF_COLORS.watermark,
     textAlign: 'center',
     opacity: 0.6,
     fontWeight: 'bold',
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 30,
-    borderBottom: '2px solid #2d5a27',
+    borderBottom: `2px solid ${PDF_COLORS.primaryGreen}`,
     paddingBottom: 20,
   },
   headerRow: {
@@ -55,24 +56,24 @@ const styles = StyleSheet.create({
   },
   companyName: {
     fontSize: 12,
-    color: '#333333',
+    color: PDF_COLORS.textMedium,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   preparedBy: {
     fontSize: 10,
-    color: '#666666',
+    color: PDF_COLORS.textGray,
     marginTop: 8,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2d5a27',
+    color: PDF_COLORS.primaryGreen,
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666666',
+    color: PDF_COLORS.textGray,
     marginBottom: 5,
   },
   section: {
@@ -81,9 +82,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#2d5a27',
+    color: PDF_COLORS.primaryGreen,
     marginBottom: 10,
-    borderBottom: '1px solid #cccccc',
+    borderBottom: `1px solid ${PDF_COLORS.borderDark}`,
     paddingBottom: 5,
   },
   row: {
@@ -94,16 +95,16 @@ const styles = StyleSheet.create({
     width: 140,
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#333333',
+    color: PDF_COLORS.textMedium,
   },
   value: {
     fontSize: 11,
-    color: '#666666',
+    color: PDF_COLORS.textGray,
     flex: 1,
   },
   emissionCard: {
-    backgroundColor: '#f8fffe',
-    border: '1px solid #e0e7e0',
+    backgroundColor: PDF_COLORS.primaryGreenVeryLight,
+    border: `1px solid ${PDF_COLORS.borderLight}`,
     borderRadius: 4,
     padding: 15,
     marginBottom: 15,
@@ -111,13 +112,13 @@ const styles = StyleSheet.create({
   emissionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#2d5a27',
+    color: PDF_COLORS.primaryGreen,
     marginBottom: 8,
   },
   emissionValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e3a1c',
+    color: PDF_COLORS.primaryGreenDark,
     marginBottom: 5,
   },
   categoryRow: {
@@ -128,23 +129,23 @@ const styles = StyleSheet.create({
   categoryName: {
     width: 150,
     fontSize: 10,
-    color: '#555555',
+    color: PDF_COLORS.textGray,
   },
   categoryValue: {
     fontSize: 10,
-    color: '#333333',
+    color: PDF_COLORS.textMedium,
     fontWeight: 'bold',
   },
   footer: {
     marginTop: 30,
     paddingTop: 20,
-    borderTop: '1px solid #cccccc',
+    borderTop: `1px solid ${PDF_COLORS.borderDark}`,
     fontSize: 10,
-    color: '#666666',
+    color: PDF_COLORS.textGray,
     textAlign: 'center',
   },
   complianceSection: {
-    backgroundColor: '#f0f8f0',
+    backgroundColor: PDF_COLORS.successBackgroundAlt,
     padding: 15,
     borderRadius: 4,
     marginBottom: 20,
@@ -156,53 +157,53 @@ const styles = StyleSheet.create({
   complianceLabel: {
     width: 150,
     fontSize: 11,
-    color: '#2d5a27',
+    color: PDF_COLORS.primaryGreen,
     fontWeight: 'bold',
   },
   complianceStatus: {
     fontSize: 11,
-    color: '#22c55e',
+    color: PDF_COLORS.success,
     fontWeight: 'bold',
   },
   complianceValue: {
     fontSize: 11,
-    color: '#333333',
+    color: PDF_COLORS.textMedium,
   },
   keyMetricBox: {
-    backgroundColor: '#f8fffe',
-    border: '1px solid #e0e7e0',
+    backgroundColor: PDF_COLORS.primaryGreenVeryLight,
+    border: `1px solid ${PDF_COLORS.borderLight}`,
     borderRadius: 4,
     padding: 12,
     marginBottom: 10,
   },
   metricLabel: {
     fontSize: 10,
-    color: '#666666',
+    color: PDF_COLORS.textGray,
     marginBottom: 4,
   },
   metricValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#2d5a27',
+    color: PDF_COLORS.primaryGreen,
   },
   disclaimer: {
     marginTop: 15,
     paddingTop: 10,
-    borderTop: '0.5px solid #e0e0e0',
+    borderTop: `0.5px solid ${PDF_COLORS.borderGray}`,
     fontSize: 6,
-    color: '#999999',
+    color: PDF_COLORS.textMuted,
     lineHeight: 1.4,
   },
   disclaimerTitle: {
     fontSize: 7,
     fontWeight: 'bold',
-    color: '#888888',
+    color: PDF_COLORS.textLightGray,
     marginBottom: 3,
   },
   // EN 15978 specific styles
   declarationBox: {
-    backgroundColor: '#f0f5ff',
-    border: '2px solid #3b82f6',
+    backgroundColor: PDF_COLORS.infoBackgroundAlt,
+    border: `2px solid ${PDF_COLORS.info}`,
     borderRadius: 4,
     padding: 15,
     marginBottom: 20,
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
   declarationTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#1e40af',
+    color: PDF_COLORS.infoVeryDark,
     marginBottom: 10,
     textAlign: 'center',
   },
@@ -221,84 +222,84 @@ const styles = StyleSheet.create({
   declarationLabel: {
     width: 160,
     fontSize: 10,
-    color: '#1e40af',
+    color: PDF_COLORS.infoVeryDark,
     fontWeight: 'bold',
   },
   declarationValue: {
     fontSize: 10,
-    color: '#333333',
+    color: PDF_COLORS.textMedium,
     flex: 1,
   },
   lifecycleTable: {
-    border: '1px solid #cccccc',
+    border: `1px solid ${PDF_COLORS.borderDark}`,
     marginTop: 10,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#1e40af',
+    backgroundColor: PDF_COLORS.infoVeryDark,
     padding: 8,
   },
   tableHeaderCell: {
     flex: 1,
     fontSize: 9,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: PDF_COLORS.white,
     textAlign: 'center',
   },
   tableHeaderCellWide: {
     flex: 2,
     fontSize: 9,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: PDF_COLORS.white,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottom: '1px solid #e0e0e0',
+    borderBottom: `1px solid ${PDF_COLORS.borderGray}`,
     padding: 6,
   },
   tableRowAlt: {
     flexDirection: 'row',
-    borderBottom: '1px solid #e0e0e0',
+    borderBottom: `1px solid ${PDF_COLORS.borderGray}`,
     padding: 6,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: PDF_COLORS.backgroundLightGray,
   },
   tableRowTotal: {
     flexDirection: 'row',
     padding: 8,
-    backgroundColor: '#e8f5e9',
+    backgroundColor: PDF_COLORS.tableRowHighlight,
   },
   tableCell: {
     flex: 1,
     fontSize: 9,
-    color: '#333333',
+    color: PDF_COLORS.textMedium,
     textAlign: 'center',
   },
   tableCellWide: {
     flex: 2,
     fontSize: 9,
-    color: '#333333',
+    color: PDF_COLORS.textMedium,
   },
   tableCellBold: {
     flex: 1,
     fontSize: 9,
-    color: '#333333',
+    color: PDF_COLORS.textMedium,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   stageHeader: {
     flexDirection: 'row',
-    backgroundColor: '#e3f2fd',
+    backgroundColor: PDF_COLORS.tableRowInfo,
     padding: 6,
-    borderBottom: '1px solid #90caf9',
+    borderBottom: `1px solid ${PDF_COLORS.infoVeryLight}`,
   },
   stageHeaderText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#1565c0',
+    color: PDF_COLORS.alertInfo.text,
   },
   intensityBox: {
-    backgroundColor: '#fff3e0',
-    border: '1px solid #ff9800',
+    backgroundColor: PDF_COLORS.warningBackgroundAlt,
+    border: `1px solid ${PDF_COLORS.warningAlt}`,
     borderRadius: 4,
     padding: 12,
     marginBottom: 15,
@@ -306,22 +307,22 @@ const styles = StyleSheet.create({
   intensityTitle: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#e65100',
+    color: PDF_COLORS.alertWarning.text,
     marginBottom: 8,
   },
   intensityValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#bf360c',
+    color: PDF_COLORS.alertWarning.textDark,
     marginBottom: 4,
   },
   intensityUnit: {
     fontSize: 10,
-    color: '#666666',
+    color: PDF_COLORS.textGray,
   },
   moduleDBox: {
-    backgroundColor: '#e8f5e9',
-    border: '1px solid #4caf50',
+    backgroundColor: PDF_COLORS.alertSuccess.background,
+    border: `1px solid ${PDF_COLORS.alertSuccess.border}`,
     borderRadius: 4,
     padding: 12,
     marginBottom: 15,
@@ -329,17 +330,17 @@ const styles = StyleSheet.create({
   moduleDTitle: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#2e7d32',
+    color: PDF_COLORS.alertSuccess.text,
     marginBottom: 8,
   },
   moduleDValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1b5e20',
+    color: PDF_COLORS.alertSuccess.textDark,
   },
   moduleDNote: {
     fontSize: 8,
-    color: '#666666',
+    color: PDF_COLORS.textGray,
     fontStyle: 'italic',
     marginTop: 4,
   },
@@ -360,11 +361,11 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
       {/* Executive Summary Content */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Executive Summary</Text>
-        <Text style={{ fontSize: 12, color: '#666666', marginBottom: 15 }}>
+        <Text style={{ fontSize: 12, color: PDF_COLORS.textGray, marginBottom: 15 }}>
           Total emissions for {data.project.name}: {formatNumber(data.emissions.total)} tCO₂e
         </Text>
         {data.project.description && (
-          <Text style={{ fontSize: 10, color: '#888888', marginBottom: 15 }}>{data.project.description}</Text>
+          <Text style={{ fontSize: 10, color: PDF_COLORS.textLightGray, marginBottom: 15 }}>{data.project.description}</Text>
         )}
       </View>
 
@@ -417,7 +418,7 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
       {/* Compliance Report Introduction */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Compliance Assessment</Text>
-        <Text style={{ fontSize: 11, color: '#666666', marginBottom: 10 }}>
+        <Text style={{ fontSize: 11, color: PDF_COLORS.textGray, marginBottom: 10 }}>
           Detailed compliance assessment for {data.project.name} against Australian standards
         </Text>
       </View>
@@ -465,7 +466,7 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
             <Text style={styles.complianceLabel}>Total Emissions:</Text>
             <Text style={styles.complianceValue}>{formatNumber(data.emissions.total)} tCO₂e</Text>
           </View>
-          <Text style={{ fontSize: 10, color: '#666666', marginTop: 10 }}>
+          <Text style={{ fontSize: 10, color: PDF_COLORS.textGray, marginTop: 10 }}>
             Green Star eligibility is based on comprehensive environmental performance including emissions intensity, 
             materials selection, and operational efficiency.
           </Text>
@@ -486,7 +487,7 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
             <Text style={styles.complianceLabel}>Scope 2 Emissions:</Text>
             <Text style={styles.complianceValue}>{formatNumber(data.emissions.scope2)} tCO₂e</Text>
           </View>
-          <Text style={{ fontSize: 10, color: '#666666', marginTop: 10 }}>
+          <Text style={{ fontSize: 10, color: PDF_COLORS.textGray, marginTop: 10 }}>
             NABERS Energy rating requires comprehensive operational energy data. Scope 2 emissions are the 
             primary indicator of energy performance.
           </Text>
@@ -496,24 +497,24 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
       {/* Emission Summary Table */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Emission Summary</Text>
-        <View style={{ border: '1px solid #cccccc', marginTop: 10 }}>
-          <View style={{ flexDirection: 'row', backgroundColor: '#f0f0f0', borderBottom: '1px solid #cccccc', padding: 8 }}>
+        <View style={{ border: `1px solid ${PDF_COLORS.borderDark}`, marginTop: 10 }}>
+          <View style={{ flexDirection: 'row', backgroundColor: PDF_COLORS.backgroundDarkGray, borderBottom: `1px solid ${PDF_COLORS.borderDark}`, padding: 8 }}>
             <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold' }}>Scope</Text>
             <Text style={{ width: 120, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>Emissions (tCO₂e)</Text>
           </View>
-          <View style={{ flexDirection: 'row', borderBottom: '1px solid #cccccc', padding: 8 }}>
+          <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderDark}`, padding: 8 }}>
             <Text style={{ flex: 1, fontSize: 10 }}>Scope 1 (Direct)</Text>
             <Text style={{ width: 120, fontSize: 10, textAlign: 'right' }}>{formatNumber(data.emissions.scope1)}</Text>
           </View>
-          <View style={{ flexDirection: 'row', borderBottom: '1px solid #cccccc', padding: 8 }}>
+          <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderDark}`, padding: 8 }}>
             <Text style={{ flex: 1, fontSize: 10 }}>Scope 2 (Energy)</Text>
             <Text style={{ width: 120, fontSize: 10, textAlign: 'right' }}>{formatNumber(data.emissions.scope2)}</Text>
           </View>
-          <View style={{ flexDirection: 'row', borderBottom: '1px solid #cccccc', padding: 8 }}>
+          <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderDark}`, padding: 8 }}>
             <Text style={{ flex: 1, fontSize: 10 }}>Scope 3 (Indirect)</Text>
             <Text style={{ width: 120, fontSize: 10, textAlign: 'right' }}>{formatNumber(data.emissions.scope3)}</Text>
           </View>
-          <View style={{ flexDirection: 'row', backgroundColor: '#f8fffe', padding: 8 }}>
+          <View style={{ flexDirection: 'row', backgroundColor: PDF_COLORS.primaryGreenVeryLight, padding: 8 }}>
             <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold' }}>Total</Text>
             <Text style={{ width: 120, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>{formatNumber(data.emissions.total)}</Text>
           </View>
@@ -694,7 +695,7 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
         {/* Declaration of Conformity */}
         <View style={styles.declarationBox}>
           <Text style={styles.declarationTitle}>DECLARATION OF CONFORMITY</Text>
-          <Text style={{ fontSize: 10, color: '#1e40af', marginBottom: 10, textAlign: 'center' }}>
+          <Text style={{ fontSize: 10, color: PDF_COLORS.infoVeryDark, marginBottom: 10, textAlign: 'center' }}>
             EN 15978:2011 Whole Life Carbon Assessment
           </Text>
           <View style={styles.declarationItem}>
@@ -843,7 +844,7 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
             <View style={styles.tableRowTotal}>
               <Text style={{ ...styles.tableCellWide, fontWeight: 'bold' }}>WHOLE LIFE CARBON (A-C)</Text>
               <Text style={styles.tableCell}></Text>
-              <Text style={{ ...styles.tableCellBold, fontSize: 11, color: '#1b5e20' }}>
+              <Text style={{ ...styles.tableCellBold, fontSize: 11, color: PDF_COLORS.alertSuccess.textDark }}>
                 {formatNumber((wl?.total_whole_life || 0) * 1000)}
               </Text>
             </View>
@@ -857,15 +858,15 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
             <Text style={styles.moduleDTitle}>Circular Economy Credits</Text>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
               <View>
-                <Text style={{ fontSize: 9, color: '#666666' }}>Recycling</Text>
+                <Text style={{ fontSize: 9, color: PDF_COLORS.textGray }}>Recycling</Text>
                 <Text style={styles.moduleDValue}>{formatNumber((wl?.d_recycling || 0) * 1000)} kgCO₂e</Text>
               </View>
               <View>
-                <Text style={{ fontSize: 9, color: '#666666' }}>Reuse</Text>
+                <Text style={{ fontSize: 9, color: PDF_COLORS.textGray }}>Reuse</Text>
                 <Text style={styles.moduleDValue}>{formatNumber((wl?.d_reuse || 0) * 1000)} kgCO₂e</Text>
               </View>
               <View>
-                <Text style={{ fontSize: 9, color: '#666666' }}>Energy Recovery</Text>
+                <Text style={{ fontSize: 9, color: PDF_COLORS.textGray }}>Energy Recovery</Text>
                 <Text style={styles.moduleDValue}>{formatNumber((wl?.d_energy_recovery || 0) * 1000)} kgCO₂e</Text>
               </View>
             </View>
@@ -878,7 +879,7 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
           <View style={styles.emissionCard}>
             <Text style={styles.emissionTitle}>Net Carbon (A-D) with Benefits</Text>
             <Text style={styles.emissionValue}>{formatNumber((wl?.total_with_benefits || 0) * 1000)} kgCO₂e</Text>
-            <Text style={{ fontSize: 9, color: '#666666', marginTop: 4 }}>
+            <Text style={{ fontSize: 9, color: PDF_COLORS.textGray, marginTop: 4 }}>
               ({formatNumber(wl?.total_with_benefits || 0)} tCO₂e)
             </Text>
           </View>
@@ -906,36 +907,36 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
         {/* Aggregated Totals Summary */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Summary Totals</Text>
-          <View style={{ border: '1px solid #cccccc' }}>
-            <View style={{ flexDirection: 'row', backgroundColor: '#f0f0f0', borderBottom: '1px solid #cccccc', padding: 8 }}>
+          <View style={{ border: `1px solid ${PDF_COLORS.borderDark}` }}>
+            <View style={{ flexDirection: 'row', backgroundColor: PDF_COLORS.backgroundDarkGray, borderBottom: `1px solid ${PDF_COLORS.borderDark}`, padding: 8 }}>
               <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold' }}>Category</Text>
               <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>tCO₂e</Text>
               <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>kgCO₂e</Text>
             </View>
-            <View style={{ flexDirection: 'row', borderBottom: '1px solid #e0e0e0', padding: 8 }}>
+            <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderGray}`, padding: 8 }}>
               <Text style={{ flex: 1, fontSize: 10 }}>Upfront Carbon (A1-A5)</Text>
               <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber(wl?.total_upfront || 0)}</Text>
               <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber((wl?.total_upfront || 0) * 1000)}</Text>
             </View>
-            <View style={{ flexDirection: 'row', borderBottom: '1px solid #e0e0e0', padding: 8, backgroundColor: '#f8f9fa' }}>
+            <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderGray}`, padding: 8, backgroundColor: PDF_COLORS.backgroundLightGray }}>
               <Text style={{ flex: 1, fontSize: 10 }}>Embodied Carbon (A1-C4)</Text>
               <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber(wl?.total_embodied || 0)}</Text>
               <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber((wl?.total_embodied || 0) * 1000)}</Text>
             </View>
-            <View style={{ flexDirection: 'row', borderBottom: '1px solid #e0e0e0', padding: 8 }}>
+            <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderGray}`, padding: 8 }}>
               <Text style={{ flex: 1, fontSize: 10 }}>Operational Carbon (B6-B7)</Text>
               <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber(wl?.total_operational || 0)}</Text>
               <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber((wl?.total_operational || 0) * 1000)}</Text>
             </View>
-            <View style={{ flexDirection: 'row', borderBottom: '1px solid #e0e0e0', padding: 8, backgroundColor: '#e8f5e9' }}>
+            <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderGray}`, padding: 8, backgroundColor: PDF_COLORS.tableRowHighlight }}>
               <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold' }}>Whole Life Carbon (A-C)</Text>
               <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>{formatNumber(wl?.total_whole_life || 0)}</Text>
               <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>{formatNumber((wl?.total_whole_life || 0) * 1000)}</Text>
             </View>
-            <View style={{ flexDirection: 'row', padding: 8, backgroundColor: '#e3f2fd' }}>
-              <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold', color: '#1565c0' }}>Net with Benefits (A-D)</Text>
-              <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right', color: '#1565c0' }}>{formatNumber(wl?.total_with_benefits || 0)}</Text>
-              <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right', color: '#1565c0' }}>{formatNumber((wl?.total_with_benefits || 0) * 1000)}</Text>
+            <View style={{ flexDirection: 'row', padding: 8, backgroundColor: PDF_COLORS.tableRowInfo }}>
+              <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold', color: PDF_COLORS.alertInfo.text }}>Net with Benefits (A-D)</Text>
+              <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right', color: PDF_COLORS.alertInfo.text }}>{formatNumber(wl?.total_with_benefits || 0)}</Text>
+              <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right', color: PDF_COLORS.alertInfo.text }}>{formatNumber((wl?.total_with_benefits || 0) * 1000)}</Text>
             </View>
           </View>
         </View>
@@ -966,9 +967,9 @@ const PDFReportDocument: React.FC<PDFReportDocumentProps> = ({ data, template, b
         </View>
 
         {!hasWholeLifeData && (
-          <View style={{ backgroundColor: '#fff3e0', padding: 15, borderRadius: 4, marginBottom: 20, border: '1px solid #ff9800' }}>
-            <Text style={{ fontSize: 11, color: '#e65100', fontWeight: 'bold', marginBottom: 5 }}>⚠️ Incomplete Lifecycle Data</Text>
-            <Text style={{ fontSize: 10, color: '#666666' }}>
+          <View style={{ backgroundColor: PDF_COLORS.warningBackgroundAlt, padding: 15, borderRadius: 4, marginBottom: 20, border: `1px solid ${PDF_COLORS.warningAlt}` }}>
+            <Text style={{ fontSize: 11, color: PDF_COLORS.alertWarning.text, fontWeight: 'bold', marginBottom: 5 }}>⚠️ Incomplete Lifecycle Data</Text>
+            <Text style={{ fontSize: 10, color: PDF_COLORS.textGray }}>
               This report shows limited data. For a complete EN 15978 assessment, please complete the Use Phase (B1-B7), 
               End of Life (C1-C4), and Module D calculators in the Carbon Calculator.
             </Text>

@@ -404,7 +404,7 @@ export const LCADashboard = memo(() => {
                         labelLine={false}
                         label={({ name, percent }) => `${name.split(':')[0]}: ${(percent * 100).toFixed(0)}%`}
                         outerRadius={80}
-                        fill="#8884d8"
+                        fill="hsl(var(--chart-4))"
                         dataKey="value"
                       >
                         {stageChartData.map((entry, index) => (
