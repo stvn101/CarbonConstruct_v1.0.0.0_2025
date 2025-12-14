@@ -5,9 +5,17 @@
 
 set -e  # Exit on error
 
-# Get repository info from git remote or use defaults
-REPO_OWNER="${REPO_OWNER:-stvn101}"
-REPO_NAME="${REPO_NAME:-CarbonConstruct_v1.0.0.0_2025}"
+# Check if in a git repository and gh can determine the repo
+if ! gh repo view > /dev/null 2>&1; then
+    echo -e "${RED}ERROR: Not in a git repository or gh cannot determine the remote repository.${NC}"
+    echo "Please run this script from within the repository clone."
+    exit 1
+fi
+
+# Get repository info from git remote
+REPO_INFO=$(gh repo view --json owner,name)
+REPO_OWNER=$(echo "$REPO_INFO" | jq -r '.owner.login')
+REPO_NAME=$(echo "$REPO_INFO" | jq -r '.name')
 
 # Color codes for output
 RED='\033[0;31m'
