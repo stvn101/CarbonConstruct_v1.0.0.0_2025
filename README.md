@@ -93,9 +93,11 @@ For complete documentation, see [PR_MANAGEMENT_GUIDE.md](./PR_MANAGEMENT_GUIDE.m
 
 View the comprehensive Tailwind CSS configuration for Carbon Construct:
 
+- **[TAILWIND_VIEWING_GUIDE.md](./TAILWIND_VIEWING_GUIDE.md)** - Guide to viewing and exploring the design system
 - **[TAILWIND_CONFIGURATION.md](./TAILWIND_CONFIGURATION.md)** - Complete documentation of colors, gradients, animations, and design tokens
 - **[TAILWIND_EXAMPLES.md](./TAILWIND_EXAMPLES.md)** - Practical code examples and visual patterns
 - **[TAILWIND_QUICK_REFERENCE.md](./TAILWIND_QUICK_REFERENCE.md)** - Quick reference guide for developers
+- **[tailwind-showcase.html](./tailwind-showcase.html)** - A visual showcase of the color palette
 
 The design system features:
 - Professional twilight theme optimized for data visualization
