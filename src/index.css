@@ -521,3 +521,157 @@ All colors MUST be HSL.
     @apply bg-clip-text text-transparent;
   }
 }
+
+/* =====================================================
+   GLASSMORPHISM UI SYSTEM
+   Premium frosted glass effects for modern UI
+   ===================================================== */
+
+/* Glass Effect - Light Mode */
+.glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Glass Effect - Dark Mode / Carbon Surface */
+.glass-dark {
+  background: rgba(30, 35, 45, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Carbon Surface - Rich dark gradient background for glass sections */
+.carbon-surface {
+  background: linear-gradient(135deg, hsl(220 20% 18%), hsl(220 25% 22%));
+}
+
+/* Glass hover shadow effect */
+.shadow-glass-hover {
+  box-shadow: 0 8px 32px rgba(45, 90, 39, 0.25),
+              0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Shimmer Animation for Premium Effects */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Shimmer on hover */
+.shimmer-hover:hover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out;
+  pointer-events: none;
+}
+
+/* Noise texture for depth */
+.noise-texture {
+  position: relative;
+}
+
+.noise-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.02;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Glow ring for featured elements */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
+  50% { box-shadow: 0 0 40px hsl(var(--primary) / 0.5); }
+}
+
+.glow-ring {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Gradient text animation */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.text-gradient-animated {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary)),
+    hsl(var(--accent)),
+    hsl(156 70% 50%),
+    hsl(var(--primary))
+  );
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Glass card with glow border on hover */
+.glass-glow-hover {
+  transition: all 0.3s ease;
+}
+
+.glass-glow-hover:hover {
+  box-shadow: 0 8px 32px rgba(45, 90, 39, 0.3),
+              0 0 0 1px rgba(45, 90, 39, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Feature card gradients - unique per feature type */
+.gradient-eco-feature {
+  background: linear-gradient(135deg, hsl(156 55% 35% / 0.15), hsl(142 70% 45% / 0.1));
+}
+
+.gradient-sunset-feature {
+  background: linear-gradient(135deg, hsl(30 95% 58% / 0.15), hsl(48 95% 55% / 0.1));
+}
+
+.gradient-ocean-feature {
+  background: linear-gradient(135deg, hsl(200 90% 55% / 0.15), hsl(180 80% 48% / 0.1));
+}
+
+.gradient-carbon-feature {
+  background: linear-gradient(135deg, hsl(220 25% 45% / 0.15), hsl(156 55% 35% / 0.1));
+}
+
+.gradient-purple-feature {
+  background: linear-gradient(135deg, hsl(280 75% 60% / 0.15), hsl(340 80% 60% / 0.1));
+}
+
+/* Browser fallback for backdrop-filter */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass { 
+    background: rgba(255, 255, 255, 0.92); 
+  }
+  .glass-dark { 
+    background: rgba(30, 35, 45, 0.95); 
+  }
+}
