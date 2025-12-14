@@ -77,7 +77,7 @@ interface FeatureCarouselProps {
 
 export const FeatureCarousel = ({ autoplay = false, className = '' }: FeatureCarouselProps) => {
   return (
-    <div className={`w-full max-w-6xl mx-auto px-4 ${className}`}>
+    <div className={cn('w-full max-w-6xl mx-auto px-4', className)}>
       <Carousel
         opts={{
           align: 'start',
