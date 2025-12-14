@@ -6,35 +6,39 @@
     <title>Carbon Construct - Tailwind Configuration Showcase</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // NOTE: These color values are synchronized with src/index.css and tailwind.config.ts
+        // If you update colors in the main configuration, update them here as well
+        // Last synced: 2025-12-14
+        // Source: src/index.css :root variables
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         scope: {
-                            1: 'hsl(15 90% 58%)',
-                            2: 'hsl(48 95% 55%)',
-                            3: 'hsl(156 60% 42%)',
+                            1: 'hsl(15 90% 58%)',    // --scope-1
+                            2: 'hsl(48 95% 55%)',    // --scope-2
+                            3: 'hsl(156 60% 42%)',   // --scope-3
                         },
                         lca: {
-                            material: 'hsl(280 75% 60%)',
-                            transport: 'hsl(200 90% 55%)',
-                            construction: 'hsl(30 95% 58%)',
-                            eol: 'hsl(340 80% 60%)',
+                            material: 'hsl(280 75% 60%)',      // --lca-material
+                            transport: 'hsl(200 90% 55%)',     // --lca-transport
+                            construction: 'hsl(30 95% 58%)',   // --lca-construction
+                            eol: 'hsl(340 80% 60%)',          // --lca-eol
                         },
                         compliance: {
-                            ncc: 'hsl(210 90% 55%)',
-                            gbca: 'hsl(142 75% 48%)',
-                            nabers: 'hsl(180 80% 48%)',
+                            ncc: 'hsl(210 90% 55%)',    // --ncc-blue
+                            gbca: 'hsl(142 75% 48%)',   // --gbca-green
+                            nabers: 'hsl(180 80% 48%)', // --nabers-teal
                         },
                         chart: {
-                            1: 'hsl(15 90% 58%)',
-                            2: 'hsl(48 95% 55%)',
-                            3: 'hsl(142 70% 45%)',
-                            4: 'hsl(210 90% 55%)',
-                            5: 'hsl(280 75% 60%)',
-                            6: 'hsl(180 80% 48%)',
-                            7: 'hsl(30 95% 58%)',
-                            8: 'hsl(340 80% 60%)',
+                            1: 'hsl(15 90% 58%)',    // --chart-1
+                            2: 'hsl(48 95% 55%)',    // --chart-2
+                            3: 'hsl(142 70% 45%)',   // --chart-3
+                            4: 'hsl(210 90% 55%)',   // --chart-4
+                            5: 'hsl(280 75% 60%)',   // --chart-5
+                            6: 'hsl(180 80% 48%)',   // --chart-6
+                            7: 'hsl(30 95% 58%)',    // --chart-7
+                            8: 'hsl(340 80% 60%)',   // --chart-8
                         }
                     }
                 }
@@ -214,7 +218,8 @@
         <!-- Footer -->
         <footer class="text-center text-gray-600 mt-12 pb-8">
             <p class="text-sm">Carbon Construct v1.0.0 • Professional Carbon Emissions Calculator</p>
-            <p class="text-xs mt-2">Design System: Twilight Theme • Tailwind CSS 3.4.17</p>
+            <p class="text-xs mt-2">Design System: Twilight Theme • Project uses Tailwind CSS 3.4.17</p>
+            <p class="text-xs text-gray-500 mt-1">Note: This showcase uses Tailwind CDN (latest version) for standalone viewing</p>
         </footer>
     </div>
 </body>
