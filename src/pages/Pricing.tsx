@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Check, Zap, Building2, Crown, ArrowRight, Leaf, ExternalLink, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,18 @@ import { CheckoutButton } from '@/components/CheckoutButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { SEOHead } from '@/components/SEOHead';
+
+// TypeScript declaration for Stripe pricing table custom element
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'stripe-pricing-table': {
+        'pricing-table-id': string;
+        'publishable-key': string;
+      };
+    }
+  }
+}
 
 // Static pricing tiers with new Stripe price IDs (14-day trial enabled)
 const PRICING_TIERS = [
@@ -98,6 +110,24 @@ const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const stripePricingTableRef = useRef<HTMLDivElement>(null);
+
+  // Load Stripe pricing table script safely
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://js.stripe.com/v3/pricing-table.js';
+    script.async = true;
+
+    // Only append if not already loaded
+    const existingScript = document.querySelector('script[src="https://js.stripe.com/v3/pricing-table.js"]');
+    if (!existingScript) {
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      // Cleanup if needed (optional - Stripe script can stay loaded)
+    };
+  }, []);
 
   const handleGetStarted = (tierName: string) => {
     if (tierName === 'Enterprise') {
@@ -366,18 +396,12 @@ const Pricing = () => {
         <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
           Select your subscription directly through our secure Stripe checkout
         </p>
-        <div 
-          className="w-full" 
-          dangerouslySetInnerHTML={{
-            __html: `
-              <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
-              <stripe-pricing-table 
-                pricing-table-id="prctbl_1SULtHP7JT8gu0Wn7fABNU0I"
-                publishable-key="pk_live_51RKejrP7JT8gu0WngS6oEMcUaQdgGb5XaYcEy5e2kq6Dx75lgaizFV1Fk2lmpgE7nGav6F0fDlMhSYcgecftwpu800mMRyCFJz">
-              </stripe-pricing-table>
-            `
-          }}
-        />
+        <div ref={stripePricingTableRef} className="w-full">
+          <stripe-pricing-table
+            pricing-table-id="prctbl_1SULtHP7JT8gu0Wn7fABNU0I"
+            publishable-key="pk_live_51RKejrP7JT8gu0WngS6oEMcUaQdgGb5XaYcEy5e2kq6Dx75lgaizFV1Fk2lmpgE7nGav6F0fDlMhSYcgecftwpu800mMRyCFJz"
+          />
+        </div>
       </div>
 
       {/* FAQ Section */}
