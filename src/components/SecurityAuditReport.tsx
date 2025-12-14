@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { PDF_COLORS } from '@/constants/pdfColors';
 
 // PDF Styles
 const styles = StyleSheet.create({
@@ -13,27 +14,27 @@ const styles = StyleSheet.create({
     padding: 40,
     fontSize: 10,
     fontFamily: 'Helvetica',
-    backgroundColor: '#ffffff',
+    backgroundColor: PDF_COLORS.white,
   },
   header: {
     marginBottom: 20,
-    borderBottom: '2px solid #16a34a',
+    borderBottom: `2px solid ${PDF_COLORS.successDark}`,
     paddingBottom: 15,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#166534',
+    color: PDF_COLORS.successVeryDark,
     marginBottom: 5,
   },
   subtitle: {
     fontSize: 12,
-    color: '#4b5563',
+    color: PDF_COLORS.textGray,
     marginBottom: 3,
   },
   badge: {
-    backgroundColor: '#16a34a',
-    color: '#ffffff',
+    backgroundColor: PDF_COLORS.successDark,
+    color: PDF_COLORS.white,
     padding: '4 8',
     borderRadius: 4,
     fontSize: 10,
@@ -46,9 +47,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#166534',
+    color: PDF_COLORS.successVeryDark,
     marginBottom: 8,
-    borderBottom: '1px solid #e5e7eb',
+    borderBottom: `1px solid ${PDF_COLORS.borderLight}`,
     paddingBottom: 4,
   },
   table: {
@@ -57,13 +58,13 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f3f4f6',
-    borderBottom: '1px solid #d1d5db',
+    backgroundColor: PDF_COLORS.backgroundMediumGray,
+    borderBottom: `1px solid ${PDF_COLORS.borderMedium}`,
     padding: 6,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottom: '1px solid #e5e7eb',
+    borderBottom: `1px solid ${PDF_COLORS.borderLight}`,
     padding: 6,
   },
   tableCell: {
@@ -82,8 +83,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   summaryBox: {
-    backgroundColor: '#f0fdf4',
-    border: '1px solid #16a34a',
+    backgroundColor: PDF_COLORS.successBackground,
+    border: `1px solid ${PDF_COLORS.successDark}`,
     borderRadius: 4,
     padding: 12,
     marginBottom: 15,
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#166534',
+    color: PDF_COLORS.successVeryDark,
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   checkmark: {
-    color: '#16a34a',
+    color: PDF_COLORS.successDark,
     fontWeight: 'bold',
   },
   footer: {
@@ -110,19 +111,19 @@ const styles = StyleSheet.create({
     left: 40,
     right: 40,
     fontSize: 8,
-    color: '#6b7280',
-    borderTop: '1px solid #e5e7eb',
+    color: PDF_COLORS.textGray,
+    borderTop: `1px solid ${PDF_COLORS.borderLight}`,
     paddingTop: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   pageNumber: {
     fontSize: 8,
-    color: '#6b7280',
+    color: PDF_COLORS.textGray,
   },
   certificationBox: {
-    backgroundColor: '#fef3c7',
-    border: '1px solid #f59e0b',
+    backgroundColor: PDF_COLORS.warningBackground,
+    border: `1px solid ${PDF_COLORS.warning}`,
     borderRadius: 4,
     padding: 12,
     marginTop: 15,
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   certificationText: {
     fontSize: 9,
     fontStyle: 'italic',
-    color: '#92400e',
+    color: PDF_COLORS.warningVeryDark,
     lineHeight: 1.5,
   },
 });

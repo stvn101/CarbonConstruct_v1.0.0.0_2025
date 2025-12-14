@@ -96,9 +96,9 @@ animate-accordion-up   /* Accordion collapse (0.2s) */
 ## 📐 Border Radius
 
 ```
-rounded-lg    /* var(--radius) (default: 12px) */
-rounded-md    /* calc(var(--radius) - 2px) (default: 10px) */
-rounded-sm    /* calc(var(--radius) - 4px) (default: 8px) */
+rounded-lg    /* 12px */
+rounded-md    /* 10px */
+rounded-sm    /* 8px */
 ```
 
 ## 🎯 Common Patterns

@@ -2,14 +2,16 @@
 
 ## 📋 Overview
 
-This document provides a comprehensive view of the Tailwind CSS configuration for the Carbon Compass AI Guide. The design system uses a professional "twilight" theme optimized for carbon emissions data visualization and compliance reporting.
+This document provides a comprehensive view of the Tailwind CSS configuration for the Carbon Construct application. The design system uses a professional "twilight" theme optimized for carbon emissions data visualization and compliance reporting.
 
 ## 🎨 Design System Structure
 
 ### Configuration Files
 
-1. **`src/index.css`** – Main Tailwind v4 configuration (via `@theme` block and CSS variables)
-2. **`postcss.config.js`** – PostCSS configuration for Tailwind processing
+1. **`tailwind.config.ts`** - Main Tailwind configuration
+2. **`src/index.css`** - CSS variables and custom utilities
+3. **`postcss.config.js`** - PostCSS configuration for Tailwind processing
+
 ## 🌈 Color System
 
 ### Base Colors (Twilight Theme)
