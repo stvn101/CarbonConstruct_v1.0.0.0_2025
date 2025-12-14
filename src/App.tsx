@@ -31,6 +31,7 @@ const AccessibilityStatement = lazy(() => import("./pages/AccessibilityStatement
 const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
 const MaterialDatabaseStatus = lazy(() => import("./pages/MaterialDatabaseStatus"));
 const Demo = lazy(() => import("./pages/Demo"));
+const DesignSystem = lazy(() => import("./pages/DesignSystem"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,6 +85,7 @@ const App = () => (
                   <Route path="/admin/material-verification" element={<MaterialVerification />} />
                   <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
                   <Route path="/demo" element={<Demo />} />
+                  <Route path="/design-system" element={<DesignSystem />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
