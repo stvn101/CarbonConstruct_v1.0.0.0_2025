@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Cache bust: 2025-12-07T11:55 - Force aggressive cache clear v21
+// Cache bust: 2025-12-14T07:45 - React 19 compatibility fix v22
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -27,16 +27,20 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: [
-      'react', 
-      'react-dom', 
-      'react/jsx-runtime', 
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
       'react/jsx-dev-runtime',
       'react-dom/client',
-      '@radix-ui/react-toast', 
-      'sonner', 
+      '@radix-ui/react-toast',
+      'sonner',
       'next-themes',
       '@supabase/supabase-js',
       'react-router-dom'
+    ],
+    exclude: [
+      '@axe-core/react', // Excluded: React 19 compatibility issues
+      'lovable-tagger',  // Excluded: May cause version conflicts in Lovable cloud
     ],
     force: true,
     esbuildOptions: {
