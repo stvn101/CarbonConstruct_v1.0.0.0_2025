@@ -83,7 +83,7 @@ const MaterialRow = ({ material, onChange, onRemove }: {
 }) => {
   return (
     <div className={`rounded-lg border p-3 mb-2 ${
-      material.isCustom ? 'bg-purple-50 border-purple-200' : 'hover:bg-muted/50'
+      material.isCustom ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800' : 'hover:bg-muted/50'
     }`}>
       {/* Header: name and delete */}
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -159,7 +159,7 @@ const MaterialRow = ({ material, onChange, onRemove }: {
 
         <div className="col-span-2 md:col-span-1">
           <label className="text-xs text-muted-foreground mb-1 block">Emissions</label>
-          <div className="h-9 flex items-center justify-center px-2 bg-emerald-100 rounded-md font-bold text-emerald-700 text-sm">
+          <div className="h-9 flex items-center justify-center px-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-md font-bold text-emerald-700 dark:text-emerald-300 text-sm">
             {((material.quantity * material.factor) / 1000).toFixed(3)} t
           </div>
         </div>
