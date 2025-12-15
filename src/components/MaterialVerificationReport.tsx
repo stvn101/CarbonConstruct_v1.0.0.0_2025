@@ -412,16 +412,16 @@ const MaterialVerificationReport = () => {
               <Shield className="h-8 w-8 text-green-500 absolute -right-2 -bottom-2" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-blue-900">AI-Verified Materials Database Report</CardTitle>
-          <CardDescription className="text-lg text-blue-700">
+          <CardTitle className="text-2xl text-blue-900 dark:text-blue-100">AI-Verified Materials Database Report</CardTitle>
+          <CardDescription className="text-lg text-blue-700 dark:text-blue-300">
             Comprehensive Third-Party Verification by Claude Sonnet 4.5 (Anthropic)
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="bg-white/80 rounded-lg p-4 mb-4">
+          <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-4 mb-4">
             <div className="flex items-center gap-2 justify-center mb-2">
               <Cpu className="h-5 w-5 text-blue-600" />
-              <span className="font-semibold text-blue-900">Verification Agent</span>
+              <span className="font-semibold text-blue-900 dark:text-blue-100">Verification Agent</span>
             </div>
             <p className="text-center text-sm text-muted-foreground">
               This database has been comprehensively validated by an AI agent (Claude Sonnet 4.5) 

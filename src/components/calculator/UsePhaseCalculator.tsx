@@ -200,7 +200,7 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Clock className="h-5 w-5 text-amber-600" />
-          <h3 className="font-bold text-base md:text-lg text-slate-700">B1-B7: Use Phase Emissions</h3>
+          <h3 className="font-bold text-base md:text-lg text-foreground">B1-B7: Use Phase Emissions</h3>
           <Badge variant="outline" className="text-xs">EN 15978</Badge>
         </div>
         <Tooltip>
