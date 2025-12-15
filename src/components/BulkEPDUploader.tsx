@@ -614,7 +614,7 @@ export function BulkEPDUploader() {
                 Bulk EPD Upload
               </CardTitle>
               <CardDescription>
-                Drop EPD PDF or CSV files here. PDFs use AI extraction, CSV files are parsed directly.
+                Drop EPD PDF or Excel/CSV files here. PDFs use AI extraction, spreadsheets are parsed directly.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -639,7 +639,7 @@ export function BulkEPDUploader() {
                   </div>
                   <p className="font-medium">Drop EPD files here or click to browse</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Supports PDF and CSV files • Max 20MB each
+                    Supports PDF, XLSX/XLS, and CSV files • Max 20MB each
                   </p>
                 </label>
               </div>
@@ -715,7 +715,7 @@ export function BulkEPDUploader() {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Process {files.length} PDF{files.length !== 1 ? 's' : ''}
+                      Process {files.length} file{files.length !== 1 ? 's' : ''}
                     </>
                   )}
                 </Button>
