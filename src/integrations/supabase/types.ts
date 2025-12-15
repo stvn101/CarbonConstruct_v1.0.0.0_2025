@@ -170,6 +170,7 @@ export type Database = {
       materials_epd: {
         Row: {
           allocation_method: string | null
+          average_specific: string | null
           biogenic_carbon_kg_c: number | null
           biogenic_carbon_percentage: number | null
           carbon_sequestration: number | null
@@ -180,6 +181,8 @@ export type Database = {
           data_quality_tier: string | null
           data_representativeness: Json | null
           data_source: string
+          date_added: string | null
+          date_updated: string | null
           eco_platform_compliant: boolean | null
           ecoinvent_methodology: string | null
           ef_a1a3: number | null
@@ -190,17 +193,25 @@ export type Database = {
           ef_d: number | null
           ef_total: number
           epd_number: string | null
+          epd_type: string | null
           epd_url: string | null
           expiry_date: string | null
+          gwp_biogenic_a1a3: number | null
+          gwp_fossil_a1a3: number | null
+          gwp_luluc_a1a3: number | null
           id: string
           is_co_product: boolean | null
+          lca_practitioner: string | null
+          lca_verifier: string | null
           manufacturer: string | null
           manufacturing_city: string | null
           manufacturing_country: string | null
           material_category: string
           material_name: string
           notes: string | null
+          number_of_sites: number | null
           plant_location: string | null
+          program_operator: string | null
           publish_date: string | null
           recycled_content: number | null
           reference_year: number | null
@@ -214,10 +225,12 @@ export type Database = {
           unit: string
           updated_at: string | null
           uses_mass_balance: boolean | null
+          validity: string | null
           year: number | null
         }
         Insert: {
           allocation_method?: string | null
+          average_specific?: string | null
           biogenic_carbon_kg_c?: number | null
           biogenic_carbon_percentage?: number | null
           carbon_sequestration?: number | null
@@ -228,6 +241,8 @@ export type Database = {
           data_quality_tier?: string | null
           data_representativeness?: Json | null
           data_source: string
+          date_added?: string | null
+          date_updated?: string | null
           eco_platform_compliant?: boolean | null
           ecoinvent_methodology?: string | null
           ef_a1a3?: number | null
@@ -238,17 +253,25 @@ export type Database = {
           ef_d?: number | null
           ef_total: number
           epd_number?: string | null
+          epd_type?: string | null
           epd_url?: string | null
           expiry_date?: string | null
+          gwp_biogenic_a1a3?: number | null
+          gwp_fossil_a1a3?: number | null
+          gwp_luluc_a1a3?: number | null
           id?: string
           is_co_product?: boolean | null
+          lca_practitioner?: string | null
+          lca_verifier?: string | null
           manufacturer?: string | null
           manufacturing_city?: string | null
           manufacturing_country?: string | null
           material_category: string
           material_name: string
           notes?: string | null
+          number_of_sites?: number | null
           plant_location?: string | null
+          program_operator?: string | null
           publish_date?: string | null
           recycled_content?: number | null
           reference_year?: number | null
@@ -262,10 +285,12 @@ export type Database = {
           unit: string
           updated_at?: string | null
           uses_mass_balance?: boolean | null
+          validity?: string | null
           year?: number | null
         }
         Update: {
           allocation_method?: string | null
+          average_specific?: string | null
           biogenic_carbon_kg_c?: number | null
           biogenic_carbon_percentage?: number | null
           carbon_sequestration?: number | null
@@ -276,6 +301,8 @@ export type Database = {
           data_quality_tier?: string | null
           data_representativeness?: Json | null
           data_source?: string
+          date_added?: string | null
+          date_updated?: string | null
           eco_platform_compliant?: boolean | null
           ecoinvent_methodology?: string | null
           ef_a1a3?: number | null
@@ -286,17 +313,25 @@ export type Database = {
           ef_d?: number | null
           ef_total?: number
           epd_number?: string | null
+          epd_type?: string | null
           epd_url?: string | null
           expiry_date?: string | null
+          gwp_biogenic_a1a3?: number | null
+          gwp_fossil_a1a3?: number | null
+          gwp_luluc_a1a3?: number | null
           id?: string
           is_co_product?: boolean | null
+          lca_practitioner?: string | null
+          lca_verifier?: string | null
           manufacturer?: string | null
           manufacturing_city?: string | null
           manufacturing_country?: string | null
           material_category?: string
           material_name?: string
           notes?: string | null
+          number_of_sites?: number | null
           plant_location?: string | null
+          program_operator?: string | null
           publish_date?: string | null
           recycled_content?: number | null
           reference_year?: number | null
@@ -310,6 +345,7 @@ export type Database = {
           unit?: string
           updated_at?: string | null
           uses_mass_balance?: boolean | null
+          validity?: string | null
           year?: number | null
         }
         Relationships: []
