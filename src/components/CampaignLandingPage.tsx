@@ -30,6 +30,7 @@ export interface CampaignLandingPageProps {
   ctaSecondaryText?: string;
   seoTitle: string;
   seoDescription: string;
+  customSections?: React.ReactNode;
 }
 
 export function CampaignLandingPage({
@@ -45,6 +46,7 @@ export function CampaignLandingPage({
   ctaSecondaryText = "See Pricing",
   seoTitle,
   seoDescription,
+  customSections,
 }: CampaignLandingPageProps) {
   const { trackEvent } = useAnalytics();
   const { getCampaignAttribution } = useUTMTracking();
@@ -232,6 +234,9 @@ export function CampaignLandingPage({
             </div>
           </div>
         </section>
+
+        {/* Custom Sections */}
+        {customSections}
 
         {/* Features Checklist */}
         <section className="py-16 md:py-24">
