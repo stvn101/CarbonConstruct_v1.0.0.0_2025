@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck, Bug, Zap, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck, Bug, Zap, ShieldAlert, Leaf } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -652,6 +652,12 @@ export default function AdminMonitoring() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
+            <Link to="/admin/eco-compliance">
+              <Button variant="outline" className="gap-2">
+                <Leaf className="h-4 w-4" />
+                ECO Platform Compliance
+              </Button>
+            </Link>
             <Link to="/admin/material-verification">
               <Button variant="outline" className="gap-2">
                 <FileText className="h-4 w-4" />

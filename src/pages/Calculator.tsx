@@ -221,7 +221,8 @@ export default function Calculator() {
     isEnabled: ecoComplianceEnabled, 
     setEnabled: setEcoComplianceEnabled, 
     complianceReport, 
-    isLoading: complianceLoading 
+    isLoading: complianceLoading,
+    refreshCompliance
   } = useEcoCompliance();
   
   // Feature access checks based on subscription tier
@@ -371,6 +372,27 @@ export default function Calculator() {
     localStorage.setItem('a5Inputs', JSON.stringify(a5Inputs));
     localStorage.setItem('selectedMaterials', JSON.stringify(selectedMaterials));
   }, [projectDetails, scope1Inputs, scope2Inputs, transportInputs, commuteInputs, wasteInputs, a5Inputs, selectedMaterials]);
+
+  // Auto-validate ECO compliance when materials change (debounced)
+  const materialsValidationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (ecoComplianceEnabled && selectedMaterials.length > 0) {
+      // Clear previous timer
+      if (materialsValidationTimerRef.current) {
+        clearTimeout(materialsValidationTimerRef.current);
+      }
+      // Set new debounced validation
+      materialsValidationTimerRef.current = setTimeout(() => {
+        refreshCompliance();
+      }, 2000); // 2 second debounce
+      
+      return () => {
+        if (materialsValidationTimerRef.current) {
+          clearTimeout(materialsValidationTimerRef.current);
+        }
+      };
+    }
+  }, [selectedMaterials, ecoComplianceEnabled, refreshCompliance]);
 
   const calculations = useMemo(() => {
     let scope1 = 0, scope2 = 0, scope3_materials_gross = 0, scope3_sequestration = 0, scope3_transport = 0, scope3_commute = 0, scope3_waste = 0, scope3_a5 = 0;
