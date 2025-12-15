@@ -110,6 +110,7 @@ const confidenceColors = {
 export function MaterialValidationReport() {
   const [report, setReport] = useState<ValidationReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingStatic, setLoadingStatic] = useState(false);
   const [expandedMaterial, setExpandedMaterial] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -137,6 +138,22 @@ export function MaterialValidationReport() {
       toast.error('Validation failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadSavedReport = async () => {
+    setLoadingStatic(true);
+    try {
+      const response = await fetch('/demo/validation-report-2025-12-15.json');
+      if (!response.ok) throw new Error('Report file not found');
+      const data = await response.json();
+      setReport(data);
+      toast.success(`Loaded report: ${data.totalMaterials.toLocaleString()} materials, ${data.passRate}% pass rate`);
+    } catch (err) {
+      console.error('Load report error:', err);
+      toast.error('Failed to load saved report');
+    } finally {
+      setLoadingStatic(false);
     }
   };
 
@@ -169,7 +186,16 @@ export function MaterialValidationReport() {
                 </CardDescription>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                variant="outline"
+                onClick={loadSavedReport} 
+                disabled={loadingStatic}
+                className="gap-2"
+              >
+                <FileText className={`h-4 w-4 ${loadingStatic ? 'animate-pulse' : ''}`} />
+                {loadingStatic ? 'Loading...' : 'Load Saved Report'}
+              </Button>
               <Button 
                 onClick={runValidation} 
                 disabled={loading}
