@@ -54,6 +54,9 @@ verify_jwt = true
 [functions.validate-calculation]
 verify_jwt = true
 
+[functions.validate-eco-compliance]
+verify_jwt = true
+
 [functions.send-email]
 verify_jwt = true
 

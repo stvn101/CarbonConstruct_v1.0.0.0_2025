@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { FileDown, Loader2 } from 'lucide-react';
 import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
+import { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
 
 export interface ReportBranding {
   companyName?: string;
@@ -21,6 +22,7 @@ interface PDFReportContentProps {
   branding?: ReportBranding;
   showWatermark?: boolean;
   contentId: string;
+  ecoComplianceReport?: EcoPlatformComplianceReport | null;
 }
 
 // HTML-based report content component
@@ -29,7 +31,8 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
   template, 
   branding,
   showWatermark,
-  contentId 
+  contentId,
+  ecoComplianceReport
 }) => {
   const formatNumber = (num: number) => (num || 0).toFixed(2);
 
@@ -339,6 +342,132 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
     </>
   );
 
+  const renderEcoComplianceSection = () => {
+    if (!ecoComplianceReport) return null;
+    
+    return (
+      <div className="pdf-section" style={{ pageBreakBefore: 'always' }}>
+        <h2 className="pdf-section-title" style={{ fontSize: '16px', fontWeight: 'bold', borderBottom: '2px solid #000', paddingBottom: '8px', marginBottom: '16px' }}>
+          ECO Platform Compliance Declaration
+        </h2>
+        <p style={{ fontSize: '11px', marginBottom: '16px', color: '#666' }}>
+          LCA Calculation Rules V2.0 (December 2024) | Compliance Score: {ecoComplianceReport.complianceValidation.complianceScore}%
+        </p>
+
+        {/* Standards Compliance */}
+        <div style={{ marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Standards Compliance</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            {[
+              { name: 'EN 15804+A2', compliant: ecoComplianceReport.standardsCompliance.en15804A2 },
+              { name: 'ECO Platform V2.0', compliant: ecoComplianceReport.standardsCompliance.ecoPlatformV2 },
+              { name: 'ISO 14025', compliant: ecoComplianceReport.standardsCompliance.iso14025 },
+              { name: 'ISO 21930', compliant: ecoComplianceReport.standardsCompliance.iso21930 },
+            ].map((s) => (
+              <div key={s.name} style={{ 
+                padding: '8px', 
+                border: '1px solid #ccc', 
+                borderRadius: '4px',
+                backgroundColor: s.compliant ? '#f0fdf4' : '#fef2f2'
+              }}>
+                <span style={{ fontSize: '10px' }}>{s.compliant ? '✓' : '✗'} {s.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Compliance Details Table */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', fontSize: '10px' }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', width: '35%', backgroundColor: '#f9fafb' }}>
+                Electricity Modelling (§2.5)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                {ecoComplianceReport.energyTransparency.electricityModellingApproach} approach | 
+                {ecoComplianceReport.energyTransparency.electricityPercentageOfA1A3.toFixed(1)}% of A1-A3
+                {ecoComplianceReport.energyTransparency.electricityGwpKgCO2ePerKwh !== null && 
+                  ` | GWP: ${ecoComplianceReport.energyTransparency.electricityGwpKgCO2ePerKwh.toFixed(3)} kgCO2e/kWh`}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                Characterisation Factors (§2.9)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                {ecoComplianceReport.characterisationFactors.version} ({ecoComplianceReport.characterisationFactors.source})
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                Allocation Method (§2.6)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                {ecoComplianceReport.allocationStatement.allocationMethodUsed}
+                {ecoComplianceReport.allocationStatement.coProductsPresent && 
+                  ` | Economic allocation for slag/fly ash: ${ecoComplianceReport.allocationStatement.economicAllocationForSlagFlyAsh ? '✓' : '✗'}`}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                Data Quality (§2.7)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                Rating: <strong>{ecoComplianceReport.dataQuality.overallRating}</strong> | 
+                Temporal: {ecoComplianceReport.dataQuality.temporalCoverage} | 
+                Geographical: {ecoComplianceReport.dataQuality.geographicalCoverage}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                Biogenic Carbon (§2.11)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                {ecoComplianceReport.biogenicCarbon.totalBiogenicCarbonKgC.toFixed(2)} kg C
+                {ecoComplianceReport.biogenicCarbon.biogenicCarbonKgCO2e !== null && 
+                  ` (${ecoComplianceReport.biogenicCarbon.biogenicCarbonKgCO2e.toFixed(2)} kg CO2-e)`}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                Manufacturing Locations (§2.12)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                {ecoComplianceReport.manufacturingLocations.length > 0 
+                  ? ecoComplianceReport.manufacturingLocations.map(l => `${l.city}, ${l.country}`).join('; ')
+                  : 'Not specified'}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* Validation Summary */}
+        <div style={{ 
+          padding: '12px', 
+          borderRadius: '4px',
+          backgroundColor: ecoComplianceReport.complianceValidation.isFullyCompliant ? '#f0fdf4' : '#fef2f2',
+          border: `1px solid ${ecoComplianceReport.complianceValidation.isFullyCompliant ? '#bbf7d0' : '#fecaca'}`
+        }}>
+          <p style={{ fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}>
+            {ecoComplianceReport.complianceValidation.isFullyCompliant 
+              ? '✓ Fully Compliant with ECO Platform LCA Calculation Rules V2.0'
+              : `⚠ ${ecoComplianceReport.complianceValidation.nonCompliantItems.length} compliance issue(s) found`}
+          </p>
+          {ecoComplianceReport.complianceValidation.warnings.length > 0 && (
+            <p style={{ fontSize: '10px', color: '#92400e' }}>
+              {ecoComplianceReport.complianceValidation.warnings.length} warning(s)
+            </p>
+          )}
+        </div>
+
+        <p style={{ fontSize: '9px', color: '#666', marginTop: '12px' }}>
+          This declaration is prepared in accordance with ECO Platform LCA Calculation Rules V2.0 
+          (December 2024) and EN 15804:2012+A2:2019 standards.
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div 
       id={contentId}
@@ -385,6 +514,9 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
       {template === 'technical' && renderTechnicalReport()}
       {template === 'en15978' && renderEN15978Report()}
 
+      {/* ECO Platform Compliance Section */}
+      {ecoComplianceReport && renderEcoComplianceSection()}
+
       {/* Footer */}
       <div className="pdf-footer">
         <p>This report was generated using Australian NCC 2024 emission factors and methodologies.</p>
@@ -417,6 +549,7 @@ interface PDFReportProps {
   filename?: string;
   branding?: ReportBranding;
   showWatermark?: boolean;
+  ecoComplianceReport?: EcoPlatformComplianceReport | null;
 }
 
 export const PDFReport: React.FC<PDFReportProps> = ({ 
@@ -424,7 +557,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({
   template = 'technical',
   filename,
   branding,
-  showWatermark = false
+  showWatermark = false,
+  ecoComplianceReport = null
 }) => {
   const [loading, setLoading] = useState(false);
   const contentId = useId().replace(/:/g, '-') + '-pdf-content';
@@ -473,6 +607,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         branding={branding} 
         showWatermark={showWatermark}
         contentId={contentId}
+        ecoComplianceReport={ecoComplianceReport}
       />
       <Button onClick={handleDownload} disabled={loading} className="w-full">
         {loading ? (
