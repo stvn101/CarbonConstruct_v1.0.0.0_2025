@@ -176,8 +176,8 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <ArrowDownLeft className="h-5 w-5 text-emerald-600" />
-          <h3 className="font-bold text-base md:text-lg text-slate-700">Module D: Beyond Building Lifecycle</h3>
-          <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">Credits</Badge>
+          <h3 className="font-bold text-base md:text-lg text-foreground">Module D: Beyond Building Lifecycle</h3>
+          <Badge variant="outline" className="text-xs bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">Credits</Badge>
         </div>
         <Tooltip>
           <TooltipTrigger>

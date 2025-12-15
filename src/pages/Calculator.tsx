@@ -1262,10 +1262,10 @@ export default function Calculator() {
                       />
                     </div>
                   ) : quickAddMaterials.length > 0 && (
-                    <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Quick Add</span>
-                        <span className="text-xs text-emerald-600">Your frequently used materials</span>
+                        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">Quick Add</span>
+                        <span className="text-xs text-emerald-600 dark:text-emerald-400">Your frequently used materials</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {quickAddMaterials.map(fav => (
@@ -1273,10 +1273,10 @@ export default function Calculator() {
                             <TooltipTrigger asChild>
                               <button
                                 onClick={() => addFromQuickAdd(fav)}
-                                className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white border border-emerald-300 rounded-full hover:bg-emerald-100 hover:border-emerald-400 transition-colors"
+                                className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-emerald-300 dark:border-emerald-700 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:border-emerald-400 transition-colors"
                               >
                                 <span className="text-foreground truncate max-w-[150px]">{fav.materialName}</span>
-                                <span className="text-xs text-emerald-600">{fav.factor.toFixed(1)}</span>
+                                <span className="text-xs text-emerald-600 dark:text-emerald-400">{fav.factor.toFixed(1)}</span>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -1300,19 +1300,19 @@ export default function Calculator() {
 
                   {/* Recently Used Materials */}
                   {recentlyUsedMaterials.length > 0 && (
-                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-blue-700 uppercase tracking-wide flex items-center gap-1.5">
+                        <span className="text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wide flex items-center gap-1.5">
                           <Clock className="h-3 w-3" />
                           Recently Used
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-blue-600">Last 10 materials</span>
+                          <span className="text-xs text-blue-600 dark:text-blue-400">Last 10 materials</span>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={clearAllFavorites}
-                            className="h-6 px-2 text-xs text-blue-600 hover:text-destructive hover:bg-blue-100"
+                            className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400 hover:text-destructive hover:bg-blue-100 dark:hover:bg-blue-900/50"
                           >
                             <Trash2 className="h-3 w-3 mr-1" />
                             Clear
@@ -1325,10 +1325,10 @@ export default function Calculator() {
                             <TooltipTrigger asChild>
                               <button
                                 onClick={() => addFromQuickAdd(recent)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white border border-blue-300 rounded-full hover:bg-blue-100 hover:border-blue-400 transition-colors"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-700 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 transition-colors"
                               >
                                 <span className="text-foreground truncate max-w-[150px]">{recent.materialName}</span>
-                                <span className="text-xs text-blue-600">{recent.unit}</span>
+                                <span className="text-xs text-blue-600 dark:text-blue-400">{recent.unit}</span>
                               </button>
                             </TooltipTrigger>
                             <TooltipContent>

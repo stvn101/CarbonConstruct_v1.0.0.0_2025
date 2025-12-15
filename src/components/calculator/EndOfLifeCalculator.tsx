@@ -182,7 +182,7 @@ export function EndOfLifeCalculator({ buildingSqm, onTotalsChange }: EndOfLifeCa
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Trash2 className="h-5 w-5 text-red-600" />
-          <h3 className="font-bold text-base md:text-lg text-slate-700">C1-C4: End-of-Life Emissions</h3>
+          <h3 className="font-bold text-base md:text-lg text-foreground">C1-C4: End-of-Life Emissions</h3>
           <Badge variant="outline" className="text-xs">EN 15978</Badge>
         </div>
         <Tooltip>

@@ -666,15 +666,15 @@ const Reports = () => {
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-slate-100 border-slate-300">
+                  <Card className="bg-muted border-border">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm text-slate-700">Whole Life Total</CardTitle>
+                      <CardTitle className="text-sm text-foreground">Whole Life Total</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-slate-800">
+                      <div className="text-2xl font-bold text-foreground">
                         {reportData.emissions.total.toFixed(2)}
                       </div>
-                      <p className="text-xs text-slate-600">tCO₂e (A-D)</p>
+                      <p className="text-xs text-muted-foreground">tCO₂e (A-D)</p>
                     </CardContent>
                   </Card>
                 </div>
