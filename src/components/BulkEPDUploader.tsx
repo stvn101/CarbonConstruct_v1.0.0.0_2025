@@ -16,6 +16,7 @@ import {
   Upload, FileText, CheckCircle, XCircle, AlertTriangle, 
   RefreshCw, Trash2, Edit2, Save, FolderOpen, FileSpreadsheet
 } from "lucide-react";
+import * as XLSX from 'xlsx';
 
 interface ExtractedProduct {
   product_name: string;
@@ -48,7 +49,7 @@ interface ProcessedFile {
   extractionConfidence: string;
   extractionNotes: string;
   error?: string;
-  fileType: 'pdf' | 'csv';
+  fileType: 'pdf' | 'spreadsheet';
 }
 
 const MATERIAL_CATEGORIES = [
@@ -61,18 +62,22 @@ const ACCEPTED_FILE_TYPES = [
   'application/pdf',
   'text/csv',
   'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
 
-const ACCEPTED_EXTENSIONS = ['.pdf', '.csv'];
+const ACCEPTED_EXTENSIONS = ['.pdf', '.csv', '.xlsx', '.xls'];
 
 const isAcceptedFile = (file: File): boolean => {
   const extension = '.' + file.name.split('.').pop()?.toLowerCase();
   return ACCEPTED_FILE_TYPES.includes(file.type) || ACCEPTED_EXTENSIONS.includes(extension);
 };
 
-const isCSVFile = (file: File): boolean => {
+const isSpreadsheetFile = (file: File): boolean => {
   const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-  return file.type === 'text/csv' || file.type.includes('excel') || extension === '.csv';
+  return file.type === 'text/csv' || 
+         file.type.includes('excel') || 
+         file.type.includes('spreadsheet') ||
+         ['.csv', '.xlsx', '.xls'].includes(extension);
 };
 
 export function BulkEPDUploader() {
@@ -87,25 +92,25 @@ export function BulkEPDUploader() {
     e.preventDefault();
     const droppedFiles = Array.from(e.dataTransfer.files).filter(isAcceptedFile);
     if (droppedFiles.length === 0) {
-      toast.error('Only PDF and CSV files are accepted');
+      toast.error('Only PDF, CSV, and Excel files are accepted');
       return;
     }
     setFiles(prev => [...prev, ...droppedFiles]);
     const pdfCount = droppedFiles.filter(f => f.type === 'application/pdf').length;
-    const csvCount = droppedFiles.length - pdfCount;
-    toast.success(`Added ${droppedFiles.length} file${droppedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${csvCount} CSV)`);
+    const spreadsheetCount = droppedFiles.length - pdfCount;
+    toast.success(`Added ${droppedFiles.length} file${droppedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${spreadsheetCount} spreadsheet)`);
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []).filter(isAcceptedFile);
     if (selectedFiles.length === 0) {
-      toast.error('Only PDF and CSV files are accepted');
+      toast.error('Only PDF, CSV, and Excel files are accepted');
       return;
     }
     setFiles(prev => [...prev, ...selectedFiles]);
     const pdfCount = selectedFiles.filter(f => f.type === 'application/pdf').length;
-    const csvCount = selectedFiles.length - pdfCount;
-    toast.success(`Added ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${csvCount} CSV)`);
+    const spreadsheetCount = selectedFiles.length - pdfCount;
+    toast.success(`Added ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${spreadsheetCount} spreadsheet)`);
     e.target.value = '';
   };
 
@@ -113,22 +118,43 @@ export function BulkEPDUploader() {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Parse CSV file and extract products (native browser parsing)
-  const parseCSVFile = async (file: File): Promise<ExtractedProduct[]> => {
+  // Parse spreadsheet file (CSV or XLSX) and extract products
+  const parseSpreadsheetFile = async (file: File): Promise<ExtractedProduct[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const text = e.target?.result as string;
-          const lines = text.split(/\r?\n/).filter(line => line.trim());
-          
-          if (lines.length < 2) {
-            reject(new Error('CSV file must have a header row and at least one data row'));
-            return;
-          }
+          const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+          let headers: string[] = [];
+          let dataRows: string[][] = [];
 
-          // Parse header row
-          const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+          if (extension === '.csv') {
+            // Parse CSV
+            const text = e.target?.result as string;
+            const lines = text.split(/\r?\n/).filter(line => line.trim());
+            
+            if (lines.length < 2) {
+              reject(new Error('File must have a header row and at least one data row'));
+              return;
+            }
+
+            headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+            dataRows = lines.slice(1).map(line => parseCSVLine(line));
+          } else {
+            // Parse XLSX/XLS using xlsx library
+            const data = new Uint8Array(e.target?.result as ArrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json<string[]>(firstSheet, { header: 1 });
+            
+            if (jsonData.length < 2) {
+              reject(new Error('Excel file must have a header row and at least one data row'));
+              return;
+            }
+
+            headers = (jsonData[0] || []).map(h => String(h || '').toLowerCase().trim());
+            dataRows = jsonData.slice(1).map(row => (row || []).map(cell => String(cell ?? '')));
+          }
           
           // Map headers to product fields
           const findHeaderIndex = (keys: string[]): number => {
@@ -169,8 +195,7 @@ export function BulkEPDUploader() {
 
           // Parse data rows
           const products: ExtractedProduct[] = [];
-          for (let i = 1; i < lines.length; i++) {
-            const values = parseCSVLine(lines[i]);
+          for (const values of dataRows) {
             if (values.length === 0 || values.every(v => !v.trim())) continue;
 
             const getValue = (idx: number): string | null => {
@@ -196,7 +221,7 @@ export function BulkEPDUploader() {
               geographic_scope: getValue(columnMap.geographic_scope) || 'Australia',
               material_category: getValue(columnMap.material_category) || 'Other',
               plant_location: getValue(columnMap.plant_location),
-              data_source: getValue(columnMap.data_source) || `CSV Import: ${file.name}`,
+              data_source: getValue(columnMap.data_source) || `Import: ${file.name}`,
               recycled_content: parseNumber(getValue(columnMap.recycled_content) ?? undefined),
               notes: getValue(columnMap.notes),
             });
@@ -215,7 +240,14 @@ export function BulkEPDUploader() {
         }
       };
       reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsText(file);
+      
+      // Read as text for CSV, as ArrayBuffer for Excel
+      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+      if (extension === '.csv') {
+        reader.readAsText(file);
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
     });
   };
 
@@ -282,7 +314,7 @@ export function BulkEPDUploader() {
     _fileIndex: number, 
     session: any
   ): Promise<ProcessedFile> => {
-    const fileIsCSV = isCSVFile(file);
+    const fileIsSpreadsheet = isSpreadsheetFile(file);
     const result: ProcessedFile = {
       fileName: file.name,
       storagePath: null,
@@ -290,20 +322,20 @@ export function BulkEPDUploader() {
       products: [],
       extractionConfidence: '',
       extractionNotes: '',
-      fileType: fileIsCSV ? 'csv' : 'pdf',
+      fileType: fileIsSpreadsheet ? 'spreadsheet' : 'pdf',
     };
 
     try {
-      if (fileIsCSV) {
-        // Handle CSV file - parse locally
-        const products = await parseCSVFile(file);
+      if (fileIsSpreadsheet) {
+        // Handle spreadsheet file - parse locally
+        const products = await parseSpreadsheetFile(file);
         
         return {
           ...result,
           status: 'extracted',
           products,
           extractionConfidence: 'high',
-          extractionNotes: `Parsed ${products.length} materials from CSV spreadsheet`,
+          extractionNotes: `Parsed ${products.length} materials from spreadsheet`,
         };
       } else {
         // Handle PDF file - existing flow
@@ -378,7 +410,7 @@ export function BulkEPDUploader() {
       products: [],
       extractionConfidence: '',
       extractionNotes: '',
-      fileType: isCSVFile(f) ? 'csv' as const : 'pdf' as const,
+      fileType: isSpreadsheetFile(f) ? 'spreadsheet' as const : 'pdf' as const,
     }));
     setProcessedFiles(initialFiles);
 
@@ -594,7 +626,7 @@ export function BulkEPDUploader() {
               >
                 <input
                   type="file"
-                  accept=".pdf,.csv"
+                  accept=".pdf,.csv,.xlsx,.xls"
                   multiple
                   onChange={handleFileSelect}
                   className="hidden"
@@ -629,18 +661,19 @@ export function BulkEPDUploader() {
                   </div>
                   <ScrollArea className="h-48 border rounded-lg p-2">
                     {files.map((file, i) => {
-                      const fileIsCSV = isCSVFile(file);
+                      const fileIsSpreadsheet = isSpreadsheetFile(file);
+                      const extension = file.name.split('.').pop()?.toUpperCase() || 'FILE';
                       return (
                         <div key={i} className="flex items-center justify-between py-2 px-2 hover:bg-muted/50 rounded">
                           <div className="flex items-center gap-2">
-                            {fileIsCSV ? (
+                            {fileIsSpreadsheet ? (
                               <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
                             ) : (
                               <FileText className="h-4 w-4 text-primary" />
                             )}
                             <span className="text-sm truncate max-w-[300px]">{file.name}</span>
                             <Badge variant="outline" className="text-xs">
-                              {fileIsCSV ? 'CSV' : 'PDF'}
+                              {extension}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
                               ({(file.size / 1024 / 1024).toFixed(1)} MB)
