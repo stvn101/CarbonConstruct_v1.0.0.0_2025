@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,26 +18,50 @@ import {
 } from "lucide-react";
 import * as XLSX from 'xlsx';
 
+// NABERS EPD List v2025.1 - All 31 columns exactly as specified
 interface ExtractedProduct {
-  product_name: string;
-  manufacturer: string | null;
-  epd_number: string | null;
-  functional_unit: string | null;
-  unit: string;
-  gwp_a1a3: number | null;
-  gwp_a4: number | null;
-  gwp_a5: number | null;
-  gwp_b1b5: number | null;
-  gwp_c1c4: number | null;
-  gwp_d: number | null;
-  gwp_total: number | null;
-  valid_until: string | null;
-  geographic_scope: string | null;
-  material_category: string;
-  plant_location: string | null;
-  data_source: string | null;
-  recycled_content: number | null;
-  notes: string | null;
+  // Column 1-4: Material identification
+  material_type: string;
+  material_classification: string | null;
+  material_category_matching: string | null;
+  material_long_name: string;
+  // Column 5-6: Validity dates
+  data_valid_start: string | null;
+  data_valid_end: string | null;
+  // Column 7-11: EPD metadata
+  location: string | null;
+  registration_number: string | null;
+  version: string | null;
+  program: string | null;
+  reference_link: string | null;
+  // Column 12: Unit info
+  declared_unit: string;
+  // Column 13-16: Physical properties
+  density_kg_m3: number | null;
+  area_density_kg_m2: number | null;
+  mass_per_m_kg: number | null;
+  mass_per_unit_kg: number | null;
+  // Column 17-21: GWP per declared quantity
+  gwp_total_quantity: number | null;
+  gwp_fossil_quantity: number | null;
+  gwp_biogenic_quantity: number | null;
+  gwp_luluc_quantity: number | null;
+  gwp_stored_quantity: number | null;
+  // Column 22-23: Upfront carbon per quantity
+  upfront_carbon_emissions_quantity: number | null;
+  upfront_carbon_storage_quantity: number | null;
+  // Column 24-28: GWP per kg
+  gwp_total_kg: number | null;
+  gwp_fossil_kg: number | null;
+  gwp_biogenic_kg: number | null;
+  gwp_luluc_kg: number | null;
+  gwp_stored_kg: number | null;
+  // Column 29-30: Upfront carbon per kg
+  upfront_carbon_emissions_kg: number | null;
+  upfront_carbon_storage_kg: number | null;
+  // Column 31: Record metadata
+  record_added_to_database: string | null;
+  // Storage reference (internal)
   storage_url?: string;
 }
 
@@ -51,12 +75,6 @@ interface ProcessedFile {
   error?: string;
   fileType: 'pdf' | 'spreadsheet';
 }
-
-const MATERIAL_CATEGORIES = [
-  'Concrete', 'Steel', 'Timber', 'Insulation', 'Glass', 'Bricks', 
-  'Plasterboard', 'Plastics', 'Aluminium', 'Copper', 'Roofing',
-  'Flooring', 'Adhesives', 'Paints', 'Pipes', 'Other'
-];
 
 const ACCEPTED_FILE_TYPES = [
   'application/pdf',
@@ -118,83 +136,120 @@ export function BulkEPDUploader() {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Download XLSX template with correct headers
+  // Download XLSX template with EXACT NABERS EPD List v2025.1 headers (all 31 columns)
   const downloadTemplate = () => {
+    // Exact headers from NABERS EPD List v2025.1
     const headers = [
-      'Product Name',
-      'Manufacturer',
-      'EPD Number',
-      'Functional Unit',
-      'Unit',
-      'GWP A1-A3 (kgCO2e)',
-      'GWP A4 (kgCO2e)',
-      'GWP A5 (kgCO2e)',
-      'GWP B1-B5 (kgCO2e)',
-      'GWP C1-C4 (kgCO2e)',
-      'GWP Module D (kgCO2e)',
-      'GWP Total (kgCO2e)',
-      'Valid Until',
-      'Geographic Scope',
-      'Material Category',
-      'Plant Location',
-      'Data Source',
-      'Recycled Content (%)',
-      'Notes'
+      'Material type',
+      'Material classification',
+      'Material category for matching emission factor',
+      'Material long name',
+      'Data valid (start)',
+      'Data valid (end)',
+      'Location',
+      'Registration number',
+      'Version',
+      'Program',
+      'Reference link - Website',
+      'Declared unit',
+      'Density (kg/m3)',
+      'Area density (kg/m2)',
+      'Mass per m (kg/m)',
+      'Mass per unit (kg/unit)',
+      'GWP-total (kg CO2e/quanity)',
+      'GWP-fossil (kg CO2e/quanity)',
+      'GWP-biogenic (kg CO2e/quanity)',
+      'GWP-luluc (kg CO2e/quanity)',
+      'GWP-stored (kg CO2e/quantity)',
+      'Upfront carbon emissions (kg CO2e/quantity)',
+      'Upfront carbon storage (kg CO2e/quantity)',
+      'GWP-total (kg CO2e/kg)',
+      'GWP-fossil (kg CO2e/kg)',
+      'GWP-biogenic (kg CO2e/kg)',
+      'GWP-luluc (kg CO2e/kg)',
+      'GWP-stored (kg CO2e/kg)',
+      'Upfront carbon emissions (kg CO2e/kg)',
+      'Upfront carbon storage (kg CO2e/kg)',
+      'Record added to database'
     ];
 
-    // Example row to show format
+    // Example row matching NABERS format
     const exampleRow = [
-      'Example Concrete 32MPa',
-      'ABC Materials Pty Ltd',
-      'EPD-AU-2024-001',
-      '1 m³ of concrete',
-      'm³',
-      '320.5',
-      '15.2',
-      '8.1',
-      '',
-      '12.4',
-      '-45.2',
-      '310.0',
-      '2027-12-31',
-      'Australia',
-      'Concrete',
+      'Concrete (in-situ)',
+      'Concrete, 32 MPa',
+      '>25 MPa to ≤32 MPa',
+      'Concrete, 32 MPa, in-situ, no reinforcement, (Example) (Holcim) (NSW)',
+      '1/1/2024',
+      '31/12/2028',
       'Sydney, NSW',
+      'S-P-12345',
+      'Version 1',
       'EPD Australasia',
-      '25',
-      'Regional average for NSW'
+      'https://epd-australasia.com/example-epd.pdf',
+      'm³',
+      '2400',
+      '',
+      '',
+      '',
+      '320.5',
+      '318.2',
+      '2.3',
+      '',
+      '',
+      '320.5',
+      '0',
+      '0.1335',
+      '0.1326',
+      '0.00096',
+      '',
+      '',
+      '0.1335',
+      '0',
+      'Version 1.0'
     ];
 
     const worksheet = XLSX.utils.aoa_to_sheet([headers, exampleRow]);
     
-    // Set column widths
+    // Set column widths for all 31 columns
     worksheet['!cols'] = [
-      { wch: 30 }, // Product Name
-      { wch: 25 }, // Manufacturer
-      { wch: 18 }, // EPD Number
-      { wch: 20 }, // Functional Unit
-      { wch: 8 },  // Unit
-      { wch: 18 }, // GWP A1-A3
-      { wch: 15 }, // GWP A4
-      { wch: 15 }, // GWP A5
-      { wch: 18 }, // GWP B1-B5
-      { wch: 18 }, // GWP C1-C4
-      { wch: 20 }, // GWP Module D
-      { wch: 18 }, // GWP Total
-      { wch: 12 }, // Valid Until
-      { wch: 15 }, // Geographic Scope
-      { wch: 18 }, // Material Category
-      { wch: 20 }, // Plant Location
-      { wch: 18 }, // Data Source
-      { wch: 18 }, // Recycled Content
-      { wch: 30 }, // Notes
+      { wch: 20 },  // Material type
+      { wch: 22 },  // Material classification
+      { wch: 35 },  // Material category for matching emission factor
+      { wch: 60 },  // Material long name
+      { wch: 14 },  // Data valid (start)
+      { wch: 14 },  // Data valid (end)
+      { wch: 20 },  // Location
+      { wch: 16 },  // Registration number
+      { wch: 12 },  // Version
+      { wch: 18 },  // Program
+      { wch: 50 },  // Reference link - Website
+      { wch: 12 },  // Declared unit
+      { wch: 15 },  // Density (kg/m3)
+      { wch: 18 },  // Area density (kg/m2)
+      { wch: 16 },  // Mass per m (kg/m)
+      { wch: 18 },  // Mass per unit (kg/unit)
+      { wch: 25 },  // GWP-total (kg CO2e/quanity)
+      { wch: 25 },  // GWP-fossil (kg CO2e/quanity)
+      { wch: 28 },  // GWP-biogenic (kg CO2e/quanity)
+      { wch: 25 },  // GWP-luluc (kg CO2e/quanity)
+      { wch: 26 },  // GWP-stored (kg CO2e/quantity)
+      { wch: 35 },  // Upfront carbon emissions (kg CO2e/quantity)
+      { wch: 35 },  // Upfront carbon storage (kg CO2e/quantity)
+      { wch: 22 },  // GWP-total (kg CO2e/kg)
+      { wch: 22 },  // GWP-fossil (kg CO2e/kg)
+      { wch: 25 },  // GWP-biogenic (kg CO2e/kg)
+      { wch: 22 },  // GWP-luluc (kg CO2e/kg)
+      { wch: 22 },  // GWP-stored (kg CO2e/kg)
+      { wch: 32 },  // Upfront carbon emissions (kg CO2e/kg)
+      { wch: 32 },  // Upfront carbon storage (kg CO2e/kg)
+      { wch: 22 },  // Record added to database
     ];
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'EPD Materials');
     
-    XLSX.writeFile(workbook, 'EPD_Import_Template.xlsx');
-    toast.success('Template downloaded! Fill it out and upload.');
+    XLSX.writeFile(workbook, 'NABERS_EPD_Import_Template_v2025.xlsx');
+    toast.success('NABERS EPD template downloaded! Fill it out and upload.');
   };
 
   const parseSpreadsheetFile = async (file: File): Promise<ExtractedProduct[]> => {
@@ -243,31 +298,45 @@ export function BulkEPDUploader() {
             return -1;
           };
 
+          // NABERS EPD List v2025.1 exact column mapping
           const columnMap = {
-            product_name: findHeaderIndex(['product', 'name', 'material', 'description']),
-            manufacturer: findHeaderIndex(['manufacturer', 'supplier', 'company', 'producer']),
-            epd_number: findHeaderIndex(['epd', 'number', 'id', 'reference']),
-            functional_unit: findHeaderIndex(['functional', 'declared']),
-            unit: findHeaderIndex(['unit']),
-            gwp_a1a3: findHeaderIndex(['a1a3', 'a1-a3', 'gwp_a1a3', 'production', 'embodied']),
-            gwp_a4: findHeaderIndex(['a4', 'gwp_a4', 'transport']),
-            gwp_a5: findHeaderIndex(['a5', 'gwp_a5', 'construction', 'installation']),
-            gwp_b1b5: findHeaderIndex(['b1b5', 'b1-b5', 'gwp_b1b5', 'use']),
-            gwp_c1c4: findHeaderIndex(['c1c4', 'c1-c4', 'gwp_c1c4', 'end']),
-            gwp_d: findHeaderIndex(['module_d', 'gwp_d', 'benefits']),
-            gwp_total: findHeaderIndex(['total', 'gwp_total', 'gwp', 'carbon']),
-            valid_until: findHeaderIndex(['valid', 'expiry', 'expires', 'until']),
-            geographic_scope: findHeaderIndex(['geographic', 'region', 'scope', 'country']),
-            material_category: findHeaderIndex(['category', 'type', 'material_category']),
-            plant_location: findHeaderIndex(['plant', 'location', 'factory', 'site']),
-            data_source: findHeaderIndex(['source', 'data_source', 'database']),
-            recycled_content: findHeaderIndex(['recycled', 'recycled_content', 'recyclate']),
-            notes: findHeaderIndex(['notes', 'comments', 'remarks']),
+            material_type: findHeaderIndex(['material type']),
+            material_classification: findHeaderIndex(['material classification']),
+            material_category_matching: findHeaderIndex(['material category for matching', 'category for matching']),
+            material_long_name: findHeaderIndex(['material long name', 'long name']),
+            data_valid_start: findHeaderIndex(['data valid (start)', 'valid (start)', 'start date']),
+            data_valid_end: findHeaderIndex(['data valid (end)', 'valid (end)', 'end date', 'expiry']),
+            location: findHeaderIndex(['location']),
+            registration_number: findHeaderIndex(['registration number', 'epd number', 'registration']),
+            version: findHeaderIndex(['version']),
+            program: findHeaderIndex(['program', 'programme']),
+            reference_link: findHeaderIndex(['reference link', 'website', 'link', 'url']),
+            declared_unit: findHeaderIndex(['declared unit', 'unit']),
+            density_kg_m3: findHeaderIndex(['density (kg/m3)', 'density']),
+            area_density_kg_m2: findHeaderIndex(['area density (kg/m2)', 'area density']),
+            mass_per_m_kg: findHeaderIndex(['mass per m (kg/m)', 'mass per m']),
+            mass_per_unit_kg: findHeaderIndex(['mass per unit (kg/unit)', 'mass per unit']),
+            gwp_total_quantity: findHeaderIndex(['gwp-total (kg co2e/quanity)', 'gwp-total (kg co2e/quantity)', 'gwp total quantity']),
+            gwp_fossil_quantity: findHeaderIndex(['gwp-fossil (kg co2e/quanity)', 'gwp-fossil (kg co2e/quantity)', 'gwp fossil quantity']),
+            gwp_biogenic_quantity: findHeaderIndex(['gwp-biogenic (kg co2e/quanity)', 'gwp-biogenic (kg co2e/quantity)', 'gwp biogenic quantity']),
+            gwp_luluc_quantity: findHeaderIndex(['gwp-luluc (kg co2e/quanity)', 'gwp-luluc (kg co2e/quantity)', 'gwp luluc quantity']),
+            gwp_stored_quantity: findHeaderIndex(['gwp-stored (kg co2e/quantity)', 'gwp stored quantity']),
+            upfront_carbon_emissions_quantity: findHeaderIndex(['upfront carbon emissions (kg co2e/quantity)', 'upfront emissions quantity']),
+            upfront_carbon_storage_quantity: findHeaderIndex(['upfront carbon storage (kg co2e/quantity)', 'upfront storage quantity']),
+            gwp_total_kg: findHeaderIndex(['gwp-total (kg co2e/kg)', 'gwp total kg']),
+            gwp_fossil_kg: findHeaderIndex(['gwp-fossil (kg co2e/kg)', 'gwp fossil kg']),
+            gwp_biogenic_kg: findHeaderIndex(['gwp-biogenic (kg co2e/kg)', 'gwp biogenic kg']),
+            gwp_luluc_kg: findHeaderIndex(['gwp-luluc (kg co2e/kg)', 'gwp luluc kg']),
+            gwp_stored_kg: findHeaderIndex(['gwp-stored (kg co2e/kg)', 'gwp stored kg']),
+            upfront_carbon_emissions_kg: findHeaderIndex(['upfront carbon emissions (kg co2e/kg)', 'upfront emissions kg']),
+            upfront_carbon_storage_kg: findHeaderIndex(['upfront carbon storage (kg co2e/kg)', 'upfront storage kg']),
+            record_added_to_database: findHeaderIndex(['record added to database', 'record added']),
           };
 
           const parseNumber = (value: string | undefined): number | null => {
             if (!value || value.trim() === '') return null;
-            const num = parseFloat(value.replace(/[^0-9.-]/g, ''));
+            // Handle scientific notation (e.g., 2.40E+03)
+            const num = parseFloat(value.replace(/[^0-9.eE+-]/g, ''));
             return isNaN(num) ? null : num;
           };
 
@@ -283,33 +352,45 @@ export function BulkEPDUploader() {
             };
 
             products.push({
-              product_name: getValue(columnMap.product_name) || 'Unknown Product',
-              manufacturer: getValue(columnMap.manufacturer),
-              epd_number: getValue(columnMap.epd_number),
-              functional_unit: getValue(columnMap.functional_unit),
-              unit: getValue(columnMap.unit) || 'kg',
-              gwp_a1a3: parseNumber(getValue(columnMap.gwp_a1a3) ?? undefined),
-              gwp_a4: parseNumber(getValue(columnMap.gwp_a4) ?? undefined),
-              gwp_a5: parseNumber(getValue(columnMap.gwp_a5) ?? undefined),
-              gwp_b1b5: parseNumber(getValue(columnMap.gwp_b1b5) ?? undefined),
-              gwp_c1c4: parseNumber(getValue(columnMap.gwp_c1c4) ?? undefined),
-              gwp_d: parseNumber(getValue(columnMap.gwp_d) ?? undefined),
-              gwp_total: parseNumber(getValue(columnMap.gwp_total) ?? undefined),
-              valid_until: getValue(columnMap.valid_until),
-              geographic_scope: getValue(columnMap.geographic_scope) || 'Australia',
-              material_category: getValue(columnMap.material_category) || 'Other',
-              plant_location: getValue(columnMap.plant_location),
-              data_source: getValue(columnMap.data_source) || `Import: ${file.name}`,
-              recycled_content: parseNumber(getValue(columnMap.recycled_content) ?? undefined),
-              notes: getValue(columnMap.notes),
+              material_type: getValue(columnMap.material_type) || 'Unknown',
+              material_classification: getValue(columnMap.material_classification),
+              material_category_matching: getValue(columnMap.material_category_matching),
+              material_long_name: getValue(columnMap.material_long_name) || 'Unknown Material',
+              data_valid_start: getValue(columnMap.data_valid_start),
+              data_valid_end: getValue(columnMap.data_valid_end),
+              location: getValue(columnMap.location),
+              registration_number: getValue(columnMap.registration_number),
+              version: getValue(columnMap.version),
+              program: getValue(columnMap.program),
+              reference_link: getValue(columnMap.reference_link),
+              declared_unit: getValue(columnMap.declared_unit) || 'kg',
+              density_kg_m3: parseNumber(getValue(columnMap.density_kg_m3) ?? undefined),
+              area_density_kg_m2: parseNumber(getValue(columnMap.area_density_kg_m2) ?? undefined),
+              mass_per_m_kg: parseNumber(getValue(columnMap.mass_per_m_kg) ?? undefined),
+              mass_per_unit_kg: parseNumber(getValue(columnMap.mass_per_unit_kg) ?? undefined),
+              gwp_total_quantity: parseNumber(getValue(columnMap.gwp_total_quantity) ?? undefined),
+              gwp_fossil_quantity: parseNumber(getValue(columnMap.gwp_fossil_quantity) ?? undefined),
+              gwp_biogenic_quantity: parseNumber(getValue(columnMap.gwp_biogenic_quantity) ?? undefined),
+              gwp_luluc_quantity: parseNumber(getValue(columnMap.gwp_luluc_quantity) ?? undefined),
+              gwp_stored_quantity: parseNumber(getValue(columnMap.gwp_stored_quantity) ?? undefined),
+              upfront_carbon_emissions_quantity: parseNumber(getValue(columnMap.upfront_carbon_emissions_quantity) ?? undefined),
+              upfront_carbon_storage_quantity: parseNumber(getValue(columnMap.upfront_carbon_storage_quantity) ?? undefined),
+              gwp_total_kg: parseNumber(getValue(columnMap.gwp_total_kg) ?? undefined),
+              gwp_fossil_kg: parseNumber(getValue(columnMap.gwp_fossil_kg) ?? undefined),
+              gwp_biogenic_kg: parseNumber(getValue(columnMap.gwp_biogenic_kg) ?? undefined),
+              gwp_luluc_kg: parseNumber(getValue(columnMap.gwp_luluc_kg) ?? undefined),
+              gwp_stored_kg: parseNumber(getValue(columnMap.gwp_stored_kg) ?? undefined),
+              upfront_carbon_emissions_kg: parseNumber(getValue(columnMap.upfront_carbon_emissions_kg) ?? undefined),
+              upfront_carbon_storage_kg: parseNumber(getValue(columnMap.upfront_carbon_storage_kg) ?? undefined),
+              record_added_to_database: getValue(columnMap.record_added_to_database),
             });
           }
 
           // Filter out empty rows
           const validProducts = products.filter(p => 
-            p.product_name !== 'Unknown Product' || 
-            p.gwp_a1a3 !== null || 
-            p.gwp_total !== null
+            p.material_long_name !== 'Unknown Material' || 
+            p.gwp_total_quantity !== null || 
+            p.gwp_total_kg !== null
           );
 
           resolve(validProducts);
@@ -882,12 +963,15 @@ export function BulkEPDUploader() {
                             <div key={productIndex} className="border rounded-lg p-4 bg-muted/30">
                               <div className="flex items-start justify-between mb-3">
                                 <div>
-                                  <h4 className="font-medium">{product.product_name}</h4>
+                                  <h4 className="font-medium">{product.material_long_name}</h4>
                                   <p className="text-sm text-muted-foreground">
-                                    {product.manufacturer || 'Unknown manufacturer'} • {product.material_category}
+                                    {product.material_type} • {product.material_classification || 'Unclassified'}
                                   </p>
-                                  {product.epd_number && (
-                                    <p className="text-xs text-primary mt-1">EPD: {product.epd_number}</p>
+                                  {product.registration_number && (
+                                    <p className="text-xs text-primary mt-1">EPD: {product.registration_number}</p>
+                                  )}
+                                  {product.location && (
+                                    <p className="text-xs text-muted-foreground">Location: {product.location}</p>
                                   )}
                                 </div>
                                 <div className="flex gap-1">
@@ -895,7 +979,7 @@ export function BulkEPDUploader() {
                                     variant="ghost" 
                                     size="icon"
                                     onClick={() => setEditingProduct({ fileIndex, productIndex })}
-                                    aria-label={`Edit ${product.product_name}`}
+                                    aria-label={`Edit ${product.material_long_name}`}
                                   >
                                     <Edit2 className="h-4 w-4" />
                                   </Button>
@@ -903,7 +987,7 @@ export function BulkEPDUploader() {
                                     variant="ghost" 
                                     size="icon"
                                     onClick={() => removeProduct(fileIndex, productIndex)}
-                                    aria-label={`Delete ${product.product_name}`}
+                                    aria-label={`Delete ${product.material_long_name}`}
                                   >
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                   </Button>
@@ -912,25 +996,25 @@ export function BulkEPDUploader() {
 
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                 <div>
-                                  <span className="text-muted-foreground">A1-A3:</span>{' '}
-                                  <span className="font-medium">{product.gwp_a1a3 ?? '-'} kgCO₂e/{product.unit}</span>
+                                  <span className="text-muted-foreground">GWP Total:</span>{' '}
+                                  <span className="font-medium">{product.gwp_total_quantity ?? '-'} kgCO₂e/{product.declared_unit}</span>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">A4:</span>{' '}
-                                  <span className="font-medium">{product.gwp_a4 ?? '-'}</span>
+                                  <span className="text-muted-foreground">GWP Fossil:</span>{' '}
+                                  <span className="font-medium">{product.gwp_fossil_quantity ?? '-'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">A5:</span>{' '}
-                                  <span className="font-medium">{product.gwp_a5 ?? '-'}</span>
+                                  <span className="text-muted-foreground">GWP/kg:</span>{' '}
+                                  <span className="font-medium">{product.gwp_total_kg ?? '-'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">Total:</span>{' '}
-                                  <span className="font-bold text-primary">{product.gwp_total ?? product.gwp_a1a3 ?? '-'}</span>
+                                  <span className="text-muted-foreground">Density:</span>{' '}
+                                  <span className="font-bold text-primary">{product.density_kg_m3 ?? '-'} kg/m³</span>
                                 </div>
                               </div>
 
-                              {product.notes && (
-                                <p className="text-xs text-muted-foreground mt-2 italic">{product.notes}</p>
+                              {product.program && (
+                                <p className="text-xs text-muted-foreground mt-2">Program: {product.program}</p>
                               )}
                             </div>
                           ))}
@@ -986,46 +1070,40 @@ function EditProductDialog({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
-            <Label>Product Name</Label>
+            <Label>Material Long Name</Label>
             <Input
-              value={form.product_name}
-              onChange={(e) => setForm({ ...form, product_name: e.target.value })}
+              value={form.material_long_name}
+              onChange={(e) => setForm({ ...form, material_long_name: e.target.value })}
             />
           </div>
 
           <div>
-            <Label>Manufacturer</Label>
+            <Label>Material Type</Label>
             <Input
-              value={form.manufacturer || ''}
-              onChange={(e) => setForm({ ...form, manufacturer: e.target.value })}
+              value={form.material_type || ''}
+              onChange={(e) => setForm({ ...form, material_type: e.target.value })}
             />
           </div>
 
           <div>
-            <Label>EPD Number</Label>
+            <Label>Material Classification</Label>
             <Input
-              value={form.epd_number || ''}
-              onChange={(e) => setForm({ ...form, epd_number: e.target.value })}
+              value={form.material_classification || ''}
+              onChange={(e) => setForm({ ...form, material_classification: e.target.value })}
             />
           </div>
 
           <div>
-            <Label>Category</Label>
-            <Select value={form.material_category} onValueChange={(v) => setForm({ ...form, material_category: v })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MATERIAL_CATEGORIES.map(cat => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Registration Number (EPD)</Label>
+            <Input
+              value={form.registration_number || ''}
+              onChange={(e) => setForm({ ...form, registration_number: e.target.value })}
+            />
           </div>
 
           <div>
-            <Label>Unit</Label>
-            <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v })}>
+            <Label>Declared Unit</Label>
+            <Select value={form.declared_unit} onValueChange={(v) => setForm({ ...form, declared_unit: v })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -1041,89 +1119,107 @@ function EditProductDialog({
           </div>
 
           <div>
-            <Label>GWP A1-A3 (kgCO₂e)</Label>
+            <Label>Location</Label>
+            <Input
+              value={form.location || ''}
+              onChange={(e) => setForm({ ...form, location: e.target.value })}
+              placeholder="Sydney, NSW"
+            />
+          </div>
+
+          <div>
+            <Label>Program</Label>
+            <Input
+              value={form.program || ''}
+              onChange={(e) => setForm({ ...form, program: e.target.value })}
+              placeholder="EPD Australasia"
+            />
+          </div>
+
+          <div>
+            <Label>Density (kg/m³)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              value={form.density_kg_m3 ?? ''}
+              onChange={(e) => setForm({ ...form, density_kg_m3: e.target.value ? parseFloat(e.target.value) : null })}
+            />
+          </div>
+
+          <div>
+            <Label>GWP-Total (per quantity)</Label>
             <Input
               type="number"
               step="0.001"
-              value={form.gwp_a1a3 ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_a1a3: e.target.value ? parseFloat(e.target.value) : null })}
+              value={form.gwp_total_quantity ?? ''}
+              onChange={(e) => setForm({ ...form, gwp_total_quantity: e.target.value ? parseFloat(e.target.value) : null })}
             />
           </div>
 
           <div>
-            <Label>GWP A4</Label>
+            <Label>GWP-Fossil (per quantity)</Label>
             <Input
               type="number"
               step="0.001"
-              value={form.gwp_a4 ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_a4: e.target.value ? parseFloat(e.target.value) : null })}
+              value={form.gwp_fossil_quantity ?? ''}
+              onChange={(e) => setForm({ ...form, gwp_fossil_quantity: e.target.value ? parseFloat(e.target.value) : null })}
             />
           </div>
 
           <div>
-            <Label>GWP A5</Label>
+            <Label>GWP-Biogenic (per quantity)</Label>
             <Input
               type="number"
               step="0.001"
-              value={form.gwp_a5 ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_a5: e.target.value ? parseFloat(e.target.value) : null })}
+              value={form.gwp_biogenic_quantity ?? ''}
+              onChange={(e) => setForm({ ...form, gwp_biogenic_quantity: e.target.value ? parseFloat(e.target.value) : null })}
             />
           </div>
 
           <div>
-            <Label>GWP B1-B5</Label>
+            <Label>GWP-Total (per kg)</Label>
+            <Input
+              type="number"
+              step="0.000001"
+              value={form.gwp_total_kg ?? ''}
+              onChange={(e) => setForm({ ...form, gwp_total_kg: e.target.value ? parseFloat(e.target.value) : null })}
+            />
+          </div>
+
+          <div>
+            <Label>Upfront Carbon Emissions (per quantity)</Label>
             <Input
               type="number"
               step="0.001"
-              value={form.gwp_b1b5 ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_b1b5: e.target.value ? parseFloat(e.target.value) : null })}
+              value={form.upfront_carbon_emissions_quantity ?? ''}
+              onChange={(e) => setForm({ ...form, upfront_carbon_emissions_quantity: e.target.value ? parseFloat(e.target.value) : null })}
             />
           </div>
 
           <div>
-            <Label>GWP C1-C4</Label>
+            <Label>Data Valid (Start)</Label>
             <Input
-              type="number"
-              step="0.001"
-              value={form.gwp_c1c4 ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_c1c4: e.target.value ? parseFloat(e.target.value) : null })}
+              value={form.data_valid_start || ''}
+              onChange={(e) => setForm({ ...form, data_valid_start: e.target.value })}
+              placeholder="1/1/2024"
             />
           </div>
 
           <div>
-            <Label>GWP Module D</Label>
+            <Label>Data Valid (End)</Label>
             <Input
-              type="number"
-              step="0.001"
-              value={form.gwp_d ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_d: e.target.value ? parseFloat(e.target.value) : null })}
-            />
-          </div>
-
-          <div>
-            <Label>Geographic Scope</Label>
-            <Input
-              value={form.geographic_scope || ''}
-              onChange={(e) => setForm({ ...form, geographic_scope: e.target.value })}
-              placeholder="Australia"
-            />
-          </div>
-
-          <div>
-            <Label>Valid Until</Label>
-            <Input
-              type="date"
-              value={form.valid_until || ''}
-              onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
+              value={form.data_valid_end || ''}
+              onChange={(e) => setForm({ ...form, data_valid_end: e.target.value })}
+              placeholder="31/12/2028"
             />
           </div>
 
           <div className="col-span-2">
-            <Label>Notes</Label>
-            <Textarea
-              value={form.notes || ''}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              rows={2}
+            <Label>Reference Link</Label>
+            <Input
+              value={form.reference_link || ''}
+              onChange={(e) => setForm({ ...form, reference_link: e.target.value })}
+              placeholder="https://epd-australasia.com/..."
             />
           </div>
         </div>
