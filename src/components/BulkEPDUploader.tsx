@@ -14,8 +14,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   Upload, FileText, CheckCircle, XCircle, AlertTriangle, 
-  RefreshCw, Trash2, Edit2, Save, FolderOpen
+  RefreshCw, Trash2, Edit2, Save, FolderOpen, FileSpreadsheet
 } from "lucide-react";
+import * as XLSX from "xlsx";
 
 interface ExtractedProduct {
   product_name: string;
@@ -48,6 +49,7 @@ interface ProcessedFile {
   extractionConfidence: string;
   extractionNotes: string;
   error?: string;
+  fileType: 'pdf' | 'xlsx';
 }
 
 const MATERIAL_CATEGORIES = [
@@ -55,6 +57,25 @@ const MATERIAL_CATEGORIES = [
   'Plasterboard', 'Plastics', 'Aluminium', 'Copper', 'Roofing',
   'Flooring', 'Adhesives', 'Paints', 'Pipes', 'Other'
 ];
+
+const ACCEPTED_FILE_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.ms-excel', // .xls
+];
+
+const ACCEPTED_EXTENSIONS = ['.pdf', '.xlsx', '.xls'];
+
+const isAcceptedFile = (file: File): boolean => {
+  const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+  return ACCEPTED_FILE_TYPES.includes(file.type) || ACCEPTED_EXTENSIONS.includes(extension);
+};
+
+const isExcelFile = (file: File): boolean => {
+  const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+  return file.type.includes('spreadsheet') || file.type.includes('excel') || 
+         extension === '.xlsx' || extension === '.xls';
+};
 
 export function BulkEPDUploader() {
   const [files, setFiles] = useState<File[]>([]);
@@ -66,28 +87,113 @@ export function BulkEPDUploader() {
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    const droppedFiles = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+    const droppedFiles = Array.from(e.dataTransfer.files).filter(isAcceptedFile);
     if (droppedFiles.length === 0) {
-      toast.error('Only PDF files are accepted');
+      toast.error('Only PDF and Excel files (.xlsx, .xls) are accepted');
       return;
     }
     setFiles(prev => [...prev, ...droppedFiles]);
-    toast.success(`Added ${droppedFiles.length} PDF${droppedFiles.length > 1 ? 's' : ''}`);
+    const pdfCount = droppedFiles.filter(f => f.type === 'application/pdf').length;
+    const xlsxCount = droppedFiles.length - pdfCount;
+    toast.success(`Added ${droppedFiles.length} file${droppedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${xlsxCount} Excel)`);
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []).filter(f => f.type === 'application/pdf');
+    const selectedFiles = Array.from(e.target.files || []).filter(isAcceptedFile);
     if (selectedFiles.length === 0) {
-      toast.error('Only PDF files are accepted');
+      toast.error('Only PDF and Excel files (.xlsx, .xls) are accepted');
       return;
     }
     setFiles(prev => [...prev, ...selectedFiles]);
-    toast.success(`Added ${selectedFiles.length} PDF${selectedFiles.length > 1 ? 's' : ''}`);
+    const pdfCount = selectedFiles.filter(f => f.type === 'application/pdf').length;
+    const xlsxCount = selectedFiles.length - pdfCount;
+    toast.success(`Added ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${xlsxCount} Excel)`);
     e.target.value = '';
   };
 
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Parse XLSX file and extract products
+  const parseExcelFile = async (file: File): Promise<ExtractedProduct[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          
+          // Get first sheet
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          
+          // Convert to JSON with header row
+          const jsonData = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet, { defval: null });
+          
+          if (jsonData.length === 0) {
+            reject(new Error('Excel file is empty or has no data rows'));
+            return;
+          }
+
+          // Map Excel columns to product fields (flexible column matching)
+          const products: ExtractedProduct[] = jsonData.map((row) => {
+            const findValue = (keys: string[]): any => {
+              for (const key of keys) {
+                const matchingKey = Object.keys(row).find(k => 
+                  k.toLowerCase().includes(key.toLowerCase())
+                );
+                if (matchingKey && row[matchingKey] !== null && row[matchingKey] !== undefined && row[matchingKey] !== '') {
+                  return row[matchingKey];
+                }
+              }
+              return null;
+            };
+
+            const parseNumber = (value: any): number | null => {
+              if (value === null || value === undefined || value === '') return null;
+              const num = parseFloat(String(value).replace(/[^0-9.-]/g, ''));
+              return isNaN(num) ? null : num;
+            };
+
+            return {
+              product_name: findValue(['product', 'name', 'material', 'description']) || 'Unknown Product',
+              manufacturer: findValue(['manufacturer', 'supplier', 'company', 'producer']),
+              epd_number: findValue(['epd', 'number', 'id', 'reference']),
+              functional_unit: findValue(['functional', 'declared', 'unit_type']),
+              unit: findValue(['unit']) || 'kg',
+              gwp_a1a3: parseNumber(findValue(['a1a3', 'a1-a3', 'gwp_a1a3', 'production', 'embodied'])),
+              gwp_a4: parseNumber(findValue(['a4', 'gwp_a4', 'transport'])),
+              gwp_a5: parseNumber(findValue(['a5', 'gwp_a5', 'construction', 'installation'])),
+              gwp_b1b5: parseNumber(findValue(['b1b5', 'b1-b5', 'gwp_b1b5', 'use_phase'])),
+              gwp_c1c4: parseNumber(findValue(['c1c4', 'c1-c4', 'gwp_c1c4', 'end_of_life'])),
+              gwp_d: parseNumber(findValue(['d', 'gwp_d', 'module_d', 'benefits'])),
+              gwp_total: parseNumber(findValue(['total', 'gwp_total', 'gwp', 'carbon'])),
+              valid_until: findValue(['valid', 'expiry', 'expires', 'until']),
+              geographic_scope: findValue(['geographic', 'region', 'scope', 'country']) || 'Australia',
+              material_category: findValue(['category', 'type', 'material_category']) || 'Other',
+              plant_location: findValue(['plant', 'location', 'factory', 'site']),
+              data_source: findValue(['source', 'data_source', 'database']) || `Excel Import: ${file.name}`,
+              recycled_content: parseNumber(findValue(['recycled', 'recycled_content', 'recyclate'])),
+              notes: findValue(['notes', 'comments', 'remarks']),
+            };
+          });
+
+          // Filter out rows that don't have at least a product name and some carbon data
+          const validProducts = products.filter(p => 
+            p.product_name !== 'Unknown Product' || 
+            p.gwp_a1a3 !== null || 
+            p.gwp_total !== null
+          );
+
+          resolve(validProducts);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsArrayBuffer(file);
+    });
   };
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
@@ -132,6 +238,7 @@ export function BulkEPDUploader() {
     _fileIndex: number, 
     session: any
   ): Promise<ProcessedFile> => {
+    const fileIsExcel = isExcelFile(file);
     const result: ProcessedFile = {
       fileName: file.name,
       storagePath: null,
@@ -139,50 +246,64 @@ export function BulkEPDUploader() {
       products: [],
       extractionConfidence: '',
       extractionNotes: '',
+      fileType: fileIsExcel ? 'xlsx' : 'pdf',
     };
 
     try {
-      // 1. Upload PDF to storage
-      const storagePath = await uploadPDFToStorage(file);
-      result.storagePath = storagePath;
+      if (fileIsExcel) {
+        // Handle Excel file - parse locally
+        const products = await parseExcelFile(file);
+        
+        return {
+          ...result,
+          status: 'extracted',
+          products,
+          extractionConfidence: 'high',
+          extractionNotes: `Parsed ${products.length} materials from Excel spreadsheet`,
+        };
+      } else {
+        // Handle PDF file - existing flow
+        // 1. Upload PDF to storage
+        const storagePath = await uploadPDFToStorage(file);
+        result.storagePath = storagePath;
 
-      // 2. Extract text from PDF
-      const pdfText = await extractTextFromPDF(file);
+        // 2. Extract text from PDF
+        const pdfText = await extractTextFromPDF(file);
 
-      if (!pdfText || pdfText.length < 50) {
-        throw new Error('Could not extract text from PDF. It may be image-based or corrupted.');
+        if (!pdfText || pdfText.length < 50) {
+          throw new Error('Could not extract text from PDF. It may be image-based or corrupted.');
+        }
+
+        // 3. Send to AI for EPD extraction
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-epd-upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'extract',
+            pdfText,
+            fileName: file.name,
+            storagePath,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Extraction failed');
+        }
+
+        const extractionResult = await response.json();
+
+        return {
+          ...result,
+          status: 'extracted',
+          products: extractionResult.products || [],
+          extractionConfidence: extractionResult.extraction_confidence || 'unknown',
+          extractionNotes: extractionResult.extraction_notes || '',
+        };
       }
-
-      // 3. Send to AI for EPD extraction
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-epd-upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'extract',
-          pdfText,
-          fileName: file.name,
-          storagePath,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Extraction failed');
-      }
-
-      const extractionResult = await response.json();
-
-      return {
-        ...result,
-        status: 'extracted',
-        products: extractionResult.products || [],
-        extractionConfidence: extractionResult.extraction_confidence || 'unknown',
-        extractionNotes: extractionResult.extraction_notes || '',
-      };
-
     } catch (error: any) {
       console.error(`Error processing ${file.name}:`, error);
       return {
@@ -213,6 +334,7 @@ export function BulkEPDUploader() {
       products: [],
       extractionConfidence: '',
       extractionNotes: '',
+      fileType: isExcelFile(f) ? 'xlsx' as const : 'pdf' as const,
     }));
     setProcessedFiles(initialFiles);
 
@@ -399,7 +521,7 @@ export function BulkEPDUploader() {
         <TabsList>
           <TabsTrigger value="upload" className="gap-2">
             <Upload className="h-4 w-4" />
-            Upload PDFs
+            Upload Files
           </TabsTrigger>
           <TabsTrigger value="review" className="gap-2">
             <FileText className="h-4 w-4" />
@@ -413,10 +535,10 @@ export function BulkEPDUploader() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FolderOpen className="h-5 w-5" />
-                Bulk EPD PDF Upload
+                Bulk EPD Upload
               </CardTitle>
               <CardDescription>
-                Drop multiple EPD PDF files here. AI will extract material data automatically.
+                Drop EPD PDF or Excel files here. PDFs use AI extraction, Excel files are parsed directly.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -428,17 +550,20 @@ export function BulkEPDUploader() {
               >
                 <input
                   type="file"
-                  accept=".pdf"
+                  accept=".pdf,.xlsx,.xls"
                   multiple
                   onChange={handleFileSelect}
                   className="hidden"
                   id="epd-file-upload"
                 />
                 <label htmlFor="epd-file-upload" className="cursor-pointer">
-                  <Upload className="h-12 w-12 mx-auto text-primary/50 mb-4" />
-                  <p className="font-medium">Drop EPD PDFs here or click to browse</p>
+                  <div className="flex justify-center gap-4 mb-4">
+                    <FileText className="h-10 w-10 text-primary/50" />
+                    <FileSpreadsheet className="h-10 w-10 text-emerald-500/50" />
+                  </div>
+                  <p className="font-medium">Drop EPD files here or click to browse</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Supports up to 20 PDFs at once • Max 20MB each
+                    Supports PDF and Excel (.xlsx, .xls) • Max 20MB each
                   </p>
                 </label>
               </div>
@@ -459,20 +584,30 @@ export function BulkEPDUploader() {
                     </Button>
                   </div>
                   <ScrollArea className="h-48 border rounded-lg p-2">
-                    {files.map((file, i) => (
-                      <div key={i} className="flex items-center justify-between py-2 px-2 hover:bg-muted/50 rounded">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-primary" />
-                          <span className="text-sm truncate max-w-[300px]">{file.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            ({(file.size / 1024 / 1024).toFixed(1)} MB)
-                          </span>
+                    {files.map((file, i) => {
+                      const fileIsExcel = isExcelFile(file);
+                      return (
+                        <div key={i} className="flex items-center justify-between py-2 px-2 hover:bg-muted/50 rounded">
+                          <div className="flex items-center gap-2">
+                            {fileIsExcel ? (
+                              <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
+                            ) : (
+                              <FileText className="h-4 w-4 text-primary" />
+                            )}
+                            <span className="text-sm truncate max-w-[300px]">{file.name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {fileIsExcel ? 'Excel' : 'PDF'}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              ({(file.size / 1024 / 1024).toFixed(1)} MB)
+                            </span>
+                          </div>
+                          <Button variant="ghost" size="icon" onClick={() => removeFile(i)} aria-label={`Remove file ${file.name}`}>
+                            <XCircle className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => removeFile(i)} aria-label={`Remove file ${file.name}`}>
-                          <XCircle className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </ScrollArea>
                 </div>
               )}
