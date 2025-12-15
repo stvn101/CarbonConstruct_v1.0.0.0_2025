@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings as SettingsIcon, Save, Check, Lock, Shield } from "lucide-react";
+import { Settings as SettingsIcon, Save, Check, Lock, Shield, Cookie, RotateCcw } from "lucide-react";
 import { UsageDisplay } from "@/components/UsageDisplay";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 import { CookieSettings } from "@/components/CookieSettings";
@@ -13,7 +13,8 @@ import { toast } from "sonner";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { getCookieConsent } from "@/components/CookieConsent";
 
 interface UserSettings {
   defaultAssessmentPeriod: string;
@@ -48,13 +49,26 @@ const defaultSettings: UserSettings = {
 const SETTINGS_KEY = "carbonconstruct_user_settings";
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  // Authentication guard - redirect if not logged in
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth?redirect=/settings" replace />;
+  }
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -109,6 +123,26 @@ const Settings = () => {
     }
     setIsChangingPassword(false);
   };
+
+  const handleResetCookies = async () => {
+    // Clear localStorage
+    localStorage.removeItem("cc_cookie_consent");
+    
+    // Clear database preferences
+    await supabase
+      .from("user_preferences")
+      .update({
+        cookie_consent: null,
+        analytics_enabled: false,
+        marketing_enabled: false,
+      })
+      .eq("user_id", user.id);
+    
+    toast.success("Cookie preferences reset. The consent banner will appear on reload.");
+    window.location.reload();
+  };
+
+  const currentCookieStatus = getCookieConsent();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -205,45 +239,43 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          {user && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="h-5 w-5" />
-                  Change Password
-                </CardTitle>
-                <CardDescription>Update your account password</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    placeholder="Enter new password (min 8 characters)"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    placeholder="Confirm new password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </div>
-                <Button 
-                  onClick={handleChangePassword} 
-                  disabled={isChangingPassword || !newPassword || !confirmPassword}
-                >
-                  {isChangingPassword ? "Updating..." : "Update Password"}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Change Password
+              </CardTitle>
+              <CardDescription>Update your account password</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder="Enter new password (min 8 characters)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+              <Button 
+                onClick={handleChangePassword} 
+                disabled={isChangingPassword || !newPassword || !confirmPassword}
+              >
+                {isChangingPassword ? "Updating..." : "Update Password"}
+              </Button>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
@@ -375,43 +407,66 @@ const Settings = () => {
 
           <CookieSettings />
 
-          {user && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Privacy & Data
-                </CardTitle>
-                <CardDescription>
-                  Manage your data and privacy rights under GDPR and Australian Privacy Act
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-base">Export Your Data</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Download a complete copy of all your data stored in CarbonConstruct, including projects, calculations, reports, and preferences.
-                  </p>
-                  <DataExportButton />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Cookie className="h-5 w-5" />
+                Reset Cookie Consent
+              </CardTitle>
+              <CardDescription>
+                Clear your cookie preferences to see the consent banner again
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Current status: <span className="font-medium capitalize">{currentCookieStatus ?? "Not set"}</span>
+              </p>
+              <Button 
+                variant="outline"
+                onClick={handleResetCookies}
+                className="gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reset Cookie Preferences
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Privacy & Data
+              </CardTitle>
+              <CardDescription>
+                Manage your data and privacy rights under GDPR and Australian Privacy Act
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-base">Export Your Data</Label>
+                <p className="text-sm text-muted-foreground">
+                  Download a complete copy of all your data stored in CarbonConstruct, including projects, calculations, reports, and preferences.
+                </p>
+                <DataExportButton />
+              </div>
+              <div className="pt-4 border-t space-y-2">
+                <Label className="text-base">Your Privacy Rights</Label>
+                <div className="flex gap-2 pt-2">
+                  <Link to="/privacy" className="text-sm text-primary hover:underline">
+                    Privacy Policy
+                  </Link>
+                  <span className="text-muted-foreground">•</span>
+                  <Link to="/terms" className="text-sm text-primary hover:underline">
+                    Terms of Service
+                  </Link>
                 </div>
-                <div className="pt-4 border-t space-y-2">
-                  <Label className="text-base">Your Privacy Rights</Label>
-                  <div className="flex gap-2 pt-2">
-                    <Link to="/privacy" className="text-sm text-primary hover:underline">
-                      Privacy Policy
-                    </Link>
-                    <span className="text-muted-foreground">•</span>
-                    <Link to="/terms" className="text-sm text-primary hover:underline">
-                      Terms of Service
-                    </Link>
-                  </div>
-                </div>
-                <div className="pt-4 border-t">
-                  <AccountStatusManager />
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+              <div className="pt-4 border-t">
+                <AccountStatusManager />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
