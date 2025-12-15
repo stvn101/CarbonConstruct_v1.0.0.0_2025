@@ -86,16 +86,18 @@ const ACCEPTED_FILE_TYPES = [
 const ACCEPTED_EXTENSIONS = ['.pdf', '.csv', '.xlsx', '.xls'];
 
 const isAcceptedFile = (file: File): boolean => {
-  const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-  return ACCEPTED_FILE_TYPES.includes(file.type) || ACCEPTED_EXTENSIONS.includes(extension);
+  const extension = '.' + (file.name.split('.').pop() || '').toLowerCase();
+  const mime = typeof file.type === 'string' ? file.type : '';
+  return ACCEPTED_FILE_TYPES.includes(mime) || ACCEPTED_EXTENSIONS.includes(extension);
 };
 
 const isSpreadsheetFile = (file: File): boolean => {
-  const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-  return file.type === 'text/csv' || 
-         file.type.includes('excel') || 
-         file.type.includes('spreadsheet') ||
-         ['.csv', '.xlsx', '.xls'].includes(extension);
+  const extension = '.' + (file.name.split('.').pop() || '').toLowerCase();
+  const mime = typeof file.type === 'string' ? file.type : '';
+  return mime === 'text/csv' ||
+    mime.includes('excel') ||
+    mime.includes('spreadsheet') ||
+    ['.csv', '.xlsx', '.xls'].includes(extension);
 };
 
 export function BulkEPDUploader() {
@@ -292,7 +294,8 @@ export function BulkEPDUploader() {
           // Map headers to product fields
           const findHeaderIndex = (keys: string[]): number => {
             for (const key of keys) {
-              const idx = headers.findIndex(h => h.includes(key.toLowerCase()));
+              const needle = key.toLowerCase();
+              const idx = headers.findIndex(h => (h ?? '').includes(needle));
               if (idx !== -1) return idx;
             }
             return -1;
