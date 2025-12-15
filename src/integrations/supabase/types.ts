@@ -169,10 +169,19 @@ export type Database = {
       }
       materials_epd: {
         Row: {
+          allocation_method: string | null
+          biogenic_carbon_kg_c: number | null
+          biogenic_carbon_percentage: number | null
           carbon_sequestration: number | null
+          characterisation_factor_version: string | null
+          co_product_type: string | null
           created_at: string | null
+          data_quality_rating: string | null
           data_quality_tier: string | null
+          data_representativeness: Json | null
           data_source: string
+          eco_platform_compliant: boolean | null
+          ecoinvent_methodology: string | null
           ef_a1a3: number | null
           ef_a4: number | null
           ef_a5: number | null
@@ -184,13 +193,17 @@ export type Database = {
           epd_url: string | null
           expiry_date: string | null
           id: string
+          is_co_product: boolean | null
           manufacturer: string | null
+          manufacturing_city: string | null
+          manufacturing_country: string | null
           material_category: string
           material_name: string
           notes: string | null
           plant_location: string | null
           publish_date: string | null
           recycled_content: number | null
+          reference_year: number | null
           region: string | null
           scope1_factor: number | null
           scope2_factor: number | null
@@ -200,13 +213,23 @@ export type Database = {
           uncertainty_percent: number | null
           unit: string
           updated_at: string | null
+          uses_mass_balance: boolean | null
           year: number | null
         }
         Insert: {
+          allocation_method?: string | null
+          biogenic_carbon_kg_c?: number | null
+          biogenic_carbon_percentage?: number | null
           carbon_sequestration?: number | null
+          characterisation_factor_version?: string | null
+          co_product_type?: string | null
           created_at?: string | null
+          data_quality_rating?: string | null
           data_quality_tier?: string | null
+          data_representativeness?: Json | null
           data_source: string
+          eco_platform_compliant?: boolean | null
+          ecoinvent_methodology?: string | null
           ef_a1a3?: number | null
           ef_a4?: number | null
           ef_a5?: number | null
@@ -218,13 +241,17 @@ export type Database = {
           epd_url?: string | null
           expiry_date?: string | null
           id?: string
+          is_co_product?: boolean | null
           manufacturer?: string | null
+          manufacturing_city?: string | null
+          manufacturing_country?: string | null
           material_category: string
           material_name: string
           notes?: string | null
           plant_location?: string | null
           publish_date?: string | null
           recycled_content?: number | null
+          reference_year?: number | null
           region?: string | null
           scope1_factor?: number | null
           scope2_factor?: number | null
@@ -234,13 +261,23 @@ export type Database = {
           uncertainty_percent?: number | null
           unit: string
           updated_at?: string | null
+          uses_mass_balance?: boolean | null
           year?: number | null
         }
         Update: {
+          allocation_method?: string | null
+          biogenic_carbon_kg_c?: number | null
+          biogenic_carbon_percentage?: number | null
           carbon_sequestration?: number | null
+          characterisation_factor_version?: string | null
+          co_product_type?: string | null
           created_at?: string | null
+          data_quality_rating?: string | null
           data_quality_tier?: string | null
+          data_representativeness?: Json | null
           data_source?: string
+          eco_platform_compliant?: boolean | null
+          ecoinvent_methodology?: string | null
           ef_a1a3?: number | null
           ef_a4?: number | null
           ef_a5?: number | null
@@ -252,13 +289,17 @@ export type Database = {
           epd_url?: string | null
           expiry_date?: string | null
           id?: string
+          is_co_product?: boolean | null
           manufacturer?: string | null
+          manufacturing_city?: string | null
+          manufacturing_country?: string | null
           material_category?: string
           material_name?: string
           notes?: string | null
           plant_location?: string | null
           publish_date?: string | null
           recycled_content?: number | null
+          reference_year?: number | null
           region?: string | null
           scope1_factor?: number | null
           scope2_factor?: number | null
@@ -268,6 +309,7 @@ export type Database = {
           uncertainty_percent?: number | null
           unit?: string
           updated_at?: string | null
+          uses_mass_balance?: boolean | null
           year?: number | null
         }
         Relationships: []
@@ -356,7 +398,12 @@ export type Database = {
           assessment_period_start: string | null
           created_at: string
           description: string | null
+          eco_compliance_enabled: boolean | null
+          eco_compliance_report: Json | null
+          electricity_modelling_approach: string | null
+          electricity_percentage_a1a3: number | null
           green_star_target: number | null
+          grid_factor_source: string | null
           id: string
           location: string | null
           nabers_target: number | null
@@ -373,7 +420,12 @@ export type Database = {
           assessment_period_start?: string | null
           created_at?: string
           description?: string | null
+          eco_compliance_enabled?: boolean | null
+          eco_compliance_report?: Json | null
+          electricity_modelling_approach?: string | null
+          electricity_percentage_a1a3?: number | null
           green_star_target?: number | null
+          grid_factor_source?: string | null
           id?: string
           location?: string | null
           nabers_target?: number | null
@@ -390,7 +442,12 @@ export type Database = {
           assessment_period_start?: string | null
           created_at?: string
           description?: string | null
+          eco_compliance_enabled?: boolean | null
+          eco_compliance_report?: Json | null
+          electricity_modelling_approach?: string | null
+          electricity_percentage_a1a3?: number | null
           green_star_target?: number | null
+          grid_factor_source?: string | null
           id?: string
           location?: string | null
           nabers_target?: number | null
