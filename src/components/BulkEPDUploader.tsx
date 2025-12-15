@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   Upload, FileText, CheckCircle, XCircle, AlertTriangle, 
-  RefreshCw, Trash2, Edit2, Save, FolderOpen, FileSpreadsheet, Download
+  RefreshCw, Trash2, Edit2, Save, FolderOpen, FileSpreadsheet, Download, Eye, ShieldCheck
 } from "lucide-react";
 import * as XLSX from 'xlsx';
 
@@ -65,6 +66,15 @@ interface ExtractedProduct {
   storage_url?: string;
 }
 
+// Column mapping result for validation display
+interface ColumnMappingResult {
+  columnName: string;
+  expectedHeaders: string[];
+  foundHeader: string | null;
+  foundIndex: number;
+  required: boolean;
+}
+
 interface ProcessedFile {
   fileName: string;
   storagePath: string | null;
@@ -74,7 +84,43 @@ interface ProcessedFile {
   extractionNotes: string;
   error?: string;
   fileType: 'pdf' | 'spreadsheet';
+  columnMapping?: ColumnMappingResult[];
 }
+
+// All 31 NABERS EPD List v2025.1 columns with their search keys and required status
+const NABERS_COLUMN_DEFINITIONS: { key: string; searchKeys: string[]; required: boolean }[] = [
+  { key: 'material_type', searchKeys: ['material type'], required: true },
+  { key: 'material_classification', searchKeys: ['material classification'], required: false },
+  { key: 'material_category_matching', searchKeys: ['material category for matching', 'category for matching'], required: false },
+  { key: 'material_long_name', searchKeys: ['material long name', 'long name'], required: true },
+  { key: 'data_valid_start', searchKeys: ['data valid (start)', 'valid (start)', 'start date'], required: false },
+  { key: 'data_valid_end', searchKeys: ['data valid (end)', 'valid (end)', 'end date', 'expiry'], required: false },
+  { key: 'location', searchKeys: ['location'], required: false },
+  { key: 'registration_number', searchKeys: ['registration number', 'epd number', 'registration'], required: false },
+  { key: 'version', searchKeys: ['version'], required: false },
+  { key: 'program', searchKeys: ['program', 'programme'], required: false },
+  { key: 'reference_link', searchKeys: ['reference link', 'website', 'link', 'url'], required: false },
+  { key: 'declared_unit', searchKeys: ['declared unit', 'unit'], required: true },
+  { key: 'density_kg_m3', searchKeys: ['density (kg/m3)', 'density'], required: false },
+  { key: 'area_density_kg_m2', searchKeys: ['area density (kg/m2)', 'area density'], required: false },
+  { key: 'mass_per_m_kg', searchKeys: ['mass per m (kg/m)', 'mass per m'], required: false },
+  { key: 'mass_per_unit_kg', searchKeys: ['mass per unit (kg/unit)', 'mass per unit'], required: false },
+  { key: 'gwp_total_quantity', searchKeys: ['gwp-total (kg co2e/quanity)', 'gwp-total (kg co2e/quantity)', 'gwp total quantity'], required: true },
+  { key: 'gwp_fossil_quantity', searchKeys: ['gwp-fossil (kg co2e/quanity)', 'gwp-fossil (kg co2e/quantity)', 'gwp fossil quantity'], required: false },
+  { key: 'gwp_biogenic_quantity', searchKeys: ['gwp-biogenic (kg co2e/quanity)', 'gwp-biogenic (kg co2e/quantity)', 'gwp biogenic quantity'], required: false },
+  { key: 'gwp_luluc_quantity', searchKeys: ['gwp-luluc (kg co2e/quanity)', 'gwp-luluc (kg co2e/quantity)', 'gwp luluc quantity'], required: false },
+  { key: 'gwp_stored_quantity', searchKeys: ['gwp-stored (kg co2e/quantity)', 'gwp stored quantity'], required: false },
+  { key: 'upfront_carbon_emissions_quantity', searchKeys: ['upfront carbon emissions (kg co2e/quantity)', 'upfront emissions quantity'], required: false },
+  { key: 'upfront_carbon_storage_quantity', searchKeys: ['upfront carbon storage (kg co2e/quantity)', 'upfront storage quantity'], required: false },
+  { key: 'gwp_total_kg', searchKeys: ['gwp-total (kg co2e/kg)', 'gwp total kg'], required: false },
+  { key: 'gwp_fossil_kg', searchKeys: ['gwp-fossil (kg co2e/kg)', 'gwp fossil kg'], required: false },
+  { key: 'gwp_biogenic_kg', searchKeys: ['gwp-biogenic (kg co2e/kg)', 'gwp biogenic kg'], required: false },
+  { key: 'gwp_luluc_kg', searchKeys: ['gwp-luluc (kg co2e/kg)', 'gwp luluc kg'], required: false },
+  { key: 'gwp_stored_kg', searchKeys: ['gwp-stored (kg co2e/kg)', 'gwp stored kg'], required: false },
+  { key: 'upfront_carbon_emissions_kg', searchKeys: ['upfront carbon emissions (kg co2e/kg)', 'upfront emissions kg'], required: false },
+  { key: 'upfront_carbon_storage_kg', searchKeys: ['upfront carbon storage (kg co2e/kg)', 'upfront storage kg'], required: false },
+  { key: 'record_added_to_database', searchKeys: ['record added to database', 'record added'], required: false },
+];
 
 const ACCEPTED_FILE_TYPES = [
   'application/pdf',
@@ -107,6 +153,8 @@ export function BulkEPDUploader() {
   const [currentFile, setCurrentFile] = useState<number>(0);
   const [editingProduct, setEditingProduct] = useState<{ fileIndex: number; productIndex: number } | null>(null);
   const [savedCount, setSavedCount] = useState(0);
+  const [strictMode, setStrictMode] = useState(false);
+  const [showColumnMapping, setShowColumnMapping] = useState<number | null>(null);
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -254,7 +302,7 @@ export function BulkEPDUploader() {
     toast.success('NABERS EPD template downloaded! Fill it out and upload.');
   };
 
-  const parseSpreadsheetFile = async (file: File): Promise<ExtractedProduct[]> => {
+  const parseSpreadsheetFile = async (file: File): Promise<{ products: ExtractedProduct[]; columnMapping: ColumnMappingResult[] }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -264,7 +312,6 @@ export function BulkEPDUploader() {
           let dataRows: string[][] = [];
 
           if (extension === '.csv') {
-            // Parse CSV
             const text = e.target?.result as string;
             const lines = text.split(/\r?\n/).filter(line => line.trim());
             
@@ -276,7 +323,6 @@ export function BulkEPDUploader() {
             headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
             dataRows = lines.slice(1).map(line => parseCSVLine(line));
           } else {
-            // Parse XLSX/XLS using xlsx library
             const data = new Uint8Array(e.target?.result as ArrayBuffer);
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -291,59 +337,40 @@ export function BulkEPDUploader() {
             dataRows = jsonData.slice(1).map(row => (row || []).map(cell => String(cell ?? '')));
           }
           
-          // Map headers to product fields
-          const findHeaderIndex = (keys: string[]): number => {
-            for (const key of keys) {
-              const needle = key.toLowerCase();
+          // Build column mapping using NABERS_COLUMN_DEFINITIONS
+          const columnMapping: ColumnMappingResult[] = [];
+          const columnMap: Record<string, number> = {};
+          
+          for (const def of NABERS_COLUMN_DEFINITIONS) {
+            let foundIndex = -1;
+            let foundHeader: string | null = null;
+            
+            for (const searchKey of def.searchKeys) {
+              const needle = searchKey.toLowerCase();
               const idx = headers.findIndex(h => (h ?? '').includes(needle));
-              if (idx !== -1) return idx;
+              if (idx !== -1) {
+                foundIndex = idx;
+                foundHeader = headers[idx];
+                break;
+              }
             }
-            return -1;
-          };
-
-          // NABERS EPD List v2025.1 exact column mapping
-          const columnMap = {
-            material_type: findHeaderIndex(['material type']),
-            material_classification: findHeaderIndex(['material classification']),
-            material_category_matching: findHeaderIndex(['material category for matching', 'category for matching']),
-            material_long_name: findHeaderIndex(['material long name', 'long name']),
-            data_valid_start: findHeaderIndex(['data valid (start)', 'valid (start)', 'start date']),
-            data_valid_end: findHeaderIndex(['data valid (end)', 'valid (end)', 'end date', 'expiry']),
-            location: findHeaderIndex(['location']),
-            registration_number: findHeaderIndex(['registration number', 'epd number', 'registration']),
-            version: findHeaderIndex(['version']),
-            program: findHeaderIndex(['program', 'programme']),
-            reference_link: findHeaderIndex(['reference link', 'website', 'link', 'url']),
-            declared_unit: findHeaderIndex(['declared unit', 'unit']),
-            density_kg_m3: findHeaderIndex(['density (kg/m3)', 'density']),
-            area_density_kg_m2: findHeaderIndex(['area density (kg/m2)', 'area density']),
-            mass_per_m_kg: findHeaderIndex(['mass per m (kg/m)', 'mass per m']),
-            mass_per_unit_kg: findHeaderIndex(['mass per unit (kg/unit)', 'mass per unit']),
-            gwp_total_quantity: findHeaderIndex(['gwp-total (kg co2e/quanity)', 'gwp-total (kg co2e/quantity)', 'gwp total quantity']),
-            gwp_fossil_quantity: findHeaderIndex(['gwp-fossil (kg co2e/quanity)', 'gwp-fossil (kg co2e/quantity)', 'gwp fossil quantity']),
-            gwp_biogenic_quantity: findHeaderIndex(['gwp-biogenic (kg co2e/quanity)', 'gwp-biogenic (kg co2e/quantity)', 'gwp biogenic quantity']),
-            gwp_luluc_quantity: findHeaderIndex(['gwp-luluc (kg co2e/quanity)', 'gwp-luluc (kg co2e/quantity)', 'gwp luluc quantity']),
-            gwp_stored_quantity: findHeaderIndex(['gwp-stored (kg co2e/quantity)', 'gwp stored quantity']),
-            upfront_carbon_emissions_quantity: findHeaderIndex(['upfront carbon emissions (kg co2e/quantity)', 'upfront emissions quantity']),
-            upfront_carbon_storage_quantity: findHeaderIndex(['upfront carbon storage (kg co2e/quantity)', 'upfront storage quantity']),
-            gwp_total_kg: findHeaderIndex(['gwp-total (kg co2e/kg)', 'gwp total kg']),
-            gwp_fossil_kg: findHeaderIndex(['gwp-fossil (kg co2e/kg)', 'gwp fossil kg']),
-            gwp_biogenic_kg: findHeaderIndex(['gwp-biogenic (kg co2e/kg)', 'gwp biogenic kg']),
-            gwp_luluc_kg: findHeaderIndex(['gwp-luluc (kg co2e/kg)', 'gwp luluc kg']),
-            gwp_stored_kg: findHeaderIndex(['gwp-stored (kg co2e/kg)', 'gwp stored kg']),
-            upfront_carbon_emissions_kg: findHeaderIndex(['upfront carbon emissions (kg co2e/kg)', 'upfront emissions kg']),
-            upfront_carbon_storage_kg: findHeaderIndex(['upfront carbon storage (kg co2e/kg)', 'upfront storage kg']),
-            record_added_to_database: findHeaderIndex(['record added to database', 'record added']),
-          };
+            
+            columnMap[def.key] = foundIndex;
+            columnMapping.push({
+              columnName: def.key,
+              expectedHeaders: def.searchKeys,
+              foundHeader,
+              foundIndex,
+              required: def.required,
+            });
+          }
 
           const parseNumber = (value: string | undefined): number | null => {
             if (!value || value.trim() === '') return null;
-            // Handle scientific notation (e.g., 2.40E+03)
             const num = parseFloat(value.replace(/[^0-9.eE+-]/g, ''));
             return isNaN(num) ? null : num;
           };
 
-          // Parse data rows
           const products: ExtractedProduct[] = [];
           for (const values of dataRows) {
             if (values.length === 0 || values.every(v => !v.trim())) continue;
@@ -389,21 +416,19 @@ export function BulkEPDUploader() {
             });
           }
 
-          // Filter out empty rows
           const validProducts = products.filter(p => 
             p.material_long_name !== 'Unknown Material' || 
             p.gwp_total_quantity !== null || 
             p.gwp_total_kg !== null
           );
 
-          resolve(validProducts);
+          resolve({ products: validProducts, columnMapping });
         } catch (error) {
           reject(error);
         }
       };
       reader.onerror = () => reject(new Error('Failed to read file'));
       
-      // Read as text for CSV, as ArrayBuffer for Excel
       const extension = '.' + file.name.split('.').pop()?.toLowerCase();
       if (extension === '.csv') {
         reader.readAsText(file);
@@ -490,14 +515,17 @@ export function BulkEPDUploader() {
     try {
       if (fileIsSpreadsheet) {
         // Handle spreadsheet file - parse locally
-        const products = await parseSpreadsheetFile(file);
+        const { products, columnMapping } = await parseSpreadsheetFile(file);
+        const foundCount = columnMapping.filter(c => c.foundIndex !== -1).length;
+        const missingRequired = columnMapping.filter(c => c.required && c.foundIndex === -1);
         
         return {
           ...result,
           status: 'extracted',
           products,
-          extractionConfidence: 'high',
-          extractionNotes: `Parsed ${products.length} materials from spreadsheet`,
+          columnMapping,
+          extractionConfidence: missingRequired.length === 0 ? 'high' : 'medium',
+          extractionNotes: `Parsed ${products.length} materials. Mapped ${foundCount}/31 columns.${missingRequired.length > 0 ? ` Missing required: ${missingRequired.map(c => c.columnName).join(', ')}` : ''}`,
         };
       } else {
         // Handle PDF file - existing flow
@@ -658,6 +686,20 @@ export function BulkEPDUploader() {
 
   const saveApprovedMaterials = async () => {
     const approvedFiles = processedFiles.filter(f => f.status === 'approved');
+    
+    // Strict mode check - block if any file has missing columns
+    if (strictMode) {
+      const filesWithMissingColumns = approvedFiles.filter(f => {
+        if (!f.columnMapping) return true;
+        return f.columnMapping.some(c => c.foundIndex === -1);
+      });
+      
+      if (filesWithMissingColumns.length > 0) {
+        toast.error(`Strict mode: ${filesWithMissingColumns.length} file(s) have missing columns. Disable strict mode or fix the spreadsheet.`);
+        return;
+      }
+    }
+    
     const allMaterials = approvedFiles.flatMap(f => 
       f.products.map(p => ({ ...p, storage_url: f.storagePath }))
     );
@@ -817,6 +859,22 @@ export function BulkEPDUploader() {
                 </span>
               </div>
 
+              {/* Strict Mode Toggle */}
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-amber-500" />
+                  <div>
+                    <Label htmlFor="strict-mode" className="font-medium">Strict Import Mode</Label>
+                    <p className="text-xs text-muted-foreground">Block saving unless all 31 NABERS columns are mapped</p>
+                  </div>
+                </div>
+                <Switch
+                  id="strict-mode"
+                  checked={strictMode}
+                  onCheckedChange={setStrictMode}
+                />
+              </div>
+
               {files.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -939,6 +997,16 @@ export function BulkEPDUploader() {
                       </div>
                       <div className="flex items-center gap-2">
                         {getStatusBadge(file.status)}
+                        {file.columnMapping && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setShowColumnMapping(fileIndex)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Columns ({file.columnMapping.filter(c => c.foundIndex !== -1).length}/31)
+                          </Button>
+                        )}
                         {file.status === 'extracted' && (
                           <Button size="sm" onClick={() => approveFile(fileIndex)} className="bg-emerald-600">
                             <CheckCircle className="h-4 w-4 mr-1" />
@@ -1039,6 +1107,46 @@ export function BulkEPDUploader() {
       </Tabs>
 
       {/* Edit Product Dialog */}
+      {/* Column Mapping Dialog */}
+      {showColumnMapping !== null && processedFiles[showColumnMapping]?.columnMapping && (
+        <Dialog open onOpenChange={() => setShowColumnMapping(null)}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Column Mapping - {processedFiles[showColumnMapping].fileName}</DialogTitle>
+            </DialogHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>NABERS Column</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Matched Header</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {processedFiles[showColumnMapping].columnMapping!.map((col, i) => (
+                  <TableRow key={i} className={col.foundIndex === -1 ? 'bg-destructive/10' : ''}>
+                    <TableCell className="font-medium">
+                      {col.columnName.replace(/_/g, ' ')}
+                      {col.required && <Badge variant="outline" className="ml-2 text-xs">Required</Badge>}
+                    </TableCell>
+                    <TableCell>
+                      {col.foundIndex !== -1 ? (
+                        <Badge className="bg-emerald-500"><CheckCircle className="h-3 w-3 mr-1" />Found</Badge>
+                      ) : (
+                        <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Missing</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {col.foundHeader || '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {editingProduct && (
         <EditProductDialog
           product={processedFiles[editingProduct.fileIndex]?.products[editingProduct.productIndex]}
