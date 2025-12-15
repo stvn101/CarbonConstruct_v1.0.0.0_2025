@@ -324,7 +324,6 @@ export function validateManufacturingLocation(
   country: string | null,
   city: string | null
 ): ValidationResult {
-  const errors: string[] = [];
   const warnings: string[] = [];
   
   if (!country) {

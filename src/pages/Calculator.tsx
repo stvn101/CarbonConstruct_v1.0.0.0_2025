@@ -7,6 +7,7 @@ import { useProject } from "@/contexts/ProjectContext";
 import { useUsageTracking } from "@/hooks/useUsageTracking";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useEcoCompliance } from "@/hooks/useEcoCompliance";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { UsePhaseCalculator, UsePhaseEmissions } from "@/components/calculator/UsePhaseCalculator";
 import { EndOfLifeCalculator, EndOfLifeEmissions } from "@/components/calculator/EndOfLifeCalculator";
 import { ModuleDCalculator, ModuleDEmissions } from "@/components/calculator/ModuleDCalculator";
+import { EcoComplianceToggle } from "@/components/EcoComplianceToggle";
+import { EcoCompliancePanel } from "@/components/EcoCompliancePanel";
 
 interface Material {
   id: string;
@@ -212,6 +215,14 @@ export default function Calculator() {
   useSubscriptionStatus();
   const { currentTier } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  
+  // ECO Platform Compliance
+  const { 
+    isEnabled: ecoComplianceEnabled, 
+    setEnabled: setEcoComplianceEnabled, 
+    complianceReport, 
+    isLoading: complianceLoading 
+  } = useEcoCompliance();
   
   // Feature access checks based on subscription tier
   const canAccessEN15978 = currentTier?.limits?.en15978_calculators ?? false;
@@ -1092,6 +1103,14 @@ export default function Calculator() {
                   onChange={e => setProjectDetails({...projectDetails, buildingSqm: e.target.value})} 
                 />
               </div>
+              
+              {/* ECO Platform Compliance Toggle */}
+              <div className="mt-4">
+                <EcoComplianceToggle 
+                  enabled={ecoComplianceEnabled} 
+                  onToggle={setEcoComplianceEnabled} 
+                />
+              </div>
             </div>
 
             {/* Tabs */}
@@ -1911,6 +1930,16 @@ export default function Calculator() {
                 {user ? '✓ Auto-save active' : 'Connecting...'}
               </div>
             </Card>
+            
+            {/* ECO Platform Compliance Panel */}
+            {ecoComplianceEnabled && (
+              <div className="mt-4">
+                <EcoCompliancePanel 
+                  complianceReport={complianceReport} 
+                  isLoading={complianceLoading} 
+                />
+              </div>
+            )}
           </div>
         </div>
       </main>

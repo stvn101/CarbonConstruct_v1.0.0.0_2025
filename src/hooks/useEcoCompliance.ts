@@ -160,10 +160,16 @@ export function useEcoCompliance(
       if (calcError) throw calcError;
 
       // Parse materials from calculations
-      const rawMaterials = calculations?.materials || [];
-      const materials: EcoPlatformMaterial[] = (Array.isArray(rawMaterials) ? rawMaterials : [])
-        .filter((m): m is Record<string, unknown> => m !== null && typeof m === 'object')
-        .map((m) => convertToEcoPlatformMaterial(m));
+      const rawMaterials = calculations?.materials;
+      const materialsArray: Record<string, unknown>[] = [];
+      if (Array.isArray(rawMaterials)) {
+        for (const m of rawMaterials) {
+          if (m !== null && typeof m === 'object' && !Array.isArray(m)) {
+            materialsArray.push(m as Record<string, unknown>);
+          }
+        }
+      }
+      const materials: EcoPlatformMaterial[] = materialsArray.map((m) => convertToEcoPlatformMaterial(m));
 
       // Convert current project
       const projectRecord = currentProject as unknown as Record<string, unknown>;
