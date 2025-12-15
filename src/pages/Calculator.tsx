@@ -588,6 +588,19 @@ export default function Calculator() {
       ef_b1b5: material.ef_b1b5 || undefined,
       ef_c1c4: material.ef_c1c4 || undefined,
       ef_d: material.ef_d || undefined,
+      // ECO Platform compliance fields
+      manufacturing_country: material.manufacturing_country || material.region || 'Australia',
+      manufacturing_city: material.manufacturing_city || material.plant_location || material.state || undefined,
+      characterisation_factor_version: material.characterisation_factor_version || 'JRC-EF-3.1',
+      allocation_method: material.allocation_method || undefined,
+      is_co_product: material.is_co_product || false,
+      co_product_type: material.co_product_type || undefined,
+      uses_mass_balance: material.uses_mass_balance || false,
+      biogenic_carbon_kg_c: material.biogenic_carbon_kg_c || undefined,
+      biogenic_carbon_percentage: material.biogenic_carbon_percentage || undefined,
+      ecoinvent_methodology: material.ecoinvent_methodology || undefined,
+      eco_platform_compliant: material.eco_platform_compliant !== false,
+      data_quality_rating: material.data_quality_rating || undefined,
     });
   };
 
@@ -617,6 +630,19 @@ export default function Calculator() {
       ef_b1b5: fav.ef_b1b5,
       ef_c1c4: fav.ef_c1c4,
       ef_d: fav.ef_d,
+      // ECO Platform compliance fields
+      manufacturing_country: fav.manufacturing_country,
+      manufacturing_city: fav.manufacturing_city,
+      characterisation_factor_version: fav.characterisation_factor_version,
+      allocation_method: fav.allocation_method,
+      is_co_product: fav.is_co_product,
+      co_product_type: fav.co_product_type,
+      uses_mass_balance: fav.uses_mass_balance,
+      biogenic_carbon_kg_c: fav.biogenic_carbon_kg_c,
+      biogenic_carbon_percentage: fav.biogenic_carbon_percentage,
+      ecoinvent_methodology: fav.ecoinvent_methodology,
+      eco_platform_compliant: fav.eco_platform_compliant,
+      data_quality_rating: fav.data_quality_rating,
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     

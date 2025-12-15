@@ -178,6 +178,9 @@ export function EcoCompliancePanel({
   const warningCount = requirements.filter(r => r.status === 'warning').length;
   const applicableCount = requirements.filter(r => r.status !== 'not-applicable').length;
 
+  const uiComplianceScore = applicableCount > 0 ? Math.round((passCount / applicableCount) * 100) : 0;
+  const isFullyCompliantUi = failCount === 0 && warningCount === 0;
+
   const getStatusIcon = (status: ComplianceRequirement['status']) => {
     switch (status) {
       case 'pass':
@@ -213,18 +216,18 @@ export function EcoCompliancePanel({
             ECO Platform Compliance
           </CardTitle>
           <Badge 
-            variant={complianceReport.complianceValidation.isFullyCompliant ? 'default' : 'destructive'}
+            variant={isFullyCompliantUi ? 'default' : 'destructive'}
             className={cn(
-              complianceReport.complianceValidation.isFullyCompliant && 'bg-emerald-500 hover:bg-emerald-600'
+              isFullyCompliantUi && 'bg-emerald-500 hover:bg-emerald-600'
             )}
           >
-            {complianceReport.complianceValidation.complianceScore}%
+            {uiComplianceScore}%
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Summary */}
-        {complianceReport.complianceValidation.isFullyCompliant ? (
+        {isFullyCompliantUi ? (
           <Alert className="bg-emerald-500/10 border-emerald-500/20">
             <CheckCircle className="w-4 h-4 text-emerald-500" />
             <AlertTitle className="text-emerald-700 dark:text-emerald-400">Fully Compliant</AlertTitle>
