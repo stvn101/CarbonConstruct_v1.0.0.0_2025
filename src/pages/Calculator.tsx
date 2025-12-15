@@ -64,6 +64,19 @@ interface Material {
   ef_b1b5?: number;
   ef_c1c4?: number;
   ef_d?: number;
+  // ECO Platform compliance fields
+  manufacturing_country?: string;
+  manufacturing_city?: string;
+  characterisation_factor_version?: string;
+  allocation_method?: string;
+  is_co_product?: boolean;
+  co_product_type?: string;
+  uses_mass_balance?: boolean;
+  biogenic_carbon_kg_c?: number;
+  biogenic_carbon_percentage?: number;
+  ecoinvent_methodology?: string;
+  eco_platform_compliant?: boolean;
+  data_quality_rating?: string;
 }
 
 const loadFromStorage = (key: string, fallback: any) => {
@@ -536,6 +549,19 @@ export default function Calculator() {
       ef_b1b5: material.ef_b1b5 || undefined,
       ef_c1c4: material.ef_c1c4 || undefined,
       ef_d: material.ef_d || undefined,
+      // ECO Platform compliance fields
+      manufacturing_country: material.manufacturing_country || material.region || 'Australia',
+      manufacturing_city: material.manufacturing_city || material.plant_location || material.state || undefined,
+      characterisation_factor_version: material.characterisation_factor_version || 'JRC-EF-3.1',
+      allocation_method: material.allocation_method || undefined,
+      is_co_product: material.is_co_product || false,
+      co_product_type: material.co_product_type || undefined,
+      uses_mass_balance: material.uses_mass_balance || false,
+      biogenic_carbon_kg_c: material.biogenic_carbon_kg_c || undefined,
+      biogenic_carbon_percentage: material.biogenic_carbon_percentage || undefined,
+      ecoinvent_methodology: material.ecoinvent_methodology || undefined,
+      eco_platform_compliant: material.eco_platform_compliant !== false,
+      data_quality_rating: material.data_quality_rating || undefined,
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     setMaterialSearch(''); // Clear search after adding
