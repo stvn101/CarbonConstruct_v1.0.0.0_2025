@@ -32,6 +32,7 @@ const AdminCampaigns = lazy(() => import("./pages/AdminCampaigns"));
 const AccessibilityStatement = lazy(() => import("./pages/AccessibilityStatement"));
 const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
 const MaterialDatabaseStatus = lazy(() => import("./pages/MaterialDatabaseStatus"));
+const EcoComplianceDashboard = lazy(() => import("./pages/EcoComplianceDashboard"));
 const Demo = lazy(() => import("./pages/Demo"));
 
 // Campaign landing pages
@@ -127,6 +128,7 @@ const App = () => (
                     <Route path="/admin/monitoring" element={<AdminMonitoring />} />
                     <Route path="/admin/campaigns" element={<AdminCampaigns />} />
                     <Route path="/admin/material-verification" element={<MaterialVerification />} />
+                    <Route path="/admin/eco-compliance" element={<EcoComplianceDashboard />} />
                     <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
                     <Route path="/demo" element={<Demo />} />
                     {/* Campaign landing pages */}

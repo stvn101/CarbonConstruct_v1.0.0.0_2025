@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -16,11 +16,13 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useComplianceCheck } from '@/hooks/useComplianceCheck';
 import { useEmissionTotals } from '@/hooks/useEmissionTotals';
 import { loadStoredWholeLifeTotals } from '@/hooks/useWholeLifeCarbonCalculations';
+import { useEcoCompliance } from '@/hooks/useEcoCompliance';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ReportErrorBoundary } from '@/components/ReportErrorBoundary';
 import { ComplianceCard } from '@/components/ComplianceCard';
 import { supabase } from '@/integrations/supabase/client';
+import type { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
 import { 
   FileBarChart, 
   Download, 
@@ -75,6 +77,45 @@ const Reports = () => {
     totals || { scope1: 0, scope2: 0, scope3: 0, total: 0 },
     wholeLifeTotals
   );
+
+  // Get ECO Platform compliance data
+  const { 
+    complianceReport: ecoComplianceReport
+  } = useEcoCompliance({ 
+    enabled: true, // Will check project settings internally
+    autoValidate: true 
+  });
+
+  // Fetch ECO compliance report from database if available
+  const [dbEcoComplianceReport, setDbEcoComplianceReport] = useState<EcoPlatformComplianceReport | null>(null);
+  
+  useEffect(() => {
+    const fetchEcoCompliance = async () => {
+      if (!currentProject?.id) return;
+      
+      // Use the report from the hook first
+      if (ecoComplianceReport) {
+        setDbEcoComplianceReport(ecoComplianceReport);
+        return;
+      }
+      
+      // Otherwise fetch from database
+      const { data } = await supabase
+        .from('projects')
+        .select('eco_compliance_enabled, eco_compliance_report')
+        .eq('id', currentProject.id)
+        .single();
+        
+      if (data?.eco_compliance_enabled && data.eco_compliance_report) {
+        const report = data.eco_compliance_report as unknown;
+        if (report && typeof report === 'object' && 'standardsCompliance' in (report as Record<string, unknown>)) {
+          setDbEcoComplianceReport(report as EcoPlatformComplianceReport);
+        }
+      }
+    };
+    
+    fetchEcoCompliance();
+  }, [currentProject?.id, ecoComplianceReport]);
   
   // Check if user is Pro tier with yearly subscription (price_annual = 790)
   const isProYearly = currentTier?.name === 'Pro' && 
@@ -281,7 +322,13 @@ const Reports = () => {
           </p>
         </div>
         <ErrorBoundary>
-          <PDFReport data={reportData} template={selectedTemplate} branding={effectiveBranding} showWatermark={!canCustomBrand} />
+          <PDFReport 
+            data={reportData} 
+            template={selectedTemplate} 
+            branding={effectiveBranding} 
+            showWatermark={!canCustomBrand}
+            ecoComplianceReport={dbEcoComplianceReport}
+          />
         </ErrorBoundary>
       </div>
 
