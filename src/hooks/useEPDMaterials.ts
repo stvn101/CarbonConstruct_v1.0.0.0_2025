@@ -32,6 +32,19 @@ export interface EPDMaterial {
   data_quality_tier: string | null;
   year: number | null;
   recycled_content: number | null;
+  // ECO Platform compliance fields
+  manufacturing_country: string | null;
+  manufacturing_city: string | null;
+  characterisation_factor_version: string | null;
+  allocation_method: string | null;
+  is_co_product: boolean | null;
+  co_product_type: string | null;
+  uses_mass_balance: boolean | null;
+  biogenic_carbon_kg_c: number | null;
+  biogenic_carbon_percentage: number | null;
+  ecoinvent_methodology: string | null;
+  eco_platform_compliant: boolean | null;
+  data_quality_rating: string | null;
 }
 
 export interface GroupedEPDMaterials {
