@@ -432,23 +432,23 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
 
       {/* Summary */}
       <div className="border-t pt-4 mt-4">
-        <div className="text-sm font-medium mb-2">Use Phase Summary ({buildingLifespan} years)</div>
+        <div className="text-sm font-medium mb-2 text-foreground">Use Phase Summary ({buildingLifespan} years)</div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
           <div className="bg-muted/50 rounded p-2">
             <div className="text-muted-foreground">B1-B5 Embodied</div>
-            <div className="font-bold text-amber-600">{((emissions.b1_use + emissions.b2_maintenance + emissions.b3_repair + emissions.b4_replacement + emissions.b5_refurbishment) / 1000).toFixed(2)} t</div>
+            <div className="font-bold text-amber-600 dark:text-amber-400">{((emissions.b1_use + emissions.b2_maintenance + emissions.b3_repair + emissions.b4_replacement + emissions.b5_refurbishment) / 1000).toFixed(2)} t</div>
           </div>
           <div className="bg-muted/50 rounded p-2">
             <div className="text-muted-foreground">B6 Energy</div>
-            <div className="font-bold text-orange-600">{(emissions.b6_operational_energy / 1000).toFixed(2)} t</div>
+            <div className="font-bold text-orange-600 dark:text-orange-400">{(emissions.b6_operational_energy / 1000).toFixed(2)} t</div>
           </div>
           <div className="bg-muted/50 rounded p-2">
             <div className="text-muted-foreground">B7 Water</div>
-            <div className="font-bold text-blue-600">{(emissions.b7_operational_water / 1000).toFixed(2)} t</div>
+            <div className="font-bold text-blue-600 dark:text-blue-400">{(emissions.b7_operational_water / 1000).toFixed(2)} t</div>
           </div>
-          <div className="bg-amber-100 rounded p-2">
-            <div className="text-amber-700">Total B1-B7</div>
-            <div className="font-bold text-amber-700">{(emissions.total / 1000).toFixed(2)} tCO₂e</div>
+          <div className="bg-amber-100 dark:bg-amber-900/50 rounded p-2">
+            <div className="text-amber-700 dark:text-amber-300">Total B1-B7</div>
+            <div className="font-bold text-amber-700 dark:text-amber-300">{(emissions.total / 1000).toFixed(2)} tCO₂e</div>
           </div>
         </div>
       </div>
