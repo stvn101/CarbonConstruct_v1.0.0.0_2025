@@ -205,7 +205,7 @@ export function EcoCompliancePanel({
   };
 
   return (
-    <Card className="bg-background border-border shadow-lg z-50 relative">
+    <Card className="bg-background border-border shadow-md">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
