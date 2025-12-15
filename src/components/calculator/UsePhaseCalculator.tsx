@@ -215,9 +215,9 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
 
       {/* Building Lifespan Selection */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 md:p-4 mb-4">
-        <div className="text-xs font-medium text-amber-700 uppercase tracking-wide mb-3">Reference Study Period</div>
+        <div className="text-xs font-medium text-amber-700 dark:text-amber-800 uppercase tracking-wide mb-3">Reference Study Period</div>
         <Select value={String(buildingLifespan)} onValueChange={(v) => setBuildingLifespan(parseInt(v))}>
-          <SelectTrigger>
+          <SelectTrigger className="dark:text-gray-900 dark:bg-white/80">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -374,31 +374,31 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
       <div className="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-2">
           <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">B6</Badge>
-          <span className="text-sm font-medium">Operational Energy (Annual)</span>
+          <span className="text-sm font-medium dark:text-gray-900">Operational Energy (Annual)</span>
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Electricity (kWh/yr)</label>
+            <label className="text-xs text-gray-600 dark:text-gray-700 mb-1 block">Electricity (kWh/yr)</label>
             <Input
               type="number"
               placeholder="0"
               value={annualElectricity}
               onChange={(e) => setAnnualElectricity(e.target.value)}
-              className="text-foreground"
+              className="text-foreground dark:text-gray-900 dark:bg-white/80"
             />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Gas (GJ/yr)</label>
+            <label className="text-xs text-gray-600 dark:text-gray-700 mb-1 block">Gas (GJ/yr)</label>
             <Input
               type="number"
               placeholder="0"
               value={annualGas}
               onChange={(e) => setAnnualGas(e.target.value)}
-              className="text-foreground"
+              className="text-foreground dark:text-gray-900 dark:bg-white/80"
             />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Renewable %</label>
+            <label className="text-xs text-gray-600 dark:text-gray-700 mb-1 block">Renewable %</label>
             <Input
               type="number"
               min="0"
@@ -406,7 +406,7 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
               placeholder="0"
               value={renewablePercent}
               onChange={(e) => setRenewablePercent(e.target.value)}
-              className="text-foreground"
+              className="text-foreground dark:text-gray-900 dark:bg-white/80"
             />
           </div>
         </div>
@@ -416,16 +416,16 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
       <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-2">
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">B7</Badge>
-          <span className="text-sm font-medium">Operational Water (Annual)</span>
+          <span className="text-sm font-medium dark:text-gray-900">Operational Water (Annual)</span>
         </div>
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">Water Use (kL/yr)</label>
+          <label className="text-xs text-gray-600 dark:text-gray-700 mb-1 block">Water Use (kL/yr)</label>
           <Input
             type="number"
             placeholder="0"
             value={annualWater}
             onChange={(e) => setAnnualWater(e.target.value)}
-            className="text-foreground"
+            className="text-foreground dark:text-gray-900 dark:bg-white/80"
           />
         </div>
       </div>
