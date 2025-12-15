@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Cache bust: 2025-12-14T08:15 - React 19 scheduler override fix v24
+// Cache bust: 2025-12-15T14:55 - React 19 deduplication fix v25
 // Note: Using npm overrides to force scheduler@0.23.2 (React 19 compatible)
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
