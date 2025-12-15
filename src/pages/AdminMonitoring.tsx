@@ -518,11 +518,13 @@ export default function AdminMonitoring() {
 
   const uniqueMetricNames = [...new Set(performanceMetrics.map(m => m.metric_name))];
 
-  // Calculate aggregates
+  // Calculate aggregates - last 24h only for Critical Errors card
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const recentErrors = errorLogs.filter(e => new Date(e.created_at) > twentyFourHoursAgo);
   const errorCounts = {
-    critical: errorLogs.filter(e => e.severity === "critical").length,
-    error: errorLogs.filter(e => e.severity === "error").length,
-    warning: errorLogs.filter(e => e.severity === "warning").length,
+    critical: recentErrors.filter(e => e.severity === "critical").length,
+    error: recentErrors.filter(e => e.severity === "error").length,
+    warning: recentErrors.filter(e => e.severity === "warning").length,
   };
 
   const avgMetrics = uniqueMetricNames.reduce((acc, name) => {
@@ -532,6 +534,27 @@ export default function AdminMonitoring() {
       : 0;
     return acc;
   }, {} as Record<string, number>);
+  
+  // Clear error logs (admin only)
+  const clearErrorLogs = async () => {
+    if (!confirm('Are you sure you want to delete ALL error logs? This cannot be undone.')) {
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('error_logs')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      
+      if (error) throw error;
+      
+      toast.success('Error logs cleared');
+      await loadErrorLogs();
+    } catch (err: any) {
+      console.error('Clear error logs failed:', err);
+      toast.error(err.message || 'Failed to clear error logs');
+    }
+  };
 
   if (authLoading || loading) {
     return (
@@ -605,7 +628,7 @@ export default function AdminMonitoring() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{errorCounts.critical}</p>
-            <p className="text-xs text-muted-foreground">Last 100 logs</p>
+            <p className="text-xs text-muted-foreground">Last 24 hours</p>
           </CardContent>
         </Card>
 
@@ -1148,7 +1171,7 @@ export default function AdminMonitoring() {
                   <CardTitle>Error Logs</CardTitle>
                   <CardDescription>Recent application errors and exceptions</CardDescription>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -1170,6 +1193,15 @@ export default function AdminMonitoring() {
                       <SelectItem value="info">Info</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={clearErrorLogs}
+                    className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                    Clear All Logs
+                  </Button>
                 </div>
               </div>
             </CardHeader>
