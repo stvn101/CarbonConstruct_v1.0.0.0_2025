@@ -16,7 +16,6 @@ import {
   Upload, FileText, CheckCircle, XCircle, AlertTriangle, 
   RefreshCw, Trash2, Edit2, Save, FolderOpen, FileSpreadsheet
 } from "lucide-react";
-import * as XLSX from "xlsx";
 
 interface ExtractedProduct {
   product_name: string;
@@ -49,7 +48,7 @@ interface ProcessedFile {
   extractionConfidence: string;
   extractionNotes: string;
   error?: string;
-  fileType: 'pdf' | 'xlsx';
+  fileType: 'pdf' | 'csv';
 }
 
 const MATERIAL_CATEGORIES = [
@@ -60,21 +59,20 @@ const MATERIAL_CATEGORIES = [
 
 const ACCEPTED_FILE_TYPES = [
   'application/pdf',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-  'application/vnd.ms-excel', // .xls
+  'text/csv',
+  'application/vnd.ms-excel',
 ];
 
-const ACCEPTED_EXTENSIONS = ['.pdf', '.xlsx', '.xls'];
+const ACCEPTED_EXTENSIONS = ['.pdf', '.csv'];
 
 const isAcceptedFile = (file: File): boolean => {
   const extension = '.' + file.name.split('.').pop()?.toLowerCase();
   return ACCEPTED_FILE_TYPES.includes(file.type) || ACCEPTED_EXTENSIONS.includes(extension);
 };
 
-const isExcelFile = (file: File): boolean => {
+const isCSVFile = (file: File): boolean => {
   const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-  return file.type.includes('spreadsheet') || file.type.includes('excel') || 
-         extension === '.xlsx' || extension === '.xls';
+  return file.type === 'text/csv' || file.type.includes('excel') || extension === '.csv';
 };
 
 export function BulkEPDUploader() {
@@ -89,25 +87,25 @@ export function BulkEPDUploader() {
     e.preventDefault();
     const droppedFiles = Array.from(e.dataTransfer.files).filter(isAcceptedFile);
     if (droppedFiles.length === 0) {
-      toast.error('Only PDF and Excel files (.xlsx, .xls) are accepted');
+      toast.error('Only PDF and CSV files are accepted');
       return;
     }
     setFiles(prev => [...prev, ...droppedFiles]);
     const pdfCount = droppedFiles.filter(f => f.type === 'application/pdf').length;
-    const xlsxCount = droppedFiles.length - pdfCount;
-    toast.success(`Added ${droppedFiles.length} file${droppedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${xlsxCount} Excel)`);
+    const csvCount = droppedFiles.length - pdfCount;
+    toast.success(`Added ${droppedFiles.length} file${droppedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${csvCount} CSV)`);
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []).filter(isAcceptedFile);
     if (selectedFiles.length === 0) {
-      toast.error('Only PDF and Excel files (.xlsx, .xls) are accepted');
+      toast.error('Only PDF and CSV files are accepted');
       return;
     }
     setFiles(prev => [...prev, ...selectedFiles]);
     const pdfCount = selectedFiles.filter(f => f.type === 'application/pdf').length;
-    const xlsxCount = selectedFiles.length - pdfCount;
-    toast.success(`Added ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${xlsxCount} Excel)`);
+    const csvCount = selectedFiles.length - pdfCount;
+    toast.success(`Added ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${csvCount} CSV)`);
     e.target.value = '';
   };
 
@@ -115,71 +113,96 @@ export function BulkEPDUploader() {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Parse XLSX file and extract products
-  const parseExcelFile = async (file: File): Promise<ExtractedProduct[]> => {
+  // Parse CSV file and extract products (native browser parsing)
+  const parseCSVFile = async (file: File): Promise<ExtractedProduct[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
+          const text = e.target?.result as string;
+          const lines = text.split(/\r?\n/).filter(line => line.trim());
           
-          // Get first sheet
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          
-          // Convert to JSON with header row
-          const jsonData = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet, { defval: null });
-          
-          if (jsonData.length === 0) {
-            reject(new Error('Excel file is empty or has no data rows'));
+          if (lines.length < 2) {
+            reject(new Error('CSV file must have a header row and at least one data row'));
             return;
           }
 
-          // Map Excel columns to product fields (flexible column matching)
-          const products: ExtractedProduct[] = jsonData.map((row) => {
-            const findValue = (keys: string[]): any => {
-              for (const key of keys) {
-                const matchingKey = Object.keys(row).find(k => 
-                  k.toLowerCase().includes(key.toLowerCase())
-                );
-                if (matchingKey && row[matchingKey] !== null && row[matchingKey] !== undefined && row[matchingKey] !== '') {
-                  return row[matchingKey];
-                }
-              }
-              return null;
+          // Parse header row
+          const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+          
+          // Map headers to product fields
+          const findHeaderIndex = (keys: string[]): number => {
+            for (const key of keys) {
+              const idx = headers.findIndex(h => h.includes(key.toLowerCase()));
+              if (idx !== -1) return idx;
+            }
+            return -1;
+          };
+
+          const columnMap = {
+            product_name: findHeaderIndex(['product', 'name', 'material', 'description']),
+            manufacturer: findHeaderIndex(['manufacturer', 'supplier', 'company', 'producer']),
+            epd_number: findHeaderIndex(['epd', 'number', 'id', 'reference']),
+            functional_unit: findHeaderIndex(['functional', 'declared']),
+            unit: findHeaderIndex(['unit']),
+            gwp_a1a3: findHeaderIndex(['a1a3', 'a1-a3', 'gwp_a1a3', 'production', 'embodied']),
+            gwp_a4: findHeaderIndex(['a4', 'gwp_a4', 'transport']),
+            gwp_a5: findHeaderIndex(['a5', 'gwp_a5', 'construction', 'installation']),
+            gwp_b1b5: findHeaderIndex(['b1b5', 'b1-b5', 'gwp_b1b5', 'use']),
+            gwp_c1c4: findHeaderIndex(['c1c4', 'c1-c4', 'gwp_c1c4', 'end']),
+            gwp_d: findHeaderIndex(['module_d', 'gwp_d', 'benefits']),
+            gwp_total: findHeaderIndex(['total', 'gwp_total', 'gwp', 'carbon']),
+            valid_until: findHeaderIndex(['valid', 'expiry', 'expires', 'until']),
+            geographic_scope: findHeaderIndex(['geographic', 'region', 'scope', 'country']),
+            material_category: findHeaderIndex(['category', 'type', 'material_category']),
+            plant_location: findHeaderIndex(['plant', 'location', 'factory', 'site']),
+            data_source: findHeaderIndex(['source', 'data_source', 'database']),
+            recycled_content: findHeaderIndex(['recycled', 'recycled_content', 'recyclate']),
+            notes: findHeaderIndex(['notes', 'comments', 'remarks']),
+          };
+
+          const parseNumber = (value: string | undefined): number | null => {
+            if (!value || value.trim() === '') return null;
+            const num = parseFloat(value.replace(/[^0-9.-]/g, ''));
+            return isNaN(num) ? null : num;
+          };
+
+          // Parse data rows
+          const products: ExtractedProduct[] = [];
+          for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            if (values.length === 0 || values.every(v => !v.trim())) continue;
+
+            const getValue = (idx: number): string | null => {
+              if (idx === -1 || idx >= values.length) return null;
+              const val = values[idx]?.trim();
+              return val || null;
             };
 
-            const parseNumber = (value: any): number | null => {
-              if (value === null || value === undefined || value === '') return null;
-              const num = parseFloat(String(value).replace(/[^0-9.-]/g, ''));
-              return isNaN(num) ? null : num;
-            };
+            products.push({
+              product_name: getValue(columnMap.product_name) || 'Unknown Product',
+              manufacturer: getValue(columnMap.manufacturer),
+              epd_number: getValue(columnMap.epd_number),
+              functional_unit: getValue(columnMap.functional_unit),
+              unit: getValue(columnMap.unit) || 'kg',
+              gwp_a1a3: parseNumber(getValue(columnMap.gwp_a1a3) ?? undefined),
+              gwp_a4: parseNumber(getValue(columnMap.gwp_a4) ?? undefined),
+              gwp_a5: parseNumber(getValue(columnMap.gwp_a5) ?? undefined),
+              gwp_b1b5: parseNumber(getValue(columnMap.gwp_b1b5) ?? undefined),
+              gwp_c1c4: parseNumber(getValue(columnMap.gwp_c1c4) ?? undefined),
+              gwp_d: parseNumber(getValue(columnMap.gwp_d) ?? undefined),
+              gwp_total: parseNumber(getValue(columnMap.gwp_total) ?? undefined),
+              valid_until: getValue(columnMap.valid_until),
+              geographic_scope: getValue(columnMap.geographic_scope) || 'Australia',
+              material_category: getValue(columnMap.material_category) || 'Other',
+              plant_location: getValue(columnMap.plant_location),
+              data_source: getValue(columnMap.data_source) || `CSV Import: ${file.name}`,
+              recycled_content: parseNumber(getValue(columnMap.recycled_content) ?? undefined),
+              notes: getValue(columnMap.notes),
+            });
+          }
 
-            return {
-              product_name: findValue(['product', 'name', 'material', 'description']) || 'Unknown Product',
-              manufacturer: findValue(['manufacturer', 'supplier', 'company', 'producer']),
-              epd_number: findValue(['epd', 'number', 'id', 'reference']),
-              functional_unit: findValue(['functional', 'declared', 'unit_type']),
-              unit: findValue(['unit']) || 'kg',
-              gwp_a1a3: parseNumber(findValue(['a1a3', 'a1-a3', 'gwp_a1a3', 'production', 'embodied'])),
-              gwp_a4: parseNumber(findValue(['a4', 'gwp_a4', 'transport'])),
-              gwp_a5: parseNumber(findValue(['a5', 'gwp_a5', 'construction', 'installation'])),
-              gwp_b1b5: parseNumber(findValue(['b1b5', 'b1-b5', 'gwp_b1b5', 'use_phase'])),
-              gwp_c1c4: parseNumber(findValue(['c1c4', 'c1-c4', 'gwp_c1c4', 'end_of_life'])),
-              gwp_d: parseNumber(findValue(['d', 'gwp_d', 'module_d', 'benefits'])),
-              gwp_total: parseNumber(findValue(['total', 'gwp_total', 'gwp', 'carbon'])),
-              valid_until: findValue(['valid', 'expiry', 'expires', 'until']),
-              geographic_scope: findValue(['geographic', 'region', 'scope', 'country']) || 'Australia',
-              material_category: findValue(['category', 'type', 'material_category']) || 'Other',
-              plant_location: findValue(['plant', 'location', 'factory', 'site']),
-              data_source: findValue(['source', 'data_source', 'database']) || `Excel Import: ${file.name}`,
-              recycled_content: parseNumber(findValue(['recycled', 'recycled_content', 'recyclate'])),
-              notes: findValue(['notes', 'comments', 'remarks']),
-            };
-          });
-
-          // Filter out rows that don't have at least a product name and some carbon data
+          // Filter out empty rows
           const validProducts = products.filter(p => 
             p.product_name !== 'Unknown Product' || 
             p.gwp_a1a3 !== null || 
@@ -192,8 +215,29 @@ export function BulkEPDUploader() {
         }
       };
       reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsArrayBuffer(file);
+      reader.readAsText(file);
     });
+  };
+
+  // Helper to parse CSV line handling quoted fields
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
   };
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
@@ -238,7 +282,7 @@ export function BulkEPDUploader() {
     _fileIndex: number, 
     session: any
   ): Promise<ProcessedFile> => {
-    const fileIsExcel = isExcelFile(file);
+    const fileIsCSV = isCSVFile(file);
     const result: ProcessedFile = {
       fileName: file.name,
       storagePath: null,
@@ -246,20 +290,20 @@ export function BulkEPDUploader() {
       products: [],
       extractionConfidence: '',
       extractionNotes: '',
-      fileType: fileIsExcel ? 'xlsx' : 'pdf',
+      fileType: fileIsCSV ? 'csv' : 'pdf',
     };
 
     try {
-      if (fileIsExcel) {
-        // Handle Excel file - parse locally
-        const products = await parseExcelFile(file);
+      if (fileIsCSV) {
+        // Handle CSV file - parse locally
+        const products = await parseCSVFile(file);
         
         return {
           ...result,
           status: 'extracted',
           products,
           extractionConfidence: 'high',
-          extractionNotes: `Parsed ${products.length} materials from Excel spreadsheet`,
+          extractionNotes: `Parsed ${products.length} materials from CSV spreadsheet`,
         };
       } else {
         // Handle PDF file - existing flow
@@ -334,7 +378,7 @@ export function BulkEPDUploader() {
       products: [],
       extractionConfidence: '',
       extractionNotes: '',
-      fileType: isExcelFile(f) ? 'xlsx' as const : 'pdf' as const,
+      fileType: isCSVFile(f) ? 'csv' as const : 'pdf' as const,
     }));
     setProcessedFiles(initialFiles);
 
@@ -538,7 +582,7 @@ export function BulkEPDUploader() {
                 Bulk EPD Upload
               </CardTitle>
               <CardDescription>
-                Drop EPD PDF or Excel files here. PDFs use AI extraction, Excel files are parsed directly.
+                Drop EPD PDF or CSV files here. PDFs use AI extraction, CSV files are parsed directly.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -550,7 +594,7 @@ export function BulkEPDUploader() {
               >
                 <input
                   type="file"
-                  accept=".pdf,.xlsx,.xls"
+                  accept=".pdf,.csv"
                   multiple
                   onChange={handleFileSelect}
                   className="hidden"
@@ -563,7 +607,7 @@ export function BulkEPDUploader() {
                   </div>
                   <p className="font-medium">Drop EPD files here or click to browse</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Supports PDF and Excel (.xlsx, .xls) • Max 20MB each
+                    Supports PDF and CSV files • Max 20MB each
                   </p>
                 </label>
               </div>
@@ -585,18 +629,18 @@ export function BulkEPDUploader() {
                   </div>
                   <ScrollArea className="h-48 border rounded-lg p-2">
                     {files.map((file, i) => {
-                      const fileIsExcel = isExcelFile(file);
+                      const fileIsCSV = isCSVFile(file);
                       return (
                         <div key={i} className="flex items-center justify-between py-2 px-2 hover:bg-muted/50 rounded">
                           <div className="flex items-center gap-2">
-                            {fileIsExcel ? (
+                            {fileIsCSV ? (
                               <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
                             ) : (
                               <FileText className="h-4 w-4 text-primary" />
                             )}
                             <span className="text-sm truncate max-w-[300px]">{file.name}</span>
                             <Badge variant="outline" className="text-xs">
-                              {fileIsExcel ? 'Excel' : 'PDF'}
+                              {fileIsCSV ? 'CSV' : 'PDF'}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
                               ({(file.size / 1024 / 1024).toFixed(1)} MB)
