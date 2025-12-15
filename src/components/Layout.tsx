@@ -38,12 +38,12 @@ export function Layout({ children }: LayoutProps) {
       </a>
 
       <SidebarProvider defaultOpen={false}>
-        <div className="min-h-screen flex w-full bg-background">
+        <div className="min-h-dvh flex w-full bg-background supports-[min-height:100dvh]:min-h-dvh">
         <AppSidebar />
 
         <div className="flex-1 flex flex-col md:ml-[--sidebar-width-icon] group-data-[state=expanded]/sidebar-wrapper:md:ml-[--sidebar-width] transition-[margin] duration-200 ease-linear">
           <header
-            className="h-14 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40 flex items-center px-3 md:px-4"
+            className="h-14 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40 flex items-center px-3 md:px-4 pt-[env(safe-area-inset-top)]"
             role="banner"
             aria-label="Main navigation"
           >

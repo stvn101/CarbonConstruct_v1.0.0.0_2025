@@ -6,7 +6,7 @@ export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer id="footer" role="contentinfo" className="bg-muted/30 border-t border-border mt-auto">
+    <footer id="footer" role="contentinfo" className="bg-muted/30 border-t border-border mt-auto pb-[env(safe-area-inset-bottom)]">
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
