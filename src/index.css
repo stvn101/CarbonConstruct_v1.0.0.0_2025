@@ -269,6 +269,20 @@
   background: #e8f5e9 !important;
 }
 
+.pdf-subtotal-row {
+  background: #f3f4f6 !important;
+  font-weight: 600;
+}
+
+.pdf-warning-box {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 16px;
+  color: #92400e;
+}
+
 .pdf-declaration-box {
   background: #f0f5ff;
   border: 2px solid #3b82f6;
