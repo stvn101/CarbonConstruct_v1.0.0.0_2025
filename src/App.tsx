@@ -33,6 +33,12 @@ const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
 const MaterialDatabaseStatus = lazy(() => import("./pages/MaterialDatabaseStatus"));
 const Demo = lazy(() => import("./pages/Demo"));
 
+// Campaign landing pages
+const LandingBuilders = lazy(() => import("./pages/LandingBuilders"));
+const LandingArchitects = lazy(() => import("./pages/LandingArchitects"));
+const LandingDevelopers = lazy(() => import("./pages/LandingDevelopers"));
+const LandingSupplyChain = lazy(() => import("./pages/LandingSupplyChain"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -118,6 +124,11 @@ const App = () => (
                     <Route path="/admin/material-verification" element={<MaterialVerification />} />
                     <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
                     <Route path="/demo" element={<Demo />} />
+                    {/* Campaign landing pages */}
+                    <Route path="/lp/builders" element={<LandingBuilders />} />
+                    <Route path="/lp/architects" element={<LandingArchitects />} />
+                    <Route path="/lp/developers" element={<LandingDevelopers />} />
+                    <Route path="/lp/suppliers" element={<LandingSupplyChain />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
