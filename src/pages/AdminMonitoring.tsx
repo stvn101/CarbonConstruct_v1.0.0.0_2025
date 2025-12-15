@@ -192,6 +192,18 @@ export default function AdminMonitoring() {
     error?: string;
     sample?: any[];
   } | null>(null);
+  const [ngerImportLoading, setNgerImportLoading] = useState(false);
+  const [ngerImportResult, setNgerImportResult] = useState<{
+    success: boolean;
+    type?: string;
+    total?: number;
+    inserted?: number;
+    failed?: number;
+    skipped?: number;
+    duplicates?: number;
+    error?: string;
+    sample?: any[];
+  } | null>(null);
   const [materialsCount, setMaterialsCount] = useState(0);
   const [epdMaterialsCount, setEpdMaterialsCount] = useState(0);
   
@@ -1160,6 +1172,87 @@ export default function AdminMonitoring() {
           
           {/* BlueScope EPD Import */}
           <BluescopeEPDImporter />
+          
+          {/* NGER 2025 Data Import */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-emerald-600" />
+                NGER 2025 Data Import
+              </CardTitle>
+              <CardDescription>
+                Import NGER materials (120+) and operational emission factors (60+) from NGA 2024
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-4 flex-wrap">
+                <Button 
+                  onClick={async () => {
+                    setNgerImportLoading(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("import-nger-data", {
+                        body: { action: 'import-materials' }
+                      });
+                      if (error) throw error;
+                      setNgerImportResult(data);
+                      toast.success(`Imported ${data?.inserted || 0} NGER materials`);
+                      await loadEpdMaterialsCount();
+                    } catch (err: any) {
+                      toast.error(err.message || "Import failed");
+                    } finally {
+                      setNgerImportLoading(false);
+                    }
+                  }}
+                  disabled={ngerImportLoading}
+                  className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+                >
+                  {ngerImportLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  Import NGER Materials
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    setNgerImportLoading(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("import-nger-data", {
+                        body: { action: 'import-operational' }
+                      });
+                      if (error) throw error;
+                      setNgerImportResult(data);
+                      toast.success(`Imported ${data?.inserted || 0} operational factors`);
+                    } catch (err: any) {
+                      toast.error(err.message || "Import failed");
+                    } finally {
+                      setNgerImportLoading(false);
+                    }
+                  }}
+                  disabled={ngerImportLoading}
+                  variant="outline"
+                  className="gap-2 border-emerald-600/50 text-emerald-600 hover:bg-emerald-600/10"
+                >
+                  {ngerImportLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  Import Operational Factors
+                </Button>
+              </div>
+              
+              {ngerImportResult?.success && (
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                  <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                    ✓ Imported {ngerImportResult.inserted} {ngerImportResult.type || 'records'}
+                  </p>
+                </div>
+              )}
+              
+              <div className="bg-emerald-600/5 p-4 rounded-lg border border-emerald-600/20">
+                <h4 className="font-medium mb-2 text-emerald-600">NGER Data Features:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>✓ 120+ building materials with Tier 1-4 data quality ratings</li>
+                  <li>✓ 60+ operational factors (fuels, electricity, water, waste)</li>
+                  <li>✓ State-level electricity grid factors</li>
+                  <li>✓ NGA 2024 & NGER Determination compliant</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Error Logs Tab */}
