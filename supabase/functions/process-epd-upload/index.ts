@@ -68,8 +68,8 @@ function validateMaterial(m: any): { valid: boolean; errors: string[] } {
   return { valid: errors.length === 0, errors };
 }
 
-// EPD extraction prompt for AI
-const EXTRACTION_PROMPT = `You are an expert at extracting Environmental Product Declaration (EPD) data from PDF documents.
+// EPD extraction prompt for AI with ECO Platform fields
+const EXTRACTION_PROMPT = `You are an expert at extracting Environmental Product Declaration (EPD) data from PDF documents, with particular expertise in EN 15804+A2 and ECO Platform compliance requirements.
 
 Extract the following information from the EPD PDF content. Return a JSON object with these fields:
 
@@ -89,12 +89,34 @@ Extract the following information from the EPD PDF content. Return a JSON object
       "gwp_d": "GWP for Module D (Benefits/loads) as a number or null",
       "gwp_total": "Total GWP if provided, or sum of all stages",
       "valid_until": "Expiry date in YYYY-MM-DD format or null",
+      "publish_date": "Publication date in YYYY-MM-DD format or null",
       "geographic_scope": "Geographic scope (e.g., 'Australia', 'Australia and New Zealand', 'Global')",
       "material_category": "Category like 'Steel', 'Concrete', 'Insulation', 'Timber', 'Plastics', etc.",
-      "plant_location": "Manufacturing plant location if specified",
+      "plant_location": "Manufacturing plant location/city if specified",
+      "manufacturing_country": "Country of manufacture (e.g., 'Australia', 'China', 'Germany')",
+      "manufacturing_city": "City/state of manufacture if specified",
       "data_source": "EPD program operator (e.g., 'EPD Australasia', 'International EPD System')",
       "recycled_content": "Recycled content percentage as a number or null",
-      "notes": "Any important notes about the product or data"
+      "notes": "Any important notes about the product or data",
+      
+      "biogenic_carbon_kg_c": "Biogenic carbon content in kg C per declared unit, or null",
+      "biogenic_carbon_percentage": "Biogenic carbon as percentage of product mass, or null",
+      "carbon_sequestration": "Carbon sequestration value in kgCO2e (negative for stored carbon), or null",
+      
+      "allocation_method": "Allocation method used (e.g., 'physical', 'economic', 'mass', 'none')",
+      "is_co_product": "true if this is a co-product, false otherwise",
+      "co_product_type": "Type of co-product if applicable (e.g., 'slag', 'fly_ash', 'recycled_aggregate')",
+      "uses_mass_balance": "true if mass balance approach is used for recycled content",
+      
+      "characterisation_factor_version": "Characterisation factor version (e.g., 'JRC-EF-3.1', 'CML-IA')",
+      "ecoinvent_methodology": "Ecoinvent methodology if used (e.g., 'APOS', 'cut-off', 'consequential')",
+      
+      "data_quality_rating": "Data quality rating if provided (e.g., 'very good', 'good', 'fair', 'poor')",
+      "uncertainty_percent": "Uncertainty percentage as a number or null",
+      
+      "scope1_factor": "Scope 1 emissions factor if separately declared, or null",
+      "scope2_factor": "Scope 2 emissions factor if separately declared, or null",
+      "scope3_factor": "Scope 3 emissions factor if separately declared, or null"
     }
   ],
   "extraction_confidence": "high/medium/low",
@@ -108,7 +130,11 @@ Important rules:
 4. The unit should match the declared/functional unit (kg, m², m³, tonne, piece, m, etc.)
 5. Be precise with EPD registration numbers - they're critical for traceability
 6. If you can't find specific data, use null rather than guessing
-7. Return valid JSON only, no markdown or extra text`;
+7. Return valid JSON only, no markdown or extra text
+8. For biogenic carbon, look for terms like "biogenic carbon content", "carbon stored", "biogenic CO2"
+9. For allocation method, look for "allocation", "co-product allocation", "system expansion"
+10. For data quality, look for "data quality", "DQR", "data quality rating", "uncertainty"
+11. For characterisation factors, look for "EF 3.1", "JRC", "CML", "TRACI", "ReCiPe"`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -320,12 +346,30 @@ serve(async (req) => {
         ef_d: Number(m.gwp_d) || 0,
         ef_total: Number(m.gwp_total) || Number(m.gwp_a1a3) || 0,
         expiry_date: m.valid_until || null,
+        publish_date: m.publish_date || null,
         region: m.geographic_scope ? String(m.geographic_scope).substring(0, 200) : 'Australia',
         plant_location: m.plant_location ? String(m.plant_location).substring(0, 500) : null,
+        manufacturing_country: m.manufacturing_country ? String(m.manufacturing_country).substring(0, 100) : null,
+        manufacturing_city: m.manufacturing_city ? String(m.manufacturing_city).substring(0, 200) : null,
         data_source: m.data_source ? String(m.data_source).substring(0, 200) : 'EPD Upload',
         recycled_content: Number(m.recycled_content) || 0,
         notes: m.notes ? String(m.notes).substring(0, 1000) : null,
         data_quality_tier: 'verified_epd',
+        // ECO Platform compliance fields
+        biogenic_carbon_kg_c: m.biogenic_carbon_kg_c != null ? Number(m.biogenic_carbon_kg_c) : null,
+        biogenic_carbon_percentage: m.biogenic_carbon_percentage != null ? Number(m.biogenic_carbon_percentage) : null,
+        carbon_sequestration: m.carbon_sequestration != null ? Number(m.carbon_sequestration) : null,
+        allocation_method: m.allocation_method ? String(m.allocation_method).substring(0, 50) : null,
+        is_co_product: m.is_co_product === true,
+        co_product_type: m.co_product_type ? String(m.co_product_type).substring(0, 100) : null,
+        uses_mass_balance: m.uses_mass_balance === true,
+        characterisation_factor_version: m.characterisation_factor_version ? String(m.characterisation_factor_version).substring(0, 50) : 'JRC-EF-3.1',
+        ecoinvent_methodology: m.ecoinvent_methodology ? String(m.ecoinvent_methodology).substring(0, 50) : null,
+        data_quality_rating: m.data_quality_rating ? String(m.data_quality_rating).substring(0, 50) : null,
+        uncertainty_percent: m.uncertainty_percent != null ? Number(m.uncertainty_percent) : null,
+        scope1_factor: m.scope1_factor != null ? Number(m.scope1_factor) : null,
+        scope2_factor: m.scope2_factor != null ? Number(m.scope2_factor) : null,
+        scope3_factor: m.scope3_factor != null ? Number(m.scope3_factor) : null,
       }));
 
       const { data, error } = await serviceClient
