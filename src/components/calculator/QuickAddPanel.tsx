@@ -58,16 +58,16 @@ export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial, onSync
   if (materials.length === 0) return null;
 
   return (
-    <div className="p-3 md:p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+    <div className="p-3 md:p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
           <div className="bg-emerald-500 p-1.5 rounded-lg">
             <Zap className="h-4 w-4 text-white" />
           </div>
-          <span className="text-sm font-semibold text-emerald-800">Quick Add</span>
+          <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">Quick Add</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-emerald-600">Your frequently used materials</span>
+          <span className="text-xs text-emerald-600 dark:text-emerald-400">Your frequently used materials</span>
           {onSyncEPD && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -103,11 +103,11 @@ export function QuickAddPanel({ materials, onAddMaterial, onHideMaterial, onSync
             <TooltipTrigger asChild>
               <button
                 onClick={() => onAddMaterial(fav)}
-                className="group relative inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm bg-white border border-emerald-300 rounded-lg hover:bg-emerald-100 hover:border-emerald-400 hover:shadow-sm transition-all"
+                className="group relative inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm bg-white dark:bg-gray-800 border border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:border-emerald-400 hover:shadow-sm transition-all"
               >
                 <div className="flex flex-col items-start">
                   <span className="text-foreground font-medium text-xs md:text-sm truncate max-w-[100px] md:max-w-[140px]">{fav.materialName}</span>
-                  <span className="text-xs text-emerald-600 font-mono">
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono">
                     {fav.factor.toFixed(1)} /{fav.unit}
                   </span>
                 </div>
