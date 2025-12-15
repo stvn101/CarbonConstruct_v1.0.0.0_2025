@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   Upload, FileText, CheckCircle, XCircle, AlertTriangle, 
-  RefreshCw, Trash2, Edit2, Save, FolderOpen, FileSpreadsheet
+  RefreshCw, Trash2, Edit2, Save, FolderOpen, FileSpreadsheet, Download
 } from "lucide-react";
 import * as XLSX from 'xlsx';
 
@@ -118,7 +118,85 @@ export function BulkEPDUploader() {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Parse spreadsheet file (CSV or XLSX) and extract products
+  // Download XLSX template with correct headers
+  const downloadTemplate = () => {
+    const headers = [
+      'Product Name',
+      'Manufacturer',
+      'EPD Number',
+      'Functional Unit',
+      'Unit',
+      'GWP A1-A3 (kgCO2e)',
+      'GWP A4 (kgCO2e)',
+      'GWP A5 (kgCO2e)',
+      'GWP B1-B5 (kgCO2e)',
+      'GWP C1-C4 (kgCO2e)',
+      'GWP Module D (kgCO2e)',
+      'GWP Total (kgCO2e)',
+      'Valid Until',
+      'Geographic Scope',
+      'Material Category',
+      'Plant Location',
+      'Data Source',
+      'Recycled Content (%)',
+      'Notes'
+    ];
+
+    // Example row to show format
+    const exampleRow = [
+      'Example Concrete 32MPa',
+      'ABC Materials Pty Ltd',
+      'EPD-AU-2024-001',
+      '1 m³ of concrete',
+      'm³',
+      '320.5',
+      '15.2',
+      '8.1',
+      '',
+      '12.4',
+      '-45.2',
+      '310.0',
+      '2027-12-31',
+      'Australia',
+      'Concrete',
+      'Sydney, NSW',
+      'EPD Australasia',
+      '25',
+      'Regional average for NSW'
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, exampleRow]);
+    
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 30 }, // Product Name
+      { wch: 25 }, // Manufacturer
+      { wch: 18 }, // EPD Number
+      { wch: 20 }, // Functional Unit
+      { wch: 8 },  // Unit
+      { wch: 18 }, // GWP A1-A3
+      { wch: 15 }, // GWP A4
+      { wch: 15 }, // GWP A5
+      { wch: 18 }, // GWP B1-B5
+      { wch: 18 }, // GWP C1-C4
+      { wch: 20 }, // GWP Module D
+      { wch: 18 }, // GWP Total
+      { wch: 12 }, // Valid Until
+      { wch: 15 }, // Geographic Scope
+      { wch: 18 }, // Material Category
+      { wch: 20 }, // Plant Location
+      { wch: 18 }, // Data Source
+      { wch: 18 }, // Recycled Content
+      { wch: 30 }, // Notes
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'EPD Materials');
+    
+    XLSX.writeFile(workbook, 'EPD_Import_Template.xlsx');
+    toast.success('Template downloaded! Fill it out and upload.');
+  };
+
   const parseSpreadsheetFile = async (file: File): Promise<ExtractedProduct[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -644,7 +722,17 @@ export function BulkEPDUploader() {
                 </label>
               </div>
 
-              {/* File List */}
+              {/* Template Download */}
+              <div className="flex items-center justify-center gap-2 py-2">
+                <Button variant="outline" size="sm" onClick={downloadTemplate} className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Download XLSX Template
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Pre-formatted with all required columns
+                </span>
+              </div>
+
               {files.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
