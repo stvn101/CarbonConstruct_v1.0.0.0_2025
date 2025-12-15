@@ -28,6 +28,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 const Roadmap = lazy(() => import("./pages/Roadmap"));
 const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
+const AdminCampaigns = lazy(() => import("./pages/AdminCampaigns"));
 const AccessibilityStatement = lazy(() => import("./pages/AccessibilityStatement"));
 const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
 const MaterialDatabaseStatus = lazy(() => import("./pages/MaterialDatabaseStatus"));
@@ -124,6 +125,7 @@ const App = () => (
                     <Route path="/accessibility" element={<AccessibilityStatement />} />
                     <Route path="/admin" element={<AdminMonitoring />} />
                     <Route path="/admin/monitoring" element={<AdminMonitoring />} />
+                    <Route path="/admin/campaigns" element={<AdminCampaigns />} />
                     <Route path="/admin/material-verification" element={<MaterialVerification />} />
                     <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
                     <Route path="/demo" element={<Demo />} />
