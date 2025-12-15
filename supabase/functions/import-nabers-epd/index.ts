@@ -275,9 +275,10 @@ Deno.serve(async (req) => {
       };
       
       const cols = {
-        materialType: getCol(['material type']),
-        classification: getCol(['material classification']),
-        longName: getCol(['material long name', 'long name']),
+        // Primary EPD format columns
+        materialType: getCol(['material type', 'emission factor material type']),
+        classification: getCol(['material classification', 'material category', 'emission factor material category']),
+        longName: getCol(['material long name', 'long name', 'tab description']),
         validStart: getCol(['data valid (start)', 'valid (start)']),
         validEnd: getCol(['data valid (end)', 'valid (end)']),
         location: getCol(['location']),
@@ -286,9 +287,15 @@ Deno.serve(async (req) => {
         program: getCol(['program']),
         refLink: getCol(['reference link', 'website']),
         unit: getCol(['declared unit']),
-        gwpTotal: getCol(['gwp-total', 'gwp total']),
+        gwpTotal: getCol(['gwp-total', 'gwp total', 'default (uncertainty adjusted)', 'average ef']),
         upfrontCarbon: getCol(['upfront carbon', 'a1-a3']),
         carbonStorage: getCol(['carbon storage', 'sequestration']),
+        // NABERS emission factors format columns
+        dataQuality: getCol(['data qualitative rating', 'data quality']),
+        uncertainty: getCol(['uncertainty adjustment', 'uncertainty']),
+        maxEf: getCol(['max in category ef', 'max ef']),
+        minEf: getCol(['min in category ef', 'min ef']),
+        notes: getCol(['notes']),
       };
       
       console.log('[import-nabers-epd] Column indices:', cols);
@@ -298,41 +305,60 @@ Deno.serve(async (req) => {
       let skipped = 0;
       
       for (const row of dataRows) {
-        if (!row || !row[cols.materialType] || !row[cols.longName]) {
+        // Skip empty rows
+        if (!row || row.length === 0) {
           skipped++;
           continue;
         }
         
-        const gwpTotal = parseNumber(row[cols.gwpTotal]);
+        // Get material type and name - try multiple columns
+        const materialType = row[cols.materialType] ? String(row[cols.materialType]).trim() : '';
+        const materialName = cols.longName >= 0 && row[cols.longName] 
+          ? String(row[cols.longName]).trim() 
+          : materialType; // Fallback to material type if no long name
+        
+        if (!materialType || !materialName) {
+          skipped++;
+          continue;
+        }
+        
+        // Parse GWP - try primary column, then fallback columns
+        let gwpTotal = parseNumber(row[cols.gwpTotal]);
+        
+        // Skip if no valid GWP value
         if (gwpTotal === null || gwpTotal <= 0) {
           skipped++;
           continue;
         }
         
-        const materialCategory = String(row[cols.materialType] || '').trim();
-        const materialName = String(row[cols.longName] || '').trim();
-        const location = row[cols.location] ? String(row[cols.location]).trim() : null;
-        const publishDate = parseDate(row[cols.validStart]);
+        const classification = cols.classification >= 0 && row[cols.classification] 
+          ? String(row[cols.classification]).trim() 
+          : null;
+        const location = cols.location >= 0 && row[cols.location] ? String(row[cols.location]).trim() : null;
+        const publishDate = cols.validStart >= 0 ? parseDate(row[cols.validStart]) : null;
+        const unit = cols.unit >= 0 && row[cols.unit] ? String(row[cols.unit]).trim() : 'kgCO2e';
+        const dataQuality = cols.dataQuality >= 0 && row[cols.dataQuality] ? String(row[cols.dataQuality]).trim() : null;
+        const notes = cols.notes >= 0 && row[cols.notes] ? String(row[cols.notes]).trim() : null;
         
         records.push({
-          material_category: materialCategory,
-          subcategory: row[cols.classification] ? String(row[cols.classification]).trim() : null,
+          material_category: materialType,
+          subcategory: classification,
           material_name: materialName,
           publish_date: publishDate,
-          expiry_date: parseDate(row[cols.validEnd]),
+          expiry_date: cols.validEnd >= 0 ? parseDate(row[cols.validEnd]) : null,
           plant_location: location,
-          epd_number: row[cols.regNumber] ? String(row[cols.regNumber]).trim() : null,
-          data_source: row[cols.program] ? String(row[cols.program]).trim() : 'NABERS 2025 EPD List',
-          epd_url: cleanUrl(row[cols.refLink] ? String(row[cols.refLink]) : null),
-          unit: row[cols.unit] ? String(row[cols.unit]).trim() : 'kg',
+          epd_number: cols.regNumber >= 0 && row[cols.regNumber] ? String(row[cols.regNumber]).trim() : null,
+          data_source: 'NABERS 2025 Emission Factors',
+          epd_url: cols.refLink >= 0 ? cleanUrl(row[cols.refLink] ? String(row[cols.refLink]) : null) : null,
+          unit: unit,
           ef_total: gwpTotal,
-          ef_a1a3: parseNumber(row[cols.upfrontCarbon]),
-          carbon_sequestration: parseNumber(row[cols.carbonStorage]),
+          ef_a1a3: cols.upfrontCarbon >= 0 ? parseNumber(row[cols.upfrontCarbon]) : gwpTotal,
+          carbon_sequestration: cols.carbonStorage >= 0 ? parseNumber(row[cols.carbonStorage]) : null,
           manufacturer: extractManufacturer(materialName),
           state: extractState(location),
           region: 'Australia',
-          data_quality_tier: 'epd_verified',
-          year: extractYear(publishDate),
+          data_quality_tier: dataQuality || 'nabers_verified',
+          year: extractYear(publishDate) || 2025,
         });
       }
       
