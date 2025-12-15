@@ -87,8 +87,8 @@ export function MaterialCategoryBrowser({
         </span>
       </div>
       
-      <ScrollArea className="h-auto max-h-[160px] md:max-h-[200px]">
-        <div className="flex flex-wrap gap-1.5 md:gap-2 pr-4">
+      <ScrollArea className="h-auto max-h-[280px] md:max-h-[240px]">
+        <div className="flex flex-wrap gap-1.5 md:gap-2 pr-4 pb-2">
           {allCategories.map(({ category, count }) => {
             const Icon = CATEGORY_ICONS[category] || Package;
             const colorClass = CATEGORY_COLORS[category] || "bg-muted hover:bg-muted/80 border-border text-foreground";
