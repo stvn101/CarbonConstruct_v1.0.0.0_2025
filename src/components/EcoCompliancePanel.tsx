@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { EcoPlatformComplianceReport, ValidationResult } from '@/lib/eco-platform-types';
+import { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
 
 interface ComplianceRequirement {
   id: string;
