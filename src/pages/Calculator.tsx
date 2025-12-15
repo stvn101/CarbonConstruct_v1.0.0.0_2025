@@ -1182,8 +1182,8 @@ export default function Calculator() {
 
                 {/* Energy Section */}
                 <Card className="p-4 md:p-6">
-                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">Energy (Scope 1 & 2)</h3>
-                  <div className="bg-slate-50 p-2 md:p-3 rounded border mb-3 md:mb-4">
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">Energy (Scope 1 & 2)</h3>
+                  <div className="bg-muted p-2 md:p-3 rounded border mb-3 md:mb-4">
                     <FactorRow 
                       label={`Grid Electricity (${projectDetails.location})`}
                       unit="kWh"
@@ -1209,7 +1209,7 @@ export default function Calculator() {
                 {/* Materials Section */}
                 <Card className="p-4 md:p-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 md:mb-4">
-                    <h3 className="font-bold text-base md:text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
+                    <h3 className="font-bold text-base md:text-lg text-foreground">Materials (Upfront A1-A3)</h3>
                     <div className="flex items-center gap-2">
                       {canAccessMaterialComparer ? (
                         <Dialog>
@@ -1510,7 +1510,7 @@ export default function Calculator() {
 
                 {/* Employee Commute Section */}
                 <Card className="p-4 md:p-6">
-                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">Employee Commute (Scope 3)</h3>
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">Employee Commute (Scope 3)</h3>
                   <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Enter total km travelled by employees per commute type
                   </p>
@@ -1536,7 +1536,7 @@ export default function Calculator() {
 
                 {/* Waste Section */}
                 <Card className="p-4 md:p-6">
-                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">Construction Waste (Scope 3)</h3>
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">Construction Waste (Scope 3)</h3>
                   <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Enter waste quantities in kg or tonnes. Negative factors (e.g., recycled metals) reduce emissions.
                   </p>
@@ -1604,18 +1604,18 @@ export default function Calculator() {
 
                 {/* A5 On-Site Construction Section */}
                 <Card className="p-4 md:p-6">
-                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">On-Site Construction (A5)</h3>
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">On-Site Construction (A5)</h3>
                   <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Site equipment, generators, and installation activities
                   </p>
                   
                   {/* Equipment */}
                   <div className="mb-4 md:mb-6">
-                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
                       Site Equipment
                     </h4>
-                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                    <div className="space-y-1 bg-muted rounded-lg p-2">
                       {Object.entries(A5_EQUIPMENT_FACTORS)
                         .filter(([_, f]) => f.category === 'equipment')
                         .map(([k, f]) => (
@@ -1634,11 +1634,11 @@ export default function Calculator() {
 
                   {/* Generators */}
                   <div className="mb-4 md:mb-6">
-                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
                       Generators
                     </h4>
-                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                    <div className="space-y-1 bg-muted rounded-lg p-2">
                       {Object.entries(A5_EQUIPMENT_FACTORS)
                         .filter(([_, f]) => f.category === 'generator')
                         .map(([k, f]) => (
@@ -1657,11 +1657,11 @@ export default function Calculator() {
 
                   {/* Installation Activities */}
                   <div className="mb-4 md:mb-6">
-                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                       Installation Activities
                     </h4>
-                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                    <div className="space-y-1 bg-muted rounded-lg p-2">
                       {Object.entries(A5_EQUIPMENT_FACTORS)
                         .filter(([_, f]) => f.category === 'installation')
                         .map(([k, f]) => (
@@ -1680,11 +1680,11 @@ export default function Calculator() {
 
                   {/* Site Facilities */}
                   <div className="mb-3 md:mb-4">
-                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
                       Site Facilities
                     </h4>
-                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                    <div className="space-y-1 bg-muted rounded-lg p-2">
                       {Object.entries(A5_EQUIPMENT_FACTORS)
                         .filter(([_, f]) => f.category === 'facilities')
                         .map(([k, f]) => (
