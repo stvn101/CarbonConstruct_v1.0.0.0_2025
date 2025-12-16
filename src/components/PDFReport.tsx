@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { FileDown, Loader2 } from 'lucide-react';
 import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
-import { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
+import { PDF_COLORS } from '@/constants/pdfColors';
 
 export interface ReportBranding {
   companyName?: string;
@@ -16,7 +16,336 @@ export interface PDFReportOptions {
   showWatermark?: boolean;
 }
 
-interface PDFReportContentProps {
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'column',
+    backgroundColor: PDF_COLORS.white,
+    padding: 40,
+    fontFamily: 'Helvetica',
+    position: 'relative',
+  },
+  watermark: {
+    position: 'absolute',
+    top: '45%',
+    left: '10%',
+    right: '10%',
+    transform: 'rotate(-35deg)',
+    fontSize: 48,
+    color: PDF_COLORS.watermark,
+    textAlign: 'center',
+    opacity: 0.6,
+    fontWeight: 'bold',
+    zIndex: -1,
+  },
+  header: {
+    marginBottom: 30,
+    borderBottom: `2px solid ${PDF_COLORS.primaryGreen}`,
+    paddingBottom: 20,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    objectFit: 'contain',
+  },
+  companyName: {
+    fontSize: 12,
+    color: PDF_COLORS.textMedium,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  preparedBy: {
+    fontSize: 10,
+    color: PDF_COLORS.textGray,
+    marginTop: 8,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: PDF_COLORS.primaryGreen,
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: PDF_COLORS.textGray,
+    marginBottom: 5,
+  },
+  section: {
+    marginBottom: 25,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: PDF_COLORS.primaryGreen,
+    marginBottom: 10,
+    borderBottom: `1px solid ${PDF_COLORS.borderDark}`,
+    paddingBottom: 5,
+  },
+  row: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  label: {
+    width: 140,
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: PDF_COLORS.textMedium,
+  },
+  value: {
+    fontSize: 11,
+    color: PDF_COLORS.textGray,
+    flex: 1,
+  },
+  emissionCard: {
+    backgroundColor: PDF_COLORS.primaryGreenVeryLight,
+    border: `1px solid ${PDF_COLORS.borderLight}`,
+    borderRadius: 4,
+    padding: 15,
+    marginBottom: 15,
+  },
+  emissionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: PDF_COLORS.primaryGreen,
+    marginBottom: 8,
+  },
+  emissionValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: PDF_COLORS.primaryGreenDark,
+    marginBottom: 5,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+    paddingLeft: 10,
+  },
+  categoryName: {
+    width: 150,
+    fontSize: 10,
+    color: PDF_COLORS.textGray,
+  },
+  categoryValue: {
+    fontSize: 10,
+    color: PDF_COLORS.textMedium,
+    fontWeight: 'bold',
+  },
+  footer: {
+    marginTop: 30,
+    paddingTop: 20,
+    borderTop: `1px solid ${PDF_COLORS.borderDark}`,
+    fontSize: 10,
+    color: PDF_COLORS.textGray,
+    textAlign: 'center',
+  },
+  complianceSection: {
+    backgroundColor: PDF_COLORS.successBackgroundAlt,
+    padding: 15,
+    borderRadius: 4,
+    marginBottom: 20,
+  },
+  complianceItem: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  complianceLabel: {
+    width: 150,
+    fontSize: 11,
+    color: PDF_COLORS.primaryGreen,
+    fontWeight: 'bold',
+  },
+  complianceStatus: {
+    fontSize: 11,
+    color: PDF_COLORS.success,
+    fontWeight: 'bold',
+  },
+  complianceValue: {
+    fontSize: 11,
+    color: PDF_COLORS.textMedium,
+  },
+  keyMetricBox: {
+    backgroundColor: PDF_COLORS.primaryGreenVeryLight,
+    border: `1px solid ${PDF_COLORS.borderLight}`,
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 10,
+  },
+  metricLabel: {
+    fontSize: 10,
+    color: PDF_COLORS.textGray,
+    marginBottom: 4,
+  },
+  metricValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: PDF_COLORS.primaryGreen,
+  },
+  disclaimer: {
+    marginTop: 15,
+    paddingTop: 10,
+    borderTop: `0.5px solid ${PDF_COLORS.borderGray}`,
+    fontSize: 6,
+    color: PDF_COLORS.textMuted,
+    lineHeight: 1.4,
+  },
+  disclaimerTitle: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: PDF_COLORS.textLightGray,
+    marginBottom: 3,
+  },
+  // EN 15978 specific styles
+  declarationBox: {
+    backgroundColor: PDF_COLORS.infoBackgroundAlt,
+    border: `2px solid ${PDF_COLORS.info}`,
+    borderRadius: 4,
+    padding: 15,
+    marginBottom: 20,
+  },
+  declarationTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: PDF_COLORS.infoVeryDark,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  declarationItem: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  declarationLabel: {
+    width: 160,
+    fontSize: 10,
+    color: PDF_COLORS.infoVeryDark,
+    fontWeight: 'bold',
+  },
+  declarationValue: {
+    fontSize: 10,
+    color: PDF_COLORS.textMedium,
+    flex: 1,
+  },
+  lifecycleTable: {
+    border: `1px solid ${PDF_COLORS.borderDark}`,
+    marginTop: 10,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: PDF_COLORS.infoVeryDark,
+    padding: 8,
+  },
+  tableHeaderCell: {
+    flex: 1,
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: PDF_COLORS.white,
+    textAlign: 'center',
+  },
+  tableHeaderCellWide: {
+    flex: 2,
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: PDF_COLORS.white,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottom: `1px solid ${PDF_COLORS.borderGray}`,
+    padding: 6,
+  },
+  tableRowAlt: {
+    flexDirection: 'row',
+    borderBottom: `1px solid ${PDF_COLORS.borderGray}`,
+    padding: 6,
+    backgroundColor: PDF_COLORS.backgroundLightGray,
+  },
+  tableRowTotal: {
+    flexDirection: 'row',
+    padding: 8,
+    backgroundColor: PDF_COLORS.tableRowHighlight,
+  },
+  tableCell: {
+    flex: 1,
+    fontSize: 9,
+    color: PDF_COLORS.textMedium,
+    textAlign: 'center',
+  },
+  tableCellWide: {
+    flex: 2,
+    fontSize: 9,
+    color: PDF_COLORS.textMedium,
+  },
+  tableCellBold: {
+    flex: 1,
+    fontSize: 9,
+    color: PDF_COLORS.textMedium,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  stageHeader: {
+    flexDirection: 'row',
+    backgroundColor: PDF_COLORS.tableRowInfo,
+    padding: 6,
+    borderBottom: `1px solid ${PDF_COLORS.infoVeryLight}`,
+  },
+  stageHeaderText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: PDF_COLORS.alertInfo.text,
+  },
+  intensityBox: {
+    backgroundColor: PDF_COLORS.warningBackgroundAlt,
+    border: `1px solid ${PDF_COLORS.warningAlt}`,
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 15,
+  },
+  intensityTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: PDF_COLORS.alertWarning.text,
+    marginBottom: 8,
+  },
+  intensityValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: PDF_COLORS.alertWarning.textDark,
+    marginBottom: 4,
+  },
+  intensityUnit: {
+    fontSize: 10,
+    color: PDF_COLORS.textGray,
+  },
+  moduleDBox: {
+    backgroundColor: PDF_COLORS.alertSuccess.background,
+    border: `1px solid ${PDF_COLORS.alertSuccess.border}`,
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 15,
+  },
+  moduleDTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: PDF_COLORS.alertSuccess.text,
+    marginBottom: 8,
+  },
+  moduleDValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: PDF_COLORS.alertSuccess.textDark,
+  },
+  moduleDNote: {
+    fontSize: 8,
+    color: PDF_COLORS.textGray,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+});
+
+interface PDFReportDocumentProps {
   data: ReportData;
   template: ReportTemplate;
   branding?: ReportBranding;
@@ -52,13 +381,14 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
 
   const renderExecutiveSummary = () => (
     <>
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">Executive Summary</h2>
-        <p className="pdf-text-muted mb-4">
+      {/* Executive Summary Content */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Executive Summary</Text>
+        <Text style={{ fontSize: 12, color: PDF_COLORS.textGray, marginBottom: 15 }}>
           Total emissions for {data.project.name}: {formatNumber(data.emissions.total)} tCO₂e
         </p>
         {data.project.description && (
-          <p className="pdf-text-muted text-sm">{data.project.description}</p>
+          <Text style={{ fontSize: 10, color: PDF_COLORS.textLightGray, marginBottom: 15 }}>{data.project.description}</Text>
         )}
       </div>
 
@@ -108,9 +438,10 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
 
   const renderComplianceFocused = () => (
     <>
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">Compliance Assessment</h2>
-        <p className="pdf-text-muted mb-4">
+      {/* Compliance Report Introduction */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Compliance Assessment</Text>
+        <Text style={{ fontSize: 11, color: PDF_COLORS.textGray, marginBottom: 10 }}>
           Detailed compliance assessment for {data.project.name} against Australian standards
         </p>
       </div>
@@ -150,30 +481,66 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
             <span className="pdf-compliance-label">Eligibility:</span>
             <span className={data.compliance.greenStarEligible ? 'pdf-status-pass' : 'pdf-status-fail'}>
               {data.compliance.greenStarEligible ? '✓ ELIGIBLE' : '✗ NOT ELIGIBLE'}
-            </span>
-          </div>
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Total Emissions:</span>
-            <span className="pdf-compliance-value">{formatNumber(data.emissions.total)} tCO₂e</span>
-          </div>
-        </div>
-      </div>
+            </Text>
+          </View>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Total Emissions:</Text>
+            <Text style={styles.complianceValue}>{formatNumber(data.emissions.total)} tCO₂e</Text>
+          </View>
+          <Text style={{ fontSize: 10, color: PDF_COLORS.textGray, marginTop: 10 }}>
+            Green Star eligibility is based on comprehensive environmental performance including emissions intensity, 
+            materials selection, and operational efficiency.
+          </Text>
+        </View>
+      </View>
 
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">NABERS Energy Assessment</h2>
-        <div className="pdf-compliance-box">
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Readiness:</span>
-            <span className={data.compliance.nabersReady ? 'pdf-status-pass' : 'pdf-status-fail'}>
+      {/* NABERS Assessment */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>NABERS Energy Assessment</Text>
+        <View style={styles.complianceSection}>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Readiness:</Text>
+            <Text style={styles.complianceStatus}>
               {data.compliance.nabersReady ? '✓ READY' : '✗ ADDITIONAL DATA REQUIRED'}
-            </span>
-          </div>
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Scope 2 Emissions:</span>
-            <span className="pdf-compliance-value">{formatNumber(data.emissions.scope2)} tCO₂e</span>
-          </div>
-        </div>
-      </div>
+            </Text>
+          </View>
+          <View style={styles.complianceItem}>
+            <Text style={styles.complianceLabel}>Scope 2 Emissions:</Text>
+            <Text style={styles.complianceValue}>{formatNumber(data.emissions.scope2)} tCO₂e</Text>
+          </View>
+          <Text style={{ fontSize: 10, color: PDF_COLORS.textGray, marginTop: 10 }}>
+            NABERS Energy rating requires comprehensive operational energy data. Scope 2 emissions are the 
+            primary indicator of energy performance.
+          </Text>
+        </View>
+      </View>
+
+      {/* Emission Summary Table */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Emission Summary</Text>
+        <View style={{ border: `1px solid ${PDF_COLORS.borderDark}`, marginTop: 10 }}>
+          <View style={{ flexDirection: 'row', backgroundColor: PDF_COLORS.backgroundDarkGray, borderBottom: `1px solid ${PDF_COLORS.borderDark}`, padding: 8 }}>
+            <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold' }}>Scope</Text>
+            <Text style={{ width: 120, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>Emissions (tCO₂e)</Text>
+          </View>
+          <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderDark}`, padding: 8 }}>
+            <Text style={{ flex: 1, fontSize: 10 }}>Scope 1 (Direct)</Text>
+            <Text style={{ width: 120, fontSize: 10, textAlign: 'right' }}>{formatNumber(data.emissions.scope1)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderDark}`, padding: 8 }}>
+            <Text style={{ flex: 1, fontSize: 10 }}>Scope 2 (Energy)</Text>
+            <Text style={{ width: 120, fontSize: 10, textAlign: 'right' }}>{formatNumber(data.emissions.scope2)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderDark}`, padding: 8 }}>
+            <Text style={{ flex: 1, fontSize: 10 }}>Scope 3 (Indirect)</Text>
+            <Text style={{ width: 120, fontSize: 10, textAlign: 'right' }}>{formatNumber(data.emissions.scope3)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', backgroundColor: PDF_COLORS.primaryGreenVeryLight, padding: 8 }}>
+            <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold' }}>Total</Text>
+            <Text style={{ width: 120, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>{formatNumber(data.emissions.total)}</Text>
+          </View>
+        </View>
+      </View>
     </>
   );
 
@@ -286,170 +653,288 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
     
     return (
       <>
-        <div className="pdf-declaration-box">
-          <h2 className="pdf-declaration-title">Declaration of Conformity</h2>
-          <div className="pdf-declaration-grid">
-            <div className="pdf-declaration-row">
-              <span className="pdf-declaration-label">Standard:</span>
-              <span className="pdf-declaration-value">EN 15978:2011</span>
-            </div>
-            <div className="pdf-declaration-row">
-              <span className="pdf-declaration-label">Scope:</span>
-              <span className="pdf-declaration-value">Whole Life Carbon Assessment</span>
-            </div>
-            <div className="pdf-declaration-row">
-              <span className="pdf-declaration-label">Building Type:</span>
-              <span className="pdf-declaration-value">{data.project.project_type || 'Commercial'}</span>
-            </div>
-            <div className="pdf-declaration-row">
-              <span className="pdf-declaration-label">Reference Study Period:</span>
-              <span className="pdf-declaration-value">60 years</span>
-            </div>
-            <div className="pdf-declaration-row">
-              <span className="pdf-declaration-label">Functional Unit:</span>
-              <span className="pdf-declaration-value">1 m² GIA per year</span>
-            </div>
-          </div>
-        </div>
+        {/* Declaration of Conformity */}
+        <View style={styles.declarationBox}>
+          <Text style={styles.declarationTitle}>DECLARATION OF CONFORMITY</Text>
+          <Text style={{ fontSize: 10, color: PDF_COLORS.infoVeryDark, marginBottom: 10, textAlign: 'center' }}>
+            EN 15978:2011 Whole Life Carbon Assessment
+          </Text>
+          <View style={styles.declarationItem}>
+            <Text style={styles.declarationLabel}>Assessment Standard:</Text>
+            <Text style={styles.declarationValue}>EN 15978:2011</Text>
+          </View>
+          <View style={styles.declarationItem}>
+            <Text style={styles.declarationLabel}>Reference Study Period:</Text>
+            <Text style={styles.declarationValue}>60 years</Text>
+          </View>
+          <View style={styles.declarationItem}>
+            <Text style={styles.declarationLabel}>Functional Unit:</Text>
+            <Text style={styles.declarationValue}>per m² Gross Floor Area (GFA)</Text>
+          </View>
+          <View style={styles.declarationItem}>
+            <Text style={styles.declarationLabel}>System Boundary:</Text>
+            <Text style={styles.declarationValue}>Cradle to Grave + Module D</Text>
+          </View>
+          <View style={styles.declarationItem}>
+            <Text style={styles.declarationLabel}>GWP Metric:</Text>
+            <Text style={styles.declarationValue}>kgCO₂e (100-year GWP)</Text>
+          </View>
+        </View>
 
-        <div className="pdf-section">
-          <h2 className="pdf-section-title">Lifecycle Stage Summary</h2>
-          <table className="pdf-table pdf-lifecycle-table">
-            <thead>
-              <tr className="bg-blue-800 text-white">
-                <th>Stage</th>
-                <th>Description</th>
-                <th>Emissions (kgCO₂e)</th>
-                <th>% of Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="pdf-stage-header">
-                <td colSpan={4}>Product Stage (A1-A3)</td>
-              </tr>
-              <tr>
-                <td>A1-A3</td>
-                <td>Raw materials, transport, manufacturing</td>
-                <td>{formatNumber(a1a3)}</td>
-                <td>{calcPercent(a1a3)}%</td>
-              </tr>
-              <tr className="pdf-stage-header">
-                <td colSpan={4}>Construction Stage (A4-A5)</td>
-              </tr>
-              <tr>
-                <td>A4</td>
-                <td>Transport to site</td>
-                <td>{formatNumber(a4)}</td>
-                <td>{calcPercent(a4)}%</td>
-              </tr>
-              <tr>
-                <td>A5</td>
-                <td>Construction installation</td>
-                <td>{formatNumber(a5)}</td>
-                <td>{calcPercent(a5)}%</td>
-              </tr>
-              <tr className="pdf-subtotal-row">
-                <td colSpan={2}><strong>Subtotal Upfront (A1-A5)</strong></td>
-                <td><strong>{formatNumber(totalUpfront)}</strong></td>
-                <td><strong>{calcPercent(totalUpfront)}%</strong></td>
-              </tr>
-              
-              {hasWholeLife && (
-                <>
-                  <tr className="pdf-stage-header">
-                    <td colSpan={4}>Use Stage (B1-B7)</td>
-                  </tr>
-                  <tr>
-                    <td>B1-B5</td>
-                    <td>Embodied (maintenance, replacement, refurbishment)</td>
-                    <td>{formatNumber(b1b5)}</td>
-                    <td>{calcPercent(b1b5)}%</td>
-                  </tr>
-                  <tr>
-                    <td>B6</td>
-                    <td>Operational energy</td>
-                    <td>{formatNumber(b6)}</td>
-                    <td>{calcPercent(b6)}%</td>
-                  </tr>
-                  <tr>
-                    <td>B7</td>
-                    <td>Operational water</td>
-                    <td>{formatNumber(b7)}</td>
-                    <td>{calcPercent(b7)}%</td>
-                  </tr>
-                  
-                  <tr className="pdf-stage-header">
-                    <td colSpan={4}>End of Life Stage (C1-C4)</td>
-                  </tr>
-                  <tr>
-                    <td>C1-C4</td>
-                    <td>Deconstruction, transport, waste processing, disposal</td>
-                    <td>{formatNumber(c1c4)}</td>
-                    <td>{calcPercent(c1c4)}%</td>
-                  </tr>
-                  
-                  <tr className="pdf-stage-header">
-                    <td colSpan={4}>Module D (Beyond Building Lifecycle)</td>
-                  </tr>
-                  <tr>
-                    <td>D</td>
-                    <td>Recycling, reuse, energy recovery credits</td>
-                    <td style={{ color: moduleD < 0 ? '#16a34a' : undefined }}>{formatNumber(moduleD)}</td>
-                    <td>-</td>
-                  </tr>
-                </>
-              )}
-              
-              <tr className="pdf-total-row">
-                <td colSpan={2}><strong>TOTAL WHOLE LIFE (A-C)</strong></td>
-                <td><strong>{formatNumber(totalWholeLife)}</strong></td>
-                <td><strong>100%</strong></td>
-              </tr>
-              {hasWholeLife && moduleD !== 0 && (
-                <tr className="pdf-total-row" style={{ backgroundColor: '#f0fdf4' }}>
-                  <td colSpan={2}><strong>NET WITH BENEFITS (A-D)</strong></td>
-                  <td><strong>{formatNumber(totalWithBenefits)}</strong></td>
-                  <td>-</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {/* Project Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Project Information</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Project Name:</Text>
+            <Text style={styles.value}>{data.project.name}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Project Type:</Text>
+            <Text style={styles.value}>{data.project.project_type}</Text>
+          </View>
+          {data.project.location && (
+            <View style={styles.row}>
+              <Text style={styles.label}>Location:</Text>
+              <Text style={styles.value}>{data.project.location}</Text>
+            </View>
+          )}
+          <View style={styles.row}>
+            <Text style={styles.label}>Assessment Date:</Text>
+            <Text style={styles.value}>{new Date(data.metadata.generatedAt).toLocaleDateString()}</Text>
+          </View>
+        </View>
 
-        <div className="pdf-section">
-          <h2 className="pdf-section-title">Carbon Intensity</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="pdf-intensity-box">
-              <h3 className="pdf-intensity-title">Upfront Carbon (A1-A5)</h3>
-              <p className="pdf-intensity-value">{formatNumber(totalUpfront)} kgCO₂e</p>
-              {hasWholeLife && wl.intensity_upfront && (
-                <p className="pdf-intensity-unit">{formatNumber(wl.intensity_upfront)} kgCO₂e/m²</p>
-              )}
-            </div>
-            <div className="pdf-intensity-box">
-              <h3 className="pdf-intensity-title">Whole Life (A-C)</h3>
-              <p className="pdf-intensity-value">{formatNumber(totalWholeLife)} kgCO₂e</p>
-              {hasWholeLife && wl.intensity_whole_life && (
-                <p className="pdf-intensity-unit">{formatNumber(wl.intensity_whole_life)} kgCO₂e/m²</p>
-              )}
-            </div>
-            <div className="pdf-intensity-box">
-              <h3 className="pdf-intensity-title">Net with Benefits (A-D)</h3>
-              <p className="pdf-intensity-value">{formatNumber(totalWithBenefits)} kgCO₂e</p>
-              {hasWholeLife && wl.intensity_with_benefits && (
-                <p className="pdf-intensity-unit">{formatNumber(wl.intensity_with_benefits)} kgCO₂e/m²</p>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        {!hasWholeLife && (
-          <div className="pdf-warning-box">
-            <p className="text-sm">
-              ⚠️ This report shows only upfront carbon (A1-A5). Complete the Use Phase (B1-B7), 
-              End of Life (C1-C4), and Module D calculators for a comprehensive whole life assessment.
-            </p>
-          </div>
+        {/* Lifecycle Stage Table */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Lifecycle Stage Emissions (kgCO₂e)</Text>
+          
+          <View style={styles.lifecycleTable}>
+            {/* Table Header */}
+            <View style={styles.tableHeader}>
+              <Text style={styles.tableHeaderCellWide}>Lifecycle Stage</Text>
+              <Text style={styles.tableHeaderCell}>Module</Text>
+              <Text style={styles.tableHeaderCell}>kgCO₂e</Text>
+            </View>
+
+            {/* A1-A5: Product & Construction Stage */}
+            <View style={styles.stageHeader}>
+              <Text style={styles.stageHeaderText}>PRODUCT & CONSTRUCTION STAGE (A1-A5)</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCellWide}>Raw material supply + Manufacturing</Text>
+              <Text style={styles.tableCell}>A1-A3</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.a1a3_product || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRowAlt}>
+              <Text style={styles.tableCellWide}>Transport to site</Text>
+              <Text style={styles.tableCell}>A4</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.a4_transport || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCellWide}>Construction/installation</Text>
+              <Text style={styles.tableCell}>A5</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.a5_construction || 0) * 1000)}</Text>
+            </View>
+
+            {/* B1-B7: Use Stage */}
+            <View style={styles.stageHeader}>
+              <Text style={styles.stageHeaderText}>USE STAGE (B1-B7)</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCellWide}>Use</Text>
+              <Text style={styles.tableCell}>B1</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.b1_use || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRowAlt}>
+              <Text style={styles.tableCellWide}>Maintenance</Text>
+              <Text style={styles.tableCell}>B2</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.b2_maintenance || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCellWide}>Repair</Text>
+              <Text style={styles.tableCell}>B3</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.b3_repair || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRowAlt}>
+              <Text style={styles.tableCellWide}>Replacement</Text>
+              <Text style={styles.tableCell}>B4</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.b4_replacement || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCellWide}>Refurbishment</Text>
+              <Text style={styles.tableCell}>B5</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.b5_refurbishment || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRowAlt}>
+              <Text style={styles.tableCellWide}>Operational energy use</Text>
+              <Text style={styles.tableCell}>B6</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.b6_operational_energy || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCellWide}>Operational water use</Text>
+              <Text style={styles.tableCell}>B7</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.b7_operational_water || 0) * 1000)}</Text>
+            </View>
+
+            {/* C1-C4: End of Life Stage */}
+            <View style={styles.stageHeader}>
+              <Text style={styles.stageHeaderText}>END OF LIFE STAGE (C1-C4)</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCellWide}>Deconstruction/demolition</Text>
+              <Text style={styles.tableCell}>C1</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.c1_deconstruction || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRowAlt}>
+              <Text style={styles.tableCellWide}>Transport to disposal</Text>
+              <Text style={styles.tableCell}>C2</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.c2_transport || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCellWide}>Waste processing</Text>
+              <Text style={styles.tableCell}>C3</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.c3_waste_processing || 0) * 1000)}</Text>
+            </View>
+            <View style={styles.tableRowAlt}>
+              <Text style={styles.tableCellWide}>Disposal</Text>
+              <Text style={styles.tableCell}>C4</Text>
+              <Text style={styles.tableCellBold}>{formatNumber((wl?.c4_disposal || 0) * 1000)}</Text>
+            </View>
+
+            {/* Totals */}
+            <View style={styles.tableRowTotal}>
+              <Text style={{ ...styles.tableCellWide, fontWeight: 'bold' }}>WHOLE LIFE CARBON (A-C)</Text>
+              <Text style={styles.tableCell}></Text>
+              <Text style={{ ...styles.tableCellBold, fontSize: 11, color: PDF_COLORS.alertSuccess.textDark }}>
+                {formatNumber((wl?.total_whole_life || 0) * 1000)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Module D - Reported Separately per EN 15978 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Module D: Benefits and Loads Beyond System Boundary</Text>
+          <View style={styles.moduleDBox}>
+            <Text style={styles.moduleDTitle}>Circular Economy Credits</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+              <View>
+                <Text style={{ fontSize: 9, color: PDF_COLORS.textGray }}>Recycling</Text>
+                <Text style={styles.moduleDValue}>{formatNumber((wl?.d_recycling || 0) * 1000)} kgCO₂e</Text>
+              </View>
+              <View>
+                <Text style={{ fontSize: 9, color: PDF_COLORS.textGray }}>Reuse</Text>
+                <Text style={styles.moduleDValue}>{formatNumber((wl?.d_reuse || 0) * 1000)} kgCO₂e</Text>
+              </View>
+              <View>
+                <Text style={{ fontSize: 9, color: PDF_COLORS.textGray }}>Energy Recovery</Text>
+                <Text style={styles.moduleDValue}>{formatNumber((wl?.d_energy_recovery || 0) * 1000)} kgCO₂e</Text>
+              </View>
+            </View>
+            <Text style={styles.moduleDNote}>
+              Note: Module D is reported separately per EN 15978 requirements. Negative values indicate carbon benefits.
+            </Text>
+          </View>
+          
+          {/* Net Carbon with Benefits */}
+          <View style={styles.emissionCard}>
+            <Text style={styles.emissionTitle}>Net Carbon (A-D) with Benefits</Text>
+            <Text style={styles.emissionValue}>{formatNumber((wl?.total_with_benefits || 0) * 1000)} kgCO₂e</Text>
+            <Text style={{ fontSize: 9, color: PDF_COLORS.textGray, marginTop: 4 }}>
+              ({formatNumber(wl?.total_with_benefits || 0)} tCO₂e)
+            </Text>
+          </View>
+        </View>
+
+        {/* Carbon Intensity Metrics */}
+        {wl?.intensity_whole_life && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Carbon Intensity Metrics</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <View style={styles.intensityBox}>
+                <Text style={styles.intensityTitle}>Upfront Carbon Intensity</Text>
+                <Text style={styles.intensityValue}>{formatNumber((wl?.intensity_upfront || 0) * 1000)}</Text>
+                <Text style={styles.intensityUnit}>kgCO₂e/m² GFA</Text>
+              </View>
+              <View style={styles.intensityBox}>
+                <Text style={styles.intensityTitle}>Whole Life Intensity</Text>
+                <Text style={styles.intensityValue}>{formatNumber((wl?.intensity_whole_life || 0) * 1000)}</Text>
+                <Text style={styles.intensityUnit}>kgCO₂e/m² GFA</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Aggregated Totals Summary */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Summary Totals</Text>
+          <View style={{ border: `1px solid ${PDF_COLORS.borderDark}` }}>
+            <View style={{ flexDirection: 'row', backgroundColor: PDF_COLORS.backgroundDarkGray, borderBottom: `1px solid ${PDF_COLORS.borderDark}`, padding: 8 }}>
+              <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold' }}>Category</Text>
+              <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>tCO₂e</Text>
+              <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>kgCO₂e</Text>
+            </View>
+            <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderGray}`, padding: 8 }}>
+              <Text style={{ flex: 1, fontSize: 10 }}>Upfront Carbon (A1-A5)</Text>
+              <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber(wl?.total_upfront || 0)}</Text>
+              <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber((wl?.total_upfront || 0) * 1000)}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderGray}`, padding: 8, backgroundColor: PDF_COLORS.backgroundLightGray }}>
+              <Text style={{ flex: 1, fontSize: 10 }}>Embodied Carbon (A1-C4)</Text>
+              <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber(wl?.total_embodied || 0)}</Text>
+              <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber((wl?.total_embodied || 0) * 1000)}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderGray}`, padding: 8 }}>
+              <Text style={{ flex: 1, fontSize: 10 }}>Operational Carbon (B6-B7)</Text>
+              <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber(wl?.total_operational || 0)}</Text>
+              <Text style={{ width: 100, fontSize: 10, textAlign: 'right' }}>{formatNumber((wl?.total_operational || 0) * 1000)}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', borderBottom: `1px solid ${PDF_COLORS.borderGray}`, padding: 8, backgroundColor: PDF_COLORS.tableRowHighlight }}>
+              <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold' }}>Whole Life Carbon (A-C)</Text>
+              <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>{formatNumber(wl?.total_whole_life || 0)}</Text>
+              <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right' }}>{formatNumber((wl?.total_whole_life || 0) * 1000)}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', padding: 8, backgroundColor: PDF_COLORS.tableRowInfo }}>
+              <Text style={{ flex: 1, fontSize: 11, fontWeight: 'bold', color: PDF_COLORS.alertInfo.text }}>Net with Benefits (A-D)</Text>
+              <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right', color: PDF_COLORS.alertInfo.text }}>{formatNumber(wl?.total_with_benefits || 0)}</Text>
+              <Text style={{ width: 100, fontSize: 11, fontWeight: 'bold', textAlign: 'right', color: PDF_COLORS.alertInfo.text }}>{formatNumber((wl?.total_with_benefits || 0) * 1000)}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Methodology & Data Sources */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Methodology & Data Sources</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Assessment Standard:</Text>
+            <Text style={styles.value}>EN 15978:2011</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Australian Alignment:</Text>
+            <Text style={styles.value}>NCC 2024, Climate Active Standard</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Emission Factors:</Text>
+            <Text style={styles.value}>Australian EPD data, AusLCI, ICE Database</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Data Quality:</Text>
+            <Text style={styles.value}>{data.metadata.dataQuality}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Biogenic Carbon:</Text>
+            <Text style={styles.value}>Reported separately where applicable</Text>
+          </View>
+        </View>
+
+        {!hasWholeLifeData && (
+          <View style={{ backgroundColor: PDF_COLORS.warningBackgroundAlt, padding: 15, borderRadius: 4, marginBottom: 20, border: `1px solid ${PDF_COLORS.warningAlt}` }}>
+            <Text style={{ fontSize: 11, color: PDF_COLORS.alertWarning.text, fontWeight: 'bold', marginBottom: 5 }}>⚠️ Incomplete Lifecycle Data</Text>
+            <Text style={{ fontSize: 10, color: PDF_COLORS.textGray }}>
+              This report shows limited data. For a complete EN 15978 assessment, please complete the Use Phase (B1-B7), 
+              End of Life (C1-C4), and Module D calculators in the Carbon Calculator.
+            </Text>
+          </View>
         )}
       </>
     );
