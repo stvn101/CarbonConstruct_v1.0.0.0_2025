@@ -202,6 +202,20 @@ const MaterialVerificationReport = () => {
     }
   };
 
+  // HTML escaping helper to prevent XSS in PDF template strings
+  const escapeHtml = (str: string | number): string => {
+    return String(str).replace(/[&<>"']/g, (m) => {
+      const escapeMap: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      };
+      return escapeMap[m] || m;
+    });
+  };
+
   const generatePDF = async () => {
     setIsGenerating(true);
     try {
@@ -260,7 +274,7 @@ const MaterialVerificationReport = () => {
 
   const renderPdfTable = (data: VerificationResult[], title: string) => `
     <div style="margin-bottom: 20px;">
-      <h3 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${title}</h3>
+      <h3 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${escapeHtml(title)}</h3>
       <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
         <thead>
           <tr style="background-color: #f3f4f6; border-bottom: 1px solid #d1d5db;">
@@ -276,13 +290,13 @@ const MaterialVerificationReport = () => {
         <tbody>
           ${data.map(row => `
             <tr style="border-bottom: 1px solid #e5e7eb;">
-              <td style="padding: 5px;">${row.material}</td>
-              <td style="padding: 5px;">${row.nabersDefault}</td>
-              <td style="padding: 5px;">${row.nabersRange}</td>
-              <td style="padding: 5px;">${row.databaseValue}</td>
-              <td style="padding: 5px;">${row.unit}</td>
+              <td style="padding: 5px;">${escapeHtml(row.material)}</td>
+              <td style="padding: 5px;">${escapeHtml(row.nabersDefault)}</td>
+              <td style="padding: 5px;">${escapeHtml(row.nabersRange)}</td>
+              <td style="padding: 5px;">${escapeHtml(row.databaseValue)}</td>
+              <td style="padding: 5px;">${escapeHtml(row.unit)}</td>
               <td style="padding: 5px; ${getStatusClass(row.status)}">${getStatusText(row.status)}</td>
-              <td style="padding: 5px;">${row.notes}</td>
+              <td style="padding: 5px;">${escapeHtml(row.notes)}</td>
             </tr>
           `).join('')}
         </tbody>
