@@ -194,28 +194,6 @@ const MaterialVerificationReport = () => {
     }
   };
 
-  const getStatusClass = (status: 'pass' | 'warn' | 'fail') => {
-    switch (status) {
-      case 'pass': return 'color: #16a34a;';
-      case 'warn': return 'color: #ca8a04;';
-      case 'fail': return 'color: #dc2626;';
-    }
-  };
-
-  // HTML escaping helper to prevent XSS in PDF template strings
-  const escapeHtml = (str: string | number): string => {
-    return String(str).replace(/[&<>"']/g, (m) => {
-      const escapeMap: Record<string, string> = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      };
-      return escapeMap[m] || m;
-    });
-  };
-
   const generatePDF = async () => {
     setIsGenerating(true);
     try {
@@ -272,37 +250,51 @@ const MaterialVerificationReport = () => {
     </Card>
   );
 
-  const renderPdfTable = (data: VerificationResult[], title: string) => `
-    <div style="margin-bottom: 20px;">
-      <h3 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${escapeHtml(title)}</h3>
-      <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+  const PdfVerificationTable = ({ data, title }: { data: VerificationResult[]; title: string }) => (
+    <div style={{ marginBottom: '20px' }}>
+      <h3 style={{
+        fontSize: '14px',
+        fontWeight: 'bold',
+        color: '#2d5a27',
+        marginBottom: '10px',
+        borderBottom: '1px solid #ccc',
+        paddingBottom: '5px'
+      }}>
+        {title}
+      </h3>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>
         <thead>
-          <tr style="background-color: #f3f4f6; border-bottom: 1px solid #d1d5db;">
-            <th style="padding: 6px; text-align: left; width: 18%;">Material</th>
-            <th style="padding: 6px; text-align: left; width: 12%;">NABERS Default</th>
-            <th style="padding: 6px; text-align: left; width: 12%;">NABERS Range</th>
-            <th style="padding: 6px; text-align: left; width: 12%;">DB Value</th>
-            <th style="padding: 6px; text-align: left; width: 10%;">Unit</th>
-            <th style="padding: 6px; text-align: left; width: 8%;">Status</th>
-            <th style="padding: 6px; text-align: left; width: 28%;">Notes</th>
+          <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '1px solid #d1d5db' }}>
+            <th style={{ padding: '6px', textAlign: 'left', width: '18%' }}>Material</th>
+            <th style={{ padding: '6px', textAlign: 'left', width: '12%' }}>NABERS Default</th>
+            <th style={{ padding: '6px', textAlign: 'left', width: '12%' }}>NABERS Range</th>
+            <th style={{ padding: '6px', textAlign: 'left', width: '12%' }}>DB Value</th>
+            <th style={{ padding: '6px', textAlign: 'left', width: '10%' }}>Unit</th>
+            <th style={{ padding: '6px', textAlign: 'left', width: '8%' }}>Status</th>
+            <th style={{ padding: '6px', textAlign: 'left', width: '28%' }}>Notes</th>
           </tr>
         </thead>
         <tbody>
-          ${data.map(row => `
-            <tr style="border-bottom: 1px solid #e5e7eb;">
-              <td style="padding: 5px;">${escapeHtml(row.material)}</td>
-              <td style="padding: 5px;">${escapeHtml(row.nabersDefault)}</td>
-              <td style="padding: 5px;">${escapeHtml(row.nabersRange)}</td>
-              <td style="padding: 5px;">${escapeHtml(row.databaseValue)}</td>
-              <td style="padding: 5px;">${escapeHtml(row.unit)}</td>
-              <td style="padding: 5px; ${getStatusClass(row.status)}">${getStatusText(row.status)}</td>
-              <td style="padding: 5px;">${escapeHtml(row.notes)}</td>
+          {data.map((row, idx) => (
+            <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <td style={{ padding: '5px' }}>{row.material}</td>
+              <td style={{ padding: '5px' }}>{row.nabersDefault}</td>
+              <td style={{ padding: '5px' }}>{row.nabersRange}</td>
+              <td style={{ padding: '5px' }}>{row.databaseValue}</td>
+              <td style={{ padding: '5px' }}>{row.unit}</td>
+              <td style={{
+                padding: '5px',
+                color: row.status === 'pass' ? '#16a34a' : row.status === 'warn' ? '#ca8a04' : '#dc2626'
+              }}>
+                {getStatusText(row.status)}
+              </td>
+              <td style={{ padding: '5px' }}>{row.notes}</td>
             </tr>
-          `).join('')}
+          ))}
         </tbody>
       </table>
     </div>
-  `;
+  );
 
   return (
     <div className="space-y-6 p-6 max-w-6xl mx-auto">
@@ -392,10 +384,10 @@ const MaterialVerificationReport = () => {
           </div>
 
           {/* Material Tables */}
-          <div dangerouslySetInnerHTML={{ __html: renderPdfTable(concreteVerification, "Concrete Materials - NABERS Cross-Reference") }} />
-          <div dangerouslySetInnerHTML={{ __html: renderPdfTable(steelVerification, "Steel & Metals - NABERS Cross-Reference") }} />
-          <div dangerouslySetInnerHTML={{ __html: renderPdfTable(timberVerification, "Timber & Engineered Wood - NABERS Cross-Reference") }} />
-          <div dangerouslySetInnerHTML={{ __html: renderPdfTable(otherMaterialsVerification, "Other Materials - NABERS Cross-Reference") }} />
+          <PdfVerificationTable data={concreteVerification} title="Concrete Materials - NABERS Cross-Reference" />
+          <PdfVerificationTable data={steelVerification} title="Steel & Metals - NABERS Cross-Reference" />
+          <PdfVerificationTable data={timberVerification} title="Timber & Engineered Wood - NABERS Cross-Reference" />
+          <PdfVerificationTable data={otherMaterialsVerification} title="Other Materials - NABERS Cross-Reference" />
 
           {/* AI Certification */}
           <div style={{ marginTop: '20px', padding: '15px', border: '2px solid #22c55e', borderRadius: '4px', textAlign: 'center' }}>
