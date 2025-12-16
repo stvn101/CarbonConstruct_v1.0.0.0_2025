@@ -20,6 +20,9 @@ import { Factory, Zap, Truck, TrendingDown, Calculator, FileBarChart, RefreshCw,
 import { CalculationHistory } from "@/components/CalculationHistory";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { FloatingParticles } from "@/components/FloatingParticles";
+import { ParallaxSection } from "@/components/ParallaxSection";
+import { AnimatedStatCard } from "@/components/AnimatedCounter";
 const Index = () => {
   const {
     user,
@@ -37,7 +40,8 @@ const Index = () => {
   const compliance = useComplianceCheck(totals);
   const { tier_name, subscribed, is_trialing } = useSubscriptionStatus();
   if (!user) {
-    return <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    return <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background noise-texture relative">
+        <FloatingParticles count={25} />
         <SEOHead canonicalPath="/" />
         <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="text-center space-y-6 md:space-y-8">
@@ -64,7 +68,7 @@ const Index = () => {
                   loading="eager"
                 />
               </picture>
-                <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-gradient-animated">
                   CarbonConstruct
                 </h1>
               </div>
@@ -109,22 +113,26 @@ const Index = () => {
             </div>
 
             {/* Feature Teaser Video Section */}
-            <FeatureTeaser />
+            <ParallaxSection speed={0.3}>
+              <FeatureTeaser />
+            </ParallaxSection>
 
             {/* Feature Carousel - Glass Cards */}
-            <section className="carbon-surface py-12 -mx-4 px-4 rounded-xl">
+            <ParallaxSection speed={0.2} className="carbon-surface py-12 -mx-4 px-4 rounded-xl">
               <FeatureCarousel />
-            </section>
+            </ParallaxSection>
 
             {/* Quick Carbon Estimator */}
-            <div className="max-w-3xl mx-auto">
-              <QuickCarbonCalculator />
-            </div>
+            <ParallaxSection speed={0.15}>
+              <div className="max-w-3xl mx-auto">
+                <QuickCarbonCalculator />
+              </div>
+            </ParallaxSection>
 
             {/* CTA Section - Freemium Emphasis */}
             <div className="space-y-4 md:space-y-5 animate-fade-in [animation-delay:0.4s]">
               <div className="flex flex-col items-center gap-2">
-                <Badge className="bg-emerald-600/20 text-emerald-700 border-emerald-600/40 hover:bg-emerald-600/30 px-4 py-1.5 text-sm font-bold">
+                <Badge className="bg-emerald-600/20 text-emerald-700 border-emerald-600/40 hover:bg-emerald-600/30 px-4 py-1.5 text-sm font-bold glass">
                   <Leaf className="h-4 w-4 mr-1.5" />
                   FOREVER FREE
                 </Badge>
@@ -136,11 +144,11 @@ const Index = () => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
-                <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-semibold">
+                <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-semibold glow-ring">
                   <CheckCircle className="mr-2 h-5 w-5" />
                   Start Free Forever
                 </Button>
-                <Button onClick={() => navigate("/auth")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto border-primary/50">
+                <Button onClick={() => navigate("/auth")} variant="glassOutline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
                   Start 14-Day Pro Trial
                 </Button>
                 <Button 
@@ -164,7 +172,7 @@ const Index = () => {
                 <h2 className="text-2xl md:text-3xl font-bold mb-2">Why CarbonConstruct?</h2>
                 <p className="text-muted-foreground">See how we compare to traditional methods and generic tools</p>
               </div>
-              <Card className="border-primary/20 overflow-hidden">
+              <Card variant="glass" className="border-primary/20 overflow-hidden glass-glow-hover">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -307,12 +315,12 @@ const Index = () => {
 
             {/* Founder Section - Expanded */}
             <div className="max-w-5xl mx-auto animate-fade-in [animation-delay:0.6s]">
-              <Card className="border-accent/20 bg-gradient-to-br from-card via-card to-accent/5 overflow-hidden">
+              <Card variant="glass" className="border-accent/20 bg-gradient-to-br from-card via-card to-accent/5 overflow-hidden glass-glow-hover">
                 <CardContent className="p-6 md:p-8 lg:p-10">
                   <div className="flex flex-col lg:flex-row gap-8">
                     {/* Left Column - Photo & Credentials */}
                     <div className="flex flex-col items-center lg:items-start gap-4 lg:w-1/3">
-                      <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg ring-4 ring-primary/20">
+                      <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg ring-4 ring-primary/20 glow-ring">
                         <User className="h-16 w-16 md:h-20 md:w-20 text-primary-foreground" />
                       </div>
                       <div className="text-center lg:text-left">
@@ -601,63 +609,45 @@ const Index = () => {
 
       {/* Emissions Overview - Animated Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-primary/20 col-span-2 lg:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Emissions</CardTitle>
-            <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-primary">
-              {emissionsLoading ? "..." : totals.total.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">tCO₂e per year</p>
-          </CardContent>
-        </Card>
-
-      <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope1/20 [animation-delay:0.1s]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Scope 1</CardTitle>
-            <Factory className="h-4 w-4 md:h-5 md:w-5 text-scope1" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-scope1">
-              {emissionsLoading ? "..." : totals.scope1.toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">
-              {emissionsLoading ? "..." : totals.total > 0 ? (totals.scope1 / totals.total * 100).toFixed(1) : "0"}% of total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope2/20 [animation-delay:0.2s]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Scope 2</CardTitle>
-            <Zap className="h-4 w-4 md:h-5 md:w-5 text-scope2" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-scope2">
-              {emissionsLoading ? "..." : totals.scope2.toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">
-              {emissionsLoading ? "..." : totals.total > 0 ? (totals.scope2 / totals.total * 100).toFixed(1) : "0"}% of total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="animate-fade-in hover-scale transition-all duration-300 hover:shadow-glow border-scope3/20 [animation-delay:0.3s]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Scope 3</CardTitle>
-            <Truck className="h-4 w-4 md:h-5 md:w-5 text-scope3" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-scope3">
-              {emissionsLoading ? "..." : totals.scope3.toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">
-              {emissionsLoading ? "..." : totals.total > 0 ? (totals.scope3 / totals.total * 100).toFixed(1) : "0"}% of total
-            </p>
-          </CardContent>
-        </Card>
+        {emissionsLoading ? (
+          <>
+            <div className="glass animate-pulse h-28 rounded-xl col-span-2 lg:col-span-1" />
+            <div className="glass animate-pulse h-28 rounded-xl" />
+            <div className="glass animate-pulse h-28 rounded-xl" />
+            <div className="glass animate-pulse h-28 rounded-xl" />
+          </>
+        ) : (
+          <>
+            <AnimatedStatCard
+              value={totals.total}
+              label="tCO₂e per year"
+              decimals={1}
+              icon={<TrendingDown className="h-5 w-5 text-primary" />}
+              className="col-span-2 lg:col-span-1 border-primary/20"
+            />
+            <AnimatedStatCard
+              value={totals.scope1}
+              label={`${totals.total > 0 ? (totals.scope1 / totals.total * 100).toFixed(1) : "0"}% of total`}
+              decimals={1}
+              icon={<Factory className="h-5 w-5 text-scope1" />}
+              className="border-scope1/20"
+            />
+            <AnimatedStatCard
+              value={totals.scope2}
+              label={`${totals.total > 0 ? (totals.scope2 / totals.total * 100).toFixed(1) : "0"}% of total`}
+              decimals={1}
+              icon={<Zap className="h-5 w-5 text-scope2" />}
+              className="border-scope2/20"
+            />
+            <AnimatedStatCard
+              value={totals.scope3}
+              label={`${totals.total > 0 ? (totals.scope3 / totals.total * 100).toFixed(1) : "0"}% of total`}
+              decimals={1}
+              icon={<Truck className="h-5 w-5 text-scope3" />}
+              className="border-scope3/20"
+            />
+          </>
+        )}
       </div>
 
       {/* Unified Calculator - Prominent CTA */}

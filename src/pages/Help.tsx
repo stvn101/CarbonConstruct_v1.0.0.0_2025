@@ -20,7 +20,7 @@ const Help = () => {
         </div>
 
         <div className="grid gap-6">
-          <Card>
+          <Card variant="glass" className="glass-glow-hover">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
@@ -44,7 +44,7 @@ const Help = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card variant="glass" className="glass-glow-hover">
             <CardHeader>
               <CardTitle>Frequently Asked Questions</CardTitle>
             </CardHeader>
@@ -95,7 +95,7 @@ const Help = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card variant="glass" className="glass-glow-hover">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
