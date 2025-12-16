@@ -17,7 +17,7 @@ import {
   Upload, FileText, CheckCircle, XCircle, AlertTriangle, 
   RefreshCw, Trash2, Edit2, Save, FolderOpen, FileSpreadsheet, Download, Eye, ShieldCheck
 } from "lucide-react";
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 // NABERS EPD List v2025.1 - All 31 columns exactly as specified
 interface ExtractedProduct {
@@ -187,7 +187,7 @@ export function BulkEPDUploader() {
   };
 
   // Download XLSX template with EXACT NABERS EPD List v2025.1 headers (all 31 columns)
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
     // Exact headers from NABERS EPD List v2025.1
     const headers = [
       'Material type',
@@ -258,47 +258,64 @@ export function BulkEPDUploader() {
       'Version 1.0'
     ];
 
-    const worksheet = XLSX.utils.aoa_to_sheet([headers, exampleRow]);
-    
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('EPD Materials');
+
+    // Add headers
+    worksheet.addRow(headers);
+    // Add example row
+    worksheet.addRow(exampleRow);
+
     // Set column widths for all 31 columns
-    worksheet['!cols'] = [
-      { wch: 20 },  // Material type
-      { wch: 22 },  // Material classification
-      { wch: 35 },  // Material category for matching emission factor
-      { wch: 60 },  // Material long name
-      { wch: 14 },  // Data valid (start)
-      { wch: 14 },  // Data valid (end)
-      { wch: 20 },  // Location
-      { wch: 16 },  // Registration number
-      { wch: 12 },  // Version
-      { wch: 18 },  // Program
-      { wch: 50 },  // Reference link - Website
-      { wch: 12 },  // Declared unit
-      { wch: 15 },  // Density (kg/m3)
-      { wch: 18 },  // Area density (kg/m2)
-      { wch: 16 },  // Mass per m (kg/m)
-      { wch: 18 },  // Mass per unit (kg/unit)
-      { wch: 25 },  // GWP-total (kg CO2e/quanity)
-      { wch: 25 },  // GWP-fossil (kg CO2e/quanity)
-      { wch: 28 },  // GWP-biogenic (kg CO2e/quanity)
-      { wch: 25 },  // GWP-luluc (kg CO2e/quanity)
-      { wch: 26 },  // GWP-stored (kg CO2e/quantity)
-      { wch: 35 },  // Upfront carbon emissions (kg CO2e/quantity)
-      { wch: 35 },  // Upfront carbon storage (kg CO2e/quantity)
-      { wch: 22 },  // GWP-total (kg CO2e/kg)
-      { wch: 22 },  // GWP-fossil (kg CO2e/kg)
-      { wch: 25 },  // GWP-biogenic (kg CO2e/kg)
-      { wch: 22 },  // GWP-luluc (kg CO2e/kg)
-      { wch: 22 },  // GWP-stored (kg CO2e/kg)
-      { wch: 32 },  // Upfront carbon emissions (kg CO2e/kg)
-      { wch: 32 },  // Upfront carbon storage (kg CO2e/kg)
-      { wch: 22 },  // Record added to database
+    const columnWidths = [
+      20,  // Material type
+      22,  // Material classification
+      35,  // Material category for matching emission factor
+      60,  // Material long name
+      14,  // Data valid (start)
+      14,  // Data valid (end)
+      20,  // Location
+      16,  // Registration number
+      12,  // Version
+      18,  // Program
+      50,  // Reference link - Website
+      12,  // Declared unit
+      15,  // Density (kg/m3)
+      18,  // Area density (kg/m2)
+      16,  // Mass per m (kg/m)
+      18,  // Mass per unit (kg/unit)
+      25,  // GWP-total (kg CO2e/quanity)
+      25,  // GWP-fossil (kg CO2e/quanity)
+      28,  // GWP-biogenic (kg CO2e/quanity)
+      25,  // GWP-luluc (kg CO2e/quanity)
+      26,  // GWP-stored (kg CO2e/quantity)
+      35,  // Upfront carbon emissions (kg CO2e/quantity)
+      35,  // Upfront carbon storage (kg CO2e/quantity)
+      22,  // GWP-total (kg CO2e/kg)
+      22,  // GWP-fossil (kg CO2e/kg)
+      25,  // GWP-biogenic (kg CO2e/kg)
+      22,  // GWP-luluc (kg CO2e/kg)
+      22,  // GWP-stored (kg CO2e/kg)
+      32,  // Upfront carbon emissions (kg CO2e/kg)
+      32,  // Upfront carbon storage (kg CO2e/kg)
+      22,  // Record added to database
     ];
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'EPD Materials');
-    
-    XLSX.writeFile(workbook, 'NABERS_EPD_Import_Template_v2025.xlsx');
+    worksheet.columns = columnWidths.map((width, index) => ({
+      key: `col${index + 1}`,
+      width
+    }));
+
+    // Generate and download file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'NABERS_EPD_Import_Template_v2025.xlsx';
+    link.click();
+    window.URL.revokeObjectURL(url);
+
     toast.success('NABERS EPD template downloaded! Fill it out and upload.');
   };
 
@@ -324,18 +341,40 @@ export function BulkEPDUploader() {
             dataRows = lines.slice(1).map(line => parseCSVLine(line));
           } else {
             const data = new Uint8Array(e.target?.result as ArrayBuffer);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json<string[]>(firstSheet, { header: 1 });
-            
-            if (jsonData.length < 2) {
-              reject(new Error('Excel file must have a header row and at least one data row'));
-              return;
-            }
+            const workbook = new ExcelJS.Workbook();
 
-            headers = (jsonData[0] || []).map(h => String(h || '').toLowerCase().trim());
-            dataRows = jsonData.slice(1).map(row => (row || []).map(cell => String(cell ?? '')));
+            workbook.xlsx.load(data).then(() => {
+              const firstSheet = workbook.worksheets[0];
+              if (!firstSheet) {
+                reject(new Error('Excel file has no worksheets'));
+                return;
+              }
+
+              const jsonData: string[][] = [];
+              firstSheet.eachRow((row, rowNumber) => {
+                const rowData: string[] = [];
+                row.eachCell({ includeEmpty: true }, (cell) => {
+                  rowData.push(String(cell.value ?? ''));
+                });
+                jsonData.push(rowData);
+              });
+
+              if (jsonData.length < 2) {
+                reject(new Error('Excel file must have a header row and at least one data row'));
+                return;
+              }
+
+              headers = (jsonData[0] || []).map(h => String(h || '').toLowerCase().trim());
+              dataRows = jsonData.slice(1);
+
+              processData();
+            }).catch(reject);
+            return; // Exit early since we'll process async
           }
+
+          processData();
+
+          function processData() {
           
           // Build column mapping using NABERS_COLUMN_DEFINITIONS
           const columnMapping: ColumnMappingResult[] = [];
@@ -416,13 +455,14 @@ export function BulkEPDUploader() {
             });
           }
 
-          const validProducts = products.filter(p => 
-            p.material_long_name !== 'Unknown Material' || 
-            p.gwp_total_quantity !== null || 
+          const validProducts = products.filter(p =>
+            p.material_long_name !== 'Unknown Material' ||
+            p.gwp_total_quantity !== null ||
             p.gwp_total_kg !== null
           );
 
           resolve({ products: validProducts, columnMapping });
+          }
         } catch (error) {
           reject(error);
         }
