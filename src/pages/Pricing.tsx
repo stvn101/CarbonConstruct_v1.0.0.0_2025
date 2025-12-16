@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, Zap, Building2, Crown, ArrowRight, Leaf, ExternalLink, Sparkles } from 'lucide-react';
+import { Check, Zap, Building2, Crown, ArrowRight, Leaf, ExternalLink, Sparkles, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { CheckoutButton } from '@/components/CheckoutButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { SEOHead } from '@/components/SEOHead';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // TypeScript declaration for Stripe pricing table custom element
 declare global {
@@ -110,6 +111,16 @@ const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const [discountCode, setDiscountCode] = useState<string | null>(null);
+  const [showDiscountBanner, setShowDiscountBanner] = useState(true);
+
+  // Check for discount code in sessionStorage
+  useEffect(() => {
+    const storedCode = sessionStorage.getItem('discount_code');
+    if (storedCode) {
+      setDiscountCode(storedCode);
+    }
+  }, []);
 
   // Load Stripe pricing table script safely
   useEffect(() => {
@@ -144,6 +155,31 @@ const Pricing = () => {
         canonicalPath="/pricing"
       />
       
+      {/* Discount Banner */}
+      {discountCode && showDiscountBanner && (
+        <Alert className="mb-8 border-emerald-500/50 bg-emerald-500/10">
+          <Tag className="h-4 w-4 text-emerald-600" />
+          <AlertDescription className="flex items-center justify-between">
+            <span className="text-emerald-700 dark:text-emerald-400">
+              <strong>{discountCode}</strong> discount will be applied at checkout for 20% off Pro Yearly!
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                setShowDiscountBanner(false);
+                sessionStorage.removeItem('discount_code');
+                setDiscountCode(null);
+              }}
+              className="h-6 w-6 p-0 hover:bg-emerald-500/20"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Dismiss discount</span>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-4">
