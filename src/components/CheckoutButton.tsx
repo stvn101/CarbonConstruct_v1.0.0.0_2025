@@ -11,6 +11,7 @@ interface CheckoutButtonProps {
   variant?: 'default' | 'outline';
   className?: string;
   children?: React.ReactNode;
+  discountCode?: string;
 }
 
 export const CheckoutButton = ({ 
@@ -18,7 +19,8 @@ export const CheckoutButton = ({
   tierName, 
   variant = 'default',
   className,
-  children 
+  children,
+  discountCode
 }: CheckoutButtonProps) => {
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +29,7 @@ export const CheckoutButton = ({
     
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { price_id: priceId, tier_name: tierName },
+        body: { price_id: priceId, tier_name: tierName, discount_code: discountCode },
       });
 
       if (error) {

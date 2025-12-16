@@ -342,6 +342,7 @@ const Pricing = () => {
                     tierName={tier.name}
                     variant={isPopular ? 'default' : isForeverFree ? 'outline' : 'outline'}
                     className={`w-full ${isForeverFree ? 'border-emerald-500 text-emerald-600 hover:bg-emerald-500/10' : ''}`}
+                    discountCode={sessionStorage.getItem('discount_code') || undefined}
                   >
                     {tier.ctaText}
                     <ArrowRight className="ml-2 h-4 w-4" />
