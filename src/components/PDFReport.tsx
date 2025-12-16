@@ -585,15 +585,18 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
     <div 
       id={contentId}
       className="pdf-report-content"
+      data-theme="light"
       style={{ 
         position: 'absolute',
         left: '-9999px',
         top: 0,
         width: '210mm',
-        backgroundColor: 'white',
+        background: '#ffffff',
+        backgroundColor: '#ffffff',
         padding: '40px',
         fontFamily: 'Helvetica, Arial, sans-serif',
-        color: '#333'
+        color: '#333333',
+        colorScheme: 'light'
       }}
     >
       {/* Watermark */}
@@ -695,7 +698,9 @@ export const PDFReport: React.FC<PDFReportProps> = ({
           html2canvas: { 
             scale: 2,
             useCORS: true,
-            letterRendering: true
+            letterRendering: true,
+            backgroundColor: '#ffffff',
+            logging: false
           },
           jsPDF: { 
             unit: 'mm', 

@@ -1,130 +1,121 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Loader2, CheckCircle2, FileText, Sparkles, Database } from "lucide-react";
-
-type ProcessingStage = "uploading" | "parsing" | "matching" | "complete";
+import { memo, useMemo } from 'react';
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 interface BOQProcessingStatusProps {
-  stage: ProcessingStage;
   progress: number;
-  fileName?: string;
-  materialsFound?: number;
-  materialsMatched?: number;
+  status: string;
+  error?: string | null;
 }
 
-export function BOQProcessingStatus({
-  stage,
+export const BOQProcessingStatus = memo(({
   progress,
-  fileName,
-  materialsFound = 0,
-  materialsMatched = 0,
-}: BOQProcessingStatusProps) {
-  const stages = [
-    {
-      id: "uploading",
-      label: "Uploading File",
-      icon: FileText,
-      description: "Transferring your BOQ file to secure storage",
-    },
-    {
-      id: "parsing",
-      label: "Parsing BOQ",
-      icon: Sparkles,
-      description: "Extracting materials using AI",
-    },
-    {
-      id: "matching",
-      label: "Matching EPDs",
-      icon: Database,
-      description: "Finding environmental product declarations",
-    },
-    {
-      id: "complete",
-      label: "Complete",
-      icon: CheckCircle2,
-      description: "Ready for review",
-    },
-  ];
+  status,
+  error
+}: BOQProcessingStatusProps) => {
+  const isComplete = progress === 100 && !error;
+  const hasError = !!error;
 
-  const currentStageIndex = stages.findIndex((s) => s.id === stage);
+  const processingSteps = useMemo(() => [
+    { step: 'Uploading file', threshold: 30 },
+    { step: 'Parsing document structure', threshold: 60 },
+    { step: 'Extracting materials data', threshold: 80 },
+    { step: 'Matching to EPD database', threshold: 100 },
+  ], []);
 
   return (
-    <Card>
+    <Card className={cn(
+      'border-2 transition-colors',
+      hasError && 'border-destructive',
+      isComplete && 'border-green-500'
+    )}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          Processing BOQ File
-        </CardTitle>
-        <CardDescription>
-          {fileName && `Processing: ${fileName}`}
-        </CardDescription>
+        <div className="flex items-center gap-3">
+          {hasError ? (
+            <XCircle className="h-8 w-8 text-destructive animate-in fade-in" aria-hidden="true" />
+          ) : isComplete ? (
+            <CheckCircle2 className="h-8 w-8 text-green-500 animate-in fade-in" aria-hidden="true" />
+          ) : (
+            <Loader2 className="h-8 w-8 text-primary animate-spin" aria-hidden="true" />
+          )}
+          <div>
+            <CardTitle>
+              {hasError ? 'Processing Failed' : isComplete ? 'Processing Complete' : 'Processing BOQ File'}
+            </CardTitle>
+            <CardDescription>
+              {hasError ? error : status}
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Overall Progress</span>
-            <span className="font-medium">{Math.round(progress)}%</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
 
-        <div className="space-y-4">
-          {stages.map((stageItem, index) => {
-            const Icon = stageItem.icon;
-            const isActive = index === currentStageIndex;
-            const isComplete = index < currentStageIndex;
-            const isFuture = index > currentStageIndex;
-
-            return (
-              <div
-                key={stageItem.id}
-                className={`flex items-start gap-3 ${isFuture ? "opacity-50" : ""}`}
-              >
-                <div
-                  className={`rounded-full p-2 ${
-                    isComplete
-                      ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                      : isActive
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  <Icon
-                    className={`h-4 w-4 ${isActive ? "animate-pulse" : ""}`}
-                  />
-                </div>
-                <div className="flex-1 pt-1">
-                  <p className="font-medium text-sm">{stageItem.label}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {stageItem.description}
-                  </p>
-                </div>
-                {isComplete && (
-                  <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-1" />
-                )}
-                {isActive && (
-                  <Loader2 className="h-5 w-5 text-primary animate-spin mt-1" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {(materialsFound > 0 || materialsMatched > 0) && (
-          <div className="pt-4 border-t space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Materials Found</span>
-              <span className="font-medium">{materialsFound}</span>
+      {!hasError && (
+        <CardContent>
+          <div className="space-y-3">
+            <Progress
+              value={progress}
+              className="h-3"
+              aria-label={`Processing progress: ${progress}%`}
+            />
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>{status}</span>
+              <span className="font-medium">{progress}%</span>
             </div>
-            {materialsMatched > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">EPDs Matched</span>
-                <span className="font-medium">{materialsMatched}</span>
-              </div>
-            )}
+
+            {/* Processing Steps */}
+            <div className="mt-6 space-y-2" role="list" aria-label="Processing steps">
+              {processingSteps.map((item, index) => {
+                const previousThreshold = index > 0 ? processingSteps[index - 1].threshold : 0;
+                return (
+                  <ProcessingStep
+                    key={item.step}
+                    step={item.step}
+                    completed={progress >= item.threshold}
+                    active={progress >= previousThreshold && progress < item.threshold}
+                  />
+                );
+              })}
+            </div>
           </div>
-        )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
+});
+
+BOQProcessingStatus.displayName = 'BOQProcessingStatus';
+
+interface ProcessingStepProps {
+  step: string;
+  completed: boolean;
+  active: boolean;
 }
+
+const ProcessingStep = memo(({ step, completed, active }: ProcessingStepProps) => (
+  <div className="flex items-center gap-3" role="listitem">
+    <div
+      className={cn(
+        'h-2 w-2 rounded-full transition-colors',
+        completed && 'bg-green-500',
+        active && !completed && 'bg-primary animate-pulse',
+        !active && !completed && 'bg-muted-foreground/30'
+      )}
+      aria-hidden="true"
+    />
+    <span className={cn(
+      'text-sm transition-colors',
+      completed && 'text-green-600 font-medium',
+      active && !completed && 'text-foreground font-medium',
+      !active && !completed && 'text-muted-foreground'
+    )}>
+      {step}
+    </span>
+    {completed && (
+      <CheckCircle2 className="h-4 w-4 text-green-500 ml-auto" aria-label="Completed" />
+    )}
+  </div>
+));
+
+ProcessingStep.displayName = 'ProcessingStep';

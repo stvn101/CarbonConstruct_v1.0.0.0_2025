@@ -265,13 +265,13 @@ const Pricing = () => {
             <Card 
               key={tier.name}
               variant="glass"
-              className={`relative flex flex-col h-full ${
+              className={`relative flex flex-col h-full glass-glow-hover transition-all duration-300 ${
                 isPopular 
                   ? 'border-primary border-2 shadow-xl scale-[1.02] z-10' 
                   : isForeverFree 
                     ? 'border-emerald-500/50 border-2' 
                     : 'border-border/30'
-              }`}
+              } hover:-translate-y-1`}
             >
               {/* Badges */}
               {isPopular && (
@@ -410,15 +410,15 @@ const Pricing = () => {
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
-            <Card variant="glass" className="text-center p-4 border-border/30">
+            <Card variant="glass" className="text-center p-4 border-border/30 glass-glow-hover">
               <div className="text-3xl font-bold text-primary mb-2">4,000+</div>
               <div className="text-sm text-muted-foreground">EPD materials in our database with verified emission factors</div>
             </Card>
-            <Card variant="glass" className="text-center p-4 border-border/30">
+            <Card variant="glass" className="text-center p-4 border-border/30 glass-glow-hover">
               <div className="text-3xl font-bold text-primary mb-2">4</div>
               <div className="text-sm text-muted-foreground">Australian compliance frameworks supported (NCC, Green Star, NABERS, IS Rating)</div>
             </Card>
-            <Card variant="glass" className="text-center p-4 border-border/30">
+            <Card variant="glass" className="text-center p-4 border-border/30 glass-glow-hover">
               <div className="text-3xl font-bold text-primary mb-2">EN 15978</div>
               <div className="text-sm text-muted-foreground">Full lifecycle assessment methodology (A1-D stages)</div>
             </Card>
@@ -459,7 +459,7 @@ const Pricing = () => {
           <CardTitle className="text-3xl text-center">Frequently Asked Questions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Card variant="glass" className="border-border/30">
+          <Card variant="glass" className="border-border/30 glass-glow-hover">
             <CardHeader className="pb-2">
               <h3 className="font-semibold">Can I switch plans at any time?</h3>
             </CardHeader>
@@ -469,7 +469,7 @@ const Pricing = () => {
               </p>
             </CardContent>
           </Card>
-          <Card variant="glass" className="border-border/30">
+          <Card variant="glass" className="border-border/30 glass-glow-hover">
             <CardHeader className="pb-2">
               <h3 className="font-semibold">What compliance standards do you support?</h3>
             </CardHeader>
@@ -479,7 +479,7 @@ const Pricing = () => {
               </p>
             </CardContent>
           </Card>
-          <Card variant="glass" className="border-border/30">
+          <Card variant="glass" className="border-border/30 glass-glow-hover">
             <CardHeader className="pb-2">
               <h3 className="font-semibold">Is there a free trial for Pro and Business plans?</h3>
             </CardHeader>
@@ -489,7 +489,7 @@ const Pricing = () => {
               </p>
             </CardContent>
           </Card>
-          <Card variant="glass" className="border-border/30">
+          <Card variant="glass" className="border-border/30 glass-glow-hover">
             <CardHeader className="pb-2">
               <h3 className="font-semibold">What payment methods do you accept?</h3>
             </CardHeader>
@@ -499,7 +499,7 @@ const Pricing = () => {
               </p>
             </CardContent>
           </Card>
-          <Card variant="glass" className="border-border/30">
+          <Card variant="glass" className="border-border/30 glass-glow-hover">
             <CardHeader className="pb-2">
               <h3 className="font-semibold">Do you offer custom enterprise solutions?</h3>
             </CardHeader>
