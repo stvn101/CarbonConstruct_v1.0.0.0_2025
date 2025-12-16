@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useState, useRef, useEffect } from 'react';
 import { Upload, FileSpreadsheet, FileText, File } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,15 @@ export const BOQUploader = memo(({ onFileUpload, disabled = false }: BOQUploader
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const timeoutIdsRef = useRef<NodeJS.Timeout[]>([]);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      timeoutIdsRef.current.forEach(clearTimeout);
+    };
+  }, []);
 
   const validateFile = useCallback((file: File): string | null => {
     // Check file size
@@ -90,20 +99,46 @@ export const BOQUploader = memo(({ onFileUpload, disabled = false }: BOQUploader
   const handleUpload = useCallback(() => {
     if (!selectedFile) return;
 
-    // Simulate upload progress
+    // Clear any existing timeouts
+    timeoutIdsRef.current.forEach(clearTimeout);
+    timeoutIdsRef.current = [];
+
+    // Simulate upload progress with cleanup
     setUploadProgress(20);
-    setTimeout(() => setUploadProgress(50), 200);
-    setTimeout(() => setUploadProgress(80), 400);
-    setTimeout(() => {
+
+    const timeout1 = setTimeout(() => setUploadProgress(50), 200);
+    const timeout2 = setTimeout(() => setUploadProgress(80), 400);
+    const timeout3 = setTimeout(() => {
       setUploadProgress(100);
       onFileUpload(selectedFile);
+
+      // Reset after successful upload
+      const resetTimeout = setTimeout(() => {
+        setSelectedFile(null);
+        setUploadProgress(0);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }, 1000);
+      timeoutIdsRef.current.push(resetTimeout);
     }, 600);
+
+    timeoutIdsRef.current.push(timeout1, timeout2, timeout3);
   }, [selectedFile, onFileUpload]);
 
   const handleClear = useCallback(() => {
+    // Clear any pending timeouts
+    timeoutIdsRef.current.forEach(clearTimeout);
+    timeoutIdsRef.current = [];
+
     setSelectedFile(null);
     setUploadProgress(0);
     setError(null);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }, []);
 
   const getFileIcon = (fileName: string) => {
@@ -136,6 +171,7 @@ export const BOQUploader = memo(({ onFileUpload, disabled = false }: BOQUploader
         )}
       >
         <input
+          ref={fileInputRef}
           type="file"
           id="boq-upload"
           accept={Object.keys(ACCEPTED_FILE_TYPES).join(',')}
@@ -200,6 +236,15 @@ export const BOQUploader = memo(({ onFileUpload, disabled = false }: BOQUploader
               <p className="text-xs text-muted-foreground text-center">
                 Uploading... {uploadProgress}%
               </p>
+            </div>
+          )}
+
+          {uploadProgress === 100 && (
+            <div className="flex items-center justify-center gap-2 text-green-600">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <p className="text-sm font-medium">Upload complete!</p>
             </div>
           )}
 

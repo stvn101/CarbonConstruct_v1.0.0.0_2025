@@ -1,4 +1,4 @@
-import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, DollarSign, Leaf, Map, Play } from "lucide-react";
+import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, DollarSign, Leaf, Map, Play, Upload } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -13,6 +13,11 @@ const calculatorItems = [{
   url: "/calculator",
   icon: Calculator,
   color: "text-chart-1"
+}, {
+  title: "BOQ Import",
+  url: "/boq-import",
+  icon: Upload,
+  color: "text-purple-400"
 }, {
   title: "Reports & Analysis",
   url: "/reports",

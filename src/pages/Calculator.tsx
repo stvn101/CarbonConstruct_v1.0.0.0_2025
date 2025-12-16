@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
@@ -28,6 +28,7 @@ import { MaterialSearchResults } from "@/components/calculator/MaterialSearchRes
 import { MaterialRowImproved } from "@/components/calculator/MaterialRowImproved";
 import { QuickAddPanel } from "@/components/calculator/QuickAddPanel";
 import { TransportCalculator } from "@/components/calculator/TransportCalculator";
+import { MaterialRecommender } from "@/components/calculator/MaterialRecommender";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MaterialComparison } from "@/components/MaterialComparison";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -223,12 +224,17 @@ export default function Calculator() {
   const { user } = useAuth();
   const { currentProject } = useProject();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { canPerformAction } = useUsageTracking();
   useSubscriptionStatus();
   const { currentTier } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  
+
+  // Material Recommender state
+  const [recommenderOpen, setRecommenderOpen] = useState(false);
+  const [selectedMaterialForRecommendations, setSelectedMaterialForRecommendations] = useState<Material | null>(null);
+
   // ECO Platform Compliance
   const { 
     isEnabled: ecoComplianceEnabled, 
@@ -274,7 +280,40 @@ export default function Calculator() {
   useEffect(() => {
     localStorage.setItem('useNewMaterialUI', String(useNewMaterialUI));
   }, [useNewMaterialUI]);
-  
+
+  // Handle imported materials from BOQ Import
+  useEffect(() => {
+    const importedMaterials = location.state?.importedMaterials;
+
+    if (importedMaterials && Array.isArray(importedMaterials)) {
+      // Convert imported materials to calculator format
+      const convertedMaterials = importedMaterials.map((material: any) => ({
+        id: crypto.randomUUID(),
+        category: material.category || 'Other',
+        typeId: material.matched_epd_id || 'custom',
+        name: material.material_name,
+        unit: material.unit || 'kg',
+        factor: material.ef_total || 0,
+        source: material.matched_epd_id ? 'EPD Database' : 'BOQ Import',
+        quantity: material.quantity || 0,
+        isCustom: !material.matched_epd_id,
+        ef_a1a3: material.ef_total || 0, // For now, assign total to A1-A3
+        // Add other fields as needed
+      }));
+
+      // Add to existing materials
+      setSelectedMaterials(prevMaterials => [...prevMaterials, ...convertedMaterials]);
+
+      toast({
+        title: "Materials Imported",
+        description: `${importedMaterials.length} materials loaded from BOQ`,
+      });
+
+      // Clear location state to prevent re-import on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state?.importedMaterials, toast]);
+
   const [activeTab, setActiveTab] = useState<'inputs' | 'report'>('inputs');
   const [projectDetails, setProjectDetails] = useState(() => loadFromStorage('projectDetails', { 
     name: '', 
@@ -968,6 +1007,44 @@ export default function Calculator() {
     }
   };
 
+  // Material Recommender handlers
+  const handleOpenRecommender = (material: Material) => {
+    setSelectedMaterialForRecommendations(material);
+    setRecommenderOpen(true);
+  };
+
+  const handleReplaceMaterial = (oldMaterialId: string, newMaterial: any) => {
+    setSelectedMaterials(prevMaterials =>
+      prevMaterials.map(m =>
+        m.id === oldMaterialId
+          ? {
+              ...m,
+              name: newMaterial.material_name,
+              category: newMaterial.material_category,
+              factor: newMaterial.ef_total,
+              ef_a1a3: newMaterial.ef_a1a3,
+              ef_a4: newMaterial.ef_a4,
+              ef_a5: newMaterial.ef_a5,
+              ef_b1b5: newMaterial.ef_b1b5,
+              ef_c1c4: newMaterial.ef_c1c4,
+              ef_d: newMaterial.ef_d,
+              epdNumber: newMaterial.epd_number,
+              manufacturer: newMaterial.manufacturer,
+              plantLocation: newMaterial.plant_location,
+              dataQualityTier: newMaterial.data_quality_tier,
+              ecoComplianceCompliant: newMaterial.eco_platform_compliant,
+            }
+          : m
+      )
+    );
+
+    setRecommenderOpen(false);
+    toast({
+      title: 'Material Replaced',
+      description: `Replaced with ${newMaterial.material_name} - saving ${newMaterial.carbon_savings_percent.toFixed(1)}% carbon`,
+    });
+  };
+
   const saveReport = async () => {
     if (!user || !currentProject) {
       toast({ title: "Please select a project first", variant: "destructive" });
@@ -1104,6 +1181,11 @@ export default function Calculator() {
     );
   }
 
+  // Show loading skeleton while materials database is loading
+  if (materialsLoading) {
+    return <SkeletonPage variant="form" />;
+  }
+
   return (
     <div className="min-h-screen bg-background pb-12">
       <SEOHead 
@@ -1138,7 +1220,7 @@ export default function Calculator() {
           {/* Left Column - Inputs */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Project Config */}
-            <div className="bg-card rounded-lg shadow-sm border p-3 md:p-5 relative">
+            <div className="glass rounded-lg p-3 md:p-5 relative glass-glow-hover">
               <h3 className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 md:mb-4">Project Details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 <Input 
@@ -1188,7 +1270,7 @@ export default function Calculator() {
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b bg-card rounded-t-lg">
+            <div className="flex border-b glass rounded-t-lg">
               <button 
                 onClick={() => setActiveTab('inputs')} 
                 className={`flex-1 py-3 text-sm font-medium ${activeTab === 'inputs' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground'}`}
@@ -1207,10 +1289,11 @@ export default function Calculator() {
               <div className="space-y-6">
                 {/* AI Import Banner with Drag & Drop */}
                 <Card 
-                  className={`relative overflow-hidden transition-all duration-200 ${
+                  variant="glass"
+                  className={`relative overflow-hidden transition-all duration-200 glass-glow-hover ${
                     isDragOver 
-                      ? 'bg-purple-100 border-purple-400 border-2 border-dashed' 
-                      : 'bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200'
+                      ? 'bg-purple-100/80 dark:bg-purple-900/30 border-purple-400 border-2 border-dashed' 
+                      : 'border-purple-200/50 dark:border-purple-700/30'
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -1300,7 +1383,7 @@ export default function Calculator() {
                 </Card>
 
                 {/* Materials Section */}
-                <Card className="p-4 md:p-6">
+                <Card variant="glass" className="p-4 md:p-6 glass-glow-hover">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 md:mb-4">
                     <h3 className="font-bold text-base md:text-lg text-foreground">Materials (Upfront A1-A3)</h3>
                     <div className="flex items-center gap-2">
@@ -1570,11 +1653,12 @@ export default function Calculator() {
                   <div className={useNewMaterialUI ? "space-y-0" : "space-y-2"}>
                     {useNewMaterialUI ? (
                       selectedMaterials.map(m => (
-                        <MaterialRowImproved 
+                        <MaterialRowImproved
                           key={m.id}
                           material={m}
                           onChange={(updated) => setSelectedMaterials(prev => prev.map(mat => mat.id === m.id ? updated : mat))}
                           onRemove={() => setSelectedMaterials(prev => prev.filter(mat => mat.id !== m.id))}
+                          onFindAlternatives={handleOpenRecommender}
                         />
                       ))
                     ) : (
@@ -1914,7 +1998,7 @@ export default function Calculator() {
             )}
 
             {activeTab === 'report' && (
-              <Card className="p-4 md:p-8 text-center">
+              <Card variant="glass" className="p-4 md:p-8 text-center glass-glow-hover">
                 <div className="inline-block p-3 md:p-4 bg-emerald-50 rounded-full text-emerald-600 mb-4">
                   <CloudUpload className="h-8 w-8 md:h-12 md:w-12" />
                 </div>
@@ -2018,10 +2102,25 @@ export default function Calculator() {
         </div>
       </main>
       
-      <UpgradeModal 
-        open={upgradeModalOpen} 
-        onOpenChange={setUpgradeModalOpen} 
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
       />
+
+      {/* Material Recommender Dialog */}
+      <Dialog open={recommenderOpen} onOpenChange={setRecommenderOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {selectedMaterialForRecommendations && (
+            <MaterialRecommender
+              currentMaterial={selectedMaterialForRecommendations}
+              onSelectAlternative={(newMaterial) =>
+                handleReplaceMaterial(selectedMaterialForRecommendations.id, newMaterial)
+              }
+              onClose={() => setRecommenderOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
