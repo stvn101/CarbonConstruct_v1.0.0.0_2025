@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
@@ -223,6 +223,7 @@ export default function Calculator() {
   const { user } = useAuth();
   const { currentProject } = useProject();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { canPerformAction } = useUsageTracking();
   useSubscriptionStatus();
@@ -274,7 +275,40 @@ export default function Calculator() {
   useEffect(() => {
     localStorage.setItem('useNewMaterialUI', String(useNewMaterialUI));
   }, [useNewMaterialUI]);
-  
+
+  // Handle imported materials from BOQ Import
+  useEffect(() => {
+    const importedMaterials = location.state?.importedMaterials;
+
+    if (importedMaterials && Array.isArray(importedMaterials)) {
+      // Convert imported materials to calculator format
+      const convertedMaterials = importedMaterials.map((material: any) => ({
+        id: crypto.randomUUID(),
+        category: material.category || 'Other',
+        typeId: material.matched_epd_id || 'custom',
+        name: material.material_name,
+        unit: material.unit || 'kg',
+        factor: material.ef_total || 0,
+        source: material.matched_epd_id ? 'EPD Database' : 'BOQ Import',
+        quantity: material.quantity || 0,
+        isCustom: !material.matched_epd_id,
+        ef_a1a3: material.ef_total || 0, // For now, assign total to A1-A3
+        // Add other fields as needed
+      }));
+
+      // Add to existing materials
+      setSelectedMaterials(prevMaterials => [...prevMaterials, ...convertedMaterials]);
+
+      toast({
+        title: "Materials Imported",
+        description: `${importedMaterials.length} materials loaded from BOQ`,
+      });
+
+      // Clear location state to prevent re-import on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state?.importedMaterials, toast]);
+
   const [activeTab, setActiveTab] = useState<'inputs' | 'report'>('inputs');
   const [projectDetails, setProjectDetails] = useState(() => loadFromStorage('projectDetails', { 
     name: '', 

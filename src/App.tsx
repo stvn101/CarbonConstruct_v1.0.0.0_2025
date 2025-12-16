@@ -16,6 +16,7 @@ import Index from "./pages/Index";
 // Lazy load all other routes to reduce initial bundle size
 const Auth = lazy(() => import("./pages/Auth"));
 const Calculator = lazy(() => import("./pages/Calculator"));
+const BOQImport = lazy(() => import("./pages/BOQImport"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Help = lazy(() => import("./pages/Help"));
@@ -117,6 +118,7 @@ const App = () => (
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/calculator" element={<Calculator />} />
+                    <Route path="/boq-import" element={<BOQImport />} />
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/help" element={<Help />} />
