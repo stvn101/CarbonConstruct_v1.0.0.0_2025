@@ -45,6 +45,8 @@ const LandingEngineers = lazy(() => import("./pages/LandingEngineers"));
 const LandingGovernment = lazy(() => import("./pages/LandingGovernment"));
 const LandingInvestors = lazy(() => import("./pages/LandingInvestors"));
 const LandingMBAQueensland = lazy(() => import("./pages/LandingMBAQueensland"));
+const LandingMBANSW = lazy(() => import("./pages/LandingMBANSW"));
+const LandingMBAVictoria = lazy(() => import("./pages/LandingMBAVictoria"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -143,6 +145,8 @@ const App = () => (
                     <Route path="/lp/government" element={<LandingGovernment />} />
                     <Route path="/lp/investors" element={<LandingInvestors />} />
                     <Route path="/lp/mba" element={<LandingMBAQueensland />} />
+                    <Route path="/lp/mba-nsw" element={<LandingMBANSW />} />
+                    <Route path="/lp/mba-vic" element={<LandingMBAVictoria />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
