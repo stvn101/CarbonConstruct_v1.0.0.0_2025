@@ -58,21 +58,21 @@ export function AppSidebar() {
   return <Sidebar collapsible="icon" className="transition-all duration-500 ease-in-out">
       <SidebarContent className="bg-sidebar border-r border-sidebar-border transition-all duration-500 ease-in-out">
         {/* Brand Header */}
-        <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30 overflow-hidden transition-all duration-500 ease-in-out">
+        <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30 overflow-visible">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-3 group-data-[collapsible=icon]/sidebar-wrapper:justify-center cursor-pointer transition-all duration-500 ease-in-out">
+                <div className="flex items-center gap-3 cursor-pointer whitespace-nowrap">
                   <img 
                     src={logoImage32} 
                     alt="CarbonConstruct Logo" 
-                    className="h-8 w-8 flex-shrink-0 object-contain"
+                    className="h-8 w-8 min-h-8 min-w-8 flex-shrink-0 object-contain"
                     width="32"
                     height="32"
                   />
-                  <div className="group-data-[collapsible=icon]/sidebar-wrapper:hidden group-data-[collapsible=icon]/sidebar-wrapper:opacity-0 transition-all duration-500 ease-in-out opacity-100">
-                    <h1 className="font-bold text-base text-sidebar-foreground transition-all duration-500 ease-in-out">CarbonConstruct</h1>
-                    <p className="text-xs text-sidebar-foreground/70 transition-all duration-500 ease-in-out">Pro Edition</p>
+                  <div className="group-data-[collapsible=icon]/sidebar-wrapper:opacity-0 group-data-[collapsible=icon]/sidebar-wrapper:w-0 group-data-[collapsible=icon]/sidebar-wrapper:overflow-hidden transition-all duration-300 ease-in-out">
+                    <h1 className="font-bold text-base text-sidebar-foreground whitespace-nowrap">CarbonConstruct</h1>
+                    <p className="text-xs text-sidebar-foreground/70 whitespace-nowrap">Pro Edition</p>
                   </div>
                 </div>
               </TooltipTrigger>

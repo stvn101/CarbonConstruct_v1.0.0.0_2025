@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -16,12 +16,14 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useComplianceCheck } from '@/hooks/useComplianceCheck';
 import { useEmissionTotals } from '@/hooks/useEmissionTotals';
 import { loadStoredWholeLifeTotals } from '@/hooks/useWholeLifeCarbonCalculations';
+import { useEcoCompliance } from '@/hooks/useEcoCompliance';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ReportErrorBoundary } from '@/components/ReportErrorBoundary';
 import { SkeletonPage } from '@/components/SkeletonPage';
 import { ComplianceCard } from '@/components/ComplianceCard';
 import { supabase } from '@/integrations/supabase/client';
+import type { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
 import { 
   FileBarChart, 
   Download, 
@@ -76,6 +78,45 @@ const Reports = () => {
     totals || { scope1: 0, scope2: 0, scope3: 0, total: 0 },
     wholeLifeTotals
   );
+
+  // Get ECO Platform compliance data
+  const { 
+    complianceReport: ecoComplianceReport
+  } = useEcoCompliance({ 
+    enabled: true, // Will check project settings internally
+    autoValidate: true 
+  });
+
+  // Fetch ECO compliance report from database if available
+  const [dbEcoComplianceReport, setDbEcoComplianceReport] = useState<EcoPlatformComplianceReport | null>(null);
+  
+  useEffect(() => {
+    const fetchEcoCompliance = async () => {
+      if (!currentProject?.id) return;
+      
+      // Use the report from the hook first
+      if (ecoComplianceReport) {
+        setDbEcoComplianceReport(ecoComplianceReport);
+        return;
+      }
+      
+      // Otherwise fetch from database
+      const { data } = await supabase
+        .from('projects')
+        .select('eco_compliance_enabled, eco_compliance_report')
+        .eq('id', currentProject.id)
+        .single();
+        
+      if (data?.eco_compliance_enabled && data.eco_compliance_report) {
+        const report = data.eco_compliance_report as unknown;
+        if (report && typeof report === 'object' && 'standardsCompliance' in (report as Record<string, unknown>)) {
+          setDbEcoComplianceReport(report as EcoPlatformComplianceReport);
+        }
+      }
+    };
+    
+    fetchEcoCompliance();
+  }, [currentProject?.id, ecoComplianceReport]);
   
   // Check if user is Pro tier with yearly subscription (price_annual = 790)
   const isProYearly = currentTier?.name === 'Pro' && 
@@ -275,7 +316,13 @@ const Reports = () => {
           </p>
         </div>
         <ErrorBoundary>
-          <PDFReport data={reportData} template={selectedTemplate} branding={effectiveBranding} showWatermark={!canCustomBrand} />
+          <PDFReport 
+            data={reportData} 
+            template={selectedTemplate} 
+            branding={effectiveBranding} 
+            showWatermark={!canCustomBrand}
+            ecoComplianceReport={dbEcoComplianceReport}
+          />
         </ErrorBoundary>
       </div>
 
@@ -618,82 +665,97 @@ const Reports = () => {
               <CardContent className="space-y-6">
                 {/* Lifecycle Stage Summary Cards */}
                 <div className="grid gap-4 md:grid-cols-5">
-                  <Card className="bg-blue-50 border-blue-200">
+                  <Card className="bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm text-blue-700">A1-A5 Upfront</CardTitle>
+                      <CardTitle className="text-sm text-blue-700 dark:text-blue-300">A1-A5 Upfront</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-blue-800">
-                        {reportData.emissions.scope3.toFixed(2)}
+                      <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">
+                        {(wholeLifeTotals?.total_upfront || reportData.emissions.scope3 * 1000).toFixed(2)}
                       </div>
-                      <p className="text-xs text-blue-600">tCO₂e</p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">kgCO₂e</p>
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-amber-50 border-amber-200">
+                  <Card className="bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm text-amber-700">B1-B7 Use Phase</CardTitle>
+                      <CardTitle className="text-sm text-amber-700 dark:text-amber-300">B1-B7 Use Phase</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-amber-800">0.00</div>
-                      <p className="text-xs text-amber-600">tCO₂e (add in calculator)</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-red-50 border-red-200">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm text-red-700">C1-C4 End of Life</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-red-800">0.00</div>
-                      <p className="text-xs text-red-600">tCO₂e (add in calculator)</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-emerald-50 border-emerald-200">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm text-emerald-700">Module D Credits</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-emerald-800">0.00</div>
-                      <p className="text-xs text-emerald-600">tCO₂e (add in calculator)</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-slate-100 border-slate-300">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm text-slate-700">Whole Life Total</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-slate-800">
-                        {reportData.emissions.total.toFixed(2)}
+                      <div className="text-2xl font-bold text-amber-800 dark:text-amber-200">
+                        {wholeLifeTotals 
+                          ? ((wholeLifeTotals.b1_use + wholeLifeTotals.b2_maintenance + wholeLifeTotals.b3_repair + 
+                              wholeLifeTotals.b4_replacement + wholeLifeTotals.b5_refurbishment + 
+                              wholeLifeTotals.b6_operational_energy + wholeLifeTotals.b7_operational_water) || 0).toFixed(2)
+                          : '0.00'}
                       </div>
-                      <p className="text-xs text-slate-600">tCO₂e (A-D)</p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400">kgCO₂e {!wholeLifeTotals && '(add in calculator)'}</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-red-700 dark:text-red-300">C1-C4 End of Life</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-red-800 dark:text-red-200">
+                        {wholeLifeTotals 
+                          ? ((wholeLifeTotals.c1_deconstruction + wholeLifeTotals.c2_transport + 
+                              wholeLifeTotals.c3_waste_processing + wholeLifeTotals.c4_disposal) || 0).toFixed(2)
+                          : '0.00'}
+                      </div>
+                      <p className="text-xs text-red-600 dark:text-red-400">kgCO₂e {!wholeLifeTotals && '(add in calculator)'}</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-emerald-700 dark:text-emerald-300">Module D Credits</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">
+                        {wholeLifeTotals 
+                          ? ((wholeLifeTotals.d_recycling + wholeLifeTotals.d_reuse + wholeLifeTotals.d_energy_recovery) || 0).toFixed(2)
+                          : '0.00'}
+                      </div>
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400">kgCO₂e {!wholeLifeTotals && '(add in calculator)'}</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-muted border-border">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm text-foreground">Whole Life Total</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-foreground">
+                        {wholeLifeTotals?.total_with_benefits?.toFixed(2) || (reportData.emissions.total * 1000).toFixed(2)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">kgCO₂e (A-D)</p>
                     </CardContent>
                   </Card>
                 </div>
 
                 {/* EN 15978 Standard Info */}
                 <div className="bg-muted/50 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">EN 15978 Lifecycle Stages</h4>
+                  <h4 className="font-semibold mb-2 text-foreground">EN 15978 Lifecycle Stages</h4>
                   <div className="grid gap-2 md:grid-cols-2 text-sm">
                     <div>
-                      <span className="font-medium text-blue-700">A1-A3:</span> Raw material supply, transport, manufacturing
+                      <span className="font-medium text-blue-700 dark:text-blue-400">A1-A3:</span> Raw material supply, transport, manufacturing
                     </div>
                     <div>
-                      <span className="font-medium text-blue-700">A4-A5:</span> Transport to site, construction installation
+                      <span className="font-medium text-blue-700 dark:text-blue-400">A4-A5:</span> Transport to site, construction installation
                     </div>
                     <div>
-                      <span className="font-medium text-amber-700">B1-B5:</span> Use, maintenance, repair, replacement, refurbishment
+                      <span className="font-medium text-amber-700 dark:text-amber-400">B1-B5:</span> Use, maintenance, repair, replacement, refurbishment
                     </div>
                     <div>
-                      <span className="font-medium text-amber-700">B6-B7:</span> Operational energy and water use
+                      <span className="font-medium text-amber-700 dark:text-amber-400">B6-B7:</span> Operational energy and water use
                     </div>
                     <div>
-                      <span className="font-medium text-red-700">C1-C4:</span> Deconstruction, transport, processing, disposal
+                      <span className="font-medium text-red-700 dark:text-red-400">C1-C4:</span> Deconstruction, transport, processing, disposal
                     </div>
                     <div>
-                      <span className="font-medium text-emerald-700">Module D:</span> Benefits beyond the building lifecycle
+                      <span className="font-medium text-emerald-700 dark:text-emerald-400">Module D:</span> Benefits beyond the building lifecycle
                     </div>
                   </div>
                 </div>

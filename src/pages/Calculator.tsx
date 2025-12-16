@@ -7,6 +7,7 @@ import { useProject } from "@/contexts/ProjectContext";
 import { useUsageTracking } from "@/hooks/useUsageTracking";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useEcoCompliance } from "@/hooks/useEcoCompliance";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +34,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { UsePhaseCalculator, UsePhaseEmissions } from "@/components/calculator/UsePhaseCalculator";
 import { EndOfLifeCalculator, EndOfLifeEmissions } from "@/components/calculator/EndOfLifeCalculator";
 import { ModuleDCalculator, ModuleDEmissions } from "@/components/calculator/ModuleDCalculator";
-import { SkeletonPage } from "@/components/SkeletonPage";
+import { EcoComplianceToggle } from "@/components/EcoComplianceToggle";
+import { EcoCompliancePanel } from "@/components/EcoCompliancePanel";
 
 interface Material {
   id: string;
@@ -62,6 +64,19 @@ interface Material {
   ef_b1b5?: number;
   ef_c1c4?: number;
   ef_d?: number;
+  // ECO Platform compliance fields
+  manufacturing_country?: string;
+  manufacturing_city?: string;
+  characterisation_factor_version?: string;
+  allocation_method?: string;
+  is_co_product?: boolean;
+  co_product_type?: string;
+  uses_mass_balance?: boolean;
+  biogenic_carbon_kg_c?: number;
+  biogenic_carbon_percentage?: number;
+  ecoinvent_methodology?: string;
+  eco_platform_compliant?: boolean;
+  data_quality_rating?: string;
 }
 
 const loadFromStorage = (key: string, fallback: any) => {
@@ -81,7 +96,7 @@ const MaterialRow = ({ material, onChange, onRemove }: {
 }) => {
   return (
     <div className={`rounded-lg border p-3 mb-2 ${
-      material.isCustom ? 'bg-purple-50 border-purple-200' : 'hover:bg-muted/50'
+      material.isCustom ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800' : 'hover:bg-muted/50'
     }`}>
       {/* Header: name and delete */}
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -157,7 +172,7 @@ const MaterialRow = ({ material, onChange, onRemove }: {
 
         <div className="col-span-2 md:col-span-1">
           <label className="text-xs text-muted-foreground mb-1 block">Emissions</label>
-          <div className="h-9 flex items-center justify-center px-2 bg-emerald-100 rounded-md font-bold text-emerald-700 text-sm">
+          <div className="h-9 flex items-center justify-center px-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-md font-bold text-emerald-700 dark:text-emerald-300 text-sm">
             {((material.quantity * material.factor) / 1000).toFixed(3)} t
           </div>
         </div>
@@ -213,6 +228,15 @@ export default function Calculator() {
   useSubscriptionStatus();
   const { currentTier } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  
+  // ECO Platform Compliance
+  const { 
+    isEnabled: ecoComplianceEnabled, 
+    setEnabled: setEcoComplianceEnabled, 
+    complianceReport, 
+    isLoading: complianceLoading,
+    refreshCompliance
+  } = useEcoCompliance();
   
   // Feature access checks based on subscription tier
   const canAccessEN15978 = currentTier?.limits?.en15978_calculators ?? false;
@@ -362,6 +386,27 @@ export default function Calculator() {
     localStorage.setItem('selectedMaterials', JSON.stringify(selectedMaterials));
   }, [projectDetails, scope1Inputs, scope2Inputs, transportInputs, commuteInputs, wasteInputs, a5Inputs, selectedMaterials]);
 
+  // Auto-validate ECO compliance when materials change (debounced)
+  const materialsValidationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (ecoComplianceEnabled && selectedMaterials.length > 0) {
+      // Clear previous timer
+      if (materialsValidationTimerRef.current) {
+        clearTimeout(materialsValidationTimerRef.current);
+      }
+      // Set new debounced validation
+      materialsValidationTimerRef.current = setTimeout(() => {
+        refreshCompliance();
+      }, 2000); // 2 second debounce
+      
+      return () => {
+        if (materialsValidationTimerRef.current) {
+          clearTimeout(materialsValidationTimerRef.current);
+        }
+      };
+    }
+  }, [selectedMaterials, ecoComplianceEnabled, refreshCompliance]);
+
   const calculations = useMemo(() => {
     let scope1 = 0, scope2 = 0, scope3_materials_gross = 0, scope3_sequestration = 0, scope3_transport = 0, scope3_commute = 0, scope3_waste = 0, scope3_a5 = 0;
 
@@ -504,6 +549,19 @@ export default function Calculator() {
       ef_b1b5: material.ef_b1b5 || undefined,
       ef_c1c4: material.ef_c1c4 || undefined,
       ef_d: material.ef_d || undefined,
+      // ECO Platform compliance fields
+      manufacturing_country: material.manufacturing_country || material.region || 'Australia',
+      manufacturing_city: material.manufacturing_city || material.plant_location || material.state || undefined,
+      characterisation_factor_version: material.characterisation_factor_version || 'JRC-EF-3.1',
+      allocation_method: material.allocation_method || undefined,
+      is_co_product: material.is_co_product || false,
+      co_product_type: material.co_product_type || undefined,
+      uses_mass_balance: material.uses_mass_balance || false,
+      biogenic_carbon_kg_c: material.biogenic_carbon_kg_c || undefined,
+      biogenic_carbon_percentage: material.biogenic_carbon_percentage || undefined,
+      ecoinvent_methodology: material.ecoinvent_methodology || undefined,
+      eco_platform_compliant: material.eco_platform_compliant !== false,
+      data_quality_rating: material.data_quality_rating || undefined,
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     setMaterialSearch(''); // Clear search after adding
@@ -530,6 +588,19 @@ export default function Calculator() {
       ef_b1b5: material.ef_b1b5 || undefined,
       ef_c1c4: material.ef_c1c4 || undefined,
       ef_d: material.ef_d || undefined,
+      // ECO Platform compliance fields
+      manufacturing_country: material.manufacturing_country || material.region || 'Australia',
+      manufacturing_city: material.manufacturing_city || material.plant_location || material.state || undefined,
+      characterisation_factor_version: material.characterisation_factor_version || 'JRC-EF-3.1',
+      allocation_method: material.allocation_method || undefined,
+      is_co_product: material.is_co_product || false,
+      co_product_type: material.co_product_type || undefined,
+      uses_mass_balance: material.uses_mass_balance || false,
+      biogenic_carbon_kg_c: material.biogenic_carbon_kg_c || undefined,
+      biogenic_carbon_percentage: material.biogenic_carbon_percentage || undefined,
+      ecoinvent_methodology: material.ecoinvent_methodology || undefined,
+      eco_platform_compliant: material.eco_platform_compliant !== false,
+      data_quality_rating: material.data_quality_rating || undefined,
     });
   };
 
@@ -559,6 +630,19 @@ export default function Calculator() {
       ef_b1b5: fav.ef_b1b5,
       ef_c1c4: fav.ef_c1c4,
       ef_d: fav.ef_d,
+      // ECO Platform compliance fields
+      manufacturing_country: fav.manufacturing_country,
+      manufacturing_city: fav.manufacturing_city,
+      characterisation_factor_version: fav.characterisation_factor_version,
+      allocation_method: fav.allocation_method,
+      is_co_product: fav.is_co_product,
+      co_product_type: fav.co_product_type,
+      uses_mass_balance: fav.uses_mass_balance,
+      biogenic_carbon_kg_c: fav.biogenic_carbon_kg_c,
+      biogenic_carbon_percentage: fav.biogenic_carbon_percentage,
+      ecoinvent_methodology: fav.ecoinvent_methodology,
+      eco_platform_compliant: fav.eco_platform_compliant,
+      data_quality_rating: fav.data_quality_rating,
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     
@@ -1098,6 +1182,14 @@ export default function Calculator() {
                   onChange={e => setProjectDetails({...projectDetails, buildingSqm: e.target.value})} 
                 />
               </div>
+              
+              {/* ECO Platform Compliance Toggle */}
+              <div className="mt-4">
+                <EcoComplianceToggle 
+                  enabled={ecoComplianceEnabled} 
+                  onToggle={setEcoComplianceEnabled} 
+                />
+              </div>
             </div>
 
             {/* Tabs */}
@@ -1188,9 +1280,9 @@ export default function Calculator() {
                 </Card>
 
                 {/* Energy Section */}
-                <Card variant="glass" className="p-4 md:p-6 glass-glow-hover">
-                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">Energy (Scope 1 & 2)</h3>
-                  <div className="bg-slate-50 p-2 md:p-3 rounded border mb-3 md:mb-4">
+                <Card className="p-4 md:p-6">
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">Energy (Scope 1 & 2)</h3>
+                  <div className="bg-muted p-2 md:p-3 rounded border mb-3 md:mb-4">
                     <FactorRow 
                       label={`Grid Electricity (${projectDetails.location})`}
                       unit="kWh"
@@ -1216,7 +1308,7 @@ export default function Calculator() {
                 {/* Materials Section */}
                 <Card variant="glass" className="p-4 md:p-6 glass-glow-hover">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 md:mb-4">
-                    <h3 className="font-bold text-base md:text-lg text-slate-700">Materials (Upfront A1-A3)</h3>
+                    <h3 className="font-bold text-base md:text-lg text-foreground">Materials (Upfront A1-A3)</h3>
                     <div className="flex items-center gap-2">
                       {canAccessMaterialComparer ? (
                         <Dialog>
@@ -1269,10 +1361,10 @@ export default function Calculator() {
                       />
                     </div>
                   ) : quickAddMaterials.length > 0 && (
-                    <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Quick Add</span>
-                        <span className="text-xs text-emerald-600">Your frequently used materials</span>
+                        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">Quick Add</span>
+                        <span className="text-xs text-emerald-600 dark:text-emerald-400">Your frequently used materials</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {quickAddMaterials.map(fav => (
@@ -1280,10 +1372,10 @@ export default function Calculator() {
                             <TooltipTrigger asChild>
                               <button
                                 onClick={() => addFromQuickAdd(fav)}
-                                className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white border border-emerald-300 rounded-full hover:bg-emerald-100 hover:border-emerald-400 transition-colors"
+                                className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-emerald-300 dark:border-emerald-700 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:border-emerald-400 transition-colors"
                               >
                                 <span className="text-foreground truncate max-w-[150px]">{fav.materialName}</span>
-                                <span className="text-xs text-emerald-600">{fav.factor.toFixed(1)}</span>
+                                <span className="text-xs text-emerald-600 dark:text-emerald-400">{fav.factor.toFixed(1)}</span>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -1307,19 +1399,19 @@ export default function Calculator() {
 
                   {/* Recently Used Materials */}
                   {recentlyUsedMaterials.length > 0 && (
-                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-blue-700 uppercase tracking-wide flex items-center gap-1.5">
+                        <span className="text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wide flex items-center gap-1.5">
                           <Clock className="h-3 w-3" />
                           Recently Used
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-blue-600">Last 10 materials</span>
+                          <span className="text-xs text-blue-600 dark:text-blue-400">Last 10 materials</span>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={clearAllFavorites}
-                            className="h-6 px-2 text-xs text-blue-600 hover:text-destructive hover:bg-blue-100"
+                            className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400 hover:text-destructive hover:bg-blue-100 dark:hover:bg-blue-900/50"
                           >
                             <Trash2 className="h-3 w-3 mr-1" />
                             Clear
@@ -1332,10 +1424,10 @@ export default function Calculator() {
                             <TooltipTrigger asChild>
                               <button
                                 onClick={() => addFromQuickAdd(recent)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white border border-blue-300 rounded-full hover:bg-blue-100 hover:border-blue-400 transition-colors"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-700 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 transition-colors"
                               >
                                 <span className="text-foreground truncate max-w-[150px]">{recent.materialName}</span>
-                                <span className="text-xs text-blue-600">{recent.unit}</span>
+                                <span className="text-xs text-blue-600 dark:text-blue-400">{recent.unit}</span>
                               </button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -1517,7 +1609,7 @@ export default function Calculator() {
 
                 {/* Employee Commute Section */}
                 <Card className="p-4 md:p-6">
-                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">Employee Commute (Scope 3)</h3>
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">Employee Commute (Scope 3)</h3>
                   <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Enter total km travelled by employees per commute type
                   </p>
@@ -1543,7 +1635,7 @@ export default function Calculator() {
 
                 {/* Waste Section */}
                 <Card className="p-4 md:p-6">
-                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">Construction Waste (Scope 3)</h3>
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">Construction Waste (Scope 3)</h3>
                   <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Enter waste quantities in kg or tonnes. Negative factors (e.g., recycled metals) reduce emissions.
                   </p>
@@ -1611,18 +1703,18 @@ export default function Calculator() {
 
                 {/* A5 On-Site Construction Section */}
                 <Card className="p-4 md:p-6">
-                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-slate-700">On-Site Construction (A5)</h3>
+                  <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">On-Site Construction (A5)</h3>
                   <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Site equipment, generators, and installation activities
                   </p>
                   
                   {/* Equipment */}
                   <div className="mb-4 md:mb-6">
-                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
                       Site Equipment
                     </h4>
-                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                    <div className="space-y-1 bg-muted rounded-lg p-2">
                       {Object.entries(A5_EQUIPMENT_FACTORS)
                         .filter(([_, f]) => f.category === 'equipment')
                         .map(([k, f]) => (
@@ -1641,11 +1733,11 @@ export default function Calculator() {
 
                   {/* Generators */}
                   <div className="mb-4 md:mb-6">
-                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
                       Generators
                     </h4>
-                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                    <div className="space-y-1 bg-muted rounded-lg p-2">
                       {Object.entries(A5_EQUIPMENT_FACTORS)
                         .filter(([_, f]) => f.category === 'generator')
                         .map(([k, f]) => (
@@ -1664,11 +1756,11 @@ export default function Calculator() {
 
                   {/* Installation Activities */}
                   <div className="mb-4 md:mb-6">
-                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                       Installation Activities
                     </h4>
-                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                    <div className="space-y-1 bg-muted rounded-lg p-2">
                       {Object.entries(A5_EQUIPMENT_FACTORS)
                         .filter(([_, f]) => f.category === 'installation')
                         .map(([k, f]) => (
@@ -1687,11 +1779,11 @@ export default function Calculator() {
 
                   {/* Site Facilities */}
                   <div className="mb-3 md:mb-4">
-                    <h4 className="text-xs md:text-sm font-semibold text-slate-600 mb-2 md:mb-3 flex items-center gap-2">
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground mb-2 md:mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
                       Site Facilities
                     </h4>
-                    <div className="space-y-1 bg-slate-50 rounded-lg p-2">
+                    <div className="space-y-1 bg-muted rounded-lg p-2">
                       {Object.entries(A5_EQUIPMENT_FACTORS)
                         .filter(([_, f]) => f.category === 'facilities')
                         .map(([k, f]) => (
@@ -1869,7 +1961,7 @@ export default function Calculator() {
 
           {/* Right Column - Stats Panel */}
           <div className="lg:col-span-1">
-            <Card variant="glassDark" className="p-4 md:p-6 lg:sticky lg:top-6 text-white glow-ring" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
+            <Card className="p-4 md:p-6 lg:sticky lg:top-20 bg-slate-800 text-white shadow-lg z-40" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
               <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Footprint</h3>
               <div className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-emerald-400">
                 {(calculations.total / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>
@@ -1918,6 +2010,16 @@ export default function Calculator() {
                 {user ? '✓ Auto-save active' : 'Connecting...'}
               </div>
             </Card>
+            
+            {/* ECO Platform Compliance Panel */}
+            {ecoComplianceEnabled && (
+              <div className="mt-4">
+                <EcoCompliancePanel 
+                  complianceReport={complianceReport} 
+                  isLoading={complianceLoading} 
+                />
+              </div>
+            )}
           </div>
         </div>
       </main>

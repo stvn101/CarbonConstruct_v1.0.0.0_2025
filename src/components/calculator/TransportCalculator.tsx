@@ -126,7 +126,7 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Truck className="h-5 w-5 text-blue-600" />
-          <h3 className="font-bold text-base md:text-lg text-slate-700">A4 Transport Emissions</h3>
+          <h3 className="font-bold text-base md:text-lg text-foreground">A4 Transport Emissions</h3>
         </div>
         <Tooltip>
           <TooltipTrigger>
@@ -139,14 +139,14 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
       </div>
 
       {/* Quick Add Form - Mobile-first stacked layout */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4 mb-4">
-        <div className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-3">Add Transport Leg</div>
+      <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 md:p-4 mb-4">
+        <div className="text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wide mb-3">Add Transport Leg</div>
         
         {/* Mobile: stacked layout, Desktop: grid */}
         <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-12 md:gap-3">
           {/* Weight */}
           <div className="md:col-span-2">
-            <label className="text-xs text-muted-foreground mb-1 block">Weight (tonnes)</label>
+            <label className="text-xs text-foreground mb-1 block">Weight (tonnes)</label>
             <Input
               type="number"
               placeholder="0"
@@ -160,7 +160,7 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
           <div className="grid grid-cols-2 gap-3 md:contents">
             {/* From Postcode */}
             <div className="md:col-span-2">
-              <label className="text-xs text-muted-foreground mb-1 block">From</label>
+              <label className="text-xs text-foreground mb-1 block">From</label>
               <div className="relative">
                 <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                 <Input
@@ -175,7 +175,7 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
 
             {/* To Postcode */}
             <div className="md:col-span-2">
-              <label className="text-xs text-muted-foreground mb-1 block">To</label>
+              <label className="text-xs text-foreground mb-1 block">To</label>
               <div className="relative">
                 <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                 <Input
@@ -191,7 +191,7 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
 
           {/* Transport Mode */}
           <div className="md:col-span-4">
-            <label className="text-xs text-muted-foreground mb-1 block">Transport Mode</label>
+            <label className="text-xs text-foreground mb-1 block">Transport Mode</label>
             <Select 
               value={quickCalc.modeId} 
               onValueChange={(v) => setQuickCalc(prev => ({ ...prev, modeId: v }))}
@@ -223,7 +223,7 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
         </div>
 
         {selectedMode && (
-          <p className="text-xs text-blue-600 mt-2">
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
             💡 {selectedMode.description}
           </p>
         )}

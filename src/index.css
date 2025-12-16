@@ -269,6 +269,20 @@
   background: #e8f5e9 !important;
 }
 
+.pdf-subtotal-row {
+  background: #f3f4f6 !important;
+  font-weight: 600;
+}
+
+.pdf-warning-box {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 16px;
+  color: #92400e;
+}
+
 .pdf-declaration-box {
   background: #f0f5ff;
   border: 2px solid #3b82f6;
@@ -368,16 +382,71 @@ All colors MUST be HSL.
 */
 
 @layer base {
+  /* PWA Mobile Sizing - Safe Areas & Dynamic Viewport */
+  html {
+    /* Use dynamic viewport height for mobile browsers */
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
+    /* Prevent text size adjustment on orientation change */
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  body {
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    /* Safe area padding for notched devices */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    /* Prevent overscroll bounce on iOS */
+    overscroll-behavior-y: none;
+    /* Touch action for better mobile scrolling */
+    touch-action: manipulation;
+    /* Prevent pull-to-refresh on PWA */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* PWA standalone mode adjustments */
+  @media all and (display-mode: standalone) {
+    body {
+      /* Full height in standalone mode */
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    
+    /* Adjust header for safe area */
+    header {
+      padding-top: max(0.5rem, env(safe-area-inset-top));
+    }
+    
+    /* Adjust footer for safe area */
+    footer {
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+  }
+  
+  /* iOS-specific PWA fixes */
+  @supports (-webkit-touch-callout: none) {
+    body {
+      /* iOS full height fix */
+      min-height: -webkit-fill-available;
+    }
+  }
+
   :root {
-    /* Twilight Base Colors - Soft warm grey background with high contrast text */
-    --background: 220 15% 92%;
-    --foreground: 220 15% 12%;
+    /* Vega Gray Base Colors */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
 
-    --card: 0 0% 98%;
-    --card-foreground: 220 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
 
-    --popover: 0 0% 98%;
-    --popover-foreground: 220 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
 
     /* Primary: Vibrant Forest Green */
     --primary: 156 55% 35%;
@@ -392,9 +461,9 @@ All colors MUST be HSL.
     --accent: 142 70% 45%;
     --accent-foreground: 0 0% 100%;
 
-    /* Muted: Subtle Grey-Green */
-    --muted: 220 15% 85%;
-    --muted-foreground: 220 15% 32%;
+    /* Muted: Vega Gray */
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
 
     /* Scope Colors for Data Visualization - Maximum Vibrancy */
     --scope-1: 15 90% 58%;        /* Bright coral-red for direct emissions */
@@ -423,15 +492,15 @@ All colors MUST be HSL.
     --chart-7: 30 95% 58%;        /* Bright orange */
     --chart-8: 340 80% 60%;       /* Hot pink */
 
-    /* Status Colors - Clear & Vibrant */
+    /* Status Colors - Clear & Vibrant (WCAG AA compliant) */
     --success: 142 70% 45%;
-    --warning: 48 95% 55%;
-    --destructive: 0 85% 62%;
+    --warning: 48 95% 45%;
+    --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Interface Elements */
-    --border: 220 15% 80%;
-    --input: 0 0% 98%;
+    /* Interface Elements - Vega Gray */
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
     --ring: 156 55% 35%;
 
     /* Vibrant Gradients */
@@ -456,7 +525,55 @@ All colors MUST be HSL.
     --sidebar-border: 156 30% 20%;
     --sidebar-ring: 142 70% 45%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Vega Gray Dark Mode */
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary: Keep emerald green */
+    --primary: 156 55% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 156 60% 40%;
+
+    /* Secondary: Lighter in dark mode */
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    /* Accent: Slightly lighter green */
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+
+    /* Muted: Dark gray */
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+
+    /* Interface Elements - Dark */
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 156 55% 45%;
+
+    /* Status Colors - Brighter in dark mode */
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Sidebar Dark Mode */
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 156 55% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 14.9%;
+    --sidebar-ring: 156 55% 45%;
   }
 }
 

@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { getStoredUTMParams } from '@/hooks/useUTMTracking';
 
 interface AnalyticsEvent {
   event_name: string;
@@ -71,14 +72,25 @@ export function useAnalytics() {
   }, [flushEvents]);
 
   const trackEvent = useCallback((eventName: string, eventData?: Record<string, unknown>) => {
+    // Get UTM params if available and merge with event data
+    const utmParams = getStoredUTMParams();
+    const enrichedEventData = {
+      ...eventData,
+      ...(utmParams?.utm_source && { utm_source: utmParams.utm_source }),
+      ...(utmParams?.utm_medium && { utm_medium: utmParams.utm_medium }),
+      ...(utmParams?.utm_campaign && { utm_campaign: utmParams.utm_campaign }),
+      ...(utmParams?.utm_term && { utm_term: utmParams.utm_term }),
+      ...(utmParams?.utm_content && { utm_content: utmParams.utm_content }),
+    };
+
     // Send to internal analytics (Supabase)
     eventsQueue.current.push({
       event_name: eventName,
-      event_data: eventData,
+      event_data: enrichedEventData,
     });
 
     // Also send to Google Analytics
-    sendToGA(eventName, eventData);
+    sendToGA(eventName, enrichedEventData);
 
     if (eventsQueue.current.length >= EVENTS_BATCH_SIZE) {
       flushEvents();
@@ -152,4 +164,9 @@ export const AnalyticsEvents = {
   SUBSCRIPTION_STARTED: 'subscription_started',
   SUBSCRIPTION_CANCELLED: 'subscription_cancelled',
   UPGRADE_CLICKED: 'upgrade_clicked',
+  
+  // Campaign tracking
+  CAMPAIGN_PAGE_VIEW: 'campaign_page_view',
+  CAMPAIGN_CTA_CLICKED: 'campaign_cta_clicked',
+  CAMPAIGN_SIGNUP: 'campaign_signup',
 } as const;

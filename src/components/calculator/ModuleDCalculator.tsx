@@ -176,8 +176,8 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <ArrowDownLeft className="h-5 w-5 text-emerald-600" />
-          <h3 className="font-bold text-base md:text-lg text-slate-700">Module D: Beyond Building Lifecycle</h3>
-          <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">Credits</Badge>
+          <h3 className="font-bold text-base md:text-lg text-foreground">Module D: Beyond Building Lifecycle</h3>
+          <Badge variant="outline" className="text-xs bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">Credits</Badge>
         </div>
         <Tooltip>
           <TooltipTrigger>
@@ -190,10 +190,10 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
       </div>
 
       {/* Recycling Credits */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 md:p-4 mb-4">
+      <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 md:p-4 mb-4">
         <div className="flex items-center gap-2 mb-3">
-          <Recycle className="h-4 w-4 text-emerald-600" />
-          <span className="text-sm font-medium text-emerald-800">Recycling Credits</span>
+          <Recycle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">Recycling Credits</span>
         </div>
         <div className="space-y-2">
           {recyclingItems.map((item, index) => {
@@ -201,17 +201,17 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
             const itemCredit = item.tonnes * (creditInfo?.credit || 0);
             return (
               <div key={item.material} className="flex items-center gap-3">
-                <span className="text-sm w-24 text-emerald-700">{getMaterialLabel(item.material)}</span>
+                <span className="text-sm w-24 text-emerald-700 dark:text-emerald-300">{getMaterialLabel(item.material)}</span>
                 <Input
                   type="number"
                   placeholder="0"
                   value={item.tonnes || ''}
                   onChange={(e) => updateRecyclingItem(index, parseFloat(e.target.value) || 0)}
-                  className="w-24 h-8 text-sm text-foreground"
+                  className="w-24 h-8 text-sm text-foreground dark:bg-emerald-900/30 dark:border-emerald-700"
                 />
-                <span className="text-xs text-muted-foreground">tonnes</span>
+                <span className="text-xs text-emerald-600 dark:text-emerald-400">tonnes</span>
                 {item.tonnes > 0 && (
-                  <span className="text-xs font-medium text-emerald-600 ml-auto">
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 ml-auto">
                     {(itemCredit / 1000).toFixed(2)} tCO₂e
                   </span>
                 )}
@@ -222,13 +222,13 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
       </div>
 
       {/* Reuse Credits */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-3 md:p-4 mb-4">
+      <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-lg p-3 md:p-4 mb-4">
         <div className="flex items-center gap-2 mb-3">
-          <Leaf className="h-4 w-4 text-green-600" />
-          <span className="text-sm font-medium text-green-800">Direct Reuse Credits</span>
-          <Badge variant="outline" className="text-xs bg-green-100 text-green-700">+20% bonus</Badge>
+          <Leaf className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <span className="text-sm font-medium text-green-800 dark:text-green-300">Direct Reuse Credits</span>
+          <Badge variant="outline" className="text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700">+20% bonus</Badge>
         </div>
-        <p className="text-xs text-green-700 mb-3">
+        <p className="text-xs text-green-700 dark:text-green-400 mb-3">
           Direct reuse avoids reprocessing energy and receives a 20% higher credit than recycling.
         </p>
         <div className="space-y-2">
@@ -237,15 +237,15 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
             const itemCredit = item.tonnes * baseCredit * 1.2 * (item.reusePercent / 100);
             return (
               <div key={item.material} className="flex items-center gap-3 flex-wrap">
-                <span className="text-sm w-20 text-green-700">{getMaterialLabel(item.material)}</span>
+                <span className="text-sm w-20 text-green-700 dark:text-green-300">{getMaterialLabel(item.material)}</span>
                 <Input
                   type="number"
                   placeholder="0"
                   value={item.tonnes || ''}
                   onChange={(e) => updateReuseItem(index, 'tonnes', parseFloat(e.target.value) || 0)}
-                  className="w-20 h-8 text-sm text-foreground"
+                  className="w-20 h-8 text-sm text-foreground dark:bg-green-900/30 dark:border-green-700"
                 />
-                <span className="text-xs text-muted-foreground">tonnes @</span>
+                <span className="text-xs text-green-600 dark:text-green-400">tonnes @</span>
                 <Input
                   type="number"
                   min="0"
@@ -253,11 +253,11 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
                   placeholder="100"
                   value={item.reusePercent || ''}
                   onChange={(e) => updateReuseItem(index, 'reusePercent', parseFloat(e.target.value) || 0)}
-                  className="w-16 h-8 text-sm text-foreground"
+                  className="w-16 h-8 text-sm text-foreground dark:bg-green-900/30 dark:border-green-700"
                 />
-                <span className="text-xs text-muted-foreground">%</span>
+                <span className="text-xs text-green-600 dark:text-green-400">%</span>
                 {item.tonnes > 0 && (
-                  <span className="text-xs font-medium text-green-600 ml-auto">
+                  <span className="text-xs font-medium text-green-600 dark:text-green-400 ml-auto">
                     {(itemCredit / 1000).toFixed(2)} tCO₂e
                   </span>
                 )}
@@ -268,11 +268,11 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
       </div>
 
       {/* Energy Recovery Credits */}
-      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 md:p-4 mb-4">
+      <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded-lg p-3 md:p-4 mb-4">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-sm font-medium text-orange-800">Energy Recovery Credits</span>
+          <span className="text-sm font-medium text-orange-800 dark:text-orange-300">Energy Recovery Credits</span>
         </div>
-        <p className="text-xs text-orange-700 mb-3">
+        <p className="text-xs text-orange-700 dark:text-orange-400 mb-3">
           Energy recovered from waste-to-energy processes displaces fossil fuel electricity.
         </p>
         <div className="space-y-2">
@@ -281,17 +281,17 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
             const itemCredit = item.tonnes * (creditInfo?.credit || -200);
             return (
               <div key={item.material} className="flex items-center gap-3">
-                <span className="text-sm w-24 text-orange-700">{getMaterialLabel(item.material)}</span>
+                <span className="text-sm w-24 text-orange-700 dark:text-orange-300">{getMaterialLabel(item.material)}</span>
                 <Input
                   type="number"
                   placeholder="0"
                   value={item.tonnes || ''}
                   onChange={(e) => updateEnergyRecoveryItem(index, parseFloat(e.target.value) || 0)}
-                  className="w-24 h-8 text-sm text-foreground"
+                  className="w-24 h-8 text-sm text-foreground dark:bg-orange-900/30 dark:border-orange-700"
                 />
-                <span className="text-xs text-muted-foreground">tonnes</span>
+                <span className="text-xs text-orange-600 dark:text-orange-400">tonnes</span>
                 {item.tonnes > 0 && (
-                  <span className="text-xs font-medium text-orange-600 ml-auto">
+                  <span className="text-xs font-medium text-orange-600 dark:text-orange-400 ml-auto">
                     {(itemCredit / 1000).toFixed(2)} tCO₂e
                   </span>
                 )}
@@ -304,9 +304,9 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
       {/* Summary */}
       <div className="border-t pt-4 mt-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium">Module D Summary</span>
+          <span className="text-sm font-medium text-foreground">Module D Summary</span>
           {hasAnyInput && (
-            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+            <Badge className="bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50">
               Circular Economy Benefits
             </Badge>
           )}
@@ -314,24 +314,24 @@ export function ModuleDCalculator({ onTotalsChange }: ModuleDCalculatorProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
           <div className="bg-muted/50 rounded p-2">
             <div className="text-muted-foreground">Recycling</div>
-            <div className="font-bold text-emerald-600">{(emissions.recycling_credits / 1000).toFixed(2)} t</div>
+            <div className="font-bold text-emerald-600 dark:text-emerald-400">{(emissions.recycling_credits / 1000).toFixed(2)} t</div>
           </div>
           <div className="bg-muted/50 rounded p-2">
             <div className="text-muted-foreground">Reuse</div>
-            <div className="font-bold text-green-600">{(emissions.reuse_credits / 1000).toFixed(2)} t</div>
+            <div className="font-bold text-green-600 dark:text-green-400">{(emissions.reuse_credits / 1000).toFixed(2)} t</div>
           </div>
           <div className="bg-muted/50 rounded p-2">
             <div className="text-muted-foreground">Energy Recovery</div>
-            <div className="font-bold text-orange-600">{(emissions.energy_recovery_credits / 1000).toFixed(2)} t</div>
+            <div className="font-bold text-orange-600 dark:text-orange-400">{(emissions.energy_recovery_credits / 1000).toFixed(2)} t</div>
           </div>
-          <div className="bg-emerald-100 rounded p-2">
-            <div className="text-emerald-700">Total Credits</div>
-            <div className="font-bold text-emerald-700">{(emissions.total / 1000).toFixed(2)} tCO₂e</div>
+          <div className="bg-emerald-100 dark:bg-emerald-900/50 rounded p-2">
+            <div className="text-emerald-700 dark:text-emerald-300">Total Credits</div>
+            <div className="font-bold text-emerald-700 dark:text-emerald-300">{(emissions.total / 1000).toFixed(2)} tCO₂e</div>
           </div>
         </div>
         
         {hasAnyInput && totalCredits > 0 && (
-          <p className="text-xs text-emerald-600 mt-3">
+          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-3">
             💡 These credits offset {(totalCredits / 1000).toFixed(2)} tCO₂e of upfront emissions through circular economy practices.
           </p>
         )}

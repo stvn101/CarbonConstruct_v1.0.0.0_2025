@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Cache bust: 2025-12-14T08:15 - React 19 scheduler override fix v24
+// Cache bust: 2025-12-15T15:30 - React 19 deduplication fix v26 - removed vaul
 // Note: Using npm overrides to force scheduler@0.23.2 (React 19 compatible)
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -23,8 +23,10 @@ export default defineConfig(({ mode }) => ({
       "react/jsx-runtime": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
       "react/jsx-dev-runtime": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime"),
       "react-dom/client": path.resolve(__dirname, "node_modules/react-dom/client"),
+      "react-is": path.resolve(__dirname, "node_modules/react-is"),
+      "scheduler": path.resolve(__dirname, "node_modules/scheduler"),
     },
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom/client'],
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom/client', 'react-is', 'scheduler'],
   },
   optimizeDeps: {
     include: [

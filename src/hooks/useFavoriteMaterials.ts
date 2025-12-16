@@ -26,6 +26,19 @@ export interface FavoriteMaterial {
   ef_b1b5?: number;
   ef_c1c4?: number;
   ef_d?: number;
+  // ECO Platform compliance fields
+  manufacturing_country?: string;
+  manufacturing_city?: string;
+  characterisation_factor_version?: string;
+  allocation_method?: string;
+  is_co_product?: boolean;
+  co_product_type?: string;
+  uses_mass_balance?: boolean;
+  biogenic_carbon_kg_c?: number;
+  biogenic_carbon_percentage?: number;
+  ecoinvent_methodology?: string;
+  eco_platform_compliant?: boolean;
+  data_quality_rating?: string;
 }
 
 const STORAGE_KEY = 'carbonConstruct_favoriteMaterials';
@@ -162,6 +175,19 @@ export function useFavoriteMaterials() {
     ef_b1b5?: number;
     ef_c1c4?: number;
     ef_d?: number;
+    // ECO Platform compliance fields
+    manufacturing_country?: string;
+    manufacturing_city?: string;
+    characterisation_factor_version?: string;
+    allocation_method?: string;
+    is_co_product?: boolean;
+    co_product_type?: string;
+    uses_mass_balance?: boolean;
+    biogenic_carbon_kg_c?: number;
+    biogenic_carbon_percentage?: number;
+    ecoinvent_methodology?: string;
+    eco_platform_compliant?: boolean;
+    data_quality_rating?: string;
   }) => {
     setFavorites(prev => {
       const existing = prev.find(f => f.materialId === material.id);
@@ -186,6 +212,19 @@ export function useFavoriteMaterials() {
                 ef_b1b5: material.ef_b1b5 ?? f.ef_b1b5,
                 ef_c1c4: material.ef_c1c4 ?? f.ef_c1c4,
                 ef_d: material.ef_d ?? f.ef_d,
+                // Update ECO Platform fields with latest data
+                manufacturing_country: material.manufacturing_country ?? f.manufacturing_country,
+                manufacturing_city: material.manufacturing_city ?? f.manufacturing_city,
+                characterisation_factor_version: material.characterisation_factor_version ?? f.characterisation_factor_version,
+                allocation_method: material.allocation_method ?? f.allocation_method,
+                is_co_product: material.is_co_product ?? f.is_co_product,
+                co_product_type: material.co_product_type ?? f.co_product_type,
+                uses_mass_balance: material.uses_mass_balance ?? f.uses_mass_balance,
+                biogenic_carbon_kg_c: material.biogenic_carbon_kg_c ?? f.biogenic_carbon_kg_c,
+                biogenic_carbon_percentage: material.biogenic_carbon_percentage ?? f.biogenic_carbon_percentage,
+                ecoinvent_methodology: material.ecoinvent_methodology ?? f.ecoinvent_methodology,
+                eco_platform_compliant: material.eco_platform_compliant ?? f.eco_platform_compliant,
+                data_quality_rating: material.data_quality_rating ?? f.data_quality_rating,
               }
             : f
         );
@@ -214,6 +253,19 @@ export function useFavoriteMaterials() {
           ef_b1b5: material.ef_b1b5,
           ef_c1c4: material.ef_c1c4,
           ef_d: material.ef_d,
+          // Store ECO Platform fields
+          manufacturing_country: material.manufacturing_country,
+          manufacturing_city: material.manufacturing_city,
+          characterisation_factor_version: material.characterisation_factor_version,
+          allocation_method: material.allocation_method,
+          is_co_product: material.is_co_product,
+          co_product_type: material.co_product_type,
+          uses_mass_balance: material.uses_mass_balance,
+          biogenic_carbon_kg_c: material.biogenic_carbon_kg_c,
+          biogenic_carbon_percentage: material.biogenic_carbon_percentage,
+          ecoinvent_methodology: material.ecoinvent_methodology,
+          eco_platform_compliant: material.eco_platform_compliant,
+          data_quality_rating: material.data_quality_rating,
         }];
       }
     });
@@ -376,6 +428,19 @@ export function useFavoriteMaterials() {
         ef_b1b5: dbMaterial.ef_b1b5 ? Number(dbMaterial.ef_b1b5) : fav.ef_b1b5,
         ef_c1c4: dbMaterial.ef_c1c4 ? Number(dbMaterial.ef_c1c4) : fav.ef_c1c4,
         ef_d: dbMaterial.ef_d ? Number(dbMaterial.ef_d) : fav.ef_d,
+        // ECO Platform compliance fields
+        manufacturing_country: dbMaterial.manufacturing_country || fav.manufacturing_country,
+        manufacturing_city: dbMaterial.manufacturing_city || fav.manufacturing_city,
+        characterisation_factor_version: dbMaterial.characterisation_factor_version || fav.characterisation_factor_version,
+        allocation_method: dbMaterial.allocation_method || fav.allocation_method,
+        is_co_product: dbMaterial.is_co_product ?? fav.is_co_product,
+        co_product_type: dbMaterial.co_product_type || fav.co_product_type,
+        uses_mass_balance: dbMaterial.uses_mass_balance ?? fav.uses_mass_balance,
+        biogenic_carbon_kg_c: dbMaterial.biogenic_carbon_kg_c ? Number(dbMaterial.biogenic_carbon_kg_c) : fav.biogenic_carbon_kg_c,
+        biogenic_carbon_percentage: dbMaterial.biogenic_carbon_percentage ? Number(dbMaterial.biogenic_carbon_percentage) : fav.biogenic_carbon_percentage,
+        ecoinvent_methodology: dbMaterial.ecoinvent_methodology || fav.ecoinvent_methodology,
+        eco_platform_compliant: dbMaterial.eco_platform_compliant ?? fav.eco_platform_compliant,
+        data_quality_rating: dbMaterial.data_quality_rating || fav.data_quality_rating,
       };
     }));
 

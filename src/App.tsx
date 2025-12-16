@@ -2,13 +2,13 @@ import * as React from "react";
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { PageTransition } from "@/components/PageTransition";
+import { cn } from "@/lib/utils";
 
 // Eager load only the index page for faster initial render
 import Index from "./pages/Index";
@@ -28,11 +28,23 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 const Roadmap = lazy(() => import("./pages/Roadmap"));
 const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
+const AdminCampaigns = lazy(() => import("./pages/AdminCampaigns"));
 const AccessibilityStatement = lazy(() => import("./pages/AccessibilityStatement"));
 const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
 const MaterialDatabaseStatus = lazy(() => import("./pages/MaterialDatabaseStatus"));
+const EcoComplianceDashboard = lazy(() => import("./pages/EcoComplianceDashboard"));
 const Demo = lazy(() => import("./pages/Demo"));
 const DesignSystem = lazy(() => import("./pages/DesignSystem"));
+
+// Campaign landing pages
+const LandingBuilders = lazy(() => import("./pages/LandingBuilders"));
+const LandingArchitects = lazy(() => import("./pages/LandingArchitects"));
+const LandingDevelopers = lazy(() => import("./pages/LandingDevelopers"));
+const LandingSupplyChain = lazy(() => import("./pages/LandingSupplyChain"));
+const LandingConsultants = lazy(() => import("./pages/LandingConsultants"));
+const LandingEngineers = lazy(() => import("./pages/LandingEngineers"));
+const LandingGovernment = lazy(() => import("./pages/LandingGovernment"));
+const LandingInvestors = lazy(() => import("./pages/LandingInvestors"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +56,38 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Page transition wrapper
+function AnimatedRoutes({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const [displayLocation, setDisplayLocation] = React.useState(location);
+  const [transitionStage, setTransitionStage] = React.useState("fade-in");
+
+  React.useEffect(() => {
+    if (location.pathname !== displayLocation.pathname) {
+      setTransitionStage("fade-out");
+    }
+  }, [location, displayLocation]);
+
+  const handleAnimationEnd = () => {
+    if (transitionStage === "fade-out") {
+      setTransitionStage("fade-in");
+      setDisplayLocation(location);
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        "transition-all duration-200 ease-out",
+        transitionStage === "fade-in" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
+      )}
+      onTransitionEnd={handleAnimationEnd}
+    >
+      {children}
+    </div>
+  );
+}
 
 // Monitoring wrapper component
 function MonitoringProvider({ children }: { children: React.ReactNode }) {
@@ -60,13 +104,13 @@ const App = () => (
         <BrowserRouter>
           <MonitoringProvider>
             <Layout>
-              <Suspense fallback={
-                <div className="flex items-center justify-center min-h-screen" role="status" aria-live="polite">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" aria-hidden="true"></div>
-                  <span className="sr-only">Loading page content...</span>
-                </div>
-              }>
-                <PageTransition>
+              <AnimatedRoutes>
+                <Suspense fallback={
+                  <div className="flex items-center justify-center min-h-screen" role="status" aria-live="polite">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" aria-hidden="true"></div>
+                    <span className="sr-only">Loading page content...</span>
+                  </div>
+                }>
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
@@ -84,15 +128,25 @@ const App = () => (
                     <Route path="/accessibility" element={<AccessibilityStatement />} />
                     <Route path="/admin" element={<AdminMonitoring />} />
                     <Route path="/admin/monitoring" element={<AdminMonitoring />} />
+                    <Route path="/admin/campaigns" element={<AdminCampaigns />} />
                     <Route path="/admin/material-verification" element={<MaterialVerification />} />
+                    <Route path="/admin/eco-compliance" element={<EcoComplianceDashboard />} />
                     <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
                     <Route path="/demo" element={<Demo />} />
-                    <Route path="/design-system" element={<DesignSystem />} />
+                    {/* Campaign landing pages */}
+                    <Route path="/lp/builders" element={<LandingBuilders />} />
+                    <Route path="/lp/architects" element={<LandingArchitects />} />
+                    <Route path="/lp/developers" element={<LandingDevelopers />} />
+                    <Route path="/lp/suppliers" element={<LandingSupplyChain />} />
+                    <Route path="/lp/consultants" element={<LandingConsultants />} />
+                    <Route path="/lp/engineers" element={<LandingEngineers />} />
+                    <Route path="/lp/government" element={<LandingGovernment />} />
+                    <Route path="/lp/investors" element={<LandingInvestors />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                </PageTransition>
-              </Suspense>
+                </Suspense>
+              </AnimatedRoutes>
             </Layout>
           </MonitoringProvider>
         </BrowserRouter>

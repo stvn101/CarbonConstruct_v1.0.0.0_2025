@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { FileDown, Loader2 } from 'lucide-react';
 import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
+import { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
 
 export interface ReportBranding {
   companyName?: string;
@@ -21,6 +22,7 @@ interface PDFReportContentProps {
   branding?: ReportBranding;
   showWatermark?: boolean;
   contentId: string;
+  ecoComplianceReport?: EcoPlatformComplianceReport | null;
 }
 
 // HTML-based report content component
@@ -29,7 +31,8 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
   template, 
   branding,
   showWatermark,
-  contentId 
+  contentId,
+  ecoComplianceReport
 }) => {
   const formatNumber = (num: number) => (num || 0).toFixed(2);
 
@@ -253,91 +256,330 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
     </>
   );
 
-  const renderEN15978Report = () => (
-    <>
-      <div className="pdf-declaration-box">
-        <h2 className="pdf-declaration-title">Declaration of Conformity</h2>
-        <div className="pdf-declaration-grid">
-          <div className="pdf-declaration-row">
-            <span className="pdf-declaration-label">Standard:</span>
-            <span className="pdf-declaration-value">EN 15978:2011</span>
-          </div>
-          <div className="pdf-declaration-row">
-            <span className="pdf-declaration-label">Scope:</span>
-            <span className="pdf-declaration-value">Whole Life Carbon Assessment</span>
-          </div>
-          <div className="pdf-declaration-row">
-            <span className="pdf-declaration-label">Building Type:</span>
-            <span className="pdf-declaration-value">{data.project.project_type || 'Commercial'}</span>
-          </div>
-          <div className="pdf-declaration-row">
-            <span className="pdf-declaration-label">Reference Study Period:</span>
-            <span className="pdf-declaration-value">60 years</span>
-          </div>
-          <div className="pdf-declaration-row">
-            <span className="pdf-declaration-label">Functional Unit:</span>
-            <span className="pdf-declaration-value">1 m² GIA per year</span>
+  const renderEN15978Report = () => {
+    const wl = data.wholeLife;
+    const hasWholeLife = !!wl;
+    
+    // Calculate totals from whole life data or fall back to emission scopes
+    const a1a3 = hasWholeLife ? wl.a1a3_product : data.emissions.scope3 * 1000;
+    const a4 = hasWholeLife ? wl.a4_transport : 0;
+    const a5 = hasWholeLife ? wl.a5_construction : data.emissions.scope1 * 1000;
+    const totalUpfront = hasWholeLife ? wl.total_upfront : (a1a3 + a4 + a5);
+    
+    // Use phase (B1-B7)
+    const b1b5 = hasWholeLife ? (wl.b1_use + wl.b2_maintenance + wl.b3_repair + wl.b4_replacement + wl.b5_refurbishment) : 0;
+    const b6 = hasWholeLife ? wl.b6_operational_energy : 0;
+    const b7 = hasWholeLife ? wl.b7_operational_water : 0;
+    
+    // End of life (C1-C4)
+    const c1c4 = hasWholeLife ? (wl.c1_deconstruction + wl.c2_transport + wl.c3_waste_processing + wl.c4_disposal) : 0;
+    
+    // Module D (credits)
+    const moduleD = hasWholeLife ? (wl.d_recycling + wl.d_reuse + wl.d_energy_recovery) : 0;
+    
+    // Total whole life
+    const totalWholeLife = hasWholeLife ? wl.total_whole_life : totalUpfront;
+    const totalWithBenefits = hasWholeLife ? wl.total_with_benefits : totalUpfront;
+    
+    // Calculate percentages
+    const calcPercent = (val: number) => totalWholeLife > 0 ? ((val / totalWholeLife) * 100).toFixed(1) : '0';
+    
+    return (
+      <>
+        <div className="pdf-declaration-box">
+          <h2 className="pdf-declaration-title">Declaration of Conformity</h2>
+          <div className="pdf-declaration-grid">
+            <div className="pdf-declaration-row">
+              <span className="pdf-declaration-label">Standard:</span>
+              <span className="pdf-declaration-value">EN 15978:2011</span>
+            </div>
+            <div className="pdf-declaration-row">
+              <span className="pdf-declaration-label">Scope:</span>
+              <span className="pdf-declaration-value">Whole Life Carbon Assessment</span>
+            </div>
+            <div className="pdf-declaration-row">
+              <span className="pdf-declaration-label">Building Type:</span>
+              <span className="pdf-declaration-value">{data.project.project_type || 'Commercial'}</span>
+            </div>
+            <div className="pdf-declaration-row">
+              <span className="pdf-declaration-label">Reference Study Period:</span>
+              <span className="pdf-declaration-value">60 years</span>
+            </div>
+            <div className="pdf-declaration-row">
+              <span className="pdf-declaration-label">Functional Unit:</span>
+              <span className="pdf-declaration-value">1 m² GIA per year</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">Lifecycle Stage Summary</h2>
-        <table className="pdf-table pdf-lifecycle-table">
-          <thead>
-            <tr className="bg-blue-800 text-white">
-              <th>Stage</th>
-              <th>Description</th>
-              <th>Emissions (kgCO₂e/m²)</th>
-              <th>% of Total</th>
-            </tr>
-          </thead>
+        <div className="pdf-section">
+          <h2 className="pdf-section-title">Lifecycle Stage Summary</h2>
+          <table className="pdf-table pdf-lifecycle-table">
+            <thead>
+              <tr className="bg-blue-800 text-white">
+                <th>Stage</th>
+                <th>Description</th>
+                <th>Emissions (kgCO₂e)</th>
+                <th>% of Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="pdf-stage-header">
+                <td colSpan={4}>Product Stage (A1-A3)</td>
+              </tr>
+              <tr>
+                <td>A1-A3</td>
+                <td>Raw materials, transport, manufacturing</td>
+                <td>{formatNumber(a1a3)}</td>
+                <td>{calcPercent(a1a3)}%</td>
+              </tr>
+              <tr className="pdf-stage-header">
+                <td colSpan={4}>Construction Stage (A4-A5)</td>
+              </tr>
+              <tr>
+                <td>A4</td>
+                <td>Transport to site</td>
+                <td>{formatNumber(a4)}</td>
+                <td>{calcPercent(a4)}%</td>
+              </tr>
+              <tr>
+                <td>A5</td>
+                <td>Construction installation</td>
+                <td>{formatNumber(a5)}</td>
+                <td>{calcPercent(a5)}%</td>
+              </tr>
+              <tr className="pdf-subtotal-row">
+                <td colSpan={2}><strong>Subtotal Upfront (A1-A5)</strong></td>
+                <td><strong>{formatNumber(totalUpfront)}</strong></td>
+                <td><strong>{calcPercent(totalUpfront)}%</strong></td>
+              </tr>
+              
+              {hasWholeLife && (
+                <>
+                  <tr className="pdf-stage-header">
+                    <td colSpan={4}>Use Stage (B1-B7)</td>
+                  </tr>
+                  <tr>
+                    <td>B1-B5</td>
+                    <td>Embodied (maintenance, replacement, refurbishment)</td>
+                    <td>{formatNumber(b1b5)}</td>
+                    <td>{calcPercent(b1b5)}%</td>
+                  </tr>
+                  <tr>
+                    <td>B6</td>
+                    <td>Operational energy</td>
+                    <td>{formatNumber(b6)}</td>
+                    <td>{calcPercent(b6)}%</td>
+                  </tr>
+                  <tr>
+                    <td>B7</td>
+                    <td>Operational water</td>
+                    <td>{formatNumber(b7)}</td>
+                    <td>{calcPercent(b7)}%</td>
+                  </tr>
+                  
+                  <tr className="pdf-stage-header">
+                    <td colSpan={4}>End of Life Stage (C1-C4)</td>
+                  </tr>
+                  <tr>
+                    <td>C1-C4</td>
+                    <td>Deconstruction, transport, waste processing, disposal</td>
+                    <td>{formatNumber(c1c4)}</td>
+                    <td>{calcPercent(c1c4)}%</td>
+                  </tr>
+                  
+                  <tr className="pdf-stage-header">
+                    <td colSpan={4}>Module D (Beyond Building Lifecycle)</td>
+                  </tr>
+                  <tr>
+                    <td>D</td>
+                    <td>Recycling, reuse, energy recovery credits</td>
+                    <td style={{ color: moduleD < 0 ? '#16a34a' : undefined }}>{formatNumber(moduleD)}</td>
+                    <td>-</td>
+                  </tr>
+                </>
+              )}
+              
+              <tr className="pdf-total-row">
+                <td colSpan={2}><strong>TOTAL WHOLE LIFE (A-C)</strong></td>
+                <td><strong>{formatNumber(totalWholeLife)}</strong></td>
+                <td><strong>100%</strong></td>
+              </tr>
+              {hasWholeLife && moduleD !== 0 && (
+                <tr className="pdf-total-row" style={{ backgroundColor: '#f0fdf4' }}>
+                  <td colSpan={2}><strong>NET WITH BENEFITS (A-D)</strong></td>
+                  <td><strong>{formatNumber(totalWithBenefits)}</strong></td>
+                  <td>-</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="pdf-section">
+          <h2 className="pdf-section-title">Carbon Intensity</h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="pdf-intensity-box">
+              <h3 className="pdf-intensity-title">Upfront Carbon (A1-A5)</h3>
+              <p className="pdf-intensity-value">{formatNumber(totalUpfront)} kgCO₂e</p>
+              {hasWholeLife && wl.intensity_upfront && (
+                <p className="pdf-intensity-unit">{formatNumber(wl.intensity_upfront)} kgCO₂e/m²</p>
+              )}
+            </div>
+            <div className="pdf-intensity-box">
+              <h3 className="pdf-intensity-title">Whole Life (A-C)</h3>
+              <p className="pdf-intensity-value">{formatNumber(totalWholeLife)} kgCO₂e</p>
+              {hasWholeLife && wl.intensity_whole_life && (
+                <p className="pdf-intensity-unit">{formatNumber(wl.intensity_whole_life)} kgCO₂e/m²</p>
+              )}
+            </div>
+            <div className="pdf-intensity-box">
+              <h3 className="pdf-intensity-title">Net with Benefits (A-D)</h3>
+              <p className="pdf-intensity-value">{formatNumber(totalWithBenefits)} kgCO₂e</p>
+              {hasWholeLife && wl.intensity_with_benefits && (
+                <p className="pdf-intensity-unit">{formatNumber(wl.intensity_with_benefits)} kgCO₂e/m²</p>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {!hasWholeLife && (
+          <div className="pdf-warning-box">
+            <p className="text-sm">
+              ⚠️ This report shows only upfront carbon (A1-A5). Complete the Use Phase (B1-B7), 
+              End of Life (C1-C4), and Module D calculators for a comprehensive whole life assessment.
+            </p>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const renderEcoComplianceSection = () => {
+    if (!ecoComplianceReport) return null;
+    
+    return (
+      <div className="pdf-section" style={{ pageBreakBefore: 'always' }}>
+        <h2 className="pdf-section-title" style={{ fontSize: '16px', fontWeight: 'bold', borderBottom: '2px solid #000', paddingBottom: '8px', marginBottom: '16px' }}>
+          ECO Platform Compliance Declaration
+        </h2>
+        <p style={{ fontSize: '11px', marginBottom: '16px', color: '#666' }}>
+          LCA Calculation Rules V2.0 (December 2024) | Compliance Score: {ecoComplianceReport.complianceValidation.complianceScore}%
+        </p>
+
+        {/* Standards Compliance */}
+        <div style={{ marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Standards Compliance</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            {[
+              { name: 'EN 15804+A2', compliant: ecoComplianceReport.standardsCompliance.en15804A2 },
+              { name: 'ECO Platform V2.0', compliant: ecoComplianceReport.standardsCompliance.ecoPlatformV2 },
+              { name: 'ISO 14025', compliant: ecoComplianceReport.standardsCompliance.iso14025 },
+              { name: 'ISO 21930', compliant: ecoComplianceReport.standardsCompliance.iso21930 },
+            ].map((s) => (
+              <div key={s.name} style={{ 
+                padding: '8px', 
+                border: '1px solid #ccc', 
+                borderRadius: '4px',
+                backgroundColor: s.compliant ? '#f0fdf4' : '#fef2f2'
+              }}>
+                <span style={{ fontSize: '10px' }}>{s.compliant ? '✓' : '✗'} {s.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Compliance Details Table */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', fontSize: '10px' }}>
           <tbody>
-            <tr className="pdf-stage-header">
-              <td colSpan={4}>Product Stage (A1-A3)</td>
+            <tr>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', width: '35%', backgroundColor: '#f9fafb' }}>
+                Electricity Modelling (§2.5)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                {ecoComplianceReport.energyTransparency.electricityModellingApproach} approach | 
+                {ecoComplianceReport.energyTransparency.electricityPercentageOfA1A3.toFixed(1)}% of A1-A3
+                {ecoComplianceReport.energyTransparency.electricityGwpKgCO2ePerKwh !== null && 
+                  ` | GWP: ${ecoComplianceReport.energyTransparency.electricityGwpKgCO2ePerKwh.toFixed(3)} kgCO2e/kWh`}
+              </td>
             </tr>
             <tr>
-              <td>A1-A3</td>
-              <td>Raw materials, transport, manufacturing</td>
-              <td>{formatNumber(data.emissions.scope3 * 1000)}</td>
-              <td>{data.emissions.total > 0 ? ((data.emissions.scope3 / data.emissions.total) * 100).toFixed(1) : 0}%</td>
-            </tr>
-            <tr className="pdf-stage-header">
-              <td colSpan={4}>Construction Stage (A4-A5)</td>
-            </tr>
-            <tr>
-              <td>A4</td>
-              <td>Transport to site</td>
-              <td>{formatNumber((data.emissions.scope3 || 0) * 50)}</td>
-              <td>-</td>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                Characterisation Factors (§2.9)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                {ecoComplianceReport.characterisationFactors.version} ({ecoComplianceReport.characterisationFactors.source})
+              </td>
             </tr>
             <tr>
-              <td>A5</td>
-              <td>Construction installation</td>
-              <td>{formatNumber((data.emissions.scope1 || 0) * 1000)}</td>
-              <td>-</td>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                Allocation Method (§2.6)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                {ecoComplianceReport.allocationStatement.allocationMethodUsed}
+                {ecoComplianceReport.allocationStatement.coProductsPresent && 
+                  ` | Economic allocation for slag/fly ash: ${ecoComplianceReport.allocationStatement.economicAllocationForSlagFlyAsh ? '✓' : '✗'}`}
+              </td>
             </tr>
-            <tr className="pdf-total-row">
-              <td colSpan={2}><strong>TOTAL (A1-A5)</strong></td>
-              <td><strong>{formatNumber(data.emissions.total * 1000)}</strong></td>
-              <td><strong>100%</strong></td>
+            <tr>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                Data Quality (§2.7)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                Rating: <strong>{ecoComplianceReport.dataQuality.overallRating}</strong> | 
+                Temporal: {ecoComplianceReport.dataQuality.temporalCoverage} | 
+                Geographical: {ecoComplianceReport.dataQuality.geographicalCoverage}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                Biogenic Carbon (§2.11)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                {ecoComplianceReport.biogenicCarbon.totalBiogenicCarbonKgC.toFixed(2)} kg C
+                {ecoComplianceReport.biogenicCarbon.biogenicCarbonKgCO2e !== null && 
+                  ` (${ecoComplianceReport.biogenicCarbon.biogenicCarbonKgCO2e.toFixed(2)} kg CO2-e)`}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                Manufacturing Locations (§2.12)
+              </td>
+              <td style={{ padding: '8px', border: '1px solid #ccc' }}>
+                {ecoComplianceReport.manufacturingLocations.length > 0 
+                  ? ecoComplianceReport.manufacturingLocations.map(l => `${l.city}, ${l.country}`).join('; ')
+                  : 'Not specified'}
+              </td>
             </tr>
           </tbody>
         </table>
-      </div>
 
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">Carbon Intensity</h2>
-        <div className="pdf-intensity-box">
-          <h3 className="pdf-intensity-title">Upfront Carbon (A1-A5)</h3>
-          <p className="pdf-intensity-value">
-            {formatNumber(data.emissions.total * 1000)} kgCO₂e total
+        {/* Validation Summary */}
+        <div style={{ 
+          padding: '12px', 
+          borderRadius: '4px',
+          backgroundColor: ecoComplianceReport.complianceValidation.isFullyCompliant ? '#f0fdf4' : '#fef2f2',
+          border: `1px solid ${ecoComplianceReport.complianceValidation.isFullyCompliant ? '#bbf7d0' : '#fecaca'}`
+        }}>
+          <p style={{ fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}>
+            {ecoComplianceReport.complianceValidation.isFullyCompliant 
+              ? '✓ Fully Compliant with ECO Platform LCA Calculation Rules V2.0'
+              : `⚠ ${ecoComplianceReport.complianceValidation.nonCompliantItems.length} compliance issue(s) found`}
           </p>
-          <p className="pdf-intensity-unit">whole building</p>
+          {ecoComplianceReport.complianceValidation.warnings.length > 0 && (
+            <p style={{ fontSize: '10px', color: '#92400e' }}>
+              {ecoComplianceReport.complianceValidation.warnings.length} warning(s)
+            </p>
+          )}
         </div>
+
+        <p style={{ fontSize: '9px', color: '#666', marginTop: '12px' }}>
+          This declaration is prepared in accordance with ECO Platform LCA Calculation Rules V2.0 
+          (December 2024) and EN 15804:2012+A2:2019 standards.
+        </p>
       </div>
-    </>
-  );
+    );
+  };
 
   return (
     <div 
@@ -385,6 +627,9 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
       {template === 'technical' && renderTechnicalReport()}
       {template === 'en15978' && renderEN15978Report()}
 
+      {/* ECO Platform Compliance Section */}
+      {ecoComplianceReport && renderEcoComplianceSection()}
+
       {/* Footer */}
       <div className="pdf-footer">
         <p>This report was generated using Australian NCC 2024 emission factors and methodologies.</p>
@@ -417,6 +662,7 @@ interface PDFReportProps {
   filename?: string;
   branding?: ReportBranding;
   showWatermark?: boolean;
+  ecoComplianceReport?: EcoPlatformComplianceReport | null;
 }
 
 export const PDFReport: React.FC<PDFReportProps> = ({ 
@@ -424,7 +670,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({
   template = 'technical',
   filename,
   branding,
-  showWatermark = false
+  showWatermark = false,
+  ecoComplianceReport = null
 }) => {
   const [loading, setLoading] = useState(false);
   const contentId = useId().replace(/:/g, '-') + '-pdf-content';
@@ -473,6 +720,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         branding={branding} 
         showWatermark={showWatermark}
         contentId={contentId}
+        ecoComplianceReport={ecoComplianceReport}
       />
       <Button onClick={handleDownload} disabled={loading} className="w-full">
         {loading ? (

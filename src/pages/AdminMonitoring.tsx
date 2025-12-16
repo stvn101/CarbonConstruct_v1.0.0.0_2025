@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck, Bug, Zap, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck, Bug, Zap, ShieldAlert, Leaf } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -184,6 +184,18 @@ export default function AdminMonitoring() {
   const [icmImportLoading, setIcmImportLoading] = useState(false);
   const [icmImportResult, setIcmImportResult] = useState<{
     success: boolean;
+    total?: number;
+    inserted?: number;
+    failed?: number;
+    skipped?: number;
+    duplicates?: number;
+    error?: string;
+    sample?: any[];
+  } | null>(null);
+  const [ngerImportLoading, setNgerImportLoading] = useState(false);
+  const [ngerImportResult, setNgerImportResult] = useState<{
+    success: boolean;
+    type?: string;
     total?: number;
     inserted?: number;
     failed?: number;
@@ -518,11 +530,13 @@ export default function AdminMonitoring() {
 
   const uniqueMetricNames = [...new Set(performanceMetrics.map(m => m.metric_name))];
 
-  // Calculate aggregates
+  // Calculate aggregates - last 24h only for Critical Errors card
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const recentErrors = errorLogs.filter(e => new Date(e.created_at) > twentyFourHoursAgo);
   const errorCounts = {
-    critical: errorLogs.filter(e => e.severity === "critical").length,
-    error: errorLogs.filter(e => e.severity === "error").length,
-    warning: errorLogs.filter(e => e.severity === "warning").length,
+    critical: recentErrors.filter(e => e.severity === "critical").length,
+    error: recentErrors.filter(e => e.severity === "error").length,
+    warning: recentErrors.filter(e => e.severity === "warning").length,
   };
 
   const avgMetrics = uniqueMetricNames.reduce((acc, name) => {
@@ -532,6 +546,27 @@ export default function AdminMonitoring() {
       : 0;
     return acc;
   }, {} as Record<string, number>);
+  
+  // Clear error logs (admin only)
+  const clearErrorLogs = async () => {
+    if (!confirm('Are you sure you want to delete ALL error logs? This cannot be undone.')) {
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('error_logs')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      
+      if (error) throw error;
+      
+      toast.success('Error logs cleared');
+      await loadErrorLogs();
+    } catch (err: any) {
+      console.error('Clear error logs failed:', err);
+      toast.error(err.message || 'Failed to clear error logs');
+    }
+  };
 
   if (authLoading || loading) {
     return (
@@ -605,7 +640,7 @@ export default function AdminMonitoring() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{errorCounts.critical}</p>
-            <p className="text-xs text-muted-foreground">Last 100 logs</p>
+            <p className="text-xs text-muted-foreground">Last 24 hours</p>
           </CardContent>
         </Card>
 
@@ -652,6 +687,12 @@ export default function AdminMonitoring() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
+            <Link to="/admin/eco-compliance">
+              <Button variant="outline" className="gap-2">
+                <Leaf className="h-4 w-4" />
+                ECO Platform Compliance
+              </Button>
+            </Link>
             <Link to="/admin/material-verification">
               <Button variant="outline" className="gap-2">
                 <FileText className="h-4 w-4" />
@@ -1131,6 +1172,87 @@ export default function AdminMonitoring() {
           
           {/* BlueScope EPD Import */}
           <BluescopeEPDImporter />
+          
+          {/* NGER 2025 Data Import */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-emerald-600" />
+                NGER 2025 Data Import
+              </CardTitle>
+              <CardDescription>
+                Import NGER materials (120+) and operational emission factors (60+) from NGA 2024
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-4 flex-wrap">
+                <Button 
+                  onClick={async () => {
+                    setNgerImportLoading(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("import-nger-data", {
+                        body: { action: 'import-materials' }
+                      });
+                      if (error) throw error;
+                      setNgerImportResult(data);
+                      toast.success(`Imported ${data?.inserted || 0} NGER materials`);
+                      await loadEpdMaterialsCount();
+                    } catch (err: any) {
+                      toast.error(err.message || "Import failed");
+                    } finally {
+                      setNgerImportLoading(false);
+                    }
+                  }}
+                  disabled={ngerImportLoading}
+                  className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+                >
+                  {ngerImportLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  Import NGER Materials
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    setNgerImportLoading(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("import-nger-data", {
+                        body: { action: 'import-operational' }
+                      });
+                      if (error) throw error;
+                      setNgerImportResult(data);
+                      toast.success(`Imported ${data?.inserted || 0} operational factors`);
+                    } catch (err: any) {
+                      toast.error(err.message || "Import failed");
+                    } finally {
+                      setNgerImportLoading(false);
+                    }
+                  }}
+                  disabled={ngerImportLoading}
+                  variant="outline"
+                  className="gap-2 border-emerald-600/50 text-emerald-600 hover:bg-emerald-600/10"
+                >
+                  {ngerImportLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  Import Operational Factors
+                </Button>
+              </div>
+              
+              {ngerImportResult?.success && (
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                  <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                    ✓ Imported {ngerImportResult.inserted} {ngerImportResult.type || 'records'}
+                  </p>
+                </div>
+              )}
+              
+              <div className="bg-emerald-600/5 p-4 rounded-lg border border-emerald-600/20">
+                <h4 className="font-medium mb-2 text-emerald-600">NGER Data Features:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>✓ 120+ building materials with Tier 1-4 data quality ratings</li>
+                  <li>✓ 60+ operational factors (fuels, electricity, water, waste)</li>
+                  <li>✓ State-level electricity grid factors</li>
+                  <li>✓ NGA 2024 & NGER Determination compliant</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Error Logs Tab */}
@@ -1142,7 +1264,7 @@ export default function AdminMonitoring() {
                   <CardTitle>Error Logs</CardTitle>
                   <CardDescription>Recent application errors and exceptions</CardDescription>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -1164,6 +1286,15 @@ export default function AdminMonitoring() {
                       <SelectItem value="info">Info</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={clearErrorLogs}
+                    className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                    Clear All Logs
+                  </Button>
                 </div>
               </div>
             </CardHeader>

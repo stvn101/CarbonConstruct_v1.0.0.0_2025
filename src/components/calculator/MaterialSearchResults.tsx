@@ -45,7 +45,7 @@ function LCAMethodologyInfo() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800">
+        <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-800 dark:hover:text-emerald-200">
           <Info className="h-3.5 w-3.5" />
           Which LCA factor should I choose?
         </Button>
@@ -59,13 +59,13 @@ function LCAMethodologyInfo() {
             When adding materials, you'll see one or two buttons to choose between LCA methodologies:
           </p>
           
-          <div className="flex items-start gap-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-            <div className="h-7 w-7 rounded bg-emerald-100 flex items-center justify-center flex-shrink-0">
-              <FlaskConical className="h-4 w-4 text-emerald-700" />
+          <div className="flex items-start gap-3 p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-lg border border-emerald-200 dark:border-emerald-800">
+            <div className="h-7 w-7 rounded bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center flex-shrink-0">
+              <FlaskConical className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
             </div>
             <div>
-              <p className="font-semibold text-emerald-800">Process LCA (A1-A3)</p>
-              <p className="text-emerald-700 text-xs mt-1">
+              <p className="font-semibold text-emerald-800 dark:text-emerald-300">Process LCA (A1-A3)</p>
+              <p className="text-emerald-700 dark:text-emerald-400 text-xs mt-1">
                 Covers <strong>cradle-to-gate</strong> direct manufacturing emissions only. 
                 More conservative and commonly used for EPD compliance. 
                 <strong className="block mt-1">Use this for most regulatory submissions.</strong>
@@ -73,13 +73,13 @@ function LCAMethodologyInfo() {
             </div>
           </div>
           
-          <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
-            <div className="h-7 w-7 rounded bg-amber-100 flex items-center justify-center flex-shrink-0">
-              <RefreshCcw className="h-4 w-4 text-amber-700" />
+          <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950/40 rounded-lg border border-amber-200 dark:border-amber-800">
+            <div className="h-7 w-7 rounded bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0">
+              <RefreshCcw className="h-4 w-4 text-amber-700 dark:text-amber-300" />
             </div>
             <div>
-              <p className="font-semibold text-amber-800">Hybrid LCA (Total)</p>
-              <p className="text-amber-700 text-xs mt-1">
+              <p className="font-semibold text-amber-800 dark:text-amber-300">Hybrid LCA (Total)</p>
+              <p className="text-amber-700 dark:text-amber-400 text-xs mt-1">
                 Combines process data with <strong>input-output analysis</strong> for supply chain emissions. 
                 More comprehensive but higher values.
                 <strong className="block mt-1">Use for full lifecycle assessments.</strong>
@@ -132,13 +132,13 @@ export function MaterialSearchResults({
                 {totalResultCount.toLocaleString()} result{totalResultCount !== 1 ? 's' : ''}
               </span>
             )}
-            <span className="inline-flex items-center gap-1 text-emerald-600">
+            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
               <FlaskConical className="h-3 w-3" /> Process
             </span>
-            <span className="inline-flex items-center gap-1 text-amber-600">
+            <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
               <RefreshCcw className="h-3 w-3" /> Hybrid
             </span>
-            <span className="inline-flex items-center gap-1 text-blue-600">
+            <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400">
               <MapPin className="h-3 w-3" /> Regional
             </span>
           </div>
@@ -169,7 +169,7 @@ export function MaterialSearchResults({
                 return (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2.5 hover:bg-emerald-50 rounded-lg group transition-colors border border-transparent hover:border-emerald-200 overflow-hidden"
+                    className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg group transition-colors border border-transparent hover:border-emerald-200 dark:hover:border-emerald-800 overflow-hidden"
                   >
                     {/* Material info - constrained, truncates */}
                     <div className="min-w-0 overflow-hidden">
@@ -186,7 +186,7 @@ export function MaterialSearchResults({
                         {item.state && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-0.5 text-xs text-blue-600 bg-blue-50 px-1 py-0.5 rounded cursor-help">
+                              <span className="inline-flex items-center gap-0.5 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1 py-0.5 rounded cursor-help">
                                 <MapPin className="h-3 w-3" />
                                 {item.state}
                               </span>
@@ -206,7 +206,7 @@ export function MaterialSearchResults({
                         {hasProcess && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-0.5 text-xs text-emerald-600 font-mono font-medium bg-emerald-50 px-1 py-0.5 rounded">
+                              <span className="inline-flex items-center gap-0.5 text-xs text-emerald-600 dark:text-emerald-400 font-mono font-medium bg-emerald-50 dark:bg-emerald-950/50 px-1 py-0.5 rounded">
                                 <FlaskConical className="h-3 w-3" />
                                 {item.embodied_carbon_a1a3?.toFixed(1)}
                               </span>
@@ -222,7 +222,7 @@ export function MaterialSearchResults({
                         {hasHybrid && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 font-mono font-medium bg-amber-50 px-1 py-0.5 rounded">
+                              <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400 font-mono font-medium bg-amber-50 dark:bg-amber-950/50 px-1 py-0.5 rounded">
                                 <RefreshCcw className="h-3 w-3" />
                                 {item.embodied_carbon_total?.toFixed(1)}
                               </span>
@@ -245,7 +245,7 @@ export function MaterialSearchResults({
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 w-7 p-0 bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                className="h-7 w-7 p-0 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-800/50"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onAddMaterial(item.id, 'process');
@@ -261,7 +261,7 @@ export function MaterialSearchResults({
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 w-7 p-0 bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                className="h-7 w-7 p-0 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-800/50"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onAddMaterial(item.id, 'hybrid');
@@ -281,8 +281,8 @@ export function MaterialSearchResults({
                               variant="ghost"
                               className={`h-7 w-7 p-0 ${
                                 hasProcess 
-                                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
-                                  : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                                  ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-800/50' 
+                                  : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-800/50'
                               }`}
                               onClick={(e) => {
                                 e.stopPropagation();

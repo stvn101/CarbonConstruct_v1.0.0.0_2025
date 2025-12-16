@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import { CookieConsent } from "@/components/CookieConsent";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "react-router-dom";
@@ -38,12 +39,12 @@ export function Layout({ children }: LayoutProps) {
       </a>
 
       <SidebarProvider defaultOpen={false}>
-        <div className="min-h-screen flex w-full bg-background">
+        <div className="min-h-dvh flex w-full bg-background supports-[min-height:100dvh]:min-h-dvh">
         <AppSidebar />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col md:ml-[--sidebar-width-icon] group-data-[state=expanded]/sidebar-wrapper:md:ml-[--sidebar-width] transition-[margin] duration-200 ease-linear">
           <header
-            className="h-14 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40 flex items-center px-3 md:px-4"
+            className="h-14 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40 flex items-center px-3 md:px-4 pt-[env(safe-area-inset-top)]"
             role="banner"
             aria-label="Main navigation"
           >
@@ -58,13 +59,13 @@ export function Layout({ children }: LayoutProps) {
             )}
             <div className="flex-1" />
             <div className="flex items-center gap-2">
-              <ThemeToggle />
               <div
                 className="text-xs md:text-sm text-muted-foreground hidden sm:block"
                 aria-label="Compliance information"
               >
                 Australian NCC Compliant • Green Star Ready
               </div>
+              <ThemeToggle />
             </div>
           </header>
 

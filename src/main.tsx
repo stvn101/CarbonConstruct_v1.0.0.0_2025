@@ -4,22 +4,10 @@ import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { logger } from "./lib/logger";
 import { initializeErrorTracking, trackErrorGlobal } from "./hooks/useErrorTracking";
-import { initTracing } from "./lib/tracing";
-import { initAxeAccessibility } from "./lib/axe-accessibility";
 import "./index.css";
-
-// Initialize tracing (dev only, fails gracefully)
-try {
-  initTracing();
-} catch {
-  // Tracing is optional - silently skip if it fails
-}
 
 // Initialize global error tracking
 initializeErrorTracking();
-
-// Initialize axe-core accessibility testing (dev only)
-initAxeAccessibility();
 
 // Helper function to create safe error notification (prevents XSS)
 function createErrorNotification(errorMessage: string): HTMLDivElement {
@@ -57,9 +45,10 @@ function createErrorNotification(errorMessage: string): HTMLDivElement {
   content.appendChild(title);
   content.appendChild(message);
 
-  // Close button
+  // Close button with accessible name
   const closeBtn = document.createElement('button');
   closeBtn.className = 'ml-2 hover:opacity-70';
+  closeBtn.setAttribute('aria-label', 'Dismiss error notification');
   closeBtn.addEventListener('click', () => notification.remove());
 
   const closeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -135,8 +124,19 @@ window.addEventListener('error', (event) => {
   }
 });
 
-// Register Service Worker for PWA support
-if ('serviceWorker' in navigator) {
+// Register Service Worker for PWA support (production only)
+// In development, service worker caching can cause stale bundles (including React runtime) leading to white screens.
+if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => registration.unregister());
+  });
+
+  if ('caches' in window) {
+    caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))));
+  }
+}
+
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(
       (registration) => {

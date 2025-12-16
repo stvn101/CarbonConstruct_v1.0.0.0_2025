@@ -1,5 +1,5 @@
 // Service Worker for CarbonConstruct PWA
-const CACHE_NAME = 'carbonconstruct-v3';
+const CACHE_NAME = 'carbonconstruct-v4';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
@@ -31,44 +31,38 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - cache-first for hashed assets, network-first for HTML
+// Fetch event
+// IMPORTANT: only cache immutable build assets. Caching dev/runtime files can cause React version mismatches.
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
   // Skip non-GET requests (POST, PUT, DELETE cannot be cached)
-  if (request.method !== 'GET') {
-    return;
-  }
+  if (request.method !== 'GET') return;
 
   // Skip chrome-extension URLs
-  if (request.url.startsWith('chrome-extension://')) {
-    return;
-  }
+  if (request.url.startsWith('chrome-extension://')) return;
 
   // Skip tracing endpoints
-  if (request.url.includes('localhost:4318')) {
-    return;
-  }
+  if (request.url.includes('localhost:4318')) return;
 
   const url = new URL(request.url);
 
-  // Cache-first strategy for hashed assets (JS, CSS, images with hashes)
-  if (
-    request.destination === 'script' ||
-    request.destination === 'style' ||
-    (request.destination === 'image' && url.pathname.match(/\.(png|jpg|jpeg|webp|svg)$/)) ||
-    url.pathname.match(/assets\/.*\.(js|css)$/)
-  ) {
+  const isHashedAsset =
+    url.pathname.startsWith('/assets/') &&
+    (url.pathname.endsWith('.js') || url.pathname.endsWith('.css'));
+
+  const isImageAsset =
+    request.destination === 'image' &&
+    url.pathname.match(/\.(png|jpg|jpeg|webp|svg)$/);
+
+  // Cache-first strategy ONLY for built hashed assets + images
+  if (isHashedAsset || isImageAsset) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
+        if (cachedResponse) return cachedResponse;
 
         return fetch(request).then((response) => {
-          if (!response || response.status !== 200) {
-            return response;
-          }
+          if (!response || response.status !== 200) return response;
 
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -76,28 +70,18 @@ self.addEventListener('fetch', (event) => {
           });
 
           return response;
-        }).catch(() => {
-          return caches.match(request);
         });
-      })
+      }).catch(() => caches.match(request))
     );
     return;
   }
 
-  // Network-first strategy for HTML and API requests
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response && response.status === 200) {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(request);
-      })
-  );
+  // Navigation requests: network-first, fallback to cached shell (do NOT cache the response)
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(() => caches.match('/index.html')));
+    return;
+  }
+
+  // Everything else: just fetch (do NOT cache)
+  event.respondWith(fetch(request).catch(() => caches.match(request)));
 });

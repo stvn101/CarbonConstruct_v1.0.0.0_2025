@@ -7,13 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { SEOHead } from "@/components/SEOHead";
 import logoImage from "@/assets/carbonconstruct-logo-optimized.webp";
 
+const REMEMBER_ME_KEY = "cc_remember_me";
+
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showResetPassword, setShowResetPassword] = useState(false);
@@ -127,6 +131,16 @@ const Auth = () => {
         variant: "destructive",
       });
     } else {
+      // Store remember me preference
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_ME_KEY, "true");
+      } else {
+        localStorage.removeItem(REMEMBER_ME_KEY);
+        // For "don't remember me", we'll clear session on browser close
+        // by setting a sessionStorage flag that AuthContext can check
+        sessionStorage.setItem("cc_session_only", "true");
+      }
+      
       toast({
         title: "Welcome back!",
         description: "Successfully signed in.",
@@ -291,6 +305,19 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="remember-me" 
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                  />
+                  <Label 
+                    htmlFor="remember-me" 
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    Remember me
+                  </Label>
                 </div>
                 {error && (
                   <Alert variant="destructive">
