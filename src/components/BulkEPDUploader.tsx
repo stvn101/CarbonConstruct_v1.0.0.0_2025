@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,30 +15,64 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   Upload, FileText, CheckCircle, XCircle, AlertTriangle, 
-  RefreshCw, Trash2, Edit2, Save, FolderOpen
+  RefreshCw, Trash2, Edit2, Save, FolderOpen, FileSpreadsheet, Download, Eye, ShieldCheck
 } from "lucide-react";
+import * as XLSX from 'xlsx';
 
+// NABERS EPD List v2025.1 - All 31 columns exactly as specified
 interface ExtractedProduct {
-  product_name: string;
-  manufacturer: string | null;
-  epd_number: string | null;
-  functional_unit: string | null;
-  unit: string;
-  gwp_a1a3: number | null;
-  gwp_a4: number | null;
-  gwp_a5: number | null;
-  gwp_b1b5: number | null;
-  gwp_c1c4: number | null;
-  gwp_d: number | null;
-  gwp_total: number | null;
-  valid_until: string | null;
-  geographic_scope: string | null;
-  material_category: string;
-  plant_location: string | null;
-  data_source: string | null;
-  recycled_content: number | null;
-  notes: string | null;
+  // Column 1-4: Material identification
+  material_type: string;
+  material_classification: string | null;
+  material_category_matching: string | null;
+  material_long_name: string;
+  // Column 5-6: Validity dates
+  data_valid_start: string | null;
+  data_valid_end: string | null;
+  // Column 7-11: EPD metadata
+  location: string | null;
+  registration_number: string | null;
+  version: string | null;
+  program: string | null;
+  reference_link: string | null;
+  // Column 12: Unit info
+  declared_unit: string;
+  // Column 13-16: Physical properties
+  density_kg_m3: number | null;
+  area_density_kg_m2: number | null;
+  mass_per_m_kg: number | null;
+  mass_per_unit_kg: number | null;
+  // Column 17-21: GWP per declared quantity
+  gwp_total_quantity: number | null;
+  gwp_fossil_quantity: number | null;
+  gwp_biogenic_quantity: number | null;
+  gwp_luluc_quantity: number | null;
+  gwp_stored_quantity: number | null;
+  // Column 22-23: Upfront carbon per quantity
+  upfront_carbon_emissions_quantity: number | null;
+  upfront_carbon_storage_quantity: number | null;
+  // Column 24-28: GWP per kg
+  gwp_total_kg: number | null;
+  gwp_fossil_kg: number | null;
+  gwp_biogenic_kg: number | null;
+  gwp_luluc_kg: number | null;
+  gwp_stored_kg: number | null;
+  // Column 29-30: Upfront carbon per kg
+  upfront_carbon_emissions_kg: number | null;
+  upfront_carbon_storage_kg: number | null;
+  // Column 31: Record metadata
+  record_added_to_database: string | null;
+  // Storage reference (internal)
   storage_url?: string;
+}
+
+// Column mapping result for validation display
+interface ColumnMappingResult {
+  columnName: string;
+  expectedHeaders: string[];
+  foundHeader: string | null;
+  foundIndex: number;
+  required: boolean;
 }
 
 interface ProcessedFile {
@@ -48,13 +83,68 @@ interface ProcessedFile {
   extractionConfidence: string;
   extractionNotes: string;
   error?: string;
+  fileType: 'pdf' | 'spreadsheet';
+  columnMapping?: ColumnMappingResult[];
 }
 
-const MATERIAL_CATEGORIES = [
-  'Concrete', 'Steel', 'Timber', 'Insulation', 'Glass', 'Bricks', 
-  'Plasterboard', 'Plastics', 'Aluminium', 'Copper', 'Roofing',
-  'Flooring', 'Adhesives', 'Paints', 'Pipes', 'Other'
+// All 31 NABERS EPD List v2025.1 columns with their search keys and required status
+const NABERS_COLUMN_DEFINITIONS: { key: string; searchKeys: string[]; required: boolean }[] = [
+  { key: 'material_type', searchKeys: ['material type'], required: true },
+  { key: 'material_classification', searchKeys: ['material classification'], required: false },
+  { key: 'material_category_matching', searchKeys: ['material category for matching', 'category for matching'], required: false },
+  { key: 'material_long_name', searchKeys: ['material long name', 'long name'], required: true },
+  { key: 'data_valid_start', searchKeys: ['data valid (start)', 'valid (start)', 'start date'], required: false },
+  { key: 'data_valid_end', searchKeys: ['data valid (end)', 'valid (end)', 'end date', 'expiry'], required: false },
+  { key: 'location', searchKeys: ['location'], required: false },
+  { key: 'registration_number', searchKeys: ['registration number', 'epd number', 'registration'], required: false },
+  { key: 'version', searchKeys: ['version'], required: false },
+  { key: 'program', searchKeys: ['program', 'programme'], required: false },
+  { key: 'reference_link', searchKeys: ['reference link', 'website', 'link', 'url'], required: false },
+  { key: 'declared_unit', searchKeys: ['declared unit', 'unit'], required: true },
+  { key: 'density_kg_m3', searchKeys: ['density (kg/m3)', 'density'], required: false },
+  { key: 'area_density_kg_m2', searchKeys: ['area density (kg/m2)', 'area density'], required: false },
+  { key: 'mass_per_m_kg', searchKeys: ['mass per m (kg/m)', 'mass per m'], required: false },
+  { key: 'mass_per_unit_kg', searchKeys: ['mass per unit (kg/unit)', 'mass per unit'], required: false },
+  { key: 'gwp_total_quantity', searchKeys: ['gwp-total (kg co2e/quanity)', 'gwp-total (kg co2e/quantity)', 'gwp total quantity'], required: true },
+  { key: 'gwp_fossil_quantity', searchKeys: ['gwp-fossil (kg co2e/quanity)', 'gwp-fossil (kg co2e/quantity)', 'gwp fossil quantity'], required: false },
+  { key: 'gwp_biogenic_quantity', searchKeys: ['gwp-biogenic (kg co2e/quanity)', 'gwp-biogenic (kg co2e/quantity)', 'gwp biogenic quantity'], required: false },
+  { key: 'gwp_luluc_quantity', searchKeys: ['gwp-luluc (kg co2e/quanity)', 'gwp-luluc (kg co2e/quantity)', 'gwp luluc quantity'], required: false },
+  { key: 'gwp_stored_quantity', searchKeys: ['gwp-stored (kg co2e/quantity)', 'gwp stored quantity'], required: false },
+  { key: 'upfront_carbon_emissions_quantity', searchKeys: ['upfront carbon emissions (kg co2e/quantity)', 'upfront emissions quantity'], required: false },
+  { key: 'upfront_carbon_storage_quantity', searchKeys: ['upfront carbon storage (kg co2e/quantity)', 'upfront storage quantity'], required: false },
+  { key: 'gwp_total_kg', searchKeys: ['gwp-total (kg co2e/kg)', 'gwp total kg'], required: false },
+  { key: 'gwp_fossil_kg', searchKeys: ['gwp-fossil (kg co2e/kg)', 'gwp fossil kg'], required: false },
+  { key: 'gwp_biogenic_kg', searchKeys: ['gwp-biogenic (kg co2e/kg)', 'gwp biogenic kg'], required: false },
+  { key: 'gwp_luluc_kg', searchKeys: ['gwp-luluc (kg co2e/kg)', 'gwp luluc kg'], required: false },
+  { key: 'gwp_stored_kg', searchKeys: ['gwp-stored (kg co2e/kg)', 'gwp stored kg'], required: false },
+  { key: 'upfront_carbon_emissions_kg', searchKeys: ['upfront carbon emissions (kg co2e/kg)', 'upfront emissions kg'], required: false },
+  { key: 'upfront_carbon_storage_kg', searchKeys: ['upfront carbon storage (kg co2e/kg)', 'upfront storage kg'], required: false },
+  { key: 'record_added_to_database', searchKeys: ['record added to database', 'record added'], required: false },
 ];
+
+const ACCEPTED_FILE_TYPES = [
+  'application/pdf',
+  'text/csv',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+
+const ACCEPTED_EXTENSIONS = ['.pdf', '.csv', '.xlsx', '.xls'];
+
+const isAcceptedFile = (file: File): boolean => {
+  const extension = '.' + (file.name.split('.').pop() || '').toLowerCase();
+  const mime = typeof file.type === 'string' ? file.type : '';
+  return ACCEPTED_FILE_TYPES.includes(mime) || ACCEPTED_EXTENSIONS.includes(extension);
+};
+
+const isSpreadsheetFile = (file: File): boolean => {
+  const extension = '.' + (file.name.split('.').pop() || '').toLowerCase();
+  const mime = typeof file.type === 'string' ? file.type : '';
+  return mime === 'text/csv' ||
+    mime.includes('excel') ||
+    mime.includes('spreadsheet') ||
+    ['.csv', '.xlsx', '.xls'].includes(extension);
+};
 
 export function BulkEPDUploader() {
   const [files, setFiles] = useState<File[]>([]);
@@ -63,31 +153,310 @@ export function BulkEPDUploader() {
   const [currentFile, setCurrentFile] = useState<number>(0);
   const [editingProduct, setEditingProduct] = useState<{ fileIndex: number; productIndex: number } | null>(null);
   const [savedCount, setSavedCount] = useState(0);
+  const [strictMode, setStrictMode] = useState(false);
+  const [showColumnMapping, setShowColumnMapping] = useState<number | null>(null);
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    const droppedFiles = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+    const droppedFiles = Array.from(e.dataTransfer.files).filter(isAcceptedFile);
     if (droppedFiles.length === 0) {
-      toast.error('Only PDF files are accepted');
+      toast.error('Only PDF, CSV, and Excel files are accepted');
       return;
     }
     setFiles(prev => [...prev, ...droppedFiles]);
-    toast.success(`Added ${droppedFiles.length} PDF${droppedFiles.length > 1 ? 's' : ''}`);
+    const pdfCount = droppedFiles.filter(f => f.type === 'application/pdf').length;
+    const spreadsheetCount = droppedFiles.length - pdfCount;
+    toast.success(`Added ${droppedFiles.length} file${droppedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${spreadsheetCount} spreadsheet)`);
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []).filter(f => f.type === 'application/pdf');
+    const selectedFiles = Array.from(e.target.files || []).filter(isAcceptedFile);
     if (selectedFiles.length === 0) {
-      toast.error('Only PDF files are accepted');
+      toast.error('Only PDF, CSV, and Excel files are accepted');
       return;
     }
     setFiles(prev => [...prev, ...selectedFiles]);
-    toast.success(`Added ${selectedFiles.length} PDF${selectedFiles.length > 1 ? 's' : ''}`);
+    const pdfCount = selectedFiles.filter(f => f.type === 'application/pdf').length;
+    const spreadsheetCount = selectedFiles.length - pdfCount;
+    toast.success(`Added ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} (${pdfCount} PDF, ${spreadsheetCount} spreadsheet)`);
     e.target.value = '';
   };
 
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Download XLSX template with EXACT NABERS EPD List v2025.1 headers (all 31 columns)
+  const downloadTemplate = () => {
+    // Exact headers from NABERS EPD List v2025.1
+    const headers = [
+      'Material type',
+      'Material classification',
+      'Material category for matching emission factor',
+      'Material long name',
+      'Data valid (start)',
+      'Data valid (end)',
+      'Location',
+      'Registration number',
+      'Version',
+      'Program',
+      'Reference link - Website',
+      'Declared unit',
+      'Density (kg/m3)',
+      'Area density (kg/m2)',
+      'Mass per m (kg/m)',
+      'Mass per unit (kg/unit)',
+      'GWP-total (kg CO2e/quanity)',
+      'GWP-fossil (kg CO2e/quanity)',
+      'GWP-biogenic (kg CO2e/quanity)',
+      'GWP-luluc (kg CO2e/quanity)',
+      'GWP-stored (kg CO2e/quantity)',
+      'Upfront carbon emissions (kg CO2e/quantity)',
+      'Upfront carbon storage (kg CO2e/quantity)',
+      'GWP-total (kg CO2e/kg)',
+      'GWP-fossil (kg CO2e/kg)',
+      'GWP-biogenic (kg CO2e/kg)',
+      'GWP-luluc (kg CO2e/kg)',
+      'GWP-stored (kg CO2e/kg)',
+      'Upfront carbon emissions (kg CO2e/kg)',
+      'Upfront carbon storage (kg CO2e/kg)',
+      'Record added to database'
+    ];
+
+    // Example row matching NABERS format
+    const exampleRow = [
+      'Concrete (in-situ)',
+      'Concrete, 32 MPa',
+      '>25 MPa to ≤32 MPa',
+      'Concrete, 32 MPa, in-situ, no reinforcement, (Example) (Holcim) (NSW)',
+      '1/1/2024',
+      '31/12/2028',
+      'Sydney, NSW',
+      'S-P-12345',
+      'Version 1',
+      'EPD Australasia',
+      'https://epd-australasia.com/example-epd.pdf',
+      'm³',
+      '2400',
+      '',
+      '',
+      '',
+      '320.5',
+      '318.2',
+      '2.3',
+      '',
+      '',
+      '320.5',
+      '0',
+      '0.1335',
+      '0.1326',
+      '0.00096',
+      '',
+      '',
+      '0.1335',
+      '0',
+      'Version 1.0'
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, exampleRow]);
+    
+    // Set column widths for all 31 columns
+    worksheet['!cols'] = [
+      { wch: 20 },  // Material type
+      { wch: 22 },  // Material classification
+      { wch: 35 },  // Material category for matching emission factor
+      { wch: 60 },  // Material long name
+      { wch: 14 },  // Data valid (start)
+      { wch: 14 },  // Data valid (end)
+      { wch: 20 },  // Location
+      { wch: 16 },  // Registration number
+      { wch: 12 },  // Version
+      { wch: 18 },  // Program
+      { wch: 50 },  // Reference link - Website
+      { wch: 12 },  // Declared unit
+      { wch: 15 },  // Density (kg/m3)
+      { wch: 18 },  // Area density (kg/m2)
+      { wch: 16 },  // Mass per m (kg/m)
+      { wch: 18 },  // Mass per unit (kg/unit)
+      { wch: 25 },  // GWP-total (kg CO2e/quanity)
+      { wch: 25 },  // GWP-fossil (kg CO2e/quanity)
+      { wch: 28 },  // GWP-biogenic (kg CO2e/quanity)
+      { wch: 25 },  // GWP-luluc (kg CO2e/quanity)
+      { wch: 26 },  // GWP-stored (kg CO2e/quantity)
+      { wch: 35 },  // Upfront carbon emissions (kg CO2e/quantity)
+      { wch: 35 },  // Upfront carbon storage (kg CO2e/quantity)
+      { wch: 22 },  // GWP-total (kg CO2e/kg)
+      { wch: 22 },  // GWP-fossil (kg CO2e/kg)
+      { wch: 25 },  // GWP-biogenic (kg CO2e/kg)
+      { wch: 22 },  // GWP-luluc (kg CO2e/kg)
+      { wch: 22 },  // GWP-stored (kg CO2e/kg)
+      { wch: 32 },  // Upfront carbon emissions (kg CO2e/kg)
+      { wch: 32 },  // Upfront carbon storage (kg CO2e/kg)
+      { wch: 22 },  // Record added to database
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'EPD Materials');
+    
+    XLSX.writeFile(workbook, 'NABERS_EPD_Import_Template_v2025.xlsx');
+    toast.success('NABERS EPD template downloaded! Fill it out and upload.');
+  };
+
+  const parseSpreadsheetFile = async (file: File): Promise<{ products: ExtractedProduct[]; columnMapping: ColumnMappingResult[] }> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+          let headers: string[] = [];
+          let dataRows: string[][] = [];
+
+          if (extension === '.csv') {
+            const text = e.target?.result as string;
+            const lines = text.split(/\r?\n/).filter(line => line.trim());
+            
+            if (lines.length < 2) {
+              reject(new Error('File must have a header row and at least one data row'));
+              return;
+            }
+
+            headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+            dataRows = lines.slice(1).map(line => parseCSVLine(line));
+          } else {
+            const data = new Uint8Array(e.target?.result as ArrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json<string[]>(firstSheet, { header: 1 });
+            
+            if (jsonData.length < 2) {
+              reject(new Error('Excel file must have a header row and at least one data row'));
+              return;
+            }
+
+            headers = (jsonData[0] || []).map(h => String(h || '').toLowerCase().trim());
+            dataRows = jsonData.slice(1).map(row => (row || []).map(cell => String(cell ?? '')));
+          }
+          
+          // Build column mapping using NABERS_COLUMN_DEFINITIONS
+          const columnMapping: ColumnMappingResult[] = [];
+          const columnMap: Record<string, number> = {};
+          
+          for (const def of NABERS_COLUMN_DEFINITIONS) {
+            let foundIndex = -1;
+            let foundHeader: string | null = null;
+            
+            for (const searchKey of def.searchKeys) {
+              const needle = searchKey.toLowerCase();
+              const idx = headers.findIndex(h => (h ?? '').includes(needle));
+              if (idx !== -1) {
+                foundIndex = idx;
+                foundHeader = headers[idx];
+                break;
+              }
+            }
+            
+            columnMap[def.key] = foundIndex;
+            columnMapping.push({
+              columnName: def.key,
+              expectedHeaders: def.searchKeys,
+              foundHeader,
+              foundIndex,
+              required: def.required,
+            });
+          }
+
+          const parseNumber = (value: string | undefined): number | null => {
+            if (!value || value.trim() === '') return null;
+            const num = parseFloat(value.replace(/[^0-9.eE+-]/g, ''));
+            return isNaN(num) ? null : num;
+          };
+
+          const products: ExtractedProduct[] = [];
+          for (const values of dataRows) {
+            if (values.length === 0 || values.every(v => !v.trim())) continue;
+
+            const getValue = (idx: number): string | null => {
+              if (idx === -1 || idx >= values.length) return null;
+              const val = values[idx]?.trim();
+              return val || null;
+            };
+
+            products.push({
+              material_type: getValue(columnMap.material_type) || 'Unknown',
+              material_classification: getValue(columnMap.material_classification),
+              material_category_matching: getValue(columnMap.material_category_matching),
+              material_long_name: getValue(columnMap.material_long_name) || 'Unknown Material',
+              data_valid_start: getValue(columnMap.data_valid_start),
+              data_valid_end: getValue(columnMap.data_valid_end),
+              location: getValue(columnMap.location),
+              registration_number: getValue(columnMap.registration_number),
+              version: getValue(columnMap.version),
+              program: getValue(columnMap.program),
+              reference_link: getValue(columnMap.reference_link),
+              declared_unit: getValue(columnMap.declared_unit) || 'kg',
+              density_kg_m3: parseNumber(getValue(columnMap.density_kg_m3) ?? undefined),
+              area_density_kg_m2: parseNumber(getValue(columnMap.area_density_kg_m2) ?? undefined),
+              mass_per_m_kg: parseNumber(getValue(columnMap.mass_per_m_kg) ?? undefined),
+              mass_per_unit_kg: parseNumber(getValue(columnMap.mass_per_unit_kg) ?? undefined),
+              gwp_total_quantity: parseNumber(getValue(columnMap.gwp_total_quantity) ?? undefined),
+              gwp_fossil_quantity: parseNumber(getValue(columnMap.gwp_fossil_quantity) ?? undefined),
+              gwp_biogenic_quantity: parseNumber(getValue(columnMap.gwp_biogenic_quantity) ?? undefined),
+              gwp_luluc_quantity: parseNumber(getValue(columnMap.gwp_luluc_quantity) ?? undefined),
+              gwp_stored_quantity: parseNumber(getValue(columnMap.gwp_stored_quantity) ?? undefined),
+              upfront_carbon_emissions_quantity: parseNumber(getValue(columnMap.upfront_carbon_emissions_quantity) ?? undefined),
+              upfront_carbon_storage_quantity: parseNumber(getValue(columnMap.upfront_carbon_storage_quantity) ?? undefined),
+              gwp_total_kg: parseNumber(getValue(columnMap.gwp_total_kg) ?? undefined),
+              gwp_fossil_kg: parseNumber(getValue(columnMap.gwp_fossil_kg) ?? undefined),
+              gwp_biogenic_kg: parseNumber(getValue(columnMap.gwp_biogenic_kg) ?? undefined),
+              gwp_luluc_kg: parseNumber(getValue(columnMap.gwp_luluc_kg) ?? undefined),
+              gwp_stored_kg: parseNumber(getValue(columnMap.gwp_stored_kg) ?? undefined),
+              upfront_carbon_emissions_kg: parseNumber(getValue(columnMap.upfront_carbon_emissions_kg) ?? undefined),
+              upfront_carbon_storage_kg: parseNumber(getValue(columnMap.upfront_carbon_storage_kg) ?? undefined),
+              record_added_to_database: getValue(columnMap.record_added_to_database),
+            });
+          }
+
+          const validProducts = products.filter(p => 
+            p.material_long_name !== 'Unknown Material' || 
+            p.gwp_total_quantity !== null || 
+            p.gwp_total_kg !== null
+          );
+
+          resolve({ products: validProducts, columnMapping });
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      
+      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+      if (extension === '.csv') {
+        reader.readAsText(file);
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
+    });
+  };
+
+  // Helper to parse CSV line handling quoted fields
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
   };
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
@@ -132,6 +501,7 @@ export function BulkEPDUploader() {
     _fileIndex: number, 
     session: any
   ): Promise<ProcessedFile> => {
+    const fileIsSpreadsheet = isSpreadsheetFile(file);
     const result: ProcessedFile = {
       fileName: file.name,
       storagePath: null,
@@ -139,50 +509,67 @@ export function BulkEPDUploader() {
       products: [],
       extractionConfidence: '',
       extractionNotes: '',
+      fileType: fileIsSpreadsheet ? 'spreadsheet' : 'pdf',
     };
 
     try {
-      // 1. Upload PDF to storage
-      const storagePath = await uploadPDFToStorage(file);
-      result.storagePath = storagePath;
+      if (fileIsSpreadsheet) {
+        // Handle spreadsheet file - parse locally
+        const { products, columnMapping } = await parseSpreadsheetFile(file);
+        const foundCount = columnMapping.filter(c => c.foundIndex !== -1).length;
+        const missingRequired = columnMapping.filter(c => c.required && c.foundIndex === -1);
+        
+        return {
+          ...result,
+          status: 'extracted',
+          products,
+          columnMapping,
+          extractionConfidence: missingRequired.length === 0 ? 'high' : 'medium',
+          extractionNotes: `Parsed ${products.length} materials. Mapped ${foundCount}/31 columns.${missingRequired.length > 0 ? ` Missing required: ${missingRequired.map(c => c.columnName).join(', ')}` : ''}`,
+        };
+      } else {
+        // Handle PDF file - existing flow
+        // 1. Upload PDF to storage
+        const storagePath = await uploadPDFToStorage(file);
+        result.storagePath = storagePath;
 
-      // 2. Extract text from PDF
-      const pdfText = await extractTextFromPDF(file);
+        // 2. Extract text from PDF
+        const pdfText = await extractTextFromPDF(file);
 
-      if (!pdfText || pdfText.length < 50) {
-        throw new Error('Could not extract text from PDF. It may be image-based or corrupted.');
+        if (!pdfText || pdfText.length < 50) {
+          throw new Error('Could not extract text from PDF. It may be image-based or corrupted.');
+        }
+
+        // 3. Send to AI for EPD extraction
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-epd-upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'extract',
+            pdfText,
+            fileName: file.name,
+            storagePath,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Extraction failed');
+        }
+
+        const extractionResult = await response.json();
+
+        return {
+          ...result,
+          status: 'extracted',
+          products: extractionResult.products || [],
+          extractionConfidence: extractionResult.extraction_confidence || 'unknown',
+          extractionNotes: extractionResult.extraction_notes || '',
+        };
       }
-
-      // 3. Send to AI for EPD extraction
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-epd-upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'extract',
-          pdfText,
-          fileName: file.name,
-          storagePath,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Extraction failed');
-      }
-
-      const extractionResult = await response.json();
-
-      return {
-        ...result,
-        status: 'extracted',
-        products: extractionResult.products || [],
-        extractionConfidence: extractionResult.extraction_confidence || 'unknown',
-        extractionNotes: extractionResult.extraction_notes || '',
-      };
-
     } catch (error: any) {
       console.error(`Error processing ${file.name}:`, error);
       return {
@@ -213,6 +600,7 @@ export function BulkEPDUploader() {
       products: [],
       extractionConfidence: '',
       extractionNotes: '',
+      fileType: isSpreadsheetFile(f) ? 'spreadsheet' as const : 'pdf' as const,
     }));
     setProcessedFiles(initialFiles);
 
@@ -298,6 +686,20 @@ export function BulkEPDUploader() {
 
   const saveApprovedMaterials = async () => {
     const approvedFiles = processedFiles.filter(f => f.status === 'approved');
+    
+    // Strict mode check - block if any file has missing columns
+    if (strictMode) {
+      const filesWithMissingColumns = approvedFiles.filter(f => {
+        if (!f.columnMapping) return true;
+        return f.columnMapping.some(c => c.foundIndex === -1);
+      });
+      
+      if (filesWithMissingColumns.length > 0) {
+        toast.error(`Strict mode: ${filesWithMissingColumns.length} file(s) have missing columns. Disable strict mode or fix the spreadsheet.`);
+        return;
+      }
+    }
+    
     const allMaterials = approvedFiles.flatMap(f => 
       f.products.map(p => ({ ...p, storage_url: f.storagePath }))
     );
@@ -399,7 +801,7 @@ export function BulkEPDUploader() {
         <TabsList>
           <TabsTrigger value="upload" className="gap-2">
             <Upload className="h-4 w-4" />
-            Upload PDFs
+            Upload Files
           </TabsTrigger>
           <TabsTrigger value="review" className="gap-2">
             <FileText className="h-4 w-4" />
@@ -413,10 +815,10 @@ export function BulkEPDUploader() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FolderOpen className="h-5 w-5" />
-                Bulk EPD PDF Upload
+                Bulk EPD Upload
               </CardTitle>
               <CardDescription>
-                Drop multiple EPD PDF files here. AI will extract material data automatically.
+                Drop EPD PDF or Excel/CSV files here. PDFs use AI extraction, spreadsheets are parsed directly.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -428,22 +830,51 @@ export function BulkEPDUploader() {
               >
                 <input
                   type="file"
-                  accept=".pdf"
+                  accept=".pdf,.csv,.xlsx,.xls"
                   multiple
                   onChange={handleFileSelect}
                   className="hidden"
                   id="epd-file-upload"
                 />
                 <label htmlFor="epd-file-upload" className="cursor-pointer">
-                  <Upload className="h-12 w-12 mx-auto text-primary/50 mb-4" />
-                  <p className="font-medium">Drop EPD PDFs here or click to browse</p>
+                  <div className="flex justify-center gap-4 mb-4">
+                    <FileText className="h-10 w-10 text-primary/50" />
+                    <FileSpreadsheet className="h-10 w-10 text-emerald-500/50" />
+                  </div>
+                  <p className="font-medium">Drop EPD files here or click to browse</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Supports up to 20 PDFs at once • Max 20MB each
+                    Supports PDF, XLSX/XLS, and CSV files • Max 20MB each
                   </p>
                 </label>
               </div>
 
-              {/* File List */}
+              {/* Template Download */}
+              <div className="flex items-center justify-center gap-2 py-2">
+                <Button variant="outline" size="sm" onClick={downloadTemplate} className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Download XLSX Template
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Pre-formatted with all required columns
+                </span>
+              </div>
+
+              {/* Strict Mode Toggle */}
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-amber-500" />
+                  <div>
+                    <Label htmlFor="strict-mode" className="font-medium">Strict Import Mode</Label>
+                    <p className="text-xs text-muted-foreground">Block saving unless all 31 NABERS columns are mapped</p>
+                  </div>
+                </div>
+                <Switch
+                  id="strict-mode"
+                  checked={strictMode}
+                  onCheckedChange={setStrictMode}
+                />
+              </div>
+
               {files.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -459,20 +890,31 @@ export function BulkEPDUploader() {
                     </Button>
                   </div>
                   <ScrollArea className="h-48 border rounded-lg p-2">
-                    {files.map((file, i) => (
-                      <div key={i} className="flex items-center justify-between py-2 px-2 hover:bg-muted/50 rounded">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-primary" />
-                          <span className="text-sm truncate max-w-[300px]">{file.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            ({(file.size / 1024 / 1024).toFixed(1)} MB)
-                          </span>
+                    {files.map((file, i) => {
+                      const fileIsSpreadsheet = isSpreadsheetFile(file);
+                      const extension = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+                      return (
+                        <div key={i} className="flex items-center justify-between py-2 px-2 hover:bg-muted/50 rounded">
+                          <div className="flex items-center gap-2">
+                            {fileIsSpreadsheet ? (
+                              <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
+                            ) : (
+                              <FileText className="h-4 w-4 text-primary" />
+                            )}
+                            <span className="text-sm truncate max-w-[300px]">{file.name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {extension}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              ({(file.size / 1024 / 1024).toFixed(1)} MB)
+                            </span>
+                          </div>
+                          <Button variant="ghost" size="icon" onClick={() => removeFile(i)} aria-label={`Remove file ${file.name}`}>
+                            <XCircle className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => removeFile(i)} aria-label={`Remove file ${file.name}`}>
-                          <XCircle className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </ScrollArea>
                 </div>
               )}
@@ -503,7 +945,7 @@ export function BulkEPDUploader() {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Process {files.length} PDF{files.length !== 1 ? 's' : ''}
+                      Process {files.length} file{files.length !== 1 ? 's' : ''}
                     </>
                   )}
                 </Button>
@@ -555,6 +997,16 @@ export function BulkEPDUploader() {
                       </div>
                       <div className="flex items-center gap-2">
                         {getStatusBadge(file.status)}
+                        {file.columnMapping && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setShowColumnMapping(fileIndex)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Columns ({file.columnMapping.filter(c => c.foundIndex !== -1).length}/31)
+                          </Button>
+                        )}
                         {file.status === 'extracted' && (
                           <Button size="sm" onClick={() => approveFile(fileIndex)} className="bg-emerald-600">
                             <CheckCircle className="h-4 w-4 mr-1" />
@@ -582,12 +1034,15 @@ export function BulkEPDUploader() {
                             <div key={productIndex} className="border rounded-lg p-4 bg-muted/30">
                               <div className="flex items-start justify-between mb-3">
                                 <div>
-                                  <h4 className="font-medium">{product.product_name}</h4>
+                                  <h4 className="font-medium">{product.material_long_name}</h4>
                                   <p className="text-sm text-muted-foreground">
-                                    {product.manufacturer || 'Unknown manufacturer'} • {product.material_category}
+                                    {product.material_type} • {product.material_classification || 'Unclassified'}
                                   </p>
-                                  {product.epd_number && (
-                                    <p className="text-xs text-primary mt-1">EPD: {product.epd_number}</p>
+                                  {product.registration_number && (
+                                    <p className="text-xs text-primary mt-1">EPD: {product.registration_number}</p>
+                                  )}
+                                  {product.location && (
+                                    <p className="text-xs text-muted-foreground">Location: {product.location}</p>
                                   )}
                                 </div>
                                 <div className="flex gap-1">
@@ -595,7 +1050,7 @@ export function BulkEPDUploader() {
                                     variant="ghost" 
                                     size="icon"
                                     onClick={() => setEditingProduct({ fileIndex, productIndex })}
-                                    aria-label={`Edit ${product.product_name}`}
+                                    aria-label={`Edit ${product.material_long_name}`}
                                   >
                                     <Edit2 className="h-4 w-4" />
                                   </Button>
@@ -603,7 +1058,7 @@ export function BulkEPDUploader() {
                                     variant="ghost" 
                                     size="icon"
                                     onClick={() => removeProduct(fileIndex, productIndex)}
-                                    aria-label={`Delete ${product.product_name}`}
+                                    aria-label={`Delete ${product.material_long_name}`}
                                   >
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                   </Button>
@@ -612,25 +1067,25 @@ export function BulkEPDUploader() {
 
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                 <div>
-                                  <span className="text-muted-foreground">A1-A3:</span>{' '}
-                                  <span className="font-medium">{product.gwp_a1a3 ?? '-'} kgCO₂e/{product.unit}</span>
+                                  <span className="text-muted-foreground">GWP Total:</span>{' '}
+                                  <span className="font-medium">{product.gwp_total_quantity ?? '-'} kgCO₂e/{product.declared_unit}</span>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">A4:</span>{' '}
-                                  <span className="font-medium">{product.gwp_a4 ?? '-'}</span>
+                                  <span className="text-muted-foreground">GWP Fossil:</span>{' '}
+                                  <span className="font-medium">{product.gwp_fossil_quantity ?? '-'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">A5:</span>{' '}
-                                  <span className="font-medium">{product.gwp_a5 ?? '-'}</span>
+                                  <span className="text-muted-foreground">GWP/kg:</span>{' '}
+                                  <span className="font-medium">{product.gwp_total_kg ?? '-'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">Total:</span>{' '}
-                                  <span className="font-bold text-primary">{product.gwp_total ?? product.gwp_a1a3 ?? '-'}</span>
+                                  <span className="text-muted-foreground">Density:</span>{' '}
+                                  <span className="font-bold text-primary">{product.density_kg_m3 ?? '-'} kg/m³</span>
                                 </div>
                               </div>
 
-                              {product.notes && (
-                                <p className="text-xs text-muted-foreground mt-2 italic">{product.notes}</p>
+                              {product.program && (
+                                <p className="text-xs text-muted-foreground mt-2">Program: {product.program}</p>
                               )}
                             </div>
                           ))}
@@ -652,6 +1107,46 @@ export function BulkEPDUploader() {
       </Tabs>
 
       {/* Edit Product Dialog */}
+      {/* Column Mapping Dialog */}
+      {showColumnMapping !== null && processedFiles[showColumnMapping]?.columnMapping && (
+        <Dialog open onOpenChange={() => setShowColumnMapping(null)}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Column Mapping - {processedFiles[showColumnMapping].fileName}</DialogTitle>
+            </DialogHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>NABERS Column</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Matched Header</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {processedFiles[showColumnMapping].columnMapping!.map((col, i) => (
+                  <TableRow key={i} className={col.foundIndex === -1 ? 'bg-destructive/10' : ''}>
+                    <TableCell className="font-medium">
+                      {col.columnName.replace(/_/g, ' ')}
+                      {col.required && <Badge variant="outline" className="ml-2 text-xs">Required</Badge>}
+                    </TableCell>
+                    <TableCell>
+                      {col.foundIndex !== -1 ? (
+                        <Badge className="bg-emerald-500"><CheckCircle className="h-3 w-3 mr-1" />Found</Badge>
+                      ) : (
+                        <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Missing</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {col.foundHeader || '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {editingProduct && (
         <EditProductDialog
           product={processedFiles[editingProduct.fileIndex]?.products[editingProduct.productIndex]}
@@ -686,46 +1181,40 @@ function EditProductDialog({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
-            <Label>Product Name</Label>
+            <Label>Material Long Name</Label>
             <Input
-              value={form.product_name}
-              onChange={(e) => setForm({ ...form, product_name: e.target.value })}
+              value={form.material_long_name}
+              onChange={(e) => setForm({ ...form, material_long_name: e.target.value })}
             />
           </div>
 
           <div>
-            <Label>Manufacturer</Label>
+            <Label>Material Type</Label>
             <Input
-              value={form.manufacturer || ''}
-              onChange={(e) => setForm({ ...form, manufacturer: e.target.value })}
+              value={form.material_type || ''}
+              onChange={(e) => setForm({ ...form, material_type: e.target.value })}
             />
           </div>
 
           <div>
-            <Label>EPD Number</Label>
+            <Label>Material Classification</Label>
             <Input
-              value={form.epd_number || ''}
-              onChange={(e) => setForm({ ...form, epd_number: e.target.value })}
+              value={form.material_classification || ''}
+              onChange={(e) => setForm({ ...form, material_classification: e.target.value })}
             />
           </div>
 
           <div>
-            <Label>Category</Label>
-            <Select value={form.material_category} onValueChange={(v) => setForm({ ...form, material_category: v })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MATERIAL_CATEGORIES.map(cat => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Registration Number (EPD)</Label>
+            <Input
+              value={form.registration_number || ''}
+              onChange={(e) => setForm({ ...form, registration_number: e.target.value })}
+            />
           </div>
 
           <div>
-            <Label>Unit</Label>
-            <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v })}>
+            <Label>Declared Unit</Label>
+            <Select value={form.declared_unit} onValueChange={(v) => setForm({ ...form, declared_unit: v })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -741,89 +1230,107 @@ function EditProductDialog({
           </div>
 
           <div>
-            <Label>GWP A1-A3 (kgCO₂e)</Label>
+            <Label>Location</Label>
+            <Input
+              value={form.location || ''}
+              onChange={(e) => setForm({ ...form, location: e.target.value })}
+              placeholder="Sydney, NSW"
+            />
+          </div>
+
+          <div>
+            <Label>Program</Label>
+            <Input
+              value={form.program || ''}
+              onChange={(e) => setForm({ ...form, program: e.target.value })}
+              placeholder="EPD Australasia"
+            />
+          </div>
+
+          <div>
+            <Label>Density (kg/m³)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              value={form.density_kg_m3 ?? ''}
+              onChange={(e) => setForm({ ...form, density_kg_m3: e.target.value ? parseFloat(e.target.value) : null })}
+            />
+          </div>
+
+          <div>
+            <Label>GWP-Total (per quantity)</Label>
             <Input
               type="number"
               step="0.001"
-              value={form.gwp_a1a3 ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_a1a3: e.target.value ? parseFloat(e.target.value) : null })}
+              value={form.gwp_total_quantity ?? ''}
+              onChange={(e) => setForm({ ...form, gwp_total_quantity: e.target.value ? parseFloat(e.target.value) : null })}
             />
           </div>
 
           <div>
-            <Label>GWP A4</Label>
+            <Label>GWP-Fossil (per quantity)</Label>
             <Input
               type="number"
               step="0.001"
-              value={form.gwp_a4 ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_a4: e.target.value ? parseFloat(e.target.value) : null })}
+              value={form.gwp_fossil_quantity ?? ''}
+              onChange={(e) => setForm({ ...form, gwp_fossil_quantity: e.target.value ? parseFloat(e.target.value) : null })}
             />
           </div>
 
           <div>
-            <Label>GWP A5</Label>
+            <Label>GWP-Biogenic (per quantity)</Label>
             <Input
               type="number"
               step="0.001"
-              value={form.gwp_a5 ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_a5: e.target.value ? parseFloat(e.target.value) : null })}
+              value={form.gwp_biogenic_quantity ?? ''}
+              onChange={(e) => setForm({ ...form, gwp_biogenic_quantity: e.target.value ? parseFloat(e.target.value) : null })}
             />
           </div>
 
           <div>
-            <Label>GWP B1-B5</Label>
+            <Label>GWP-Total (per kg)</Label>
+            <Input
+              type="number"
+              step="0.000001"
+              value={form.gwp_total_kg ?? ''}
+              onChange={(e) => setForm({ ...form, gwp_total_kg: e.target.value ? parseFloat(e.target.value) : null })}
+            />
+          </div>
+
+          <div>
+            <Label>Upfront Carbon Emissions (per quantity)</Label>
             <Input
               type="number"
               step="0.001"
-              value={form.gwp_b1b5 ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_b1b5: e.target.value ? parseFloat(e.target.value) : null })}
+              value={form.upfront_carbon_emissions_quantity ?? ''}
+              onChange={(e) => setForm({ ...form, upfront_carbon_emissions_quantity: e.target.value ? parseFloat(e.target.value) : null })}
             />
           </div>
 
           <div>
-            <Label>GWP C1-C4</Label>
+            <Label>Data Valid (Start)</Label>
             <Input
-              type="number"
-              step="0.001"
-              value={form.gwp_c1c4 ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_c1c4: e.target.value ? parseFloat(e.target.value) : null })}
+              value={form.data_valid_start || ''}
+              onChange={(e) => setForm({ ...form, data_valid_start: e.target.value })}
+              placeholder="1/1/2024"
             />
           </div>
 
           <div>
-            <Label>GWP Module D</Label>
+            <Label>Data Valid (End)</Label>
             <Input
-              type="number"
-              step="0.001"
-              value={form.gwp_d ?? ''}
-              onChange={(e) => setForm({ ...form, gwp_d: e.target.value ? parseFloat(e.target.value) : null })}
-            />
-          </div>
-
-          <div>
-            <Label>Geographic Scope</Label>
-            <Input
-              value={form.geographic_scope || ''}
-              onChange={(e) => setForm({ ...form, geographic_scope: e.target.value })}
-              placeholder="Australia"
-            />
-          </div>
-
-          <div>
-            <Label>Valid Until</Label>
-            <Input
-              type="date"
-              value={form.valid_until || ''}
-              onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
+              value={form.data_valid_end || ''}
+              onChange={(e) => setForm({ ...form, data_valid_end: e.target.value })}
+              placeholder="31/12/2028"
             />
           </div>
 
           <div className="col-span-2">
-            <Label>Notes</Label>
-            <Textarea
-              value={form.notes || ''}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              rows={2}
+            <Label>Reference Link</Label>
+            <Input
+              value={form.reference_link || ''}
+              onChange={(e) => setForm({ ...form, reference_link: e.target.value })}
+              placeholder="https://epd-australasia.com/..."
             />
           </div>
         </div>

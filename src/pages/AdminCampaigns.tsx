@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
-import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark } from 'lucide-react';
+import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark, TrendingUp } from 'lucide-react';
 
 interface CampaignPage {
   path: string;
@@ -18,6 +18,13 @@ interface CampaignPage {
 }
 
 const campaignPages: CampaignPage[] = [
+  {
+    path: '/lp/investors',
+    name: 'Investors',
+    audience: 'Investors & Partners',
+    icon: <TrendingUp className="h-5 w-5" />,
+    description: 'Investment opportunity - market position & competitive advantages',
+  },
   {
     path: '/lp/builders',
     name: 'Builders',

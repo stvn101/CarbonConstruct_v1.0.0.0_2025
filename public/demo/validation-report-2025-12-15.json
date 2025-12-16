@@ -1,0 +1,3324 @@
+{
+  "timestamp": "2025-12-15T21:24:22.486Z",
+  "version": "v1.0",
+  "totalMaterials": 4316,
+  "passRate": 100,
+  "confidenceLevelCounts": {
+    "verified": 2721,
+    "documented": 1111,
+    "industry_average": 484,
+    "needs_review": 0
+  },
+  "sourceTierCounts": {
+    "tier1": 3211,
+    "tier2": 646,
+    "tier3": 459
+  },
+  "issueCounts": {
+    "critical": 0,
+    "high": 732,
+    "medium": 1027,
+    "low": 0
+  },
+  "outlierCount": 570,
+  "flaggedMaterials": [
+    {
+      "id": "3e6cf94b-9fe8-48ec-aaa8-a39fa9cc74c5",
+      "material_name": "Rondo 321 Bulkhead Trim",
+      "material_category": "Steel Wall/Ceiling Framing",
+      "ef_total": 9.07,
+      "unit": "kg",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01548",
+      "manufacturer": "Rondo Building Services",
+      "state": "NSW",
+      "expiry_date": "2025-11-02",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2025-11-02",
+          "materialId": "3e6cf94b-9fe8-48ec-aaa8-a39fa9cc74c5",
+          "materialName": "Rondo 321 Bulkhead Trim",
+          "value": "2025-11-02",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "abc6aa54-95d1-42c2-bc05-2194620c803c",
+      "material_name": "Rondo 357 Aluminium Profile",
+      "material_category": "Steel Wall/Ceiling Framing",
+      "ef_total": 9.07,
+      "unit": "kg",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01548",
+      "manufacturer": "Rondo Building Services",
+      "state": "NSW",
+      "expiry_date": "2025-11-02",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2025-11-02",
+          "materialId": "abc6aa54-95d1-42c2-bc05-2194620c803c",
+          "materialName": "Rondo 357 Aluminium Profile",
+          "value": "2025-11-02",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "85094ecd-de86-4eb9-8789-a5f89ccd0a6d",
+      "material_name": "Rondo 359 Aluminium Profile",
+      "material_category": "Steel Wall/Ceiling Framing",
+      "ef_total": 9.07,
+      "unit": "kg",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01548",
+      "manufacturer": "Rondo Building Services",
+      "state": "NSW",
+      "expiry_date": "2025-11-02",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2025-11-02",
+          "materialId": "85094ecd-de86-4eb9-8789-a5f89ccd0a6d",
+          "materialName": "Rondo 359 Aluminium Profile",
+          "value": "2025-11-02",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "1ef9a73b-864f-4529-b9ec-d13f0c2b1b71",
+      "material_name": "Rondo 242R Aluminium Profile",
+      "material_category": "Steel Wall/Ceiling Framing",
+      "ef_total": 9.07,
+      "unit": "kg",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01548",
+      "manufacturer": "Rondo Building Services",
+      "state": "NSW",
+      "expiry_date": "2025-11-02",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2025-11-02",
+          "materialId": "1ef9a73b-864f-4529-b9ec-d13f0c2b1b71",
+          "materialName": "Rondo 242R Aluminium Profile",
+          "value": "2025-11-02",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "33b0362e-0a8b-4a84-b1da-d4d02db1c95e",
+      "material_name": "Rondo DUO7 Exposed Grid Tee",
+      "material_category": "Steel Wall/Ceiling Framing",
+      "ef_total": 9.07,
+      "unit": "kg",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01548",
+      "manufacturer": "Rondo Building Services",
+      "state": "NSW",
+      "expiry_date": "2025-11-02",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2025-11-02",
+          "materialId": "33b0362e-0a8b-4a84-b1da-d4d02db1c95e",
+          "materialName": "Rondo DUO7 Exposed Grid Tee",
+          "value": "2025-11-02",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "8d45f06a-3ef5-4fdd-b64d-872f6e2cb397",
+      "material_name": "Rondo DUO8 Exposed Grid Tee",
+      "material_category": "Steel Wall/Ceiling Framing",
+      "ef_total": 9.07,
+      "unit": "kg",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01548",
+      "manufacturer": "Rondo Building Services",
+      "state": "NSW",
+      "expiry_date": "2025-11-02",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2025-11-02",
+          "materialId": "8d45f06a-3ef5-4fdd-b64d-872f6e2cb397",
+          "materialName": "Rondo DUO8 Exposed Grid Tee",
+          "value": "2025-11-02",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "70f87349-33e0-4c02-87f3-960584a3277e",
+      "material_name": "Rondo DUO9 Exposed Grid Tee",
+      "material_category": "Steel Wall/Ceiling Framing",
+      "ef_total": 9.07,
+      "unit": "kg",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01548",
+      "manufacturer": "Rondo Building Services",
+      "state": "NSW",
+      "expiry_date": "2025-11-02",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2025-11-02",
+          "materialId": "70f87349-33e0-4c02-87f3-960584a3277e",
+          "materialName": "Rondo DUO9 Exposed Grid Tee",
+          "value": "2025-11-02",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "21e3af21-b51b-417b-9f1a-9754a5072b6d",
+      "material_name": "Rondo 2534 Clip",
+      "material_category": "Steel Accessories",
+      "ef_total": 5.51,
+      "unit": "kg",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01548",
+      "manufacturer": "Rondo Building Services",
+      "state": "NSW",
+      "expiry_date": "2025-11-02",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2025-11-02",
+          "materialId": "21e3af21-b51b-417b-9f1a-9754a5072b6d",
+          "materialName": "Rondo 2534 Clip",
+          "value": "2025-11-02",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "fced73e0-7add-4a0b-bc23-e662de783278",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement,(Fly Ash)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 203,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "fced73e0-7add-4a0b-bc23-e662de783278",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement,(Fly Ash)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "1f172e6e-b079-4e13-b2cc-63585045eca4",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 273,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "1f172e6e-b079-4e13-b2cc-63585045eca4",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "387277d6-983f-4746-a222-15eaa80d7393",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 220,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "387277d6-983f-4746-a222-15eaa80d7393",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "c6f152f3-d6e3-438e-af8a-0447d9ee7de4",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 171,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "c6f152f3-d6e3-438e-af8a-0447d9ee7de4",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "d2a858c3-4bbf-4386-9633-c487b0455674",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 152,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "d2a858c3-4bbf-4386-9633-c487b0455674",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "077279c8-6dd6-415c-af3b-3bccd18b8be2",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement,(General)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 242,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "077279c8-6dd6-415c-af3b-3bccd18b8be2",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement,(General)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "f0698a7f-006c-4a93-9052-20810964e972",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement,(GGBS Slag)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 163,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "f0698a7f-006c-4a93-9052-20810964e972",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement,(GGBS Slag)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "2c5d55b9-2435-45d9-8bea-4b272c152ac5",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement,(Triple Blend)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 154,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "2c5d55b9-2435-45d9-8bea-4b272c152ac5",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement,(Triple Blend)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "628de3d1-1f28-46da-8e55-a9283904adf1",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement, (General) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 257,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "628de3d1-1f28-46da-8e55-a9283904adf1",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement, (General) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "e1cf393a-57bd-4428-b421-dc7620464f5e",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 221,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "e1cf393a-57bd-4428-b421-dc7620464f5e",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "b295a80d-95d2-4a59-a937-e86c9cc69ee2",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 209,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "b295a80d-95d2-4a59-a937-e86c9cc69ee2",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "a566375c-db36-4d95-8224-2fc68899a43f",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement, (General) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 265,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "General",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "a566375c-db36-4d95-8224-2fc68899a43f",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement, (General) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "7462f8eb-31d2-418e-a021-45e18d9b1087",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 198,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "Fly Ash",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "7462f8eb-31d2-418e-a021-45e18d9b1087",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "6ba75a46-17ec-4f47-a09f-9047d235ee94",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 200,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "GGBS Slag",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "6ba75a46-17ec-4f47-a09f-9047d235ee94",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "d6d49eb6-8f03-4347-b0aa-1127e976a653",
+      "material_name": "Concrete, 20 MPa, in-situ, no reinforcement, (General) (Holcim) (WA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 265,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "General",
+      "state": "WA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "d6d49eb6-8f03-4347-b0aa-1127e976a653",
+          "materialName": "Concrete, 20 MPa, in-situ, no reinforcement, (General) (Holcim) (WA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "61483f56-c9a6-41b5-88d9-2a9cbc5af42e",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (WA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 207,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "GGBS Slag",
+      "state": "WA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "61483f56-c9a6-41b5-88d9-2a9cbc5af42e",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (WA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "eabdfbfc-7130-493c-807a-2728ccc568e3",
+      "material_name": "Brick",
+      "material_category": "Masonry",
+      "ef_total": 0.302,
+      "unit": "kg",
+      "data_source": "ICM Database 2019 (AusLCI)",
+      "epd_number": null,
+      "manufacturer": null,
+      "state": null,
+      "expiry_date": null,
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 2,
+      "isOutlier": true,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 3,
+          "code": "BELOW_NABERS_RANGE",
+          "message": "Value 0.302 is 99.4% below expected range (min 50)",
+          "materialId": "eabdfbfc-7130-493c-807a-2728ccc568e3",
+          "materialName": "Brick",
+          "value": 0.302,
+          "expectedRange": "50-500",
+          "recommendedAction": "Verify recycled content or source documentation"
+        }
+      ]
+    },
+    {
+      "id": "bc5fe242-5edc-4785-84eb-762bda499f9f",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 297,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "bc5fe242-5edc-4785-84eb-762bda499f9f",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "391beeca-7938-4380-aabe-a18bbdab9de4",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 241,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "391beeca-7938-4380-aabe-a18bbdab9de4",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "eeb652b8-d1db-4e66-bd6f-7ea323a2bafe",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 185,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "eeb652b8-d1db-4e66-bd6f-7ea323a2bafe",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "f4538def-fd0e-4e0d-a020-81513e65e6d1",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 154,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "f4538def-fd0e-4e0d-a020-81513e65e6d1",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "fe524fff-955d-49ed-953e-2ec346d20bec",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement,(General)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 257,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "fe524fff-955d-49ed-953e-2ec346d20bec",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement,(General)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "b96c9eaa-7558-44fc-ad3c-be2057595b2c",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement,(Fly Ash)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 219,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "b96c9eaa-7558-44fc-ad3c-be2057595b2c",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement,(Fly Ash)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "f2b91198-83fa-4621-a049-3ee92f0f9086",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement,(GGBS Slag)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 172,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "f2b91198-83fa-4621-a049-3ee92f0f9086",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement,(GGBS Slag)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "25838bc8-ce3a-44fd-8e49-5ab8f32c19a4",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement,(Triple Blend)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 167,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "25838bc8-ce3a-44fd-8e49-5ab8f32c19a4",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement,(Triple Blend)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "d7b17e2f-c630-4f71-aa86-b7980be44b5e",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement, (General) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 286,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "d7b17e2f-c630-4f71-aa86-b7980be44b5e",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement, (General) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "da466cd2-1b94-423b-a77a-4ab30638bef8",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 240,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "da466cd2-1b94-423b-a77a-4ab30638bef8",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "ac469533-0ee6-4726-84fd-b71a6a574683",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 215,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "ac469533-0ee6-4726-84fd-b71a6a574683",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "690fa01d-6116-4b5d-bff0-828412108940",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement, (General) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 303,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "General",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "690fa01d-6116-4b5d-bff0-828412108940",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement, (General) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "441e687c-8d7c-46f8-ad59-e45f272cc681",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 227,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "Fly Ash",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "441e687c-8d7c-46f8-ad59-e45f272cc681",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "8b28b952-11b0-49a6-9668-b24b163ddeba",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 220,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "GGBS Slag",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "8b28b952-11b0-49a6-9668-b24b163ddeba",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "c1d2d1cd-2b9b-419a-88b3-c88628f77fad",
+      "material_name": "Concrete, 25 MPa, in-situ, no reinforcement, (General) (Holcim) (WA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 280,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "General",
+      "state": "WA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "c1d2d1cd-2b9b-419a-88b3-c88628f77fad",
+          "materialName": "Concrete, 25 MPa, in-situ, no reinforcement, (General) (Holcim) (WA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "d4207dfc-03b0-4132-b442-26eb82aa99c1",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (WA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 221,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "GGBS Slag",
+      "state": "WA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "d4207dfc-03b0-4132-b442-26eb82aa99c1",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (WA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "96b60e5d-1430-4151-892f-4693816954ce",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 343,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "96b60e5d-1430-4151-892f-4693816954ce",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "a72eb08b-0ce2-4204-9c2a-f029866817db",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 273,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "a72eb08b-0ce2-4204-9c2a-f029866817db",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "53490652-77a8-4f2f-a3a2-58d4c76cff3c",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 196,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "53490652-77a8-4f2f-a3a2-58d4c76cff3c",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "4df6a513-4457-48a1-b9a9-933236070ae2",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 176,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "4df6a513-4457-48a1-b9a9-933236070ae2",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "2f6ef297-479d-4561-912b-9f6cc23f6083",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement,(General)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 303,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "2f6ef297-479d-4561-912b-9f6cc23f6083",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement,(General)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "dc890ac3-f826-42da-b452-a20131026941",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement,(Fly Ash)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 247,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "dc890ac3-f826-42da-b452-a20131026941",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement,(Fly Ash)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "0ae91ccc-47ef-485f-83e7-c8dec94a2d97",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement,(Triple Blend)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 186,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "0ae91ccc-47ef-485f-83e7-c8dec94a2d97",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement,(Triple Blend)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "1b140032-2ff8-4686-bbd3-548991b229a3",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement, (General) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 328,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "1b140032-2ff8-4686-bbd3-548991b229a3",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement, (General) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "06ca9010-9021-4c56-a550-c1fba6322fda",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 265,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "06ca9010-9021-4c56-a550-c1fba6322fda",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "34b2d95c-9f99-46bb-a086-216084703529",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 252,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "34b2d95c-9f99-46bb-a086-216084703529",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "a24d5900-1763-4c0a-89fe-da2fcaa20519",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement, (General) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 351,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "General",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "a24d5900-1763-4c0a-89fe-da2fcaa20519",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement, (General) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "a62ec801-e818-4167-a2f4-3fc9a2fd2135",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 263,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "Fly Ash",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "a62ec801-e818-4167-a2f4-3fc9a2fd2135",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "7bbf038c-0aef-4132-8b3f-16ee18c4f03d",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 238,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "GGBS Slag",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "7bbf038c-0aef-4132-8b3f-16ee18c4f03d",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "2c94e5f1-04f2-47c3-99eb-b8313fcd3f25",
+      "material_name": "Concrete, 32 MPa, in-situ, no reinforcement, (General) (Holcim) (WA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 321,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "General",
+      "state": "WA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "2c94e5f1-04f2-47c3-99eb-b8313fcd3f25",
+          "materialName": "Concrete, 32 MPa, in-situ, no reinforcement, (General) (Holcim) (WA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "a9fe3578-e4f4-4ee5-bb32-47636efb4dc8",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (WA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 237,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "GGBS Slag",
+      "state": "WA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "a9fe3578-e4f4-4ee5-bb32-47636efb4dc8",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (WA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "6dd9f683-3f2f-4df3-a7cc-10f7dd782bd4",
+      "material_name": "Chromium steel 18/8",
+      "material_category": "Metals - Steel",
+      "ef_total": 5.58,
+      "unit": "kg",
+      "data_source": "ICM Database 2019 (AusLCI)",
+      "epd_number": null,
+      "manufacturer": null,
+      "state": null,
+      "expiry_date": null,
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 2,
+      "isOutlier": true,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 3,
+          "code": "BELOW_NABERS_RANGE",
+          "message": "Value 5.58 is 98.6% below expected range (min 400)",
+          "materialId": "6dd9f683-3f2f-4df3-a7cc-10f7dd782bd4",
+          "materialName": "Chromium steel 18/8",
+          "value": 5.58,
+          "expectedRange": "400-4000",
+          "recommendedAction": "Verify recycled content or source documentation"
+        }
+      ]
+    },
+    {
+      "id": "8935b75b-7f4d-486e-9fbc-9f5c86dc47b8",
+      "material_name": "Cast iron, at plant",
+      "material_category": "Metals - Steel",
+      "ef_total": 2.11,
+      "unit": "kg",
+      "data_source": "ICM Database 2019 (AusLCI)",
+      "epd_number": null,
+      "manufacturer": null,
+      "state": null,
+      "expiry_date": null,
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 2,
+      "isOutlier": true,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 3,
+          "code": "BELOW_NABERS_RANGE",
+          "message": "Value 2.11 is 99.5% below expected range (min 400)",
+          "materialId": "8935b75b-7f4d-486e-9fbc-9f5c86dc47b8",
+          "materialName": "Cast iron, at plant",
+          "value": 2.11,
+          "expectedRange": "400-4000",
+          "recommendedAction": "Verify recycled content or source documentation"
+        }
+      ]
+    },
+    {
+      "id": "63016943-25f5-4047-9040-f71575461884",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement, (General) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 413,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "General",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "63016943-25f5-4047-9040-f71575461884",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement, (General) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "f37fb286-91b1-431f-bb7a-469b1d6c70c0",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 308,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "Fly Ash",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "f37fb286-91b1-431f-bb7a-469b1d6c70c0",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "2eba2b39-d470-432e-b30e-7a29636c3416",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 405,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "2eba2b39-d470-432e-b30e-7a29636c3416",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "dfd8d427-ee21-4514-ac70-98971312b85e",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 328,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "dfd8d427-ee21-4514-ac70-98971312b85e",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "1473bdd2-4b16-4422-8a8c-c25a3b85b7eb",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 243,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "1473bdd2-4b16-4422-8a8c-c25a3b85b7eb",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "284784dd-7416-4197-8a33-096c2e3afa1f",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 219,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "284784dd-7416-4197-8a33-096c2e3afa1f",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "d189fd59-a50b-4d44-92b5-a5a7fb6075b1",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement,(General)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 355,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "d189fd59-a50b-4d44-92b5-a5a7fb6075b1",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement,(General)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "2be84ea6-b73f-4ed3-a38c-c93dc23f8441",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement,(Fly Ash)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 297,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "2be84ea6-b73f-4ed3-a38c-c93dc23f8441",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement,(Fly Ash)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "817ef6f3-563b-4161-a6c9-6c53a5645751",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement,(Triple Blend)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 218,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "817ef6f3-563b-4161-a6c9-6c53a5645751",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement,(Triple Blend)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "af7ebde2-dc51-480b-ad2c-25624c3cdd04",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement, (General) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 386,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "af7ebde2-dc51-480b-ad2c-25624c3cdd04",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement, (General) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "af26d0ad-df97-4d9c-948f-0cdb240bfdb3",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 302,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "af26d0ad-df97-4d9c-948f-0cdb240bfdb3",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "4a424bcd-1279-4a98-badf-74e2360196de",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 272,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "4a424bcd-1279-4a98-badf-74e2360196de",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "7ec3fe88-7fd1-4b81-848d-9a19e21f54f9",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 262,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "GGBS Slag",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "7ec3fe88-7fd1-4b81-848d-9a19e21f54f9",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "82ec9d4b-4362-468b-86fa-65891be759cf",
+      "material_name": "Concrete, 40 MPa, in-situ, no reinforcement, (General) (Holcim) (WA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 370,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "General",
+      "state": "WA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "82ec9d4b-4362-468b-86fa-65891be759cf",
+          "materialName": "Concrete, 40 MPa, in-situ, no reinforcement, (General) (Holcim) (WA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "0fcaf4aa-2f5f-4e6a-b751-9d5a5024ea97",
+      "material_name": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (WA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 267,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "GGBS Slag",
+      "state": "WA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "0fcaf4aa-2f5f-4e6a-b751-9d5a5024ea97",
+          "materialName": "Concrete,  MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (WA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "bd4933af-7b1d-4443-ad50-817c59e2e404",
+      "material_name": "Cold impact extrusion, aluminium, 5 strokes",
+      "material_category": "Metals - Aluminium",
+      "ef_total": 4.48,
+      "unit": "kg",
+      "data_source": "ICM Database 2019 (AusLCI)",
+      "epd_number": null,
+      "manufacturer": null,
+      "state": null,
+      "expiry_date": null,
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 2,
+      "isOutlier": true,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 3,
+          "code": "BELOW_NABERS_RANGE",
+          "message": "Value 4.48 is 99.4% below expected range (min 800)",
+          "materialId": "bd4933af-7b1d-4443-ad50-817c59e2e404",
+          "materialName": "Cold impact extrusion, aluminium, 5 strokes",
+          "value": 4.48,
+          "expectedRange": "800-28800",
+          "recommendedAction": "Verify recycled content or source documentation"
+        }
+      ]
+    },
+    {
+      "id": "b621d903-d615-45df-858e-db5e66ee9cd4",
+      "material_name": "Chromium steel product manufacturing, average metal working",
+      "material_category": "Metals - Steel",
+      "ef_total": 3.6,
+      "unit": "kg",
+      "data_source": "ICM Database 2019 (AusLCI)",
+      "epd_number": null,
+      "manufacturer": null,
+      "state": null,
+      "expiry_date": null,
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 2,
+      "isOutlier": true,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 3,
+          "code": "BELOW_NABERS_RANGE",
+          "message": "Value 3.6 is 99.1% below expected range (min 400)",
+          "materialId": "b621d903-d615-45df-858e-db5e66ee9cd4",
+          "materialName": "Chromium steel product manufacturing, average metal working",
+          "value": 3.6,
+          "expectedRange": "400-4000",
+          "recommendedAction": "Verify recycled content or source documentation"
+        }
+      ]
+    },
+    {
+      "id": "f86bb3ae-69c4-4f1f-92bf-84d4b4d5238b",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 514,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": true,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "f86bb3ae-69c4-4f1f-92bf-84d4b4d5238b",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        },
+        {
+          "severity": "medium",
+          "layer": 6,
+          "code": "STATISTICAL_OUTLIER",
+          "message": "Value 514 is 2.3σ from category mean (294.2)",
+          "materialId": "f86bb3ae-69c4-4f1f-92bf-84d4b4d5238b",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement, (General) (Holcim) (NSW)(ACT)",
+          "value": 514,
+          "expectedRange": "104.7-483.6",
+          "recommendedAction": "Investigate regional/manufacturing variations"
+        }
+      ]
+    },
+    {
+      "id": "567670de-8e69-49c0-b807-6196120a707a",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 414,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "567670de-8e69-49c0-b807-6196120a707a",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "b7ea0b9f-ccda-412f-94d6-2370cc1aea33",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 303,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "b7ea0b9f-ccda-412f-94d6-2370cc1aea33",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "1aadd0ce-5a9d-438b-8882-6266fa2b5f29",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (NSW)(ACT)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 284,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "ACT",
+      "state": "NSW",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "1aadd0ce-5a9d-438b-8882-6266fa2b5f29",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (NSW)(ACT)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "3d149c80-d6f0-4699-a037-a198e98f6b1f",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement,(Fly Ash)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 363,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "3d149c80-d6f0-4699-a037-a198e98f6b1f",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement,(Fly Ash)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "7819a917-fd54-4025-a4ef-1d1fdb380a0f",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement,(Triple Blend)  (Holcim)  (QLD)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 296,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "QLD",
+      "state": "QLD",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "7819a917-fd54-4025-a4ef-1d1fdb380a0f",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement,(Triple Blend)  (Holcim)  (QLD)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "0e75540d-617a-489f-a6d0-137365531c3a",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement, (General) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 454,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "0e75540d-617a-489f-a6d0-137365531c3a",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement, (General) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "c8238bfd-4452-4613-90b0-373241e0e307",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 363,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "c8238bfd-4452-4613-90b0-373241e0e307",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement, (Fly Ash) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "3f1be4eb-9c52-4fce-a590-04ef28ee4c7d",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (VIC)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 302,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "VIC",
+      "state": "VIC",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "3f1be4eb-9c52-4fce-a590-04ef28ee4c7d",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement, (Triple Blend) (Holcim) (VIC)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "56b67547-991c-442c-a204-421d7b111479",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (SA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 303,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "GGBS Slag",
+      "state": "SA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "56b67547-991c-442c-a204-421d7b111479",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (SA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "a56950fd-3a90-474d-9ca9-71f7c1bbc92a",
+      "material_name": "Concrete, 50 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (WA)",
+      "material_category": "Concrete (in-situ)",
+      "ef_total": 334,
+      "unit": "m³",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-01165",
+      "manufacturer": "GGBS Slag",
+      "state": "WA",
+      "expiry_date": "2024-06-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-06-30",
+          "materialId": "a56950fd-3a90-474d-9ca9-71f7c1bbc92a",
+          "materialName": "Concrete, 50 MPa, in-situ, no reinforcement, (GGBS Slag) (Holcim) (WA)",
+          "value": "2024-06-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "f0a7996e-51e6-459d-ad67-2ca46e266257",
+      "material_name": "Access floor, , Urban X S2 access floor system - medium (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 19,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "f0a7996e-51e6-459d-ad67-2ca46e266257",
+          "materialName": "Access floor, , Urban X S2 access floor system - medium (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "9749b4ea-acdd-4e9a-ac60-06338ca19f85",
+      "material_name": "Access floor, , Urban X S2 access floor system - heavy (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 23,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "9749b4ea-acdd-4e9a-ac60-06338ca19f85",
+          "materialName": "Access floor, , Urban X S2 access floor system - heavy (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "41f0c362-7a3a-4950-9973-bf98992af5f5",
+      "material_name": "Access floor, , Urban X S2 access floor system - extra heavy (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 25,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "41f0c362-7a3a-4950-9973-bf98992af5f5",
+          "materialName": "Access floor, , Urban X S2 access floor system - extra heavy (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "976725f8-b08b-44a0-8b4f-772d0af174dc",
+      "material_name": "Access floor, , Urban X S4 access floor system - medium (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 20,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "976725f8-b08b-44a0-8b4f-772d0af174dc",
+          "materialName": "Access floor, , Urban X S4 access floor system - medium (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "1de3be12-62b1-4a47-800d-88793993613b",
+      "material_name": "Access floor, , Urban X S4 access floor system - heavy (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 23,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "1de3be12-62b1-4a47-800d-88793993613b",
+          "materialName": "Access floor, , Urban X S4 access floor system - heavy (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "abe8a409-cab7-4fa1-840b-e90f09228819",
+      "material_name": "Access floor, , Urban X S4 access floor system - extra heavy (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 26,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "abe8a409-cab7-4fa1-840b-e90f09228819",
+          "materialName": "Access floor, , Urban X S4 access floor system - extra heavy (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "5da32dc0-09ba-4823-aacd-9b62f8ae1cc3",
+      "material_name": "Access floor, , Urban X S6 access floor system - medium (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 20.3,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "5da32dc0-09ba-4823-aacd-9b62f8ae1cc3",
+          "materialName": "Access floor, , Urban X S6 access floor system - medium (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "431f8946-da34-4b2a-a550-20f975262482",
+      "material_name": "Access floor, , Urban X S6 access floor system - heavy (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 24,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "431f8946-da34-4b2a-a550-20f975262482",
+          "materialName": "Access floor, , Urban X S6 access floor system - heavy (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "ed29adaa-41a7-4e0b-a5cf-651924c4a1b9",
+      "material_name": "Access floor, , Urban X S6 access floor system - extra heavy (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 26.5,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "ed29adaa-41a7-4e0b-a5cf-651924c4a1b9",
+          "materialName": "Access floor, , Urban X S6 access floor system - extra heavy (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "c2a3a3ac-e121-4cd5-a165-15fbd09d5152",
+      "material_name": "Access floor, , Urban IL S2 access floor system (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 20,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "c2a3a3ac-e121-4cd5-a165-15fbd09d5152",
+          "materialName": "Access floor, , Urban IL S2 access floor system (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "e3b8b26c-d7ef-4294-b2ca-f604e61fd4ff",
+      "material_name": "Access floor, , Urban IL S4 access floor system (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 21,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "e3b8b26c-d7ef-4294-b2ca-f604e61fd4ff",
+          "materialName": "Access floor, , Urban IL S4 access floor system (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "ecf4ac5b-a4c6-4d9a-b92f-c9d41ad5447e",
+      "material_name": "Access floor, , Urban IL S6 access floor system - extra heavy (ASP Accees Floors) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 21,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-00996",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2024-07-30",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2024-07-30",
+          "materialId": "ecf4ac5b-a4c6-4d9a-b92f-c9d41ad5447e",
+          "materialName": "Access floor, , Urban IL S6 access floor system - extra heavy (ASP Accees Floors) (Australia)",
+          "value": "2024-07-30",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "ef7e3a94-2d87-406d-bf09-d7e71fd2facc",
+      "material_name": "Access floor, , ConCore 800 (Tate Asia-Pacific Pty td) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 34,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-02049",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2025-10-09",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2025-10-09",
+          "materialId": "ef7e3a94-2d87-406d-bf09-d7e71fd2facc",
+          "materialName": "Access floor, , ConCore 800 (Tate Asia-Pacific Pty td) (Australia)",
+          "value": "2025-10-09",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    },
+    {
+      "id": "452a3b3d-c7c4-4278-ba49-171c4faa3b67",
+      "material_name": "Access floor, , ConCore 1000 (Tate Asia-Pacific Pty td) (Australia)",
+      "material_category": "Flooring",
+      "ef_total": 37,
+      "unit": "m²",
+      "data_source": "EPD Australasia",
+      "epd_number": "S-P-02049",
+      "manufacturer": "Australia",
+      "state": null,
+      "expiry_date": "2025-10-09",
+      "confidenceLevel": "documented",
+      "confidenceColor": "yellow",
+      "sourceTier": 1,
+      "isOutlier": false,
+      "issues": [
+        {
+          "severity": "high",
+          "layer": 2,
+          "code": "EXPIRED_EPD",
+          "message": "EPD expired on 2025-10-09",
+          "materialId": "452a3b3d-c7c4-4278-ba49-171c4faa3b67",
+          "materialName": "Access floor, , ConCore 1000 (Tate Asia-Pacific Pty td) (Australia)",
+          "value": "2025-10-09",
+          "recommendedAction": "Replace with current EPD version"
+        }
+      ]
+    }
+  ],
+  "categoryStats": {
+    "Metals - Zinc": {
+      "count": 7,
+      "avgEf": 4.354681428571429,
+      "minEf": 0.10277,
+      "maxEf": 10.31,
+      "stdDev": 3.6489482097582533,
+      "outliers": 0
+    },
+    "Steel Wall/Ceiling Framing": {
+      "count": 7,
+      "avgEf": 9.07,
+      "minEf": 9.07,
+      "maxEf": 9.07,
+      "stdDev": 0,
+      "outliers": 0
+    },
+    "Steel Accessories": {
+      "count": 42,
+      "avgEf": 5.509999999999997,
+      "minEf": 5.51,
+      "maxEf": 5.51,
+      "stdDev": 2.6645352591003757e-15,
+      "outliers": 0
+    },
+    "Civil Works": {
+      "count": 9,
+      "avgEf": 1.3705555555555553,
+      "minEf": 0.154,
+      "maxEf": 2.55,
+      "stdDev": 0.8035035934526727,
+      "outliers": 0
+    },
+    "Concrete (in-situ)": {
+      "count": 2047,
+      "avgEf": 294.16272098681,
+      "minEf": 67.8,
+      "maxEf": 1270,
+      "stdDev": 94.71164695442707,
+      "outliers": 80
+    },
+    "Building Materials": {
+      "count": 106,
+      "avgEf": 144.24045181698114,
+      "minEf": 0.0036393,
+      "maxEf": 6310,
+      "stdDev": 665.2139411181637,
+      "outliers": 2
+    },
+    "Asphalt": {
+      "count": 302,
+      "avgEf": 70.27237744370863,
+      "minEf": 4.4,
+      "maxEf": 134,
+      "stdDev": 17.652481661700904,
+      "outliers": 15
+    },
+    "Concrete & Cement": {
+      "count": 66,
+      "avgEf": 125.50131782727271,
+      "minEf": 0.0036393,
+      "maxEf": 698,
+      "stdDev": 203.98932509685784,
+      "outliers": 3
+    },
+    "Masonry": {
+      "count": 127,
+      "avgEf": 169.63562443537475,
+      "minEf": 0.0036393,
+      "maxEf": 451.85185185185185,
+      "stdDev": 94.36286554930068,
+      "outliers": 20
+    },
+    "Metals - Steel": {
+      "count": 86,
+      "avgEf": 623.1369272906976,
+      "minEf": 0.0064235,
+      "maxEf": 19200,
+      "stdDev": 3234.7422158957734,
+      "outliers": 85
+    },
+    "Renewable Energy Systems": {
+      "count": 33,
+      "avgEf": 4371.609090909091,
+      "minEf": 6.05,
+      "maxEf": 58400,
+      "stdDev": 10664.457833757708,
+      "outliers": 1
+    },
+    "Timber": {
+      "count": 67,
+      "avgEf": 285.665069722388,
+      "minEf": 0.0016284,
+      "maxEf": 1570,
+      "stdDev": 332.9582777805587,
+      "outliers": 20
+    },
+    "Flooring": {
+      "count": 77,
+      "avgEf": 21.495208103572825,
+      "minEf": 0.37270000000000003,
+      "maxEf": 76,
+      "stdDev": 17.87957993534356,
+      "outliers": 6
+    },
+    "Plastics": {
+      "count": 48,
+      "avgEf": 815.6111700645833,
+      "minEf": 0.0086616,
+      "maxEf": 12900,
+      "stdDev": 2575.0993740753083,
+      "outliers": 3
+    },
+    "Metals - Aluminium": {
+      "count": 36,
+      "avgEf": 43.057750000000006,
+      "minEf": 0.139,
+      "maxEf": 845,
+      "stdDev": 143.93764301433043,
+      "outliers": 36
+    },
+    "Glass": {
+      "count": 87,
+      "avgEf": 6.200147008038358,
+      "minEf": 0.0089375,
+      "maxEf": 168,
+      "stdDev": 22.76142706657143,
+      "outliers": 12
+    },
+    "Roofing": {
+      "count": 20,
+      "avgEf": 7290.74330515,
+      "minEf": 0.036654,
+      "maxEf": 12310,
+      "stdDev": 4848.919215080866,
+      "outliers": 0
+    },
+    "Transport": {
+      "count": 18,
+      "avgEf": 0.5700023333333335,
+      "minEf": 0.015442,
+      "maxEf": 2.98,
+      "stdDev": 0.8566537526674487,
+      "outliers": 2
+    },
+    "Autoclaved aerated concrete": {
+      "count": 11,
+      "avgEf": 69.37779848589904,
+      "minEf": 0.3732106339468303,
+      "maxEf": 232,
+      "stdDev": 92.90727323994759,
+      "outliers": 0
+    },
+    "Aluminium": {
+      "count": 26,
+      "avgEf": 12195.528602698116,
+      "minEf": 5.485714285714286,
+      "maxEf": 28800,
+      "stdDev": 8524.716245395257,
+      "outliers": 4
+    },
+    "Vertical services": {
+      "count": 20,
+      "avgEf": 54484.28221000001,
+      "minEf": 4161.504,
+      "maxEf": 259393.2,
+      "stdDev": 60961.4284820668,
+      "outliers": 1
+    },
+    "Ceilings and walls": {
+      "count": 3,
+      "avgEf": 4.991788268955651,
+      "minEf": 3.5053648068669525,
+      "maxEf": 6.39,
+      "stdDev": 1.1792981052263853,
+      "outliers": 0
+    },
+    "Ethylene Propylene diene terpolymer": {
+      "count": 3,
+      "avgEf": 3.467821067821068,
+      "minEf": 2.265151515151515,
+      "maxEf": 4.392857142857142,
+      "stdDev": 0.8905403118218712,
+      "outliers": 0
+    },
+    "Fibre cement": {
+      "count": 55,
+      "avgEf": 11.150781818181818,
+      "minEf": 3.51,
+      "maxEf": 41.9,
+      "stdDev": 7.4762644967339105,
+      "outliers": 3
+    },
+    "Aggregate": {
+      "count": 25,
+      "avgEf": 5.347239999999999,
+      "minEf": 0.492,
+      "maxEf": 16,
+      "stdDev": 3.4212994406219397,
+      "outliers": 1
+    },
+    "Glass fibre reinforced concrete": {
+      "count": 3,
+      "avgEf": 544.4701631701631,
+      "minEf": 407.6923076923077,
+      "maxEf": 723.9,
+      "stdDev": 132.56751689504327,
+      "outliers": 0
+    },
+    "Concrete precast": {
+      "count": 10,
+      "avgEf": 298.5768037552,
+      "minEf": 183,
+      "maxEf": 418.69247,
+      "stdDev": 79.37357850203716,
+      "outliers": 0
+    },
+    "Door": {
+      "count": 27,
+      "avgEf": 100.1476215975011,
+      "minEf": 14.41,
+      "maxEf": 315,
+      "stdDev": 71.57883743669852,
+      "outliers": 3
+    },
+    "Timber & engineered woods": {
+      "count": 3,
+      "avgEf": 238.4115485739749,
+      "minEf": 1.6529411764705628,
+      "maxEf": 687,
+      "stdDev": 317.36315673097715,
+      "outliers": 0
+    },
+    "Stainless steel": {
+      "count": 12,
+      "avgEf": 3508.3333333333335,
+      "minEf": 2800,
+      "maxEf": 4990,
+      "stdDev": 742.2806447399498,
+      "outliers": 0
+    },
+    "Adhesives & Sealants": {
+      "count": 2,
+      "avgEf": 125.89,
+      "minEf": 1.78,
+      "maxEf": 250,
+      "stdDev": 124.11,
+      "outliers": 0
+    },
+    "Curtain wall": {
+      "count": 6,
+      "avgEf": 110.56666666666666,
+      "minEf": 84.8,
+      "maxEf": 176,
+      "stdDev": 35.133111953761734,
+      "outliers": 0
+    },
+    "Paints & Coatings": {
+      "count": 18,
+      "avgEf": 1.4449963722222217,
+      "minEf": 0.0077687,
+      "maxEf": 4.57,
+      "stdDev": 1.7072103205514724,
+      "outliers": 0
+    },
+    "Duct": {
+      "count": 4,
+      "avgEf": 5.11350075,
+      "minEf": 3.19,
+      "maxEf": 9.904003,
+      "stdDev": 2.79458475193573,
+      "outliers": 0
+    },
+    "Metal treatment": {
+      "count": 4,
+      "avgEf": 1.004,
+      "minEf": 0.156,
+      "maxEf": 1.9,
+      "stdDev": 0.6261134082576414,
+      "outliers": 0
+    },
+    "Insulation only": {
+      "count": 72,
+      "avgEf": 3.647499999999999,
+      "minEf": 2.43,
+      "maxEf": 4.74,
+      "stdDev": 0.44964414942386516,
+      "outliers": 4
+    },
+    "Insulation panels": {
+      "count": 9,
+      "avgEf": 23.4,
+      "minEf": 16.4,
+      "maxEf": 29.1,
+      "stdDev": 4.574324479575584,
+      "outliers": 0
+    },
+    "Mortar and grout": {
+      "count": 7,
+      "avgEf": 29.722187679577058,
+      "minEf": 0.17182890855457228,
+      "maxEf": 205,
+      "stdDev": 71.55721898200235,
+      "outliers": 1
+    },
+    "Pipe conduit": {
+      "count": 8,
+      "avgEf": 44.4835,
+      "minEf": 3.07,
+      "maxEf": 332,
+      "stdDev": 108.67117826613458,
+      "outliers": 1
+    },
+    "Polyamide": {
+      "count": 1,
+      "avgEf": 7.34,
+      "minEf": 7.34,
+      "maxEf": 7.34,
+      "stdDev": 0,
+      "outliers": 0
+    },
+    "Sand": {
+      "count": 7,
+      "avgEf": 163.71428571428572,
+      "minEf": 83,
+      "maxEf": 271,
+      "stdDev": 60.341206687385665,
+      "outliers": 0
+    },
+    "Steel": {
+      "count": 362,
+      "avgEf": 839.9025832433355,
+      "minEf": 0.128,
+      "maxEf": 3860,
+      "stdDev": 1218.2558437562523,
+      "outliers": 237
+    },
+    "Tile": {
+      "count": 9,
+      "avgEf": 120.82226237402705,
+      "minEf": 0.236,
+      "maxEf": 521.4928357214261,
+      "stdDev": 177.14422440285566,
+      "outliers": 1
+    },
+    "Waterproofing": {
+      "count": 46,
+      "avgEf": 3.0967200000000004,
+      "minEf": 0.00154,
+      "maxEf": 9.63,
+      "stdDev": 2.252195645401442,
+      "outliers": 1
+    },
+    "Window": {
+      "count": 10,
+      "avgEf": 100.726,
+      "minEf": 32.6,
+      "maxEf": 281,
+      "stdDev": 76.03924515669523,
+      "outliers": 1
+    },
+    "Plasterboard": {
+      "count": 38,
+      "avgEf": 2.684184210526316,
+      "minEf": 0.859,
+      "maxEf": 5.98,
+      "stdDev": 1.1261272213644695,
+      "outliers": 2
+    },
+    "Structural Insulated Panel (SIP)": {
+      "count": 126,
+      "avgEf": 46.558060952380956,
+      "minEf": 7.16,
+      "maxEf": 84.8,
+      "stdDev": 14.492869018988756,
+      "outliers": 14
+    },
+    "Plastic sheeting": {
+      "count": 4,
+      "avgEf": 7551.75,
+      "minEf": 487,
+      "maxEf": 11500,
+      "stdDev": 4360.844435140974,
+      "outliers": 0
+    },
+    "Add on aluminium billet - extrusion + anodising": {
+      "count": 1,
+      "avgEf": 3.3413000000000004,
+      "minEf": 3.3413000000000004,
+      "maxEf": 3.3413000000000004,
+      "stdDev": 0,
+      "outliers": 0
+    },
+    "Add on aluminium billet - extrusion + powder coating": {
+      "count": 1,
+      "avgEf": 2.2713,
+      "minEf": 2.2713,
+      "maxEf": 2.2713,
+      "stdDev": 0,
+      "outliers": 0
+    },
+    "Steel cladding - metallic coated": {
+      "count": 72,
+      "avgEf": 19.025718202686008,
+      "minEf": 8.39771,
+      "maxEf": 62.707980000000006,
+      "stdDev": 10.21090607419494,
+      "outliers": 4
+    },
+    "Steel cladding - painted": {
+      "count": 42,
+      "avgEf": 14.799172619047615,
+      "minEf": 9.48347,
+      "maxEf": 24.691,
+      "stdDev": 3.417831655559984,
+      "outliers": 2
+    },
+    "Thermal break": {
+      "count": 1,
+      "avgEf": 0.0095251,
+      "minEf": 0.0095251,
+      "maxEf": 0.0095251,
+      "stdDev": 0,
+      "outliers": 0
+    },
+    "Metals - Alloys": {
+      "count": 2,
+      "avgEf": 0.7395,
+      "minEf": 0.728,
+      "maxEf": 0.751,
+      "stdDev": 0.01150000000000001,
+      "outliers": 0
+    },
+    "Metals - Copper": {
+      "count": 19,
+      "avgEf": 2.955489315789474,
+      "minEf": 0.036297,
+      "maxEf": 8.82,
+      "stdDev": 2.2407830709849264,
+      "outliers": 1
+    },
+    "Water Systems": {
+      "count": 32,
+      "avgEf": 31.046532059375,
+      "minEf": 0.0016284,
+      "maxEf": 966,
+      "stdDev": 167.9264640172817,
+      "outliers": 1
+    },
+    "Aggregates": {
+      "count": 7,
+      "avgEf": 0.013295485714285713,
+      "minEf": 0.0036393,
+      "maxEf": 0.034561,
+      "stdDev": 0.009700198905534812,
+      "outliers": 1
+    },
+    "Insulation": {
+      "count": 1,
+      "avgEf": 0.081296,
+      "minEf": 0.081296,
+      "maxEf": 0.081296,
+      "stdDev": 0,
+      "outliers": 1
+    },
+    "Energy": {
+      "count": 20,
+      "avgEf": 78.7470098,
+      "minEf": 0.061814,
+      "maxEf": 1570,
+      "stdDev": 342.1169090937423,
+      "outliers": 1
+    },
+    "Windows & Doors": {
+      "count": 2,
+      "avgEf": 519.5,
+      "minEf": 465,
+      "maxEf": 574,
+      "stdDev": 54.5,
+      "outliers": 0
+    }
+  }
+}

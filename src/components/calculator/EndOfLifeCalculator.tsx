@@ -199,10 +199,10 @@ export function EndOfLifeCalculator({ buildingSqm, onTotalsChange }: EndOfLifeCa
       <div className="bg-red-50 border border-red-200 rounded-lg p-3 md:p-4 mb-4">
         <div className="flex items-center gap-2 mb-2">
           <Badge className="bg-red-100 text-red-800 hover:bg-red-100">C1</Badge>
-          <span className="text-sm font-medium">Deconstruction/Demolition Method</span>
+          <span className="text-sm font-medium dark:text-gray-900">Deconstruction/Demolition Method</span>
         </div>
         <Select value={demolitionMethod} onValueChange={setDemolitionMethod}>
-          <SelectTrigger>
+          <SelectTrigger className="dark:text-gray-900 dark:bg-white/80">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -216,7 +216,7 @@ export function EndOfLifeCalculator({ buildingSqm, onTotalsChange }: EndOfLifeCa
             ))}
           </SelectContent>
         </Select>
-        <p className="text-xs text-muted-foreground mt-2">
+        <p className="text-xs text-gray-600 dark:text-gray-700 mt-2">
           {DEMOLITION_METHODS.find(m => m.id === demolitionMethod)?.description}
         </p>
       </div>

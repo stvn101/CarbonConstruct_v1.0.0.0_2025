@@ -64,6 +64,19 @@ interface Material {
   ef_b1b5?: number;
   ef_c1c4?: number;
   ef_d?: number;
+  // ECO Platform compliance fields
+  manufacturing_country?: string;
+  manufacturing_city?: string;
+  characterisation_factor_version?: string;
+  allocation_method?: string;
+  is_co_product?: boolean;
+  co_product_type?: string;
+  uses_mass_balance?: boolean;
+  biogenic_carbon_kg_c?: number;
+  biogenic_carbon_percentage?: number;
+  ecoinvent_methodology?: string;
+  eco_platform_compliant?: boolean;
+  data_quality_rating?: string;
 }
 
 const loadFromStorage = (key: string, fallback: any) => {
@@ -83,7 +96,7 @@ const MaterialRow = ({ material, onChange, onRemove }: {
 }) => {
   return (
     <div className={`rounded-lg border p-3 mb-2 ${
-      material.isCustom ? 'bg-purple-50 border-purple-200' : 'hover:bg-muted/50'
+      material.isCustom ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800' : 'hover:bg-muted/50'
     }`}>
       {/* Header: name and delete */}
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -159,7 +172,7 @@ const MaterialRow = ({ material, onChange, onRemove }: {
 
         <div className="col-span-2 md:col-span-1">
           <label className="text-xs text-muted-foreground mb-1 block">Emissions</label>
-          <div className="h-9 flex items-center justify-center px-2 bg-emerald-100 rounded-md font-bold text-emerald-700 text-sm">
+          <div className="h-9 flex items-center justify-center px-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-md font-bold text-emerald-700 dark:text-emerald-300 text-sm">
             {((material.quantity * material.factor) / 1000).toFixed(3)} t
           </div>
         </div>
@@ -536,6 +549,19 @@ export default function Calculator() {
       ef_b1b5: material.ef_b1b5 || undefined,
       ef_c1c4: material.ef_c1c4 || undefined,
       ef_d: material.ef_d || undefined,
+      // ECO Platform compliance fields
+      manufacturing_country: material.manufacturing_country || material.region || 'Australia',
+      manufacturing_city: material.manufacturing_city || material.plant_location || material.state || undefined,
+      characterisation_factor_version: material.characterisation_factor_version || 'JRC-EF-3.1',
+      allocation_method: material.allocation_method || undefined,
+      is_co_product: material.is_co_product || false,
+      co_product_type: material.co_product_type || undefined,
+      uses_mass_balance: material.uses_mass_balance || false,
+      biogenic_carbon_kg_c: material.biogenic_carbon_kg_c || undefined,
+      biogenic_carbon_percentage: material.biogenic_carbon_percentage || undefined,
+      ecoinvent_methodology: material.ecoinvent_methodology || undefined,
+      eco_platform_compliant: material.eco_platform_compliant !== false,
+      data_quality_rating: material.data_quality_rating || undefined,
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     setMaterialSearch(''); // Clear search after adding
@@ -562,6 +588,19 @@ export default function Calculator() {
       ef_b1b5: material.ef_b1b5 || undefined,
       ef_c1c4: material.ef_c1c4 || undefined,
       ef_d: material.ef_d || undefined,
+      // ECO Platform compliance fields
+      manufacturing_country: material.manufacturing_country || material.region || 'Australia',
+      manufacturing_city: material.manufacturing_city || material.plant_location || material.state || undefined,
+      characterisation_factor_version: material.characterisation_factor_version || 'JRC-EF-3.1',
+      allocation_method: material.allocation_method || undefined,
+      is_co_product: material.is_co_product || false,
+      co_product_type: material.co_product_type || undefined,
+      uses_mass_balance: material.uses_mass_balance || false,
+      biogenic_carbon_kg_c: material.biogenic_carbon_kg_c || undefined,
+      biogenic_carbon_percentage: material.biogenic_carbon_percentage || undefined,
+      ecoinvent_methodology: material.ecoinvent_methodology || undefined,
+      eco_platform_compliant: material.eco_platform_compliant !== false,
+      data_quality_rating: material.data_quality_rating || undefined,
     });
   };
 
@@ -591,6 +630,19 @@ export default function Calculator() {
       ef_b1b5: fav.ef_b1b5,
       ef_c1c4: fav.ef_c1c4,
       ef_d: fav.ef_d,
+      // ECO Platform compliance fields
+      manufacturing_country: fav.manufacturing_country,
+      manufacturing_city: fav.manufacturing_city,
+      characterisation_factor_version: fav.characterisation_factor_version,
+      allocation_method: fav.allocation_method,
+      is_co_product: fav.is_co_product,
+      co_product_type: fav.co_product_type,
+      uses_mass_balance: fav.uses_mass_balance,
+      biogenic_carbon_kg_c: fav.biogenic_carbon_kg_c,
+      biogenic_carbon_percentage: fav.biogenic_carbon_percentage,
+      ecoinvent_methodology: fav.ecoinvent_methodology,
+      eco_platform_compliant: fav.eco_platform_compliant,
+      data_quality_rating: fav.data_quality_rating,
     };
     setSelectedMaterials(prev => [...prev, newItem]);
     
@@ -1903,7 +1955,7 @@ export default function Calculator() {
 
           {/* Right Column - Stats Panel */}
           <div className="lg:col-span-1">
-            <Card className="p-4 md:p-6 lg:sticky lg:top-6 bg-slate-800 text-white" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
+            <Card className="p-4 md:p-6 lg:sticky lg:top-20 bg-slate-800 text-white shadow-lg z-40" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
               <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Footprint</h3>
               <div className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-emerald-400">
                 {(calculations.total / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>
