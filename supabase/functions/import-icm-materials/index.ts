@@ -1,4 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// SECURITY WARNING: xlsx@0.18.5 has known vulnerabilities (Prototype Pollution, ReDoS)
+// No secure version available via esm.sh/npm. This function should only process trusted admin input.
+// TODO: Migrate to a secure Deno-native Excel library when available
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
 const corsHeaders = {
