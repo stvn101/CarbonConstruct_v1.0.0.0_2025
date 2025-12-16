@@ -1,11 +1,25 @@
 @tailwind base;
 
 /* PDF Report Styles - for html2pdf.js generation */
-.pdf-report-content {
-  background: white;
-  color: #333;
+/* Force light mode for PDF content regardless of theme */
+.pdf-report-content,
+.dark .pdf-report-content {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #333333 !important;
+  color-scheme: light !important;
   font-family: 'Helvetica', 'Arial', sans-serif;
   line-height: 1.4;
+}
+
+/* Ensure nested elements inherit light background */
+.pdf-report-content div,
+.pdf-report-content table,
+.pdf-report-content tr,
+.dark .pdf-report-content div,
+.dark .pdf-report-content table,
+.dark .pdf-report-content tr {
+  background-color: inherit;
 }
 
 .pdf-watermark {
@@ -637,4 +651,313 @@ All colors MUST be HSL.
   .text-gradient {
     @apply bg-clip-text text-transparent;
   }
+}
+
+/* =====================================================
+   GLASSMORPHISM UI SYSTEM
+   Premium frosted glass effects for modern UI
+   ===================================================== */
+
+/* Glass Effect - Light Mode */
+.glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Glass Effect - Dark Mode / Carbon Surface */
+.glass-dark {
+  background: rgba(30, 35, 45, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Carbon Surface - Rich dark gradient background for glass sections */
+.carbon-surface {
+  background: linear-gradient(135deg, hsl(220 20% 18%), hsl(220 25% 22%));
+}
+
+/* Glass hover shadow effect */
+.shadow-glass-hover {
+  box-shadow: 0 8px 32px rgba(45, 90, 39, 0.25),
+              0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Shimmer Animation for Premium Effects */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Shimmer on hover */
+.shimmer-hover:hover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out;
+  pointer-events: none;
+}
+
+/* Noise texture for depth */
+.noise-texture {
+  position: relative;
+}
+
+.noise-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.02;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Glow ring for featured elements */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
+  50% { box-shadow: 0 0 40px hsl(var(--primary) / 0.5); }
+}
+
+.glow-ring {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Gradient text animation */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.text-gradient-animated {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary)),
+    hsl(var(--accent)),
+    hsl(156 70% 50%),
+    hsl(var(--primary))
+  );
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Glass card with glow border on hover */
+.glass-glow-hover {
+  transition: all 0.3s ease;
+}
+
+.glass-glow-hover:hover {
+  box-shadow: 0 8px 32px rgba(45, 90, 39, 0.3),
+              0 0 0 1px rgba(45, 90, 39, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Feature card gradients - unique per feature type */
+.gradient-eco-feature {
+  background: linear-gradient(135deg, hsl(156 55% 35% / 0.15), hsl(142 70% 45% / 0.1));
+}
+
+.gradient-sunset-feature {
+  background: linear-gradient(135deg, hsl(30 95% 58% / 0.15), hsl(48 95% 55% / 0.1));
+}
+
+.gradient-ocean-feature {
+  background: linear-gradient(135deg, hsl(200 90% 55% / 0.15), hsl(180 80% 48% / 0.1));
+}
+
+.gradient-carbon-feature {
+  background: linear-gradient(135deg, hsl(220 25% 45% / 0.15), hsl(156 55% 35% / 0.1));
+}
+
+.gradient-purple-feature {
+  background: linear-gradient(135deg, hsl(280 75% 60% / 0.15), hsl(340 80% 60% / 0.1));
+}
+
+/* Browser fallback for backdrop-filter */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass { 
+    background: rgba(255, 255, 255, 0.92); 
+  }
+  .glass-dark { 
+    background: rgba(30, 35, 45, 0.95); 
+  }
+}
+
+/* =====================================================
+   DARK MODE GLASSMORPHISM
+   Adjusted opacities and glow colors for dark theme
+   ===================================================== */
+
+.dark .glass {
+  background: rgba(30, 35, 45, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .glass-glow-hover:hover {
+  box-shadow: 0 8px 32px rgba(100, 200, 120, 0.25),
+              0 0 0 1px rgba(100, 200, 120, 0.15);
+}
+
+.dark .carbon-surface {
+  background: linear-gradient(135deg, hsl(220 25% 10%), hsl(220 20% 14%));
+}
+
+.dark .shadow-glass-hover {
+  box-shadow: 0 8px 32px rgba(100, 200, 120, 0.2),
+              0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.dark .glow-ring {
+  animation: glow-pulse-dark 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse-dark {
+  0%, 100% { box-shadow: 0 0 20px hsl(156 60% 40% / 0.4); }
+  50% { box-shadow: 0 0 45px hsl(156 60% 45% / 0.6); }
+}
+
+/* =====================================================
+   ENTRANCE ANIMATIONS - Staggered Reveal
+   For scroll-into-view and page load effects
+   ===================================================== */
+
+@keyframes slide-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slide-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up-fade 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+}
+
+.animate-pop-in {
+  animation: pop-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+}
+
+/* Stagger delay utilities */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }
+
+/* =====================================================
+   GLASS SHIMMER SKELETON
+   Premium loading state with glass + shimmer effect
+   ===================================================== */
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-glass {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+}
+
+.dark .skeleton-glass {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+/* Light mode glass skeleton */
+.skeleton-glass-light {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.03) 0%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem;
 }
