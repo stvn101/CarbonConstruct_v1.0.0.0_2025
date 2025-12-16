@@ -101,9 +101,9 @@ serve(async (req) => {
     logStep("Rate limit OK", { remaining: rateLimitResult.remaining });
 
     // Get the price_id from request body
-    const { price_id, tier_name } = await req.json();
+    const { price_id, tier_name, discount_code } = await req.json();
     if (!price_id) throw new Error("price_id is required");
-    logStep("Received request", { price_id, tier_name });
+    logStep("Received request", { price_id, tier_name, discount_code });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2024-12-18.acacia" 
@@ -120,8 +120,8 @@ serve(async (req) => {
       logStep("Creating new customer");
     }
 
-    // Create checkout session with 14-day trial
-    const session = await stripe.checkout.sessions.create({
+    // Build checkout session config
+    const checkoutConfig: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
@@ -140,8 +140,37 @@ serve(async (req) => {
       },
       success_url: `${req.headers.get("origin")}/?checkout=success`,
       cancel_url: `${req.headers.get("origin")}/pricing?checkout=cancelled`,
-      allow_promotion_codes: true,
-    });
+    };
+
+    // Apply discount code if provided (e.g., MBA20QLD -> MBA001 coupon)
+    if (discount_code) {
+      // Map discount codes to Stripe coupon IDs
+      const discountCouponMap: Record<string, string> = {
+        'MBA20QLD': 'MBA001',
+        'MBA20NSW': 'MBA001',
+        'MBA20VIC': 'MBA001',
+        'MBA20SA': 'MBA001',
+        'MBA20WA': 'MBA001',
+        'MBA20TAS': 'MBA001',
+        'MBA20NT': 'MBA001',
+        'MBA20ACT': 'MBA001',
+      };
+      
+      const couponId = discountCouponMap[discount_code.toUpperCase()];
+      if (couponId) {
+        checkoutConfig.discounts = [{ coupon: couponId }];
+        logStep("Applied discount coupon", { discount_code, couponId });
+      } else {
+        // Allow promotion codes if no direct mapping
+        checkoutConfig.allow_promotion_codes = true;
+        logStep("Unknown discount code, enabling promotion codes", { discount_code });
+      }
+    } else {
+      checkoutConfig.allow_promotion_codes = true;
+    }
+
+    // Create checkout session with 14-day trial
+    const session = await stripe.checkout.sessions.create(checkoutConfig);
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
 

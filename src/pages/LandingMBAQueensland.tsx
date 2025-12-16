@@ -74,6 +74,9 @@ export default function LandingMBAQueensland() {
   const { getCampaignAttribution } = useUTMTracking();
 
   useEffect(() => {
+    // Store discount code in sessionStorage for checkout flow
+    sessionStorage.setItem('discount_code', 'MBA20QLD');
+    
     trackEvent(AnalyticsEvents.CAMPAIGN_PAGE_VIEW, {
       audience: 'mba-queensland',
       offer: '20-percent-off',
