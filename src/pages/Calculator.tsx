@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
@@ -28,6 +28,7 @@ import { MaterialSearchResults } from "@/components/calculator/MaterialSearchRes
 import { MaterialRowImproved } from "@/components/calculator/MaterialRowImproved";
 import { QuickAddPanel } from "@/components/calculator/QuickAddPanel";
 import { TransportCalculator } from "@/components/calculator/TransportCalculator";
+import { MaterialRecommender } from "@/components/calculator/MaterialRecommender";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MaterialComparison } from "@/components/MaterialComparison";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -223,12 +224,17 @@ export default function Calculator() {
   const { user } = useAuth();
   const { currentProject } = useProject();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { canPerformAction } = useUsageTracking();
   useSubscriptionStatus();
   const { currentTier } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  
+
+  // Material Recommender state
+  const [recommenderOpen, setRecommenderOpen] = useState(false);
+  const [selectedMaterialForRecommendations, setSelectedMaterialForRecommendations] = useState<Material | null>(null);
+
   // ECO Platform Compliance
   const { 
     isEnabled: ecoComplianceEnabled, 
@@ -274,7 +280,40 @@ export default function Calculator() {
   useEffect(() => {
     localStorage.setItem('useNewMaterialUI', String(useNewMaterialUI));
   }, [useNewMaterialUI]);
-  
+
+  // Handle imported materials from BOQ Import
+  useEffect(() => {
+    const importedMaterials = location.state?.importedMaterials;
+
+    if (importedMaterials && Array.isArray(importedMaterials)) {
+      // Convert imported materials to calculator format
+      const convertedMaterials = importedMaterials.map((material: any) => ({
+        id: crypto.randomUUID(),
+        category: material.category || 'Other',
+        typeId: material.matched_epd_id || 'custom',
+        name: material.material_name,
+        unit: material.unit || 'kg',
+        factor: material.ef_total || 0,
+        source: material.matched_epd_id ? 'EPD Database' : 'BOQ Import',
+        quantity: material.quantity || 0,
+        isCustom: !material.matched_epd_id,
+        ef_a1a3: material.ef_total || 0, // For now, assign total to A1-A3
+        // Add other fields as needed
+      }));
+
+      // Add to existing materials
+      setSelectedMaterials(prevMaterials => [...prevMaterials, ...convertedMaterials]);
+
+      toast({
+        title: "Materials Imported",
+        description: `${importedMaterials.length} materials loaded from BOQ`,
+      });
+
+      // Clear location state to prevent re-import on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state?.importedMaterials, toast]);
+
   const [activeTab, setActiveTab] = useState<'inputs' | 'report'>('inputs');
   const [projectDetails, setProjectDetails] = useState(() => loadFromStorage('projectDetails', { 
     name: '', 
@@ -968,6 +1007,44 @@ export default function Calculator() {
     }
   };
 
+  // Material Recommender handlers
+  const handleOpenRecommender = (material: Material) => {
+    setSelectedMaterialForRecommendations(material);
+    setRecommenderOpen(true);
+  };
+
+  const handleReplaceMaterial = (oldMaterialId: string, newMaterial: any) => {
+    setSelectedMaterials(prevMaterials =>
+      prevMaterials.map(m =>
+        m.id === oldMaterialId
+          ? {
+              ...m,
+              name: newMaterial.material_name,
+              category: newMaterial.material_category,
+              factor: newMaterial.ef_total,
+              ef_a1a3: newMaterial.ef_a1a3,
+              ef_a4: newMaterial.ef_a4,
+              ef_a5: newMaterial.ef_a5,
+              ef_b1b5: newMaterial.ef_b1b5,
+              ef_c1c4: newMaterial.ef_c1c4,
+              ef_d: newMaterial.ef_d,
+              epdNumber: newMaterial.epd_number,
+              manufacturer: newMaterial.manufacturer,
+              plantLocation: newMaterial.plant_location,
+              dataQualityTier: newMaterial.data_quality_tier,
+              ecoComplianceCompliant: newMaterial.eco_platform_compliant,
+            }
+          : m
+      )
+    );
+
+    setRecommenderOpen(false);
+    toast({
+      title: 'Material Replaced',
+      description: `Replaced with ${newMaterial.material_name} - saving ${newMaterial.carbon_savings_percent.toFixed(1)}% carbon`,
+    });
+  };
+
   const saveReport = async () => {
     if (!user || !currentProject) {
       toast({ title: "Please select a project first", variant: "destructive" });
@@ -1576,11 +1653,12 @@ export default function Calculator() {
                   <div className={useNewMaterialUI ? "space-y-0" : "space-y-2"}>
                     {useNewMaterialUI ? (
                       selectedMaterials.map(m => (
-                        <MaterialRowImproved 
+                        <MaterialRowImproved
                           key={m.id}
                           material={m}
                           onChange={(updated) => setSelectedMaterials(prev => prev.map(mat => mat.id === m.id ? updated : mat))}
                           onRemove={() => setSelectedMaterials(prev => prev.filter(mat => mat.id !== m.id))}
+                          onFindAlternatives={handleOpenRecommender}
                         />
                       ))
                     ) : (
@@ -2024,10 +2102,25 @@ export default function Calculator() {
         </div>
       </main>
       
-      <UpgradeModal 
-        open={upgradeModalOpen} 
-        onOpenChange={setUpgradeModalOpen} 
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
       />
+
+      {/* Material Recommender Dialog */}
+      <Dialog open={recommenderOpen} onOpenChange={setRecommenderOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {selectedMaterialForRecommendations && (
+            <MaterialRecommender
+              currentMaterial={selectedMaterialForRecommendations}
+              onSelectAlternative={(newMaterial) =>
+                handleReplaceMaterial(selectedMaterialForRecommendations.id, newMaterial)
+              }
+              onClose={() => setRecommenderOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
