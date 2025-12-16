@@ -1,0 +1,180 @@
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
+
+interface Material {
+  id: string;
+  material_name: string;
+  material_category: string;
+  ef_total: number;
+  unit: string;
+}
+
+interface RecommendedMaterial {
+  id: string;
+  material_name: string;
+  material_category: string;
+  subcategory: string | null;
+  manufacturer: string | null;
+  plant_location: string | null;
+  region: string | null;
+  state: string | null;
+  unit: string;
+  ef_a1a3: number;
+  ef_a4: number;
+  ef_a5: number;
+  ef_b1b5: number;
+  ef_c1c4: number;
+  ef_d: number;
+  ef_total: number;
+  epd_number: string;
+  epd_url: string;
+  data_quality_tier: string;
+  eco_platform_compliant: boolean;
+  carbon_savings: number;
+  carbon_savings_percent: number;
+  ai_score: number;
+  cost_impact?: number;
+}
+
+interface RecommendationResponse {
+  recommendations: RecommendedMaterial[];
+  reasoning: {
+    current_carbon: number;
+    best_alternative_carbon: number;
+    max_savings_percent: number;
+    category: string;
+  };
+}
+
+export function useMaterialRecommendations(currentMaterial: Material | null) {
+  return useQuery({
+    queryKey: ['material-recommendations', currentMaterial?.id],
+    queryFn: async (): Promise<RecommendationResponse> => {
+      if (!currentMaterial) {
+        throw new Error('No material provided for recommendations');
+      }
+
+      try {
+        // Query materials in the same category with lower carbon footprint
+        const { data: alternatives, error } = await supabase
+          .from('materials_epd')
+          .select('*')
+          .eq('material_category', currentMaterial.material_category)
+          .lt('ef_total', currentMaterial.ef_total)
+          .order('ef_total', { ascending: true })
+          .limit(10); // Get top 10 to apply AI scoring
+
+        if (error) throw error;
+
+        if (!alternatives || alternatives.length === 0) {
+          return {
+            recommendations: [],
+            reasoning: {
+              current_carbon: currentMaterial.ef_total,
+              best_alternative_carbon: currentMaterial.ef_total,
+              max_savings_percent: 0,
+              category: currentMaterial.material_category,
+            },
+          };
+        }
+
+        // Apply AI scoring algorithm
+        const scoredAlternatives = alternatives.map(alt => {
+          const carbonSavings = currentMaterial.ef_total - alt.ef_total;
+          const carbonSavingsPercent = (carbonSavings / currentMaterial.ef_total) * 100;
+
+          // AI Scoring Algorithm (weighted factors)
+          const carbonScore = Math.min(carbonSavingsPercent / 50, 1) * 40; // 40% weight, cap at 50% savings
+          const dataQualityScore = getDataQualityScore(alt.data_quality_tier) * 20; // 20% weight
+          const ecoComplianceScore = alt.eco_platform_compliant ? 20 : 0; // 20% weight
+          const regionalScore = getRegionalScore(alt.state) * 10; // 10% weight (Australian preference)
+          const manufacturerScore = alt.manufacturer ? 10 : 5; // 10% weight (verified manufacturer)
+
+          const aiScore =
+            carbonScore +
+            dataQualityScore +
+            ecoComplianceScore +
+            regionalScore +
+            manufacturerScore;
+
+          // Estimate cost impact (simplified - negative means cost savings)
+          const costImpact = estimateCostImpact(alt.data_quality_tier, carbonSavingsPercent);
+
+          return {
+            ...alt,
+            carbon_savings: carbonSavings,
+            carbon_savings_percent: carbonSavingsPercent,
+            ai_score: Math.round(aiScore * 10) / 10, // Round to 1 decimal
+            cost_impact: costImpact,
+          };
+        });
+
+        // Sort by AI score and take top 5
+        const topRecommendations = scoredAlternatives
+          .sort((a, b) => b.ai_score - a.ai_score)
+          .slice(0, 5);
+
+        const reasoning = {
+          current_carbon: currentMaterial.ef_total,
+          best_alternative_carbon: topRecommendations[0]?.ef_total || currentMaterial.ef_total,
+          max_savings_percent: topRecommendations[0]?.carbon_savings_percent || 0,
+          category: currentMaterial.material_category,
+        };
+
+        logger.info('useMaterialRecommendations:queryFn', {
+          materialId: currentMaterial.id,
+          category: currentMaterial.material_category,
+          foundAlternatives: alternatives.length,
+          topRecommendations: topRecommendations.length,
+        });
+
+        return {
+          recommendations: topRecommendations,
+          reasoning,
+        };
+      } catch (error) {
+        logger.error('useMaterialRecommendations:queryFn', error);
+        throw error;
+      }
+    },
+    enabled: !!currentMaterial,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  });
+}
+
+// Helper: Data quality score (0-1)
+function getDataQualityScore(tier: string): number {
+  const tierMap: Record<string, number> = {
+    'tier_1': 1.0,
+    'tier_2': 0.8,
+    'tier_3': 0.6,
+    'tier_4': 0.4,
+  };
+  return tierMap[tier.toLowerCase()] || 0.5;
+}
+
+// Helper: Regional preference score (0-1)
+function getRegionalScore(state: string | null): number {
+  if (!state) return 0.5;
+
+  // Australian states get higher scores
+  const australianStates = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
+  if (australianStates.includes(state.toUpperCase())) {
+    return 1.0;
+  }
+  return 0.3;
+}
+
+// Helper: Estimate cost impact based on carbon savings
+function estimateCostImpact(tier: string, savingsPercent: number): number {
+  // Higher quality data typically means more expensive materials
+  const tierCostFactor = tier === 'tier_1' ? 1.2 : tier === 'tier_2' ? 1.0 : 0.8;
+
+  // Large carbon savings often correlate with material substitution costs
+  // Positive = cost increase, Negative = cost savings
+  const baseCostImpact = (savingsPercent / 100) * 15; // Rough estimate: 15% cost change per 100% carbon savings
+
+  return Math.round(baseCostImpact * tierCostFactor * 10) / 10; // Round to 1 decimal
+}

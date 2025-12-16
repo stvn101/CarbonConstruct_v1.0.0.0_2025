@@ -28,6 +28,7 @@ import { MaterialSearchResults } from "@/components/calculator/MaterialSearchRes
 import { MaterialRowImproved } from "@/components/calculator/MaterialRowImproved";
 import { QuickAddPanel } from "@/components/calculator/QuickAddPanel";
 import { TransportCalculator } from "@/components/calculator/TransportCalculator";
+import { MaterialRecommender } from "@/components/calculator/MaterialRecommender";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MaterialComparison } from "@/components/MaterialComparison";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -229,7 +230,11 @@ export default function Calculator() {
   useSubscriptionStatus();
   const { currentTier } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  
+
+  // Material Recommender state
+  const [recommenderOpen, setRecommenderOpen] = useState(false);
+  const [selectedMaterialForRecommendations, setSelectedMaterialForRecommendations] = useState<Material | null>(null);
+
   // ECO Platform Compliance
   const { 
     isEnabled: ecoComplianceEnabled, 
@@ -1002,6 +1007,44 @@ export default function Calculator() {
     }
   };
 
+  // Material Recommender handlers
+  const handleOpenRecommender = (material: Material) => {
+    setSelectedMaterialForRecommendations(material);
+    setRecommenderOpen(true);
+  };
+
+  const handleReplaceMaterial = (oldMaterialId: string, newMaterial: any) => {
+    setSelectedMaterials(prevMaterials =>
+      prevMaterials.map(m =>
+        m.id === oldMaterialId
+          ? {
+              ...m,
+              name: newMaterial.material_name,
+              category: newMaterial.material_category,
+              factor: newMaterial.ef_total,
+              ef_a1a3: newMaterial.ef_a1a3,
+              ef_a4: newMaterial.ef_a4,
+              ef_a5: newMaterial.ef_a5,
+              ef_b1b5: newMaterial.ef_b1b5,
+              ef_c1c4: newMaterial.ef_c1c4,
+              ef_d: newMaterial.ef_d,
+              epdNumber: newMaterial.epd_number,
+              manufacturer: newMaterial.manufacturer,
+              plantLocation: newMaterial.plant_location,
+              dataQualityTier: newMaterial.data_quality_tier,
+              ecoComplianceCompliant: newMaterial.eco_platform_compliant,
+            }
+          : m
+      )
+    );
+
+    setRecommenderOpen(false);
+    toast({
+      title: 'Material Replaced',
+      description: `Replaced with ${newMaterial.material_name} - saving ${newMaterial.carbon_savings_percent.toFixed(1)}% carbon`,
+    });
+  };
+
   const saveReport = async () => {
     if (!user || !currentProject) {
       toast({ title: "Please select a project first", variant: "destructive" });
@@ -1604,11 +1647,12 @@ export default function Calculator() {
                   <div className={useNewMaterialUI ? "space-y-0" : "space-y-2"}>
                     {useNewMaterialUI ? (
                       selectedMaterials.map(m => (
-                        <MaterialRowImproved 
+                        <MaterialRowImproved
                           key={m.id}
                           material={m}
                           onChange={(updated) => setSelectedMaterials(prev => prev.map(mat => mat.id === m.id ? updated : mat))}
                           onRemove={() => setSelectedMaterials(prev => prev.filter(mat => mat.id !== m.id))}
+                          onFindAlternatives={handleOpenRecommender}
                         />
                       ))
                     ) : (
@@ -2052,10 +2096,25 @@ export default function Calculator() {
         </div>
       </main>
       
-      <UpgradeModal 
-        open={upgradeModalOpen} 
-        onOpenChange={setUpgradeModalOpen} 
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
       />
+
+      {/* Material Recommender Dialog */}
+      <Dialog open={recommenderOpen} onOpenChange={setRecommenderOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {selectedMaterialForRecommendations && (
+            <MaterialRecommender
+              currentMaterial={selectedMaterialForRecommendations}
+              onSelectAlternative={(newMaterial) =>
+                handleReplaceMaterial(selectedMaterialForRecommendations.id, newMaterial)
+              }
+              onClose={() => setRecommenderOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

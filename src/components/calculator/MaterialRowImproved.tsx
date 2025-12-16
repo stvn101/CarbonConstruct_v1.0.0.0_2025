@@ -1,7 +1,7 @@
 import { useState, memo, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Leaf, ChevronRight, Info, ExternalLink, FileText } from "lucide-react";
+import { Trash2, Leaf, ChevronRight, Info, ExternalLink, FileText, Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -39,9 +39,10 @@ interface MaterialRowImprovedProps {
   material: Material;
   onChange: (m: Material) => void;
   onRemove: () => void;
+  onFindAlternatives?: (material: Material) => void;
 }
 
-export const MaterialRowImproved = memo(({ material, onChange, onRemove }: MaterialRowImprovedProps) => {
+export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindAlternatives }: MaterialRowImprovedProps) => {
   const [breakdownOpen, setBreakdownOpen] = useState(false);
 
   const emissions = useMemo(() => {
@@ -255,12 +256,26 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove }: Mater
         </div>
       )}
 
-      {/* View Source - Dialog for EPD details */}
+      {/* Actions Row */}
       {!material.isCustom && (
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex items-center justify-between gap-2">
+          {/* Find Alternatives Button */}
+          {onFindAlternatives && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onFindAlternatives(material)}
+              className="text-xs gap-1"
+            >
+              <Sparkles className="h-3 w-3" />
+              Find Alternatives
+            </Button>
+          )}
+
+          {/* View Source Dialog */}
           <Dialog>
             <DialogTrigger asChild>
-              <button className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+              <button className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors ml-auto">
                 <Info className="h-3 w-3" />
                 <span>View Source</span>
               </button>
