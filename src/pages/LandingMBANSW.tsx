@@ -128,11 +128,11 @@ const LandingMBANSW = () => {
                     <div className="text-center mb-6">
                       <p className="text-muted-foreground mb-2">Pro Yearly with MBA Discount</p>
                       <div className="flex items-baseline justify-center gap-2">
-                        <span className="text-2xl text-muted-foreground line-through">$588</span>
-                        <span className="text-5xl font-bold text-emerald-600">$470</span>
+                        <span className="text-2xl text-muted-foreground line-through">$790</span>
+                        <span className="text-5xl font-bold text-emerald-600">$632</span>
                         <span className="text-muted-foreground">/year</span>
                       </div>
-                      <p className="text-sm text-emerald-600 mt-2">Save $118 per year</p>
+                      <p className="text-sm text-emerald-600 mt-2">Save $158 per year</p>
                     </div>
                     
                     <ul className="space-y-3 mb-8">
