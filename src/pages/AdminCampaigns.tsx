@@ -54,6 +54,27 @@ const campaignPages: CampaignPage[] = [
     icon: <Award className="h-5 w-5" />,
     description: 'MBA WA members - 20% discount with MBA20WA (Grid: 0.64)',
   },
+  {
+    path: '/lp/mba-tas',
+    name: 'MBA Tasmania',
+    audience: 'MBA TAS Members',
+    icon: <Award className="h-5 w-5" />,
+    description: 'MBA Tasmania members - 20% discount with MBA20TAS (Grid: 0.14)',
+  },
+  {
+    path: '/lp/mba-nt',
+    name: 'MBA Northern Territory',
+    audience: 'MBA NT Members',
+    icon: <Award className="h-5 w-5" />,
+    description: 'MBA NT members - 20% discount with MBA20NT (Grid: 0.54)',
+  },
+  {
+    path: '/lp/mba-act',
+    name: 'MBA ACT',
+    audience: 'MBA ACT Members',
+    icon: <Award className="h-5 w-5" />,
+    description: 'MBA ACT members - 20% discount with MBA20ACT (Grid: 0.76)',
+  },
   // General Audience Pages
   {
     path: '/lp/investors',
