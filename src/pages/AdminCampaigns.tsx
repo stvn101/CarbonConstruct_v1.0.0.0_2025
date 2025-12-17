@@ -40,6 +40,20 @@ const campaignPages: CampaignPage[] = [
     icon: <Award className="h-5 w-5" />,
     description: 'MBA Victoria members - 20% discount with MBA20VIC',
   },
+  {
+    path: '/lp/mba-sa',
+    name: 'MBA South Australia',
+    audience: 'MBA SA Members',
+    icon: <Award className="h-5 w-5" />,
+    description: 'MBA SA members - 20% discount with MBA20SA (Grid: 0.42)',
+  },
+  {
+    path: '/lp/mba-wa',
+    name: 'MBA Western Australia',
+    audience: 'MBA WA Members',
+    icon: <Award className="h-5 w-5" />,
+    description: 'MBA WA members - 20% discount with MBA20WA (Grid: 0.64)',
+  },
   // General Audience Pages
   {
     path: '/lp/investors',
