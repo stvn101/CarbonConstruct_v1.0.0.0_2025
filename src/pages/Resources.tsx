@@ -1299,8 +1299,18 @@ Here's how carbon compliance is becoming a procurement firewall that could lock 
                   <Download className="w-4 h-4 mr-2" />
                   Copy All Slides + Caption
                 </Button>
+                <Button 
+                  variant="outline"
+                  size="lg"
+                  asChild
+                >
+                  <a href="/LINKEDIN_CAROUSEL_DESIGN_SPEC.md" download="LinkedIn_Carousel_Design_Spec.md">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Download Canva Design Spec
+                  </a>
+                </Button>
                 <p className="text-sm text-muted-foreground mt-3">
-                  💡 Tip: Create 1080x1080px slides in Canva. Use bold typography and high contrast colors.
+                  💡 Tip: Create 1080x1080px slides in Canva. Use bold typography and high contrast colors. Design spec includes exact colors, fonts, and layouts.
                 </p>
               </div>
             </div>
