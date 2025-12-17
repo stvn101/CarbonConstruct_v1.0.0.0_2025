@@ -37,6 +37,7 @@ import { EndOfLifeCalculator, EndOfLifeEmissions } from "@/components/calculator
 import { ModuleDCalculator, ModuleDEmissions } from "@/components/calculator/ModuleDCalculator";
 import { EcoComplianceToggle } from "@/components/EcoComplianceToggle";
 import { EcoCompliancePanel } from "@/components/EcoCompliancePanel";
+import { SkeletonPage } from "@/components/SkeletonPage";
 
 interface Material {
   id: string;
@@ -2112,7 +2113,13 @@ export default function Calculator() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedMaterialForRecommendations && (
             <MaterialRecommender
-              currentMaterial={selectedMaterialForRecommendations}
+              currentMaterial={{
+                id: selectedMaterialForRecommendations.id,
+                material_name: selectedMaterialForRecommendations.name,
+                material_category: selectedMaterialForRecommendations.category,
+                ef_total: selectedMaterialForRecommendations.factor,
+                unit: selectedMaterialForRecommendations.unit,
+              }}
               onSelectAlternative={(newMaterial) =>
                 handleReplaceMaterial(selectedMaterialForRecommendations.id, newMaterial)
               }

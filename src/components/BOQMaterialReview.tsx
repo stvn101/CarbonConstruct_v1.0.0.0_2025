@@ -163,8 +163,7 @@ export const BOQMaterialReview = memo(({
                 <TableRow>
                   <TableHead className="w-12">
                     <Checkbox
-                      checked={allSelected}
-                      indeterminate={someSelected}
+                      checked={allSelected || (someSelected ? "indeterminate" : false)}
                       onCheckedChange={toggleAll}
                       aria-label="Select all materials"
                     />

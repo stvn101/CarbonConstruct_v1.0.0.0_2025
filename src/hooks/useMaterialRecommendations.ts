@@ -81,12 +81,13 @@ export function useMaterialRecommendations(currentMaterial: Material | null) {
 
         // Apply AI scoring algorithm
         const scoredAlternatives = alternatives.map(alt => {
-          const carbonSavings = currentMaterial.ef_total - alt.ef_total;
+          const altEfTotal = alt.ef_total ?? 0;
+          const carbonSavings = currentMaterial.ef_total - altEfTotal;
           const carbonSavingsPercent = (carbonSavings / currentMaterial.ef_total) * 100;
 
           // AI Scoring Algorithm (weighted factors)
           const carbonScore = Math.min(carbonSavingsPercent / 50, 1) * 40; // 40% weight, cap at 50% savings
-          const dataQualityScore = getDataQualityScore(alt.data_quality_tier) * 20; // 20% weight
+          const dataQualityScore = getDataQualityScore(alt.data_quality_tier ?? 'tier_3') * 20; // 20% weight
           const ecoComplianceScore = alt.eco_platform_compliant ? 20 : 0; // 20% weight
           const regionalScore = getRegionalScore(alt.state) * 10; // 10% weight (Australian preference)
           const manufacturerScore = alt.manufacturer ? 10 : 5; // 10% weight (verified manufacturer)
@@ -99,10 +100,29 @@ export function useMaterialRecommendations(currentMaterial: Material | null) {
             manufacturerScore;
 
           // Estimate cost impact (simplified - negative means cost savings)
-          const costImpact = estimateCostImpact(alt.data_quality_tier, carbonSavingsPercent);
+          const costImpact = estimateCostImpact(alt.data_quality_tier ?? 'tier_3', carbonSavingsPercent);
 
           return {
-            ...alt,
+            id: alt.id,
+            material_name: alt.material_name,
+            material_category: alt.material_category,
+            subcategory: alt.subcategory,
+            manufacturer: alt.manufacturer,
+            plant_location: alt.plant_location,
+            region: alt.region,
+            state: alt.state,
+            unit: alt.unit,
+            ef_a1a3: alt.ef_a1a3 ?? 0,
+            ef_a4: alt.ef_a4 ?? 0,
+            ef_a5: alt.ef_a5 ?? 0,
+            ef_b1b5: alt.ef_b1b5 ?? 0,
+            ef_c1c4: alt.ef_c1c4 ?? 0,
+            ef_d: alt.ef_d ?? 0,
+            ef_total: altEfTotal,
+            epd_number: alt.epd_number ?? '',
+            epd_url: alt.epd_url ?? '',
+            data_quality_tier: alt.data_quality_tier ?? 'tier_3',
+            eco_platform_compliant: alt.eco_platform_compliant ?? false,
             carbon_savings: carbonSavings,
             carbon_savings_percent: carbonSavingsPercent,
             ai_score: Math.round(aiScore * 10) / 10, // Round to 1 decimal
@@ -122,12 +142,9 @@ export function useMaterialRecommendations(currentMaterial: Material | null) {
           category: currentMaterial.material_category,
         };
 
-        logger.info('useMaterialRecommendations:queryFn', {
-          materialId: currentMaterial.id,
-          category: currentMaterial.material_category,
-          foundAlternatives: alternatives.length,
-          topRecommendations: topRecommendations.length,
-        });
+        logger.info('useMaterialRecommendations:queryFn', 
+          `materialId: ${currentMaterial.id}, category: ${currentMaterial.material_category}, foundAlternatives: ${alternatives.length}, topRecommendations: ${topRecommendations.length}`
+        );
 
         return {
           recommendations: topRecommendations,

@@ -148,7 +148,7 @@ const Index = () => {
                   <CheckCircle className="mr-2 h-5 w-5" />
                   Start Free Forever
                 </Button>
-                <Button onClick={() => navigate("/auth")} variant="glassOutline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
+                <Button onClick={() => navigate("/auth")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
                   Start 14-Day Pro Trial
                 </Button>
                 <Button 

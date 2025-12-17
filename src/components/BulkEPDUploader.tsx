@@ -340,7 +340,7 @@ export function BulkEPDUploader() {
             headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
             dataRows = lines.slice(1).map(line => parseCSVLine(line));
           } else {
-            const data = new Uint8Array(e.target?.result as ArrayBuffer);
+            const data = e.target?.result as ArrayBuffer;
             const workbook = new ExcelJS.Workbook();
 
             workbook.xlsx.load(data).then(() => {
@@ -351,7 +351,7 @@ export function BulkEPDUploader() {
               }
 
               const jsonData: string[][] = [];
-              firstSheet.eachRow((row, rowNumber) => {
+              firstSheet.eachRow((row) => {
                 const rowData: string[] = [];
                 row.eachCell({ includeEmpty: true }, (cell) => {
                   rowData.push(String(cell.value ?? ''));
