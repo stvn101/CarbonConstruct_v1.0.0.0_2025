@@ -1,4 +1,5 @@
 import CampaignLandingPage, { Benefit } from '@/components/CampaignLandingPage';
+import { WhitepaperSummary } from '@/components/WhitepaperSummary';
 import { Eye, Award, TrendingUp, FileText, Users, Leaf } from 'lucide-react';
 
 const benefits: Benefit[] = [
@@ -61,6 +62,7 @@ export default function LandingSupplyChain() {
       ctaSecondaryText="Contact Sales"
       seoTitle="EPD Visibility for Material Suppliers | CarbonConstruct"
       seoDescription="Connect your EPD data with Australian builders and architects. Market differentiation for low-carbon products. Help customers meet their carbon targets."
+      customSections={<WhitepaperSummary className="bg-muted/30" />}
     />
   );
 }
