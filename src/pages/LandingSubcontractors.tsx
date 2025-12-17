@@ -35,22 +35,69 @@ const LandingSubcontractors = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [abVariant, setAbVariant] = useState<"A" | "B">("A");
 
-  // Show popup after 15 seconds or 50% scroll
+  // A/B Test: Popup timing - Variant A: 10s, Variant B: 20s
   useEffect(() => {
     const hasSeenPopup = sessionStorage.getItem("subcontractor_popup_seen");
     if (hasSeenPopup) return;
 
+    // Assign variant if not already assigned
+    let variant = sessionStorage.getItem("popup_ab_variant") as "A" | "B" | null;
+    if (!variant) {
+      variant = Math.random() < 0.5 ? "A" : "B";
+      sessionStorage.setItem("popup_ab_variant", variant);
+      
+      // Log variant assignment
+      supabase.from("analytics_events").insert({
+        event_name: "ab_test_assigned",
+        event_data: { 
+          test_name: "popup_timing",
+          variant,
+          variant_timing: variant === "A" ? "10s" : "20s"
+        },
+        page_url: window.location.href,
+      });
+    }
+    setAbVariant(variant);
+
+    // Set timing based on variant: A = 10s, B = 20s
+    const popupDelay = variant === "A" ? 10000 : 20000;
+
     const timer = setTimeout(() => {
       setShowPopup(true);
       sessionStorage.setItem("subcontractor_popup_seen", "true");
-    }, 15000);
+      
+      // Log popup shown with variant
+      supabase.from("analytics_events").insert({
+        event_name: "popup_shown",
+        event_data: { 
+          test_name: "popup_timing",
+          variant,
+          trigger: "timer",
+          delay_ms: popupDelay
+        },
+        page_url: window.location.href,
+      });
+    }, popupDelay);
 
     const handleScroll = () => {
       const scrollPercent = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
       if (scrollPercent > 50 && !showPopup) {
         setShowPopup(true);
         sessionStorage.setItem("subcontractor_popup_seen", "true");
+        
+        // Log popup shown via scroll with variant
+        supabase.from("analytics_events").insert({
+          event_name: "popup_shown",
+          event_data: { 
+            test_name: "popup_timing",
+            variant,
+            trigger: "scroll",
+            scroll_percent: Math.round(scrollPercent)
+          },
+          page_url: window.location.href,
+        });
       }
     };
 
@@ -79,7 +126,10 @@ const LandingSubcontractors = () => {
         event_data: { 
           email,
           source: "subcontractor_landing_popup",
-          whitepaper: "the-silent-transfer"
+          whitepaper: "the-silent-transfer",
+          ab_test: "popup_timing",
+          ab_variant: abVariant,
+          ab_variant_timing: abVariant === "A" ? "10s" : "20s"
         },
         page_url: window.location.href,
       });
