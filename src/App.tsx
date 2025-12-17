@@ -35,7 +35,7 @@ const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
 const MaterialDatabaseStatus = lazy(() => import("./pages/MaterialDatabaseStatus"));
 const EcoComplianceDashboard = lazy(() => import("./pages/EcoComplianceDashboard"));
 const Demo = lazy(() => import("./pages/Demo"));
-const DesignSystem = lazy(() => import("./pages/DesignSystem"));
+const _DesignSystem = lazy(() => import("./pages/DesignSystem"));
 
 // Campaign landing pages
 const LandingBuilders = lazy(() => import("./pages/LandingBuilders"));
