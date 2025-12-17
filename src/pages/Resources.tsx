@@ -483,8 +483,323 @@ const Resources = () => {
           </div>
         </section>
 
-        {/* Additional Resources */}
+        {/* LinkedIn Post Templates */}
         <section className="py-16 md:py-24 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <Badge variant="outline" className="mb-4">Ready to Post</Badge>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                LinkedIn Post Templates
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Copy these ready-to-use captions and pair with the graphics above for maximum impact
+              </p>
+            </motion.div>
+
+            <div className="grid lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+              {/* Post Template 1 - The Hook */}
+              <Card className="border-2 border-primary/20">
+                <CardHeader className="pb-2">
+                  <Badge className="w-fit mb-2 bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                    High Engagement Hook
+                  </Badge>
+                  <CardTitle className="text-lg">The Silent Transfer</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-muted/50 rounded-lg p-4 text-sm font-mono whitespace-pre-wrap">
+{`🚨 Your subcontractors can't provide EPD data.
+
+But your Scope 3 report is due in 6 months.
+
+Here's what happens next:
+
+→ You apply "conservative defaults" (industry averages)
+→ Your materials look 20-30% dirtier than reality
+→ Your Green Star rating drops
+→ Your government tender fails
+
+The legislation doesn't name subcontractors.
+It doesn't need to.
+
+The burden flows through procurement.
+And procurement is YOUR problem.
+
+📄 Read the full analysis: "The Silent Transfer"
+Link in comments 👇
+
+#Construction #Sustainability #CarbonReporting #ASRS #GreenStar`}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`🚨 Your subcontractors can't provide EPD data.
+
+But your Scope 3 report is due in 6 months.
+
+Here's what happens next:
+
+→ You apply "conservative defaults" (industry averages)
+→ Your materials look 20-30% dirtier than reality
+→ Your Green Star rating drops
+→ Your government tender fails
+
+The legislation doesn't name subcontractors.
+It doesn't need to.
+
+The burden flows through procurement.
+And procurement is YOUR problem.
+
+📄 Read the full analysis: "The Silent Transfer"
+Link in comments 👇
+
+#Construction #Sustainability #CarbonReporting #ASRS #GreenStar`);
+                      toast({
+                        title: "Copied to clipboard!",
+                        description: "Paste into your LinkedIn post.",
+                      });
+                    }}
+                  >
+                    Copy Caption
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Post Template 2 - The Stats */}
+              <Card className="border-2 border-amber-500/20">
+                <CardHeader className="pb-2">
+                  <Badge className="w-fit mb-2 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                    Pair with Stats Graphic
+                  </Badge>
+                  <CardTitle className="text-lg">The Numbers Don't Lie</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-muted/50 rounded-lg p-4 text-sm font-mono whitespace-pre-wrap">
+{`80-90% of a builder's carbon footprint is Scope 3.
+
+That's YOUR materials. YOUR supply chain.
+
+And here's what's coming:
+
+📊 $123/tonne shadow carbon price (NSW & VIC)
+📉 20-30% penalty for missing EPD data
+🚫 Tender exclusion without carbon credentials
+
+The ASRS mandate isn't targeting subcontractors directly.
+
+But when Tier 1 builders can't report Scope 3...
+...they exclude suppliers who can't provide data.
+
+It's not personal. It's procurement.
+
+Are you ready for The Silent Transfer?
+
+#ConstructionIndustry #Sustainability #NetZero #CarbonFootprint #Australia`}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`80-90% of a builder's carbon footprint is Scope 3.
+
+That's YOUR materials. YOUR supply chain.
+
+And here's what's coming:
+
+📊 $123/tonne shadow carbon price (NSW & VIC)
+📉 20-30% penalty for missing EPD data
+🚫 Tender exclusion without carbon credentials
+
+The ASRS mandate isn't targeting subcontractors directly.
+
+But when Tier 1 builders can't report Scope 3...
+...they exclude suppliers who can't provide data.
+
+It's not personal. It's procurement.
+
+Are you ready for The Silent Transfer?
+
+#ConstructionIndustry #Sustainability #NetZero #CarbonFootprint #Australia`);
+                      toast({
+                        title: "Copied to clipboard!",
+                        description: "Paste into your LinkedIn post.",
+                      });
+                    }}
+                  >
+                    Copy Caption
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Post Template 3 - The Question */}
+              <Card className="border-2 border-blue-500/20">
+                <CardHeader className="pb-2">
+                  <Badge className="w-fit mb-2 bg-blue-500/10 text-blue-600 border-blue-500/20">
+                    Engagement Driver
+                  </Badge>
+                  <CardTitle className="text-lg">The Uncomfortable Question</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-muted/50 rounded-lg p-4 text-sm font-mono whitespace-pre-wrap">
+{`Question for construction subcontractors:
+
+When was the last time a Tier 1 builder asked you for EPD data?
+
+If the answer is "never"—enjoy the next 12 months.
+
+If the answer is "recently"—you already know what's coming.
+
+The Procurement Firewall is real:
+✗ No EPD? No shortlist.
+✗ No carbon data? Higher risk rating.
+✗ No compliance? Contract breach.
+
+This isn't about sustainability values.
+This is about ASRS compliance.
+And compliance is non-negotiable.
+
+The question isn't IF this affects you.
+It's WHEN.
+
+What's your plan?
+
+#BuildingIndustry #Compliance #SupplyChain #RiskManagement #Procurement`}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`Question for construction subcontractors:
+
+When was the last time a Tier 1 builder asked you for EPD data?
+
+If the answer is "never"—enjoy the next 12 months.
+
+If the answer is "recently"—you already know what's coming.
+
+The Procurement Firewall is real:
+✗ No EPD? No shortlist.
+✗ No carbon data? Higher risk rating.
+✗ No compliance? Contract breach.
+
+This isn't about sustainability values.
+This is about ASRS compliance.
+And compliance is non-negotiable.
+
+The question isn't IF this affects you.
+It's WHEN.
+
+What's your plan?
+
+#BuildingIndustry #Compliance #SupplyChain #RiskManagement #Procurement`);
+                      toast({
+                        title: "Copied to clipboard!",
+                        description: "Paste into your LinkedIn post.",
+                      });
+                    }}
+                  >
+                    Copy Caption
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Post Template 4 - The Controversy */}
+              <Card className="border-2 border-red-500/20">
+                <CardHeader className="pb-2">
+                  <Badge className="w-fit mb-2 bg-red-500/10 text-red-600 border-red-500/20">
+                    Controversial Take
+                  </Badge>
+                  <CardTitle className="text-lg">The Uncomfortable Truth</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-muted/50 rounded-lg p-4 text-sm font-mono whitespace-pre-wrap">
+{`Hot take: Procurement software won't save your carbon compliance.
+
+Here's why:
+
+Your procurement platform can track:
+✓ Prices
+✓ Delivery times
+✓ Supplier ratings
+
+But can it tell you:
+→ kgCO2e per m² of your facade?
+→ EN 15804 lifecycle factors for each material?
+→ Which supplier has verified EPD data?
+
+Didn't think so.
+
+The carbon liability that used to sit with Tier 1 builders is now flowing downstream.
+
+And your procurement tools weren't built for this.
+
+Time to ask your software vendor some uncomfortable questions.
+
+Or find tools that were built for the carbon compliance era.
+
+#Procurement #ConstructionTech #CarbonCompliance #SupplyChainManagement`}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`Hot take: Procurement software won't save your carbon compliance.
+
+Here's why:
+
+Your procurement platform can track:
+✓ Prices
+✓ Delivery times
+✓ Supplier ratings
+
+But can it tell you:
+→ kgCO2e per m² of your facade?
+→ EN 15804 lifecycle factors for each material?
+→ Which supplier has verified EPD data?
+
+Didn't think so.
+
+The carbon liability that used to sit with Tier 1 builders is now flowing downstream.
+
+And your procurement tools weren't built for this.
+
+Time to ask your software vendor some uncomfortable questions.
+
+Or find tools that were built for the carbon compliance era.
+
+#Procurement #ConstructionTech #CarbonCompliance #SupplyChainManagement`);
+                      toast({
+                        title: "Copied to clipboard!",
+                        description: "Paste into your LinkedIn post.",
+                      });
+                    }}
+                  >
+                    Copy Caption
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mt-8"
+            >
+              <p className="text-sm text-muted-foreground">
+                💡 Tip: Post with the matching graphic for 3x higher engagement. Add the whitepaper link in your first comment.
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Additional Resources */}
+        <section className="py-16 md:py-24">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
