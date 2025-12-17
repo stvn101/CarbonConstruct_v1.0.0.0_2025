@@ -929,8 +929,386 @@ Or find tools that were built for the carbon compliance era.
           </div>
         </section>
 
-        {/* Additional Resources */}
+        {/* LinkedIn Carousel Template */}
         <section className="py-16 md:py-24 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <Badge variant="outline" className="mb-4 border-blue-500/30 text-blue-600">
+                <FileText className="w-3 h-3 mr-1" />
+                Carousel Content
+              </Badge>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                LinkedIn Carousel Template
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                10-slide carousel content for The Silent Transfer—copy text for each slide and create in Canva or your design tool
+              </p>
+            </motion.div>
+
+            <div className="max-w-5xl mx-auto">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Slide 1 - Cover */}
+                <Card className="border-2 border-blue-500/30 bg-gradient-to-br from-amber-500/5 to-red-500/5">
+                  <CardHeader className="pb-2">
+                    <Badge className="w-fit text-xs">Slide 1 • Cover</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-square bg-muted/50 rounded-lg p-4 flex flex-col justify-center text-center mb-3">
+                      <p className="text-2xl font-bold text-foreground mb-2">THE SILENT TRANSFER</p>
+                      <p className="text-sm text-muted-foreground">How Scope 3 Mandates Are Locking Subcontractors Out of Tenders</p>
+                      <p className="text-xs text-amber-600 mt-4">Swipe to learn →</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText("THE SILENT TRANSFER\n\nHow Scope 3 Mandates Are Locking Subcontractors Out of Tenders\n\nSwipe to learn →");
+                        toast({ title: "Slide 1 copied!" });
+                      }}
+                    >
+                      Copy Text
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Slide 2 - The Stat */}
+                <Card className="border-2 border-blue-500/20">
+                  <CardHeader className="pb-2">
+                    <Badge className="w-fit text-xs">Slide 2 • Hook Stat</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-square bg-muted/50 rounded-lg p-4 flex flex-col justify-center text-center mb-3">
+                      <p className="text-4xl font-bold text-amber-600 mb-2">80-90%</p>
+                      <p className="text-sm text-foreground">of a builder's carbon footprint is Scope 3</p>
+                      <p className="text-xs text-muted-foreground mt-3">That's YOUR materials. YOUR supply chain.</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText("80-90%\n\nof a builder's carbon footprint is Scope 3\n\nThat's YOUR materials. YOUR supply chain.");
+                        toast({ title: "Slide 2 copied!" });
+                      }}
+                    >
+                      Copy Text
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Slide 3 - The Problem */}
+                <Card className="border-2 border-blue-500/20">
+                  <CardHeader className="pb-2">
+                    <Badge className="w-fit text-xs">Slide 3 • Problem</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-square bg-muted/50 rounded-lg p-4 flex flex-col justify-center mb-3">
+                      <p className="text-lg font-bold text-foreground mb-3">ASRS mandates force builders to report Scope 3</p>
+                      <p className="text-sm text-muted-foreground">They can't report what they can't measure.</p>
+                      <p className="text-sm text-muted-foreground mt-2">So they need YOUR data.</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText("ASRS mandates force builders to report Scope 3\n\nThey can't report what they can't measure.\n\nSo they need YOUR data.");
+                        toast({ title: "Slide 3 copied!" });
+                      }}
+                    >
+                      Copy Text
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Slide 4 - Conservative Defaults */}
+                <Card className="border-2 border-blue-500/20">
+                  <CardHeader className="pb-2">
+                    <Badge className="w-fit text-xs">Slide 4 • Penalty</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-square bg-muted/50 rounded-lg p-4 flex flex-col justify-center text-center mb-3">
+                      <p className="text-sm text-foreground mb-2">No EPD data?</p>
+                      <p className="text-3xl font-bold text-red-600 mb-2">20-30%</p>
+                      <p className="text-sm text-foreground">penalty applied</p>
+                      <p className="text-xs text-muted-foreground mt-3">"Conservative defaults" make your materials look dirtier than reality</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText("No EPD data?\n\n20-30% penalty applied\n\n\"Conservative defaults\" make your materials look dirtier than reality");
+                        toast({ title: "Slide 4 copied!" });
+                      }}
+                    >
+                      Copy Text
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Slide 5 - Shadow Price */}
+                <Card className="border-2 border-blue-500/20">
+                  <CardHeader className="pb-2">
+                    <Badge className="w-fit text-xs">Slide 5 • Shadow Price</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-square bg-muted/50 rounded-lg p-4 flex flex-col justify-center text-center mb-3">
+                      <p className="text-sm text-foreground mb-2">NSW & VIC apply</p>
+                      <p className="text-3xl font-bold text-amber-600 mb-2">$123/tonne</p>
+                      <p className="text-sm text-foreground">shadow carbon price</p>
+                      <p className="text-xs text-muted-foreground mt-3">Low-carbon suppliers win tenders even at higher prices</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText("NSW & VIC apply\n\n$123/tonne shadow carbon price\n\nLow-carbon suppliers win tenders even at higher prices");
+                        toast({ title: "Slide 5 copied!" });
+                      }}
+                    >
+                      Copy Text
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Slide 6 - The Cascade */}
+                <Card className="border-2 border-blue-500/20">
+                  <CardHeader className="pb-2">
+                    <Badge className="w-fit text-xs">Slide 6 • Cascade</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-square bg-muted/50 rounded-lg p-4 flex flex-col justify-center mb-3">
+                      <p className="text-sm font-bold text-foreground mb-3">The Cascade Effect:</p>
+                      <ul className="text-xs text-muted-foreground space-y-2 text-left">
+                        <li>→ Missing EPD data</li>
+                        <li>→ Inflated carbon score</li>
+                        <li>→ Client loses Green Star points</li>
+                        <li>→ Government tender fails</li>
+                        <li>→ <span className="text-red-600 font-semibold">You lose the next call</span></li>
+                      </ul>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText("The Cascade Effect:\n\n→ Missing EPD data\n→ Inflated carbon score\n→ Client loses Green Star points\n→ Government tender fails\n→ You lose the next call");
+                        toast({ title: "Slide 6 copied!" });
+                      }}
+                    >
+                      Copy Text
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Slide 7 - The Firewall */}
+                <Card className="border-2 border-blue-500/20">
+                  <CardHeader className="pb-2">
+                    <Badge className="w-fit text-xs">Slide 7 • Firewall</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-square bg-muted/50 rounded-lg p-4 flex flex-col justify-center text-center mb-3">
+                      <p className="text-lg font-bold text-foreground mb-3">THE PROCUREMENT FIREWALL</p>
+                      <p className="text-sm text-muted-foreground">As formidable as:</p>
+                      <ul className="text-sm text-foreground mt-2 space-y-1">
+                        <li>❌ Financial insolvency</li>
+                        <li>❌ Safety non-compliance</li>
+                        <li>❌ Missing insurance</li>
+                      </ul>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText("THE PROCUREMENT FIREWALL\n\nAs formidable as:\n❌ Financial insolvency\n❌ Safety non-compliance\n❌ Missing insurance");
+                        toast({ title: "Slide 7 copied!" });
+                      }}
+                    >
+                      Copy Text
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Slide 8 - The Truth */}
+                <Card className="border-2 border-blue-500/20">
+                  <CardHeader className="pb-2">
+                    <Badge className="w-fit text-xs">Slide 8 • Truth</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-square bg-muted/50 rounded-lg p-4 flex flex-col justify-center text-center mb-3">
+                      <p className="text-lg font-bold text-foreground mb-3">The legislation doesn't name subcontractors.</p>
+                      <p className="text-2xl font-bold text-amber-600">It doesn't need to.</p>
+                      <p className="text-sm text-muted-foreground mt-3">The burden flows through procurement.</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText("The legislation doesn't name subcontractors.\n\nIt doesn't need to.\n\nThe burden flows through procurement.");
+                        toast({ title: "Slide 8 copied!" });
+                      }}
+                    >
+                      Copy Text
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Slide 9 - Timeline */}
+                <Card className="border-2 border-blue-500/20">
+                  <CardHeader className="pb-2">
+                    <Badge className="w-fit text-xs">Slide 9 • Timeline</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-square bg-muted/50 rounded-lg p-4 flex flex-col justify-center mb-3">
+                      <p className="text-sm font-bold text-foreground mb-3 text-center">TIMELINE</p>
+                      <ul className="text-xs space-y-2">
+                        <li><span className="font-semibold text-emerald-600">2024:</span> ASRS mandatory</li>
+                        <li><span className="font-semibold text-amber-600">2025:</span> Threshold drops</li>
+                        <li><span className="font-semibold text-orange-600">2026:</span> Universal standard</li>
+                        <li><span className="font-semibold text-red-600">2027+:</span> Full enforcement</li>
+                      </ul>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText("TIMELINE\n\n2024: ASRS mandatory\n2025: Threshold drops\n2026: Universal standard\n2027+: Full enforcement");
+                        toast({ title: "Slide 9 copied!" });
+                      }}
+                    >
+                      Copy Text
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Slide 10 - CTA */}
+                <Card className="border-2 border-blue-500/30 bg-gradient-to-br from-emerald-500/5 to-primary/5">
+                  <CardHeader className="pb-2">
+                    <Badge className="w-fit text-xs">Slide 10 • CTA</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-square bg-muted/50 rounded-lg p-4 flex flex-col justify-center text-center mb-3">
+                      <p className="text-lg font-bold text-foreground mb-3">The question isn't IF this affects you.</p>
+                      <p className="text-2xl font-bold text-primary mb-3">It's WHEN.</p>
+                      <p className="text-sm text-muted-foreground">📄 Full analysis in comments</p>
+                      <p className="text-xs text-emerald-600 mt-2">carbonconstruct.com.au/resources</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText("The question isn't IF this affects you.\n\nIt's WHEN.\n\n📄 Full analysis in comments\ncarbonconstruct.com.au/resources");
+                        toast({ title: "Slide 10 copied!" });
+                      }}
+                    >
+                      Copy Text
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Copy all button */}
+              <div className="mt-8 text-center">
+                <Button 
+                  size="lg"
+                  onClick={() => {
+                    const allSlides = `LINKEDIN CAROUSEL: "The Silent Transfer" (10 Slides)
+
+SLIDE 1 (COVER):
+THE SILENT TRANSFER
+How Scope 3 Mandates Are Locking Subcontractors Out of Tenders
+Swipe to learn →
+
+SLIDE 2 (HOOK STAT):
+80-90%
+of a builder's carbon footprint is Scope 3
+That's YOUR materials. YOUR supply chain.
+
+SLIDE 3 (PROBLEM):
+ASRS mandates force builders to report Scope 3
+They can't report what they can't measure.
+So they need YOUR data.
+
+SLIDE 4 (PENALTY):
+No EPD data?
+20-30% penalty applied
+"Conservative defaults" make your materials look dirtier than reality
+
+SLIDE 5 (SHADOW PRICE):
+NSW & VIC apply
+$123/tonne shadow carbon price
+Low-carbon suppliers win tenders even at higher prices
+
+SLIDE 6 (CASCADE):
+The Cascade Effect:
+→ Missing EPD data
+→ Inflated carbon score
+→ Client loses Green Star points
+→ Government tender fails
+→ You lose the next call
+
+SLIDE 7 (FIREWALL):
+THE PROCUREMENT FIREWALL
+As formidable as:
+❌ Financial insolvency
+❌ Safety non-compliance
+❌ Missing insurance
+
+SLIDE 8 (TRUTH):
+The legislation doesn't name subcontractors.
+It doesn't need to.
+The burden flows through procurement.
+
+SLIDE 9 (TIMELINE):
+2024: ASRS mandatory
+2025: Threshold drops
+2026: Universal standard
+2027+: Full enforcement
+
+SLIDE 10 (CTA):
+The question isn't IF this affects you.
+It's WHEN.
+📄 Full analysis in comments
+carbonconstruct.com.au/resources
+
+---
+POST CAPTION:
+The ASRS mandate doesn't name subcontractors. It doesn't need to.
+
+Here's how carbon compliance is becoming a procurement firewall that could lock you out of tenders—even when your prices are competitive.
+
+📄 Full whitepaper link in comments
+
+#Construction #Sustainability #Subcontractors #CarbonCompliance #ASRS`;
+                    navigator.clipboard.writeText(allSlides);
+                    toast({ title: "All slides + caption copied!", description: "Ready to create in Canva" });
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Copy All Slides + Caption
+                </Button>
+                <p className="text-sm text-muted-foreground mt-3">
+                  💡 Tip: Create 1080x1080px slides in Canva. Use bold typography and high contrast colors.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Additional Resources */}
+        <section className="py-16 md:py-24">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

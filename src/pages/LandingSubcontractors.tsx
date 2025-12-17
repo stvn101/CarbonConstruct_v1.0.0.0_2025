@@ -1,5 +1,6 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   AlertTriangle, 
   Shield, 
@@ -14,16 +15,100 @@ import {
   Clock,
   DollarSign,
   Download,
-  ExternalLink
+  ExternalLink,
+  X,
+  Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { SEOHead } from "@/components/SEOHead";
 import { Footer } from "@/components/Footer";
 import { WhitepaperSummary } from "@/components/WhitepaperSummary";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const LandingSubcontractors = () => {
+  const { toast } = useToast();
+  const [showPopup, setShowPopup] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  // Show popup after 15 seconds or 50% scroll
+  useEffect(() => {
+    const hasSeenPopup = sessionStorage.getItem("subcontractor_popup_seen");
+    if (hasSeenPopup) return;
+
+    const timer = setTimeout(() => {
+      setShowPopup(true);
+      sessionStorage.setItem("subcontractor_popup_seen", "true");
+    }, 15000);
+
+    const handleScroll = () => {
+      const scrollPercent = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+      if (scrollPercent > 50 && !showPopup) {
+        setShowPopup(true);
+        sessionStorage.setItem("subcontractor_popup_seen", "true");
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [showPopup]);
+
+  const handlePopupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes("@")) {
+      toast({
+        title: "Valid email required",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await supabase.from("analytics_events").insert({
+        event_name: "whitepaper_popup_download",
+        event_data: { 
+          email,
+          source: "subcontractor_landing_popup",
+          whitepaper: "the-silent-transfer"
+        },
+        page_url: window.location.href,
+      });
+
+      // Trigger download
+      const link = document.createElement("a");
+      link.href = "/resources/the-silent-transfer-whitepaper.pdf";
+      link.download = "The_Silent_Transfer_CarbonConstruct.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setHasSubmitted(true);
+      toast({
+        title: "Download started!",
+        description: "Check your downloads folder.",
+      });
+    } catch (error) {
+      console.error("Popup submit error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const warningSignals = [
     {
       icon: FileText,
@@ -421,6 +506,99 @@ const LandingSubcontractors = () => {
         </section>
 
         <Footer />
+
+        {/* Email Capture Popup */}
+        <AnimatePresence>
+          {showPopup && !hasSubmitted && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+              onClick={() => setShowPopup(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-lg bg-background border-2 border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden"
+              >
+                {/* Close button */}
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="absolute top-4 right-4 p-1 rounded-full hover:bg-muted transition-colors"
+                  aria-label="Close popup"
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+
+                {/* Warning header */}
+                <div className="bg-gradient-to-r from-amber-500/20 to-red-500/20 px-6 py-4 border-b border-amber-500/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center">
+                      <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-amber-600 font-semibold uppercase tracking-wide">Industry Alert</p>
+                      <h3 className="text-lg font-bold text-foreground">The Silent Transfer Is Coming</h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  <p className="text-muted-foreground mb-4">
+                    Don't get locked out of tenders. Download our free 14-page analysis on why 
+                    <strong className="text-foreground"> subcontractors without EPD data face exclusion</strong>—even 
+                    when their prices are competitive.
+                  </p>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-start gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">ASRS Scope 3 mandate analysis</span>
+                    </div>
+                    <div className="flex items-start gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">$123/t shadow carbon pricing impact</span>
+                    </div>
+                    <div className="flex items-start gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">Green Star penalty breakdown</span>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handlePopupSubmit} className="space-y-3">
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="email"
+                        placeholder="your@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700" disabled={isSubmitting}>
+                      {isSubmitting ? "Processing..." : (
+                        <>
+                          <Download className="w-4 h-4 mr-2" />
+                          Download Free Whitepaper
+                        </>
+                      )}
+                    </Button>
+                  </form>
+
+                  <p className="text-xs text-muted-foreground text-center mt-4">
+                    No spam. Unsubscribe anytime.
+                  </p>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );
