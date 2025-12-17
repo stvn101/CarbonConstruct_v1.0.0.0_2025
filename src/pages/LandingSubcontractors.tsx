@@ -35,17 +35,18 @@ const LandingSubcontractors = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [abVariant, setAbVariant] = useState<"A" | "B">("A");
+  const [abVariant, setAbVariant] = useState<"A" | "B" | "C">("A");
 
-  // A/B Test: Popup timing - Variant A: 10s, Variant B: 20s
+  // A/B/C Test: Popup timing - A: 10s, B: 20s, C: exit-intent
   useEffect(() => {
     const hasSeenPopup = sessionStorage.getItem("subcontractor_popup_seen");
     if (hasSeenPopup) return;
 
-    // Assign variant if not already assigned
-    let variant = sessionStorage.getItem("popup_ab_variant") as "A" | "B" | null;
+    // Assign variant if not already assigned (33% each)
+    let variant = sessionStorage.getItem("popup_ab_variant") as "A" | "B" | "C" | null;
     if (!variant) {
-      variant = Math.random() < 0.5 ? "A" : "B";
+      const rand = Math.random();
+      variant = rand < 0.33 ? "A" : rand < 0.66 ? "B" : "C";
       sessionStorage.setItem("popup_ab_variant", variant);
       
       // Log variant assignment
@@ -54,40 +55,58 @@ const LandingSubcontractors = () => {
         event_data: { 
           test_name: "popup_timing",
           variant,
-          variant_timing: variant === "A" ? "10s" : "20s"
+          variant_description: variant === "A" ? "10s" : variant === "B" ? "20s" : "exit_intent"
         },
         page_url: window.location.href,
       });
     }
     setAbVariant(variant);
 
-    // Set timing based on variant: A = 10s, B = 20s
-    const popupDelay = variant === "A" ? 10000 : 20000;
+    let timer: NodeJS.Timeout | undefined;
+    
+    // Exit-intent handler for Variant C
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (variant !== "C" || showPopup) return;
+      // Only trigger when mouse leaves toward top of viewport
+      if (e.clientY <= 0) {
+        setShowPopup(true);
+        sessionStorage.setItem("subcontractor_popup_seen", "true");
+        supabase.from("analytics_events").insert({
+          event_name: "popup_shown",
+          event_data: { 
+            test_name: "popup_timing",
+            variant,
+            trigger: "exit_intent"
+          },
+          page_url: window.location.href,
+        });
+      }
+    };
 
-    const timer = setTimeout(() => {
-      setShowPopup(true);
-      sessionStorage.setItem("subcontractor_popup_seen", "true");
-      
-      // Log popup shown with variant
-      supabase.from("analytics_events").insert({
-        event_name: "popup_shown",
-        event_data: { 
-          test_name: "popup_timing",
-          variant,
-          trigger: "timer",
-          delay_ms: popupDelay
-        },
-        page_url: window.location.href,
-      });
-    }, popupDelay);
+    // Timer-based popup for Variants A and B
+    if (variant !== "C") {
+      const popupDelay = variant === "A" ? 10000 : 20000;
+      timer = setTimeout(() => {
+        setShowPopup(true);
+        sessionStorage.setItem("subcontractor_popup_seen", "true");
+        supabase.from("analytics_events").insert({
+          event_name: "popup_shown",
+          event_data: { 
+            test_name: "popup_timing",
+            variant,
+            trigger: "timer",
+            delay_ms: popupDelay
+          },
+          page_url: window.location.href,
+        });
+      }, popupDelay);
+    }
 
     const handleScroll = () => {
       const scrollPercent = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
       if (scrollPercent > 50 && !showPopup) {
         setShowPopup(true);
         sessionStorage.setItem("subcontractor_popup_seen", "true");
-        
-        // Log popup shown via scroll with variant
         supabase.from("analytics_events").insert({
           event_name: "popup_shown",
           event_data: { 
@@ -102,9 +121,12 @@ const LandingSubcontractors = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
+    document.addEventListener("mouseleave", handleMouseLeave);
+    
     return () => {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
       window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("mouseleave", handleMouseLeave);
     };
   }, [showPopup]);
 
@@ -129,7 +151,7 @@ const LandingSubcontractors = () => {
           whitepaper: "the-silent-transfer",
           ab_test: "popup_timing",
           ab_variant: abVariant,
-          ab_variant_timing: abVariant === "A" ? "10s" : "20s"
+          ab_variant_description: abVariant === "A" ? "10s" : abVariant === "B" ? "20s" : "exit_intent"
         },
         page_url: window.location.href,
       });
