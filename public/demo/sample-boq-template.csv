@@ -1,0 +1,24 @@
+Item No,Description,Material Category,Quantity,Unit,Notes
+1.01,Concrete Footings - 32MPa,Concrete,450,m³,Strip footings and pad footings
+1.02,Concrete Slab on Ground - 25MPa,Concrete,1200,m²,150mm thick with mesh
+1.03,Suspended Slab - 40MPa,Concrete,850,m³,Post-tensioned
+2.01,Reinforcement - N12 Bars,Steel - Reinforcing,18500,kg,Main reinforcement
+2.02,Reinforcement - N16 Bars,Steel - Reinforcing,12400,kg,Main reinforcement
+2.03,Steel Mesh SL82,Steel - Reinforcing,1200,m²,Slab reinforcement
+3.01,Structural Steel Columns,Steel - Structural,45000,kg,Hot rolled sections
+3.02,Steel Beams - UB Sections,Steel - Structural,62000,kg,Universal beams
+3.03,Steel Purlins,Steel - Structural,8500,kg,Cold formed
+4.01,Concrete Blocks 190mm,Masonry,2400,m²,Load bearing walls
+4.02,Clay Bricks Standard,Masonry,1800,m²,External veneer
+5.01,Plasterboard 13mm,Linings,3200,m²,Internal walls
+5.02,Plasterboard 10mm Ceiling,Linings,2800,m²,Ceilings
+6.01,Aluminium Window Frames,Glazing,85,units,Standard residential
+6.02,Double Glazed Units,Glazing,420,m²,Low-E coating
+7.01,Timber Framing - Pine,Timber,28,m³,Wall framing
+7.02,LVL Beams,Timber,12,m³,Engineered timber
+8.01,Insulation - Glasswool R4.0,Insulation,1600,m²,Ceiling batts
+8.02,Insulation - XPS 50mm,Insulation,850,m²,Slab edge
+9.01,Metal Roofing - Colorbond,Roofing,1400,m²,0.42mm BMT
+9.02,Roof Sarking,Roofing,1400,m²,Reflective foil
+10.01,PVC Pipes 100mm,Services,240,m,Stormwater drainage
+10.02,Copper Pipes 15mm,Services,180,m,Hot water reticulation
