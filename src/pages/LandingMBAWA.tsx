@@ -320,7 +320,7 @@ export default function LandingMBAWA() {
                   <CardContent className="p-6">
                     <div className="text-sm text-muted-foreground mb-2">Pro Yearly (Regular)</div>
                     <div className="flex items-baseline gap-1 mb-4">
-                      <span className="text-3xl font-bold line-through text-muted-foreground">$588</span>
+                      <span className="text-3xl font-bold line-through text-muted-foreground">$790</span>
                       <span className="text-muted-foreground">/year</span>
                     </div>
                     <ul className="space-y-2 text-sm text-muted-foreground">
@@ -347,11 +347,11 @@ export default function LandingMBAWA() {
                   <CardContent className="p-6">
                     <div className="text-sm text-emerald-600 font-medium mb-2">Pro Yearly (20% Off)</div>
                     <div className="flex items-baseline gap-1 mb-1">
-                      <span className="text-4xl font-bold text-emerald-600">$470</span>
+                      <span className="text-4xl font-bold text-emerald-600">$632</span>
                       <span className="text-muted-foreground">/year</span>
                     </div>
                     <div className="text-sm text-emerald-600 mb-4">
-                      Save $118 on your first year
+                      Save $158 on your first year
                     </div>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-center gap-2">
