@@ -141,9 +141,9 @@ function SkeletonChart({ className }: { className?: string }) {
         <Skeleton className="h-3 w-48" />
         <div className="flex items-end gap-2 h-48 pt-4">
           {[40, 65, 45, 80, 55, 70, 50].map((height, i) => (
-            <Skeleton 
-              key={i} 
-              className="flex-1 rounded-t-md" 
+            <Skeleton
+              key={i}
+              className="flex-1 rounded-t-md"
               style={{ height: `${height}%` }}
             />
           ))}
@@ -153,12 +153,35 @@ function SkeletonChart({ className }: { className?: string }) {
   );
 }
 
-export { 
-  Skeleton, 
-  SkeletonCard, 
-  SkeletonList, 
+function SkeletonText({
+  lines = 3,
+  className
+}: {
+  lines?: number;
+  className?: string;
+}) {
+  return (
+    <div className={cn("space-y-2", className)}>
+      {Array.from({ length: lines }).map((_, i) => (
+        <Skeleton
+          key={i}
+          className="h-4"
+          style={{
+            width: i === lines - 1 ? '60%' : '100%'
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+export {
+  Skeleton,
+  SkeletonCard,
+  SkeletonList,
   SkeletonTable,
   SkeletonForm,
   SkeletonStats,
-  SkeletonChart
+  SkeletonChart,
+  SkeletonText
 };
