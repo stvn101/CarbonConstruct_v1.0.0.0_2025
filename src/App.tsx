@@ -54,6 +54,7 @@ const LandingMBAWA = lazy(() => import("./pages/LandingMBAWA"));
 const LandingMBATas = lazy(() => import("./pages/LandingMBATas"));
 const LandingMBANT = lazy(() => import("./pages/LandingMBANT"));
 const LandingMBAACT = lazy(() => import("./pages/LandingMBAACT"));
+const LandingProcurement = lazy(() => import("./pages/LandingProcurement"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -161,6 +162,7 @@ const App = () => (
                     <Route path="/lp/mba-tas" element={<LandingMBATas />} />
                     <Route path="/lp/mba-nt" element={<LandingMBANT />} />
                     <Route path="/lp/mba-act" element={<LandingMBAACT />} />
+                    <Route path="/lp/procurement" element={<LandingProcurement />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

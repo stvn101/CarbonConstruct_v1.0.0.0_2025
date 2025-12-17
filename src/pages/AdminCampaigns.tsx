@@ -132,6 +132,13 @@ const campaignPages: CampaignPage[] = [
     icon: <Landmark className="h-5 w-5" />,
     description: 'Compliance verification and public asset tracking',
   },
+  {
+    path: '/lp/procurement',
+    name: 'Procurement',
+    audience: 'Procurement Managers & QS',
+    icon: <Truck className="h-5 w-5" />,
+    description: 'Verify supplier EPDs, compare materials, prove compliance',
+  },
 ];
 
 const utmSources = ['facebook', 'linkedin', 'google', 'instagram', 'twitter', 'email', 'direct', 'referral'];
