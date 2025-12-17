@@ -150,6 +150,7 @@ const App = () => (
                     <Route path="/lp/architects" element={<LandingArchitects />} />
                     <Route path="/lp/developers" element={<LandingDevelopers />} />
                     <Route path="/lp/suppliers" element={<LandingSupplyChain />} />
+                    <Route path="/lp/supply-chain" element={<LandingSupplyChain />} />
                     <Route path="/lp/consultants" element={<LandingConsultants />} />
                     <Route path="/lp/engineers" element={<LandingEngineers />} />
                     <Route path="/lp/government" element={<LandingGovernment />} />
