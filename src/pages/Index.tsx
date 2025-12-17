@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { ParallaxSection } from "@/components/ParallaxSection";
 import { AnimatedStatCard } from "@/components/AnimatedCounter";
+import { WhitepaperSummary } from "@/components/WhitepaperSummary";
 const Index = () => {
   const {
     user,
@@ -312,6 +313,9 @@ const Index = () => {
                 </Button>
               </div>
             </div>
+
+            {/* Whitepaper Research Section */}
+            <WhitepaperSummary className="max-w-5xl mx-auto animate-fade-in [animation-delay:0.55s]" />
 
             {/* Founder Section - Expanded */}
             <div className="max-w-5xl mx-auto animate-fade-in [animation-delay:0.6s]">
