@@ -2,7 +2,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton, SkeletonCard, SkeletonText } from "@/components/ui/skeleton";
+import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 import { MotionButton } from "@/components/ui/motion-button";
 import { MotionInput } from "@/components/ui/motion-input";
 import { SkeletonPage } from "@/components/SkeletonPage";
@@ -119,15 +119,15 @@ const DesignSystem = () => {
               ref={buttonsRef}
               className={`flex flex-wrap gap-4 transition-all duration-500 ${buttonsInView ? 'animate-slide-up opacity-100' : 'opacity-0'}`}
             >
-              <Button variant="glass" size="lg">
+              <Button variant="eco" size="lg">
                 <Sparkles className="mr-2 h-4 w-4" />
-                Glass Button
+                Eco Button
               </Button>
-              <Button variant="glassOutline" size="lg">
+              <Button variant="outline" size="lg">
                 <MousePointer2 className="mr-2 h-4 w-4" />
-                Glass Outline
+                Outline
               </Button>
-              <Button variant="glass" size="lg" className="glow-ring">
+              <Button variant="carbon" size="lg" className="glow-ring">
                 <Star className="mr-2 h-4 w-4" />
                 With Glow Ring
               </Button>
@@ -139,7 +139,7 @@ const DesignSystem = () => {
 
             <div className="mt-8 glass p-4 rounded-lg">
               <p className="text-sm text-muted-foreground">
-                <strong>Variants:</strong> <code>glass</code>, <code>glassOutline</code><br />
+                <strong>Variants:</strong> <code>eco</code>, <code>carbon</code>, <code>ocean</code>, <code>sunset</code><br />
                 <strong>Effects:</strong> <code>.glow-ring</code>, <code>.shimmer-hover</code>
               </p>
             </div>
@@ -186,32 +186,32 @@ const DesignSystem = () => {
                 <code className="text-xs bg-muted px-2 py-1 rounded">variant="default"</code>
               </div>
 
-              {/* Glass Skeleton */}
+              {/* Muted Skeleton */}
               <div className="space-y-4">
                 <h3 className="font-semibold flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Glass Skeleton
+                  Muted Skeleton
                 </h3>
-                <div className="space-y-2">
-                  <Skeleton variant="glass" className="h-4 w-full" />
-                  <Skeleton variant="glass" className="h-4 w-3/4" />
-                  <Skeleton variant="glass" className="h-4 w-1/2" />
+                <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
                 </div>
-                <code className="text-xs bg-muted px-2 py-1 rounded">variant="glass"</code>
+                <code className="text-xs bg-muted px-2 py-1 rounded">On muted background</code>
               </div>
 
-              {/* Glass Light Skeleton */}
+              {/* Card Skeleton */}
               <div className="space-y-4">
                 <h3 className="font-semibold flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Glass Light Skeleton
+                  Card Skeleton
                 </h3>
-                <div className="space-y-2">
-                  <Skeleton variant="glassLight" className="h-4 w-full" />
-                  <Skeleton variant="glassLight" className="h-4 w-3/4" />
-                  <Skeleton variant="glassLight" className="h-4 w-1/2" />
+                <div className="space-y-2 bg-card p-4 rounded-lg border">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
                 </div>
-                <code className="text-xs bg-muted px-2 py-1 rounded">variant="glassLight"</code>
+                <code className="text-xs bg-muted px-2 py-1 rounded">On card background</code>
               </div>
             </div>
 
@@ -223,9 +223,14 @@ const DesignSystem = () => {
                 <code className="text-xs bg-muted px-2 py-1 rounded mt-4 inline-block">{"<SkeletonCard />"}</code>
               </div>
               <div>
-                <h3 className="font-semibold mb-4">SkeletonText Component</h3>
-                <SkeletonText lines={4} />
-                <code className="text-xs bg-muted px-2 py-1 rounded mt-4 inline-block">{"<SkeletonText lines={4} />"}</code>
+                <h3 className="font-semibold mb-4">Skeleton Lines</h3>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="h-4 w-3/5" />
+                  <Skeleton className="h-4 w-2/5" />
+                </div>
+                <code className="text-xs bg-muted px-2 py-1 rounded mt-4 inline-block">{"<Skeleton className=\"h-4 w-full\" />"}</code>
               </div>
             </div>
           </div>

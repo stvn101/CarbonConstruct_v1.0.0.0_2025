@@ -147,16 +147,13 @@ export default function BOQImport() {
       </div>
 
       {stage === "upload" && (
-        <BOQUploader onFileSelect={handleFileSelect} isProcessing={false} />
+        <BOQUploader onFileUpload={handleFileSelect} />
       )}
 
       {stage === "processing" && (
         <BOQProcessingStatus
-          stage={processingStage}
           progress={progress}
-          fileName={fileName}
-          materialsFound={materialsFound}
-          materialsMatched={materialsMatched}
+          status={`${processingStage} - ${fileName} (${materialsFound} found, ${materialsMatched} matched)`}
         />
       )}
 
@@ -164,7 +161,7 @@ export default function BOQImport() {
         <BOQMaterialReview
           materials={materials}
           onConfirm={handleConfirmMaterials}
-          onBack={handleBackToUpload}
+          onCancel={handleBackToUpload}
         />
       )}
     </div>
