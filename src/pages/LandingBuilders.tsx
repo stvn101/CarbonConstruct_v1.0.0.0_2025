@@ -1,4 +1,5 @@
 import CampaignLandingPage, { Benefit } from '@/components/CampaignLandingPage';
+import { WhitepaperSummary } from '@/components/WhitepaperSummary';
 import { Clock, FileText, Truck, Shield, Smartphone, TrendingUp } from 'lucide-react';
 
 const benefits: Benefit[] = [
@@ -61,6 +62,7 @@ export default function LandingBuilders() {
       ctaSecondaryText="View Pricing"
       seoTitle="Carbon Calculator for Builders | CarbonConstruct"
       seoDescription="The carbon calculator built for Australian builders. 4,000+ EPD materials, NCC 2024 compliance, professional reports. Free forever plan available."
+      customSections={<WhitepaperSummary className="bg-muted/30" />}
     />
   );
 }

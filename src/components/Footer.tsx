@@ -87,6 +87,11 @@ export const Footer = () => {
             <h3 className="font-semibold text-foreground">Resources</h3>
             <ul className="space-y-2 text-sm">
               <li>
+                <Link to="/resources" className="text-muted-foreground hover:text-primary transition-colors">
+                  Research & Whitepapers
+                </Link>
+              </li>
+              <li>
                 <a href="https://ncc.abcb.gov.au/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                   NCC Guidelines
                 </a>
