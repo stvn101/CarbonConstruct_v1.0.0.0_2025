@@ -75,11 +75,11 @@ serve(async (req) => {
       );
     }
 
-    // Check file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024;
+    // Check file size (max 20MB)
+    const maxSize = 20 * 1024 * 1024;
     if (file.size > maxSize) {
       return new Response(
-        JSON.stringify({ error: 'PDF file too large. Maximum size is 10MB.' }),
+        JSON.stringify({ error: 'PDF file too large. Maximum size is 20MB.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
