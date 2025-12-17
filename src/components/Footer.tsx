@@ -92,6 +92,11 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/lp/subcontractors" className="text-muted-foreground hover:text-primary transition-colors">
+                  For Subcontractors
+                </Link>
+              </li>
+              <li>
                 <a href="https://ncc.abcb.gov.au/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                   NCC Guidelines
                 </a>
