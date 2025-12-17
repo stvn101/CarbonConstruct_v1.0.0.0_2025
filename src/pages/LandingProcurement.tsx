@@ -24,7 +24,10 @@ import {
   BarChart3,
   GitCompare,
   Check,
-  X
+  X,
+  PlayCircle,
+  Download,
+  FileSpreadsheet
 } from 'lucide-react';
 
 const benefits = [
@@ -538,6 +541,73 @@ export default function LandingProcurement() {
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div className="h-full w-2/5 bg-blue-500 rounded-full" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Video Walkthrough Teaser */}
+              <div className="mt-10">
+                <Card className="border-border/50 overflow-hidden bg-card/50">
+                  <CardContent className="p-0">
+                    <div className="grid md:grid-cols-2 gap-0">
+                      {/* Video Player */}
+                      <div className="relative bg-black aspect-video md:aspect-auto">
+                        <video 
+                          controls 
+                          className="w-full h-full object-cover"
+                          poster="/demo/boq-import-teaser.jpg"
+                          preload="metadata"
+                        >
+                          <source src="/demo/boq-import-teaser.mp4" type="video/mp4" />
+                          <track 
+                            kind="captions" 
+                            src="/demo/boq-import-teaser.vtt" 
+                            srcLang="en" 
+                            label="English"
+                            default
+                          />
+                          Your browser does not support the video tag.
+                        </video>
+                        <div className="absolute top-3 left-3">
+                          <Badge className="bg-black/70 text-white border-0">
+                            <PlayCircle className="h-3 w-3 mr-1" />
+                            Watch Demo
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      {/* Download Template */}
+                      <div className="p-6 flex flex-col justify-center">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Download className="h-5 w-5 text-emerald-600" />
+                          <h3 className="text-lg font-semibold">Try It Yourself</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Download our sample BOQ template to see the format. When BOQ import launches, you'll be able to upload your own quantity schedules and get instant carbon analysis.
+                        </p>
+                        <div className="space-y-3">
+                          <a 
+                            href="/demo/sample-boq-template.csv" 
+                            download="CarbonConstruct-Sample-BOQ.csv"
+                            className="inline-block"
+                          >
+                            <Button variant="outline" size="sm" className="w-full justify-start">
+                              <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-600" />
+                              Download Sample BOQ (CSV)
+                              <Download className="ml-auto h-4 w-4" />
+                            </Button>
+                          </a>
+                          <div className="text-xs text-muted-foreground">
+                            <p className="font-medium mb-1">Template includes:</p>
+                            <ul className="list-disc list-inside space-y-0.5">
+                              <li>22 common material line items</li>
+                              <li>Concrete, steel, timber, glazing categories</li>
+                              <li>Standard QS format with quantities & units</li>
+                            </ul>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
