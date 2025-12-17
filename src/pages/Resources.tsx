@@ -374,6 +374,115 @@ const Resources = () => {
           </div>
         </section>
 
+        {/* Social Media Graphics Section */}
+        <section className="py-16 md:py-24">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <Badge variant="outline" className="mb-4">Share the Research</Badge>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                LinkedIn Graphics
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Download these infographics to share on LinkedIn and educate your network about carbon reporting requirements
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+              >
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="aspect-video bg-muted">
+                    <img 
+                      src="/social/linkedin-silent-transfer-stats.png" 
+                      alt="The Silent Transfer - Key Statistics"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">Key Statistics</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      80-90% Scope 3, $123/t shadow price, 20-30% penalties
+                    </p>
+                    <Button size="sm" variant="outline" className="w-full" asChild>
+                      <a href="/social/linkedin-silent-transfer-stats.png" download>
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="aspect-video bg-muted">
+                    <img 
+                      src="/social/linkedin-data-hierarchy.png" 
+                      alt="Data Quality Hierarchy"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">Data Quality Hierarchy</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      EPD vs generic data penalties in Green Star ratings
+                    </p>
+                    <Button size="sm" variant="outline" className="w-full" asChild>
+                      <a href="/social/linkedin-data-hierarchy.png" download>
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="aspect-video bg-muted">
+                    <img 
+                      src="/social/linkedin-procurement-firewall.png" 
+                      alt="The Procurement Firewall"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">Procurement Firewall</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      ASRS rollout timeline and tender exclusion risk
+                    </p>
+                    <Button size="sm" variant="outline" className="w-full" asChild>
+                      <a href="/social/linkedin-procurement-firewall.png" download>
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
         {/* Additional Resources */}
         <section className="py-16 md:py-24 bg-muted/30">
           <div className="container mx-auto px-4">
