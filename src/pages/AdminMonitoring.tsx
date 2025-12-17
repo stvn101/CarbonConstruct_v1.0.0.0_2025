@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck, Bug, Zap, ShieldAlert, Leaf } from "lucide-react";
+import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck, Bug, Zap, ShieldAlert, Leaf, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ import { SecurityDashboard } from "@/components/SecurityDashboard";
 import { MaterialValidationReport } from "@/components/MaterialValidationReport";
 import { BluescopeEPDImporter } from "@/components/BluescopeEPDImporter";
 import { BulkEPDUploader } from "@/components/BulkEPDUploader";
+import { ABTestDashboard } from "@/components/ABTestDashboard";
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -777,7 +778,16 @@ export default function AdminMonitoring() {
             <Upload className="h-4 w-4" />
             EPD Upload
           </TabsTrigger>
+          <TabsTrigger value="ab-testing" className="gap-2">
+            <Target className="h-4 w-4" />
+            A/B Tests
+          </TabsTrigger>
         </TabsList>
+
+        {/* A/B Testing Tab */}
+        <TabsContent value="ab-testing">
+          <ABTestDashboard />
+        </TabsContent>
 
         {/* EPD Upload Tab */}
         <TabsContent value="epd-upload">
