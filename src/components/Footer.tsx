@@ -19,13 +19,23 @@ export const Footer = () => {
               Professional carbon emissions calculator for Australian construction projects. 
               NCC compliant with Green Star and NABERS integration.
             </p>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <a 
+                href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=steven-j-carbonconstruct" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-[#0A66C2] hover:bg-[#004182] rounded-full transition-colors"
+                aria-label="Follow Steven on LinkedIn"
+              >
+                <Linkedin className="h-4 w-4" />
+                Follow
+              </a>
               <a 
                 href="https://www.linkedin.com/in/steven-j-carbonconstruct" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Follow CarbonConstruct on LinkedIn"
+                aria-label="Visit CarbonConstruct LinkedIn profile"
               >
                 <Linkedin className="h-5 w-5" />
               </a>
