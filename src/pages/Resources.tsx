@@ -11,7 +11,9 @@ import {
   Shield,
   TrendingUp,
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
+  Video,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -798,8 +800,137 @@ Or find tools that were built for the carbon compliance era.
           </div>
         </section>
 
-        {/* Additional Resources */}
+        {/* Video Script Template */}
         <section className="py-16 md:py-24">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <Badge variant="outline" className="mb-4 border-purple-500/30 text-purple-600">
+                <Video className="w-3 h-3 mr-1" />
+                Video Content
+              </Badge>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                60-Second LinkedIn Video Script
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Record this script to explain The Silent Transfer concept—high engagement format for LinkedIn
+              </p>
+            </motion.div>
+
+            <div className="max-w-4xl mx-auto">
+              <Card className="border-2 border-purple-500/20">
+                <CardHeader>
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center">
+                        <Video className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl">The Silent Transfer</CardTitle>
+                        <CardDescription className="flex items-center gap-2 mt-1">
+                          <Clock className="w-3 h-3" />
+                          60 seconds • LinkedIn Video
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20">
+                      High Performance Format
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Script with timing markers */}
+                  <div className="space-y-4">
+                    <div className="border-l-4 border-purple-500 pl-4 py-2">
+                      <p className="text-xs text-purple-600 font-semibold mb-1">0:00 - 0:10 | THE HOOK</p>
+                      <p className="text-foreground">
+                        "If you're a subcontractor in construction, there's something happening right now that could lock you out of tenders—and it has nothing to do with your price or your quality."
+                      </p>
+                    </div>
+
+                    <div className="border-l-4 border-amber-500 pl-4 py-2">
+                      <p className="text-xs text-amber-600 font-semibold mb-1">0:10 - 0:25 | THE PROBLEM</p>
+                      <p className="text-foreground">
+                        "It's called The Silent Transfer. Here's how it works: The ASRS mandate forces Tier 1 builders to report their Scope 3 emissions—that's 80 to 90 percent of their carbon footprint. And guess where that carbon comes from? Your materials. Your supply chain."
+                      </p>
+                    </div>
+
+                    <div className="border-l-4 border-red-500 pl-4 py-2">
+                      <p className="text-xs text-red-600 font-semibold mb-1">0:25 - 0:40 | THE CONSEQUENCE</p>
+                      <p className="text-foreground">
+                        "When you can't provide EPD data, rating tools apply 'conservative defaults'—inflated values that make your materials look 20 to 30 percent dirtier than they actually are. Your client loses Green Star points. Their government tender fails. And next time? They don't call you."
+                      </p>
+                    </div>
+
+                    <div className="border-l-4 border-emerald-500 pl-4 py-2">
+                      <p className="text-xs text-emerald-600 font-semibold mb-1">0:40 - 0:55 | THE INSIGHT</p>
+                      <p className="text-foreground">
+                        "The legislation doesn't name subcontractors. It doesn't need to. The burden flows through procurement. And procurement is becoming a firewall—as formidable as financial insolvency or safety non-compliance."
+                      </p>
+                    </div>
+
+                    <div className="border-l-4 border-primary pl-4 py-2">
+                      <p className="text-xs text-primary font-semibold mb-1">0:55 - 1:00 | THE CTA</p>
+                      <p className="text-foreground">
+                        "The question isn't IF this affects you. It's WHEN. Link in comments to the full analysis."
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Tips */}
+                  <div className="bg-muted/50 rounded-lg p-4 mt-6">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      Recording Tips
+                    </h4>
+                    <ul className="text-sm text-muted-foreground space-y-2">
+                      <li>• <strong>Selfie format:</strong> Face camera, good lighting, construction site or office background</li>
+                      <li>• <strong>Energy:</strong> Start intense (the hook), stay conversational but urgent</li>
+                      <li>• <strong>Captions:</strong> Always add captions—80% watch muted</li>
+                      <li>• <strong>Post time:</strong> Tuesday-Thursday, 8-9am or 5-6pm local time</li>
+                    </ul>
+                  </div>
+
+                  <Button 
+                    className="w-full"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`60-SECOND LINKEDIN VIDEO SCRIPT: "The Silent Transfer"
+
+[0:00-0:10] THE HOOK
+"If you're a subcontractor in construction, there's something happening right now that could lock you out of tenders—and it has nothing to do with your price or your quality."
+
+[0:10-0:25] THE PROBLEM
+"It's called The Silent Transfer. Here's how it works: The ASRS mandate forces Tier 1 builders to report their Scope 3 emissions—that's 80 to 90 percent of their carbon footprint. And guess where that carbon comes from? Your materials. Your supply chain."
+
+[0:25-0:40] THE CONSEQUENCE
+"When you can't provide EPD data, rating tools apply 'conservative defaults'—inflated values that make your materials look 20 to 30 percent dirtier than they actually are. Your client loses Green Star points. Their government tender fails. And next time? They don't call you."
+
+[0:40-0:55] THE INSIGHT
+"The legislation doesn't name subcontractors. It doesn't need to. The burden flows through procurement. And procurement is becoming a firewall—as formidable as financial insolvency or safety non-compliance."
+
+[0:55-1:00] THE CTA
+"The question isn't IF this affects you. It's WHEN. Link in comments to the full analysis."`);
+                      toast({
+                        title: "Script copied!",
+                        description: "Full script with timing markers copied to clipboard.",
+                      });
+                    }}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Copy Full Script
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Additional Resources */}
+        <section className="py-16 md:py-24 bg-muted/30">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
