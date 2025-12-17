@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
-import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark, TrendingUp } from 'lucide-react';
+import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark, TrendingUp, Award } from 'lucide-react';
 
 interface CampaignPage {
   path: string;
@@ -18,6 +18,29 @@ interface CampaignPage {
 }
 
 const campaignPages: CampaignPage[] = [
+  // MBA State-Based Pages
+  {
+    path: '/lp/mba',
+    name: 'MBA Queensland',
+    audience: 'MBA QLD Members',
+    icon: <Award className="h-5 w-5" />,
+    description: 'MBA Queensland members - 20% discount with MBA20QLD',
+  },
+  {
+    path: '/lp/mba-nsw',
+    name: 'MBA NSW',
+    audience: 'MBA NSW Members',
+    icon: <Award className="h-5 w-5" />,
+    description: 'MBA NSW members - 20% discount with MBA20NSW',
+  },
+  {
+    path: '/lp/mba-vic',
+    name: 'MBA Victoria',
+    audience: 'MBA VIC Members',
+    icon: <Award className="h-5 w-5" />,
+    description: 'MBA Victoria members - 20% discount with MBA20VIC',
+  },
+  // General Audience Pages
   {
     path: '/lp/investors',
     name: 'Investors',

@@ -1,4 +1,4 @@
-import { Skeleton, SkeletonCard, SkeletonText } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SkeletonPageProps {
   variant?: "dashboard" | "form" | "list" | "cards";
@@ -11,23 +11,23 @@ export function SkeletonPage({ variant = "dashboard" }: SkeletonPageProps) {
         <div className="max-w-2xl mx-auto space-y-8">
           {/* Header */}
           <div className="space-y-2">
-            <Skeleton variant="glass" className="h-10 w-64" />
-            <Skeleton variant="glass" className="h-4 w-96" />
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-4 w-96" />
           </div>
 
           {/* Form Card */}
-          <div className="glass rounded-xl p-6 space-y-6">
+          <div className="bg-card rounded-xl p-6 space-y-6 border">
             {/* Form Fields */}
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="space-y-2" style={{ animationDelay: `${i * 0.1}s` }}>
-                <Skeleton variant="glass" className="h-4 w-24" />
-                <Skeleton variant="glass" className="h-10 w-full" />
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
               </div>
             ))}
 
             {/* Submit Button */}
             <div className="pt-4">
-              <Skeleton variant="glass" className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
             </div>
           </div>
         </div>
@@ -41,27 +41,26 @@ export function SkeletonPage({ variant = "dashboard" }: SkeletonPageProps) {
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
-            <Skeleton variant="glass" className="h-10 w-48" />
-            <Skeleton variant="glass" className="h-10 w-32" />
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-10 w-32" />
           </div>
 
           {/* Search Bar */}
-          <Skeleton variant="glass" className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
 
           {/* List Items */}
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <div 
                 key={i} 
-                className="glass rounded-lg p-4 flex items-center gap-4"
-                style={{ animationDelay: `${i * 0.1}s` }}
+                className="bg-card rounded-lg p-4 flex items-center gap-4 border"
               >
-                <Skeleton variant="glass" className="h-12 w-12 rounded-full" />
+                <Skeleton className="h-12 w-12 rounded-full" />
                 <div className="flex-1 space-y-2">
-                  <Skeleton variant="glass" className="h-5 w-48" />
-                  <Skeleton variant="glass" className="h-4 w-72" />
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-4 w-72" />
                 </div>
-                <Skeleton variant="glass" className="h-8 w-20" />
+                <Skeleton className="h-8 w-20" />
               </div>
             ))}
           </div>
@@ -76,18 +75,18 @@ export function SkeletonPage({ variant = "dashboard" }: SkeletonPageProps) {
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-4">
-            <Skeleton variant="glass" className="h-12 w-64 mx-auto" />
-            <Skeleton variant="glass" className="h-6 w-96 mx-auto" />
+            <Skeleton className="h-12 w-64 mx-auto" />
+            <Skeleton className="h-6 w-96 mx-auto" />
           </div>
 
           {/* Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <SkeletonCard 
-                key={i} 
-                className="h-64"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              />
+              <div key={i} className="bg-card rounded-xl p-6 border h-64 space-y-4">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-32 w-full" />
+              </div>
             ))}
           </div>
         </div>
@@ -102,12 +101,12 @@ export function SkeletonPage({ variant = "dashboard" }: SkeletonPageProps) {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="space-y-2">
-            <Skeleton variant="glass" className="h-10 w-56" />
-            <Skeleton variant="glass" className="h-5 w-80" />
+            <Skeleton className="h-10 w-56" />
+            <Skeleton className="h-5 w-80" />
           </div>
           <div className="flex gap-3">
-            <Skeleton variant="glass" className="h-10 w-32" />
-            <Skeleton variant="glass" className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
           </div>
         </div>
 
@@ -116,15 +115,14 @@ export function SkeletonPage({ variant = "dashboard" }: SkeletonPageProps) {
           {[1, 2, 3, 4].map((i) => (
             <div 
               key={i} 
-              className="glass rounded-xl p-5 space-y-3"
-              style={{ animationDelay: `${i * 0.1}s` }}
+              className="bg-card rounded-xl p-5 space-y-3 border"
             >
               <div className="flex justify-between items-start">
-                <Skeleton variant="glass" className="h-10 w-10 rounded-lg" />
-                <Skeleton variant="glass" className="h-5 w-16" />
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                <Skeleton className="h-5 w-16" />
               </div>
-              <Skeleton variant="glass" className="h-8 w-24" />
-              <Skeleton variant="glass" className="h-4 w-32" />
+              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-4 w-32" />
             </div>
           ))}
         </div>
@@ -132,24 +130,28 @@ export function SkeletonPage({ variant = "dashboard" }: SkeletonPageProps) {
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Large Chart Area */}
-          <div className="lg:col-span-2 glass rounded-xl p-6 space-y-4">
+          <div className="lg:col-span-2 bg-card rounded-xl p-6 space-y-4 border">
             <div className="flex justify-between items-center">
-              <Skeleton variant="glass" className="h-6 w-40" />
-              <Skeleton variant="glass" className="h-8 w-24" />
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-8 w-24" />
             </div>
-            <Skeleton variant="glass" className="h-64 w-full" />
+            <Skeleton className="h-64 w-full" />
           </div>
 
           {/* Sidebar */}
-          <div className="glass rounded-xl p-6 space-y-4">
-            <Skeleton variant="glass" className="h-6 w-32" />
-            <SkeletonText lines={4} />
+          <div className="bg-card rounded-xl p-6 space-y-4 border">
+            <Skeleton className="h-6 w-32" />
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-4 w-full" />
+              ))}
+            </div>
             <div className="pt-4 space-y-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <Skeleton variant="glass" className="h-8 w-8 rounded-full" />
+                  <Skeleton className="h-8 w-8 rounded-full" />
                   <div className="flex-1">
-                    <Skeleton variant="glass" className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
                   </div>
                 </div>
               ))}
@@ -158,16 +160,16 @@ export function SkeletonPage({ variant = "dashboard" }: SkeletonPageProps) {
         </div>
 
         {/* Table Section */}
-        <div className="glass rounded-xl p-6 space-y-4">
+        <div className="bg-card rounded-xl p-6 space-y-4 border">
           <div className="flex justify-between items-center">
-            <Skeleton variant="glass" className="h-6 w-48" />
-            <Skeleton variant="glass" className="h-8 w-28" />
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-8 w-28" />
           </div>
           
           {/* Table Header */}
-          <div className="grid grid-cols-5 gap-4 py-3 border-b border-white/10">
+          <div className="grid grid-cols-5 gap-4 py-3 border-b">
             {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} variant="glass" className="h-4 w-full" />
+              <Skeleton key={i} className="h-4 w-full" />
             ))}
           </div>
           
@@ -176,10 +178,9 @@ export function SkeletonPage({ variant = "dashboard" }: SkeletonPageProps) {
             <div 
               key={row} 
               className="grid grid-cols-5 gap-4 py-3"
-              style={{ animationDelay: `${row * 0.05}s` }}
             >
               {[1, 2, 3, 4, 5].map((col) => (
-                <Skeleton key={col} variant="glass" className="h-4 w-full" />
+                <Skeleton key={col} className="h-4 w-full" />
               ))}
             </div>
           ))}
