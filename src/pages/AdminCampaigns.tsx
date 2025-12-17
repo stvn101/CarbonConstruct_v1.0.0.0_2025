@@ -139,6 +139,13 @@ const campaignPages: CampaignPage[] = [
     icon: <Truck className="h-5 w-5" />,
     description: 'Verify supplier EPDs, compare materials, prove compliance',
   },
+  {
+    path: '/lp/supply-chain',
+    name: 'Supply Chain',
+    audience: 'Material Suppliers',
+    icon: <Truck className="h-5 w-5" />,
+    description: 'Showcase EPD materials to builders and architects',
+  },
 ];
 
 const utmSources = ['facebook', 'linkedin', 'google', 'instagram', 'twitter', 'email', 'direct', 'referral'];

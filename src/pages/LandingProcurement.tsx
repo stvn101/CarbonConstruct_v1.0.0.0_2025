@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SEOHead } from '@/components/SEOHead';
 import { useAnalytics, AnalyticsEvents } from '@/hooks/useAnalytics';
 import { useUTMTracking } from '@/hooks/useUTMTracking';
@@ -766,6 +767,207 @@ export default function LandingProcurement() {
                     A4 transport emissions calculated from plant location to your site.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* BOQ Material Matching Preview */}
+        <section className="py-16 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="mb-4 bg-purple-500/10 text-purple-600 border-purple-500/30">
+                  <Database className="h-3 w-3 mr-1" />
+                  Preview: Material Matching Interface
+                </Badge>
+                <h2 className="text-2xl md:text-3xl font-bold mb-4">
+                  See How BOQ Import Will Work
+                </h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  When you upload a BOQ, our AI matches your line items to verified EPD materials. Here's what the interface will look like.
+                </p>
+              </div>
+              
+              {/* Mock Material Matching Interface */}
+              <Card className="border-border/50 overflow-hidden">
+                <div className="bg-muted/50 px-6 py-3 border-b border-border/50 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-4 w-4 text-emerald-600" />
+                    <span className="font-medium text-sm">BOQ_Westfield_Tower_Structure.xlsx</span>
+                    <Badge variant="outline" className="text-xs">47 line items</Badge>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Check className="h-4 w-4 text-emerald-600" />
+                    <span>38 matched</span>
+                    <span className="mx-2">•</span>
+                    <span className="text-amber-600">9 need review</span>
+                  </div>
+                </div>
+                
+                <CardContent className="p-0">
+                  {/* Header Row */}
+                  <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-muted/30 border-b border-border/50 text-xs font-medium text-muted-foreground">
+                    <div className="col-span-1">Status</div>
+                    <div className="col-span-3">BOQ Line Item</div>
+                    <div className="col-span-2">Qty / Unit</div>
+                    <div className="col-span-4">Matched EPD Material</div>
+                    <div className="col-span-2 text-right">kgCO2e</div>
+                  </div>
+                  
+                  {/* Matched Row 1 */}
+                  <div className="grid grid-cols-12 gap-2 px-4 py-3 border-b border-border/30 items-center hover:bg-muted/20 transition-colors">
+                    <div className="col-span-1">
+                      <div className="h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                        <Check className="h-3.5 w-3.5 text-emerald-600" />
+                      </div>
+                    </div>
+                    <div className="col-span-3">
+                      <div className="font-medium text-sm">32MPa Concrete - Slab L1</div>
+                      <div className="text-xs text-muted-foreground">Foundation works</div>
+                    </div>
+                    <div className="col-span-2 text-sm">
+                      <span className="font-medium">850</span> <span className="text-muted-foreground">m³</span>
+                    </div>
+                    <div className="col-span-4">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-emerald-600 text-xs">98% match</Badge>
+                        <div>
+                          <div className="text-sm font-medium">32MPa Concrete - Brisbane</div>
+                          <div className="text-xs text-muted-foreground">Boral • EPD-AUS-2024-0123</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <div className="font-semibold text-emerald-600">277,950</div>
+                      <div className="text-xs text-muted-foreground">327 per m³</div>
+                    </div>
+                  </div>
+                  
+                  {/* Matched Row 2 */}
+                  <div className="grid grid-cols-12 gap-2 px-4 py-3 border-b border-border/30 items-center hover:bg-muted/20 transition-colors">
+                    <div className="col-span-1">
+                      <div className="h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                        <Check className="h-3.5 w-3.5 text-emerald-600" />
+                      </div>
+                    </div>
+                    <div className="col-span-3">
+                      <div className="font-medium text-sm">N12 Reinforcement Mesh</div>
+                      <div className="text-xs text-muted-foreground">Structural reinforcement</div>
+                    </div>
+                    <div className="col-span-2 text-sm">
+                      <span className="font-medium">45</span> <span className="text-muted-foreground">t</span>
+                    </div>
+                    <div className="col-span-4">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-emerald-600 text-xs">100% match</Badge>
+                        <div>
+                          <div className="text-sm font-medium">Steel Reinforcing Mesh N12</div>
+                          <div className="text-xs text-muted-foreground">Liberty Steel • EPD-AUS-2024-0456</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <div className="font-semibold text-emerald-600">99,450</div>
+                      <div className="text-xs text-muted-foreground">2,210 per t</div>
+                    </div>
+                  </div>
+                  
+                  {/* Review Row */}
+                  <div className="grid grid-cols-12 gap-2 px-4 py-3 border-b border-border/30 items-center bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
+                    <div className="col-span-1">
+                      <div className="h-6 w-6 rounded-full bg-amber-500/20 flex items-center justify-center">
+                        <span className="text-xs font-medium text-amber-600">!</span>
+                      </div>
+                    </div>
+                    <div className="col-span-3">
+                      <div className="font-medium text-sm">Structural Steel - Beams</div>
+                      <div className="text-xs text-muted-foreground">Level 2-8 structure</div>
+                    </div>
+                    <div className="col-span-2 text-sm">
+                      <span className="font-medium">120</span> <span className="text-muted-foreground">t</span>
+                    </div>
+                    <div className="col-span-4">
+                      <div className="space-y-1">
+                        <div className="text-xs text-amber-600 font-medium">Multiple matches found</div>
+                        <Select defaultValue="option1">
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder="Select EPD material" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="option1">UB Steel Beam - BlueScope (2,450 kgCO2e/t)</SelectItem>
+                            <SelectItem value="option2">Structural I-Beam - Liberty (2,380 kgCO2e/t)</SelectItem>
+                            <SelectItem value="option3">Hot Rolled Beam - Infrabuild (2,520 kgCO2e/t)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <div className="font-semibold text-amber-600">294,000</div>
+                      <div className="text-xs text-muted-foreground">2,450 per t</div>
+                    </div>
+                  </div>
+                  
+                  {/* No Match Row */}
+                  <div className="grid grid-cols-12 gap-2 px-4 py-3 items-center bg-red-500/5 hover:bg-red-500/10 transition-colors">
+                    <div className="col-span-1">
+                      <div className="h-6 w-6 rounded-full bg-red-500/20 flex items-center justify-center">
+                        <X className="h-3.5 w-3.5 text-red-500" />
+                      </div>
+                    </div>
+                    <div className="col-span-3">
+                      <div className="font-medium text-sm">Custom Facade Panel Type A</div>
+                      <div className="text-xs text-muted-foreground">External cladding</div>
+                    </div>
+                    <div className="col-span-2 text-sm">
+                      <span className="font-medium">1,200</span> <span className="text-muted-foreground">m²</span>
+                    </div>
+                    <div className="col-span-4">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="border-red-500/30 text-red-600 text-xs">No match</Badge>
+                        <div>
+                          <div className="text-xs text-red-600">No EPD found in database</div>
+                          <Button variant="link" size="sm" className="h-6 px-0 text-xs text-muted-foreground">
+                            Add custom material →
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <div className="font-semibold text-muted-foreground">—</div>
+                      <div className="text-xs text-muted-foreground">Manual entry</div>
+                    </div>
+                  </div>
+                </CardContent>
+                
+                {/* Footer Summary */}
+                <div className="bg-muted/30 px-6 py-4 border-t border-border/50">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium">Total Project Embodied Carbon (A1-A3)</div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold text-emerald-600">1,842</span>
+                        <span className="text-muted-foreground">tCO2e</span>
+                        <span className="text-xs text-muted-foreground ml-2">• 9 items pending</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" disabled>
+                        <FileText className="h-4 w-4 mr-1" />
+                        Generate Report
+                      </Button>
+                      <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled>
+                        Confirm All Matches
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+              
+              <div className="text-center mt-6">
+                <p className="text-sm text-muted-foreground">
+                  This is a preview of the BOQ import feature launching Q1 2025.
+                </p>
               </div>
             </div>
           </div>
