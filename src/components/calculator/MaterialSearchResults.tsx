@@ -4,6 +4,7 @@ import { Plus, Database, FlaskConical, RefreshCcw, Info, MapPin } from "lucide-r
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { UnitInfoTooltip } from "./UnitInfoTooltip";
 import { WhyFactorsVaryDialog } from "./RegionalVariantTooltip";
+import { DataSourceAttribution } from "@/components/DataSourceAttribution";
 
 import {
   Dialog,
@@ -181,6 +182,11 @@ export function MaterialSearchResults({
                           📏 {item.unit}
                           <UnitInfoTooltip unit={item.unit} />
                         </span>
+                        
+                        {/* Data source badge - ICE materials */}
+                        {item.data_source?.includes('ICE') && (
+                          <DataSourceAttribution source="ICE" variant="badge" showLogo={false} className="h-5" />
+                        )}
                         
                         {/* Regional indicator */}
                         {item.state && (
