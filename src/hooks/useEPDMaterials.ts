@@ -4,7 +4,7 @@
  * Implements TanStack Query for caching to prevent redundant fetches
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -59,29 +59,39 @@ async function fetchAllEPDMaterials(): Promise<EPDMaterial[]> {
   let page = 0;
   let hasMore = true;
 
-  while (hasMore) {
-    const from = page * pageSize;
-    const to = from + pageSize - 1;
+  try {
+    while (hasMore) {
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
 
-    const { data, error } = await supabase
-      .from('materials_epd')
-      .select('*')
-      .order('material_category')
-      .order('material_name')
-      .range(from, to);
+      const { data, error } = await supabase
+        .from('materials_epd')
+        .select('*')
+        .order('material_category')
+        .order('material_name')
+        .range(from, to);
 
-    if (error) throw error;
+      if (error) {
+        console.error('[useEPDMaterials] Supabase query error:', error);
+        throw new Error(`Failed to fetch materials: ${error.message}`);
+      }
 
-    if (data && data.length > 0) {
-      allMaterials.push(...data);
-      hasMore = data.length === pageSize;
-      page++;
-    } else {
-      hasMore = false;
+      if (data && data.length > 0) {
+        allMaterials.push(...data);
+        hasMore = data.length === pageSize;
+        page++;
+        console.log(`[useEPDMaterials] Fetched page ${page}, total: ${allMaterials.length}`);
+      } else {
+        hasMore = false;
+      }
     }
-  }
 
-  return allMaterials;
+    console.log(`[useEPDMaterials] Fetch complete, total materials: ${allMaterials.length}`);
+    return allMaterials;
+  } catch (err) {
+    console.error('[useEPDMaterials] Critical error fetching materials:', err);
+    throw err;
+  }
 }
 
 export function useEPDMaterials() {
@@ -99,13 +109,27 @@ export function useEPDMaterials() {
     data: materials = [], 
     isLoading: loading, 
     error: queryError,
-    refetch 
+    refetch,
+    isError,
+    isFetching
   } = useQuery({
     queryKey: ['epd-materials'],
     queryFn: fetchAllEPDMaterials,
     staleTime: 5 * 60 * 1000, // 5 minutes - EPD data rarely changes
     gcTime: 30 * 60 * 1000, // 30 minutes cache retention
+    retry: 2, // Retry twice on failure
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
+
+  // Log query state for debugging
+  useEffect(() => {
+    if (isError && queryError) {
+      console.error('[useEPDMaterials] Query failed:', queryError);
+    }
+    if (!loading && !isFetching) {
+      console.log(`[useEPDMaterials] Ready - ${materials.length} materials loaded, hasFullDatabaseAccess: ${hasFullDatabaseAccess}`);
+    }
+  }, [isError, queryError, loading, isFetching, materials.length, hasFullDatabaseAccess]);
 
   // Filter to ICM-only for Free tier users
   const accessibleMaterials = useMemo(() => {
