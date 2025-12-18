@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <defs>
+    <linearGradient id="ce-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Circular arrow symbol -->
+  <circle cx="25" cy="30" r="18" stroke="url(#ce-gradient)" stroke-width="3" fill="none"/>
+  <path d="M25 12 L32 20 L25 16 L18 20 Z" fill="url(#ce-gradient)"/>
+  <!-- Text -->
+  <text x="52" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#0D9488">circular</text>
+  <text x="52" y="44" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#6B7280">ecology</text>
+</svg>
