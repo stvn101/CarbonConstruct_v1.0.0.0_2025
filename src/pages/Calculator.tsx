@@ -250,7 +250,7 @@ export default function Calculator() {
   const canAccessMaterialComparer = currentTier?.limits?.material_comparer ?? false;
   
   // Fetch materials from EPD database (Supabase materials_epd table)
-  const { materials: dbMaterials, loading: materialsLoading, states } = useEPDMaterials();
+  const { materials: dbMaterials, loading: materialsLoading, error: materialsError, states, refetch: refetchMaterials } = useEPDMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -1185,6 +1185,30 @@ export default function Calculator() {
   // Show loading skeleton while materials database is loading
   if (materialsLoading) {
     return <SkeletonPage variant="form" />;
+  }
+
+  // Show error state if materials failed to load
+  if (materialsError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-6 text-center space-y-4">
+          <div className="text-destructive">
+            <Database className="h-12 w-12 mx-auto mb-2" />
+            <h2 className="text-xl font-semibold">Materials Database Error</h2>
+          </div>
+          <p className="text-muted-foreground">
+            Unable to load the materials database. This may be a temporary issue.
+          </p>
+          <p className="text-xs text-muted-foreground font-mono bg-muted p-2 rounded">
+            {materialsError}
+          </p>
+          <Button onClick={() => refetchMaterials()} className="w-full">
+            <Loader2 className="h-4 w-4 mr-2" />
+            Retry Loading Materials
+          </Button>
+        </Card>
+      </div>
+    );
   }
 
   return (
