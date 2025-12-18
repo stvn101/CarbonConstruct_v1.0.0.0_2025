@@ -30,6 +30,7 @@ const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 const Roadmap = lazy(() => import("./pages/Roadmap"));
 const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
 const AdminCampaigns = lazy(() => import("./pages/AdminCampaigns"));
+const AdminICEImport = lazy(() => import("./pages/AdminICEImport"));
 const AccessibilityStatement = lazy(() => import("./pages/AccessibilityStatement"));
 const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
 const MaterialDatabaseStatus = lazy(() => import("./pages/MaterialDatabaseStatus"));
@@ -143,6 +144,7 @@ const App = () => (
                     <Route path="/admin" element={<AdminMonitoring />} />
                     <Route path="/admin/monitoring" element={<AdminMonitoring />} />
                     <Route path="/admin/campaigns" element={<AdminCampaigns />} />
+                    <Route path="/admin/ice-import" element={<AdminICEImport />} />
                     <Route path="/admin/material-verification" element={<MaterialVerification />} />
                     <Route path="/admin/eco-compliance" element={<EcoComplianceDashboard />} />
                     <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
