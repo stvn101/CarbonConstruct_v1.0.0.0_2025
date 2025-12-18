@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMaterialsDatabaseStats } from "@/hooks/useMaterialsDatabaseStats";
 import { SEOHead } from "@/components/SEOHead";
+import { DataSourceAttribution, MultiSourceAttribution } from "@/components/DataSourceAttribution";
 
 export default function MaterialDatabaseStatus() {
   const { data: stats, isLoading, error } = useMaterialsDatabaseStats();
@@ -391,6 +392,35 @@ export default function MaterialDatabaseStatus() {
         </CardContent>
       </Card>
 
+      {/* Data Sources Attribution */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-5 w-5" />
+            Data Sources & Attribution
+          </CardTitle>
+          <CardDescription>
+            Authoritative sources for embodied carbon emission factors
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {isLoading ? (
+            <Skeleton className="h-48 w-full" />
+          ) : (
+            <>
+              {/* ICE Database Attribution */}
+              <DataSourceAttribution source="ICE" variant="full" showLogo showLink />
+              
+              {/* Other Sources */}
+              <div className="pt-4 border-t">
+                <p className="text-sm font-medium mb-3">Additional Data Sources</p>
+                <MultiSourceAttribution sources={["EPD", "NABERS", "NGER"]} />
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Compliance Statement */}
       <Card className="bg-primary/5 border-primary/20">
         <CardContent className="pt-6">
@@ -402,8 +432,8 @@ export default function MaterialDatabaseStatus() {
               <h3 className="font-semibold text-foreground mb-2">Data Compliance Statement</h3>
               <p className="text-sm text-muted-foreground">
                 The CarbonConstruct materials database contains {stats?.totalMaterials.toLocaleString() || "4,000+"} verified 
-                Environmental Product Declarations (EPDs) sourced from EPD Australasia, ICM Database 2019, 
-                and international EPD registries. All emission factors are validated against NABERS v2025.1 
+                Environmental Product Declarations (EPDs) sourced from Circular Ecology ICE Database V4.1, EPD Australasia, 
+                NABERS, and international EPD registries. All emission factors are validated against NABERS v2025.1 
                 standards with continuous monthly validation processes to ensure data accuracy and regulatory compliance.
               </p>
               <p className="text-xs text-muted-foreground mt-2">

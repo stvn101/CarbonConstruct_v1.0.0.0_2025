@@ -4,7 +4,7 @@ import { FileDown, Loader2 } from 'lucide-react';
 import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
 import { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
-
+import { ICEAttributionFooter } from './DataSourceAttribution';
 export interface ReportBranding {
   companyName?: string;
   logoUrl?: string;
@@ -632,6 +632,11 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
 
       {/* ECO Platform Compliance Section */}
       {ecoComplianceReport && renderEcoComplianceSection()}
+
+      {/* Data Source Attribution */}
+      <div className="pdf-attribution" style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+        <ICEAttributionFooter className="print:block" />
+      </div>
 
       {/* Footer */}
       <div className="pdf-footer">
