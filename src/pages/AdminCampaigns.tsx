@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
-import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark, TrendingUp, Award } from 'lucide-react';
+import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark, TrendingUp, Award, HardHat, ClipboardList } from 'lucide-react';
 
 interface CampaignPage {
   path: string;
@@ -145,6 +145,20 @@ const campaignPages: CampaignPage[] = [
     audience: 'Material Suppliers',
     icon: <Truck className="h-5 w-5" />,
     description: 'Showcase EPD materials to builders and architects',
+  },
+  {
+    path: '/lp/estimators',
+    name: 'Estimators',
+    audience: 'Quantity Surveyors & Estimators',
+    icon: <ClipboardList className="h-5 w-5" />,
+    description: 'BOQ carbon analysis and material cost-carbon trade-offs',
+  },
+  {
+    path: '/lp/subcontractors',
+    name: 'Subcontractors',
+    audience: 'Trade Contractors',
+    icon: <HardHat className="h-5 w-5" />,
+    description: 'Navigate carbon accountability - "The Silent Transfer" whitepaper',
   },
 ];
 
