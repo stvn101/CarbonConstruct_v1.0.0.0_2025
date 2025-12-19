@@ -20,6 +20,7 @@ import { MaterialValidationReport } from "@/components/MaterialValidationReport"
 import { BluescopeEPDImporter } from "@/components/BluescopeEPDImporter";
 import { BulkEPDUploader } from "@/components/BulkEPDUploader";
 import { ABTestDashboard } from "@/components/ABTestDashboard";
+import { AdminSidebar } from "@/components/AdminSidebar";
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -599,7 +600,9 @@ export default function AdminMonitoring() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 space-y-6">
+    <div className="flex min-h-screen w-full">
+      <AdminSidebar />
+      <div className="flex-1 p-6 space-y-6 overflow-auto">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Monitoring Dashboard</h1>
@@ -1567,5 +1570,6 @@ export default function AdminMonitoring() {
           </TabsContent>
         </Tabs>
       </div>
-    );
-  }
+    </div>
+  );
+}

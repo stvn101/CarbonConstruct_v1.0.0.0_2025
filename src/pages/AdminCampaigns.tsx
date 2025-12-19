@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
 import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark, TrendingUp, Award, HardHat, ClipboardList } from 'lucide-react';
+import { AdminSidebar } from '@/components/AdminSidebar';
 
 interface CampaignPage {
   path: string;
@@ -201,13 +202,15 @@ export default function AdminCampaigns() {
         noIndex={true}
       />
       
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Campaign URL Generator</h1>
-          <p className="text-muted-foreground">
-            Generate UTM-tagged URLs for your marketing campaigns. All URLs include automatic tracking for conversion attribution.
-          </p>
-        </div>
+      <div className="flex min-h-screen w-full">
+        <AdminSidebar />
+        <div className="flex-1 p-6 max-w-5xl">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Campaign URL Generator</h1>
+            <p className="text-muted-foreground">
+              Generate UTM-tagged URLs for your marketing campaigns. All URLs include automatic tracking for conversion attribution.
+            </p>
+          </div>
 
         {/* UTM Configuration */}
         <Card className="mb-8">
@@ -347,6 +350,7 @@ export default function AdminCampaigns() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </>
   );

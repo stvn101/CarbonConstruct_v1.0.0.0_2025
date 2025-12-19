@@ -13,13 +13,14 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { 
   Database, Upload, FileSpreadsheet, CheckCircle, AlertTriangle, 
-  RefreshCw, ExternalLink, ArrowLeft, Loader2, XCircle,
+  RefreshCw, ExternalLink, Loader2, XCircle,
   Info, FileCheck
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { SEOHead } from "@/components/SEOHead";
 import { DataSourceAttribution } from "@/components/DataSourceAttribution";
+import { AdminSidebar } from "@/components/AdminSidebar";
 
 interface ImportResult {
   success: boolean;
@@ -135,28 +136,22 @@ export default function AdminICEImport() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8 max-w-6xl">
-      <SEOHead 
-        title="ICE Database Import - Admin - CarbonConstruct"
-        description="Import and manage ICE Database materials for embodied carbon calculations."
-      />
+    <div className="flex min-h-screen w-full">
+      <AdminSidebar />
+      <div className="flex-1 p-6 space-y-8 max-w-5xl overflow-auto">
+        <SEOHead 
+          title="ICE Database Import - Admin - CarbonConstruct"
+          description="Import and manage ICE Database materials for embodied carbon calculations."
+        />
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link to="/admin/monitoring">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Admin
-            </Button>
-          </Link>
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">ICE Database Import</h1>
             <p className="text-muted-foreground">Import Circular Ecology ICE Database V4.1 materials</p>
           </div>
+          <DataSourceAttribution source="ICE" variant="badge" showLogo />
         </div>
-        <DataSourceAttribution source="ICE" variant="badge" showLogo />
-      </div>
 
       {/* ICE Attribution Card */}
       <Card>
@@ -381,34 +376,29 @@ export default function AdminICEImport() {
         </Card>
       )}
 
-      {/* Quick Links */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Related Pages</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <Link to="/materials/status">
-              <Button variant="outline" size="sm">
-                <Database className="h-4 w-4 mr-2" />
-                Database Status
-              </Button>
-            </Link>
-            <Link to="/admin/material-verification">
-              <Button variant="outline" size="sm">
-                <FileCheck className="h-4 w-4 mr-2" />
-                Material Verification
-              </Button>
-            </Link>
-            <Link to="/calculator">
-              <Button variant="outline" size="sm">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Calculator
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Quick Links */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Related Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Link to="/materials/status">
+                <Button variant="outline" size="sm">
+                  <Database className="h-4 w-4 mr-2" />
+                  Database Status
+                </Button>
+              </Link>
+              <Link to="/calculator">
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Calculator
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
