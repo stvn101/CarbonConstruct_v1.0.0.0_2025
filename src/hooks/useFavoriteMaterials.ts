@@ -169,6 +169,7 @@ export function useFavoriteMaterials() {
   const loadFromCloud = useCallback(async () => {
     if (!user) return;
     
+    setIsSyncing(true);
     try {
       const { data, error } = await supabase
         .from('user_material_favorites')
@@ -182,6 +183,7 @@ export function useFavoriteMaterials() {
 
       if (data && data.length > 0) {
         setCloudSyncEnabled(true);
+        setLastSyncTime(new Date());
         // Merge cloud data with local, preferring cloud for matching materials
         setFavorites(prev => {
           const cloudMaterials: FavoriteMaterial[] = data.map(d => ({
@@ -223,6 +225,8 @@ export function useFavoriteMaterials() {
       }
     } catch (err) {
       console.warn('Cloud sync failed:', err);
+    } finally {
+      setIsSyncing(false);
     }
   }, [user]);
 
