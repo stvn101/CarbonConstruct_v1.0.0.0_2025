@@ -16,7 +16,7 @@ import {
   Database, Upload, FileSpreadsheet, CheckCircle, AlertTriangle,
   RefreshCw, ExternalLink, Loader2, XCircle,
   Info, FileCheck, Eye, ArrowRight, Settings2, History, UploadCloud,
-  Download, PlayCircle, Sparkles, Search
+  Download, PlayCircle, Sparkles, Search, Layers
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
@@ -124,6 +124,7 @@ export default function AdminICEImport() {
   const [isExporting, setIsExporting] = useState(false);
   const [hasEmptyColumns, setHasEmptyColumns] = useState(false);
   const [useIndividualSheets, setUseIndividualSheets] = useState(false);
+  const [availableIndividualSheets, setAvailableIndividualSheets] = useState<string[]>([]);
 
   // Fetch recent import jobs
   useEffect(() => {
@@ -714,6 +715,7 @@ export default function AdminICEImport() {
         if (validSheets.length > 0) {
           console.log(`[ICE Import] Found ${validSheets.length} valid individual sheets: ${validSheets.join(', ')}`);
           setUseIndividualSheets(true);
+          setAvailableIndividualSheets(validSheets);
           
           // Use first valid individual sheet
           const firstValidSheet = validSheets[0];
@@ -873,6 +875,130 @@ export default function AdminICEImport() {
       totalRows: parsedMaterials.length,
       parsedMaterials,
     });
+  };
+
+  // Parse all individual material sheets and merge into single import
+  const parseAllIndividualSheets = async () => {
+    if (!workbook || availableIndividualSheets.length === 0) {
+      toast.error('No individual sheets available to parse');
+      return;
+    }
+    
+    setIsLoading(true);
+    setProgressLabel('Parsing all individual sheets...');
+    setProgress(0);
+    
+    try {
+      let allMaterials: Record<string, unknown>[] = [];
+      let totalRows = 0;
+      const sheetRowCounts: { name: string; count: number }[] = [];
+      
+      for (let i = 0; i < availableIndividualSheets.length; i++) {
+        const sheetName = availableIndividualSheets[i];
+        setProgressLabel(`Parsing ${sheetName}... (${i + 1}/${availableIndividualSheets.length})`);
+        setProgress(Math.round((i / availableIndividualSheets.length) * 100));
+        
+        const sheet = workbook.Sheets[sheetName];
+        if (!sheet || !sheet['!ref']) continue;
+        
+        const range = XLSX.utils.decode_range(sheet['!ref']);
+        const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+          header: 1,
+          range: { s: { c: range.s.c, r: 0 }, e: { c: Math.min(range.e.c, 50), r: Math.min(range.e.r, 50) } },
+          raw: true,
+        });
+        
+        const headerResult = findICEHeaderRow(aoa, 0);
+        const headerRow = headerResult?.row ?? 0;
+        
+        const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+          defval: null,
+          raw: true,
+          range: headerRow,
+        });
+        
+        // Filter valid material rows and add source sheet tracking
+        const materialsWithSource = rows
+          .filter(row => {
+            const values = Object.values(row).filter(v => v !== null && v !== undefined && String(v).trim() !== '');
+            return values.length >= 3;
+          })
+          .map(row => ({ ...row, __sourceSheet: sheetName }));
+        
+        sheetRowCounts.push({ name: sheetName, count: materialsWithSource.length });
+        allMaterials = [...allMaterials, ...materialsWithSource];
+        totalRows += materialsWithSource.length;
+      }
+      
+      // Get column mappings from the first sheet with data
+      const firstSheetWithData = availableIndividualSheets[0];
+      const firstSheet = workbook.Sheets[firstSheetWithData];
+      let detectedColumns: ColumnMapping[] = [];
+      let sampleRows: Record<string, unknown>[] = [];
+      
+      if (firstSheet && firstSheet['!ref']) {
+        const range = XLSX.utils.decode_range(firstSheet['!ref']);
+        const aoa = XLSX.utils.sheet_to_json<unknown[]>(firstSheet, {
+          header: 1,
+          range: { s: { c: range.s.c, r: 0 }, e: { c: Math.min(range.e.c, 50), r: Math.min(range.e.r, 50) } },
+          raw: true,
+        });
+        
+        const headerResult = findICEHeaderRow(aoa, 0);
+        const headerRow = headerResult?.row ?? 0;
+        
+        const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet, {
+          defval: null,
+          raw: true,
+          range: headerRow,
+        });
+        
+        sampleRows = rows.slice(0, 10);
+        const headers = Object.keys(sampleRows[0] || {});
+        
+        detectedColumns = headers
+          .filter(h => h.length > 0)
+          .slice(0, 15)
+          .map((original) => ({
+            original,
+            mappedTo: mapColumnName(original),
+            sampleValue: normalize(sampleRows[0]?.[original] ?? ''),
+          }));
+      }
+      
+      // Create combined worksheets info
+      const combinedWorksheets = availableIndividualSheets.map(name => {
+        const count = sheetRowCounts.find(s => s.name === name)?.count || 0;
+        return {
+          name,
+          rowCount: count,
+          detectedHeaderRow: 0,
+          headerScore: 100,
+        };
+      });
+      
+      // Update validation preview with merged data
+      setValidationPreview({
+        worksheets: combinedWorksheets,
+        selectedWorksheet: `All Sheets (${availableIndividualSheets.length})`,
+        selectedHeaderRow: 0,
+        detectedColumns,
+        sampleRows: allMaterials.slice(0, 10),
+        totalRows,
+        parsedMaterials: allMaterials,
+      });
+      
+      setProgress(100);
+      toast.success(`Merged ${totalRows} materials from ${availableIndividualSheets.length} sheets`);
+      
+      // Log sheet breakdown
+      console.log('[ICE Import] Sheet breakdown:', sheetRowCounts);
+    } catch (error) {
+      console.error('Parse all sheets error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to parse sheets');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const runImport = async (dryRun: boolean) => {
@@ -1408,18 +1534,86 @@ export default function AdminICEImport() {
               )}
 
               {/* Individual Sheets Option */}
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
-                <div className="space-y-0.5">
-                  <Label htmlFor="individual-sheets" className="text-base font-medium">Use Individual Material Sheets</Label>
-                  <p className="text-sm text-muted-foreground">
-                    If ICE Summary import fails, try parsing individual material sheets (Aggregates, Aluminium, Concrete, etc.) instead.
-                  </p>
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="individual-sheets" className="text-base font-medium">Use Individual Material Sheets</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Parse individual sheets (Aggregates, Aluminium, etc.) instead of Summary
+                    </p>
+                  </div>
+                  <Switch
+                    id="individual-sheets"
+                    checked={useIndividualSheets}
+                    onCheckedChange={(checked) => {
+                      setUseIndividualSheets(checked);
+                      if (checked && workbook && availableIndividualSheets.length === 0) {
+                        const validSheets = findIndividualMaterialSheets(workbook);
+                        setAvailableIndividualSheets(validSheets);
+                      }
+                    }}
+                  />
                 </div>
-                <Switch
-                  id="individual-sheets"
-                  checked={useIndividualSheets}
-                  onCheckedChange={setUseIndividualSheets}
-                />
+                
+                {/* Sheet Selector - shows when individual sheets mode is active */}
+                {useIndividualSheets && availableIndividualSheets.length > 0 && (
+                  <div className="space-y-3 pt-3 border-t">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
+                      <div className="flex-1 w-full">
+                        <Label className="text-sm mb-1.5 block">Select Material Sheet</Label>
+                        <Select
+                          value={validationPreview?.selectedWorksheet?.startsWith('All Sheets') ? '' : validationPreview?.selectedWorksheet}
+                          onValueChange={updateWorksheetSelection}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a sheet..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableIndividualSheets.map(sheetName => {
+                              const sheetInfo = validationPreview?.worksheets.find(w => w.name === sheetName);
+                              return (
+                                <SelectItem key={sheetName} value={sheetName}>
+                                  {sheetName} {sheetInfo ? `(${sheetInfo.rowCount} rows)` : ''}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Parse All Button */}
+                      {availableIndividualSheets.length > 1 && (
+                        <Button
+                          variant="eco"
+                          onClick={parseAllIndividualSheets}
+                          disabled={isLoading}
+                          className="whitespace-nowrap"
+                        >
+                          {isLoading ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Layers className="h-4 w-4 mr-2" />
+                          )}
+                          Parse All ({availableIndividualSheets.length} sheets)
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground">
+                      {availableIndividualSheets.length} individual material sheets detected: {availableIndividualSheets.slice(0, 5).join(', ')}{availableIndividualSheets.length > 5 ? ` +${availableIndividualSheets.length - 5} more` : ''}
+                    </p>
+                    
+                    {validationPreview?.selectedWorksheet?.startsWith('All Sheets') && (
+                      <Alert className="bg-primary/10 border-primary/30">
+                        <Layers className="h-4 w-4" />
+                        <AlertTitle className="text-primary">All Sheets Merged</AlertTitle>
+                        <AlertDescription className="text-primary/80">
+                          Materials from all {availableIndividualSheets.length} sheets have been combined. Total: {validationPreview.totalRows} materials.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Validation Warnings */}
