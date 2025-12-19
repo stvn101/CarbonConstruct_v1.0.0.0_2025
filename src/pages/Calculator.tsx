@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
@@ -1418,6 +1418,43 @@ export default function Calculator() {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 md:mb-4">
                     <h3 className="font-bold text-base md:text-lg text-foreground">Materials (Upfront A1-A3)</h3>
                     <div className="flex items-center gap-2">
+                      {/* Export Materials Button */}
+                      {selectedMaterials.length > 0 && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 text-xs md:text-sm"
+                          onClick={() => {
+                            const headers = ['Name', 'Category', 'Quantity', 'Unit', 'Factor (kgCO2e)', 'Emissions (tCO2e)', 'Source', 'EPD Number', 'Manufacturer', 'A1-A3', 'A4', 'A5', 'Data Quality'];
+                            const rows = selectedMaterials.map(m => [
+                              m.name,
+                              m.category,
+                              m.quantity,
+                              m.unit,
+                              m.factor.toFixed(4),
+                              ((m.quantity * m.factor) / 1000).toFixed(4),
+                              m.source,
+                              m.epdNumber || '',
+                              m.manufacturer || '',
+                              m.ef_a1a3?.toFixed(4) || '',
+                              m.ef_a4?.toFixed(4) || '',
+                              m.ef_a5?.toFixed(4) || '',
+                              m.dataQualityTier || ''
+                            ]);
+                            const csvContent = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
+                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = `materials-export-${new Date().toISOString().split('T')[0]}.csv`;
+                            link.click();
+                            toast({ title: "Materials exported to CSV" });
+                          }}
+                        >
+                          <Download className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                          <span className="hidden md:inline">Export</span>
+                          <FileSpreadsheet className="h-3 w-3 md:hidden" />
+                        </Button>
+                      )}
                       {canAccessMaterialComparer ? (
                         <Dialog>
                           <DialogTrigger asChild>

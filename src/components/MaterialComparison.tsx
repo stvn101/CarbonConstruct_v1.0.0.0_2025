@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useEPDMaterials, EPDMaterial } from '@/hooks/useEPDMaterials';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { X, TrendingDown, TrendingUp, Minus, ArrowUpDown, Search, Leaf, CheckCircle2, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { X, TrendingDown, TrendingUp, Minus, ArrowUpDown, Search, Leaf, CheckCircle2, Download, FileText, FileSpreadsheet, Database } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState } from '@/components/EmptyState';
 import { LIMITS } from '@/lib/constants';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -30,12 +31,13 @@ const PRESET_COMPARISONS = [
 ];
 
 export const MaterialComparison = memo(() => {
-  const { allMaterials: materials, loading, error } = useEPDMaterials();
+  const { allMaterials: materials, loading, error, dataSources } = useEPDMaterials();
   const [selectedMaterials, setSelectedMaterials] = useState<EPDMaterial[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [selectedDataSource, setSelectedDataSource] = useState<string | null>(null);
 
-  // Filter materials by search term with fuzzy matching
+  // Filter materials by search term and data source with fuzzy matching
   const filteredMaterials = useMemo(() => {
     if (searchTerm.length < 1) return [];
     
@@ -45,6 +47,11 @@ export const MaterialComparison = memo(() => {
     
     return materials
       .filter(m => {
+        // Filter by data source first
+        if (selectedDataSource && m.data_source !== selectedDataSource) {
+          return false;
+        }
+        
         // Create searchable text from all relevant fields
         const searchableText = [
           m.material_name,
@@ -58,7 +65,7 @@ export const MaterialComparison = memo(() => {
         return searchWords.every(word => searchableText.includes(word));
       })
       .slice(0, 50); // Show more results
-  }, [materials, searchTerm]);
+  }, [materials, searchTerm, selectedDataSource]);
 
   const addMaterial = (material: EPDMaterial) => {
     if (selectedMaterials.length >= LIMITS.MAX_MATERIALS_COMPARISON) {
@@ -321,9 +328,9 @@ export const MaterialComparison = memo(() => {
             ))}
           </div>
 
-          {/* Search Input */}
-          <div className="relative">
-            <div className="relative">
+          {/* Search and Data Source Filter */}
+          <div className="flex gap-3">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search materials to compare (e.g., concrete, timber, steel)..."
@@ -336,6 +343,24 @@ export const MaterialComparison = memo(() => {
                 className="pl-10"
               />
             </div>
+            
+            {/* Data Source Filter */}
+            <Select value={selectedDataSource || "all"} onValueChange={(v) => setSelectedDataSource(v === "all" ? null : v)}>
+              <SelectTrigger className="w-[140px] bg-background">
+                <Database className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="All Sources" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">All Sources</SelectItem>
+                {dataSources.map((source) => (
+                  <SelectItem key={source} value={source}>{source}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Search Results */}
+          <div className="relative">
             
             {showSearch && filteredMaterials.length > 0 && (
               <Card className="absolute z-20 w-full mt-1 p-2 shadow-lg">
@@ -352,6 +377,9 @@ export const MaterialComparison = memo(() => {
                         {(m as any).carbon_sequestration && (
                           <Leaf className="h-3 w-3 text-emerald-500" />
                         )}
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                          {m.data_source}
+                        </Badge>
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {m.ef_total.toFixed(1)} kgCO₂/{m.unit}
