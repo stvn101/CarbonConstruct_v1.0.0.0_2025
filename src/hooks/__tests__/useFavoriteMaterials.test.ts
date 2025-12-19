@@ -6,6 +6,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '../../lib/__tests__/setup';
 import { useFavoriteMaterials } from '../useFavoriteMaterials';
+import { createElement, type ReactNode } from 'react';
+
+// Create mock functions we can track
+const mockGetSession = vi.fn();
+const mockOnAuthStateChange = vi.fn();
 
 // Mock Supabase
 vi.mock('@/integrations/supabase/client', () => ({
@@ -15,18 +20,53 @@ vi.mock('@/integrations/supabase/client', () => ({
         in: () => Promise.resolve({ data: [], error: null }),
       }),
     }),
+    auth: {
+      getSession: () => mockGetSession(),
+      signOut: () => Promise.resolve(),
+      onAuthStateChange: (callback: (event: string, session: unknown) => void) => {
+        mockOnAuthStateChange(callback);
+        return {
+          data: {
+            subscription: {
+              unsubscribe: vi.fn()
+            }
+          }
+        };
+      }
+    }
   },
 }));
 
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    error: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn()
+  }
+}));
+
+// Import AuthProvider after mocking
+import { AuthProvider } from '../../contexts/AuthContext';
+
 describe('useFavoriteMaterials', () => {
+  // Wrapper component that provides AuthContext
+  const wrapper = ({ children }: { children: ReactNode }) =>
+    createElement(AuthProvider, null, children);
+
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    // Default mock: no authenticated session
+    mockGetSession.mockResolvedValue({
+      data: { session: null },
+      error: null
+    });
   });
 
   describe('initialization', () => {
     it('loads default materials on first mount', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       expect(result.current.favorites.length).toBeGreaterThan(0);
       expect(result.current.favorites.some(f => f.materialId === 'default_plasterboard')).toBe(true);
@@ -34,7 +74,7 @@ describe('useFavoriteMaterials', () => {
     });
 
     it('includes default pinned materials in quick-add', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       const defaultPinned = result.current.quickAddMaterials.filter(m => m.isPinned);
       expect(defaultPinned.length).toBeGreaterThan(0);
@@ -43,7 +83,7 @@ describe('useFavoriteMaterials', () => {
 
   describe('trackMaterialUsage', () => {
     it('adds new material to favorites', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       const newMaterial = {
         id: 'new-material-1',
@@ -65,7 +105,7 @@ describe('useFavoriteMaterials', () => {
     });
 
     it('increments usage count for existing material', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       const material = {
         id: 'repeat-material',
@@ -87,7 +127,7 @@ describe('useFavoriteMaterials', () => {
     });
 
     it('preserves EPD metadata fields', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       const materialWithEPD = {
         id: 'epd-material',
@@ -127,7 +167,7 @@ describe('useFavoriteMaterials', () => {
     });
 
     it('updates lastUsed timestamp', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       const material = {
         id: 'timestamp-test',
@@ -151,14 +191,14 @@ describe('useFavoriteMaterials', () => {
 
   describe('quickAddMaterials', () => {
     it('includes pinned materials', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       const pinnedInQuickAdd = result.current.quickAddMaterials.filter(m => m.isPinned);
       expect(pinnedInQuickAdd.length).toBeGreaterThan(0);
     });
 
     it('includes frequently used materials (>= 2 uses)', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       const material = {
         id: 'frequent-use',
@@ -179,7 +219,7 @@ describe('useFavoriteMaterials', () => {
     });
 
     it('excludes hidden materials', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       act(() => {
         result.current.hideMaterial('default_plasterboard');
@@ -190,13 +230,13 @@ describe('useFavoriteMaterials', () => {
     });
 
     it('limits to max 8 items', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       expect(result.current.quickAddMaterials.length).toBeLessThanOrEqual(8);
     });
 
     it('sorts pinned items first', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       if (result.current.quickAddMaterials.length >= 2) {
         const firstPinned = result.current.quickAddMaterials[0]?.isPinned;
@@ -211,7 +251,7 @@ describe('useFavoriteMaterials', () => {
 
   describe('recentlyUsedMaterials', () => {
     it('returns materials sorted by lastUsed', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       act(() => {
         result.current.trackMaterialUsage({ id: 'a', name: 'A', category: 'T', unit: 'kg', factor: 1, source: 'T' });
@@ -231,7 +271,7 @@ describe('useFavoriteMaterials', () => {
     });
 
     it('limits to 10 items', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       for (let i = 0; i < 15; i++) {
         act(() => {
@@ -250,7 +290,7 @@ describe('useFavoriteMaterials', () => {
     });
 
     it('only includes materials with usageCount > 0', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       result.current.recentlyUsedMaterials.forEach(m => {
         expect(m.usageCount).toBeGreaterThan(0);
@@ -260,7 +300,7 @@ describe('useFavoriteMaterials', () => {
 
   describe('pinMaterial', () => {
     it('pins existing material', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       act(() => {
         result.current.trackMaterialUsage({ id: 'to-pin', name: 'To Pin', category: 'T', unit: 'kg', factor: 1, source: 'T' });
@@ -272,7 +312,7 @@ describe('useFavoriteMaterials', () => {
     });
 
     it('adds and pins new material when details provided', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       act(() => {
         result.current.pinMaterial('new-pin', {
@@ -291,7 +331,7 @@ describe('useFavoriteMaterials', () => {
     });
 
     it('unhides material when pinning', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       act(() => {
         result.current.hideMaterial('default_plasterboard');
@@ -306,7 +346,7 @@ describe('useFavoriteMaterials', () => {
 
   describe('unpinMaterial', () => {
     it('unpins material', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       act(() => {
         result.current.unpinMaterial('default_plasterboard');
@@ -319,7 +359,7 @@ describe('useFavoriteMaterials', () => {
 
   describe('hideMaterial', () => {
     it('hides material and unpins it', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       act(() => {
         result.current.hideMaterial('default_concrete_32mpa');
@@ -333,7 +373,7 @@ describe('useFavoriteMaterials', () => {
 
   describe('unhideMaterial', () => {
     it('unhides material', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       act(() => {
         result.current.hideMaterial('default_plasterboard');
@@ -347,7 +387,7 @@ describe('useFavoriteMaterials', () => {
 
   describe('clearAllFavorites', () => {
     it('clears all favorites', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       act(() => {
         result.current.clearAllFavorites();
@@ -359,7 +399,7 @@ describe('useFavoriteMaterials', () => {
 
   describe('localStorage persistence', () => {
     it('persists favorites to localStorage', () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       act(() => {
         result.current.trackMaterialUsage({
@@ -378,7 +418,7 @@ describe('useFavoriteMaterials', () => {
 
   describe('syncWithDatabase', () => {
     it('returns sync stats', async () => {
-      const { result } = renderHook(() => useFavoriteMaterials());
+      const { result } = renderHook(() => useFavoriteMaterials(), { wrapper });
 
       let syncResult: { synced: number; total: number } | undefined;
       await act(async () => {
