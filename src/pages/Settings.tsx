@@ -6,6 +6,8 @@ import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton"
 import { CookieSettings } from "@/components/CookieSettings";
 import { DataExportButton } from "@/components/DataExportButton";
 import { AccountStatusManager } from "@/components/AccountStatusManager";
+import { EPDReminderSettings } from "@/components/calculator/EPDReminderSettings";
+import { SupplierContactManager } from "@/components/calculator/SupplierContactManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -404,6 +406,12 @@ const Settings = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* EPD Reminder Settings */}
+          <EPDReminderSettings />
+
+          {/* Supplier Contact Manager */}
+          <SupplierContactManager />
 
           <CookieSettings />
 

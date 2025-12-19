@@ -128,6 +128,39 @@ export type Database = {
         }
         Relationships: []
       }
+      epd_reminder_settings: {
+        Row: {
+          created_at: string
+          email_notifications: boolean
+          enabled: boolean
+          id: string
+          last_reminder_sent: string | null
+          reminder_days: number[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_notifications?: boolean
+          enabled?: boolean
+          id?: string
+          last_reminder_sent?: string | null
+          reminder_days?: number[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_notifications?: boolean
+          enabled?: boolean
+          id?: string
+          last_reminder_sent?: string | null
+          reminder_days?: number[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           browser_info: Json | null
@@ -805,6 +838,54 @@ export type Database = {
           stripe_price_id?: string | null
           stripe_price_id_yearly?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      supplier_contacts: {
+        Row: {
+          address: string | null
+          company_name: string
+          contact_name: string | null
+          contact_type: string
+          created_at: string
+          email: string | null
+          epd_numbers: string[] | null
+          id: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          company_name: string
+          contact_name?: string | null
+          contact_type: string
+          created_at?: string
+          email?: string | null
+          epd_numbers?: string[] | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          company_name?: string
+          contact_name?: string | null
+          contact_type?: string
+          created_at?: string
+          email?: string | null
+          epd_numbers?: string[] | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
