@@ -5,6 +5,7 @@ import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
 import { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
 import { ICEAttributionFooter } from './DataSourceAttribution';
+
 export interface ReportBranding {
   companyName?: string;
   logoUrl?: string;
@@ -16,6 +17,15 @@ export interface PDFReportOptions {
   showWatermark?: boolean;
 }
 
+export interface EPDExpiryAlert {
+  materialName: string;
+  epdNumber?: string;
+  manufacturer?: string;
+  expiryDate: string;
+  daysUntil: number;
+  status: 'expired' | 'critical' | 'warning' | 'upcoming';
+}
+
 interface PDFReportContentProps {
   data: ReportData;
   template: ReportTemplate;
@@ -23,6 +33,7 @@ interface PDFReportContentProps {
   showWatermark?: boolean;
   contentId: string;
   ecoComplianceReport?: EcoPlatformComplianceReport | null;
+  epdExpiryAlerts?: EPDExpiryAlert[];
 }
 
 // HTML-based report content component
@@ -32,7 +43,8 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
   branding,
   showWatermark,
   contentId,
-  ecoComplianceReport
+  ecoComplianceReport,
+  epdExpiryAlerts = []
 }) => {
   const formatNumber = (num: number) => (num || 0).toFixed(2);
 
@@ -581,6 +593,110 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
     );
   };
 
+  // EPD Expiry Alerts Section for PDF
+  const renderEPDExpiryAlerts = () => {
+    if (!epdExpiryAlerts || epdExpiryAlerts.length === 0) return null;
+
+    const expiredCount = epdExpiryAlerts.filter(a => a.status === 'expired').length;
+    const criticalCount = epdExpiryAlerts.filter(a => a.status === 'critical').length;
+    const warningCount = epdExpiryAlerts.filter(a => a.status === 'warning').length;
+
+    const getStatusStyle = (status: string) => {
+      switch (status) {
+        case 'expired': return { backgroundColor: '#fef2f2', color: '#b91c1c', borderColor: '#fecaca' };
+        case 'critical': return { backgroundColor: '#fff7ed', color: '#c2410c', borderColor: '#fed7aa' };
+        case 'warning': return { backgroundColor: '#fffbeb', color: '#b45309', borderColor: '#fde68a' };
+        default: return { backgroundColor: '#eff6ff', color: '#1d4ed8', borderColor: '#bfdbfe' };
+      }
+    };
+
+    const getStatusLabel = (status: string, daysUntil: number) => {
+      switch (status) {
+        case 'expired': return `Expired ${Math.abs(daysUntil)} days ago`;
+        case 'critical': return `Expires in ${daysUntil} days`;
+        case 'warning': return `Expires in ${daysUntil} days`;
+        default: return `Expires in ${daysUntil} days`;
+      }
+    };
+
+    return (
+      <div className="pdf-section" style={{ pageBreakBefore: 'auto', marginTop: '24px' }}>
+        <h2 className="pdf-section-title" style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '2px solid #b91c1c', paddingBottom: '8px', marginBottom: '16px', color: '#b91c1c' }}>
+          ⚠️ EPD Certification Alerts
+        </h2>
+        
+        {/* Summary */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+          {expiredCount > 0 && (
+            <div style={{ padding: '8px 12px', backgroundColor: '#fef2f2', borderRadius: '4px', border: '1px solid #fecaca' }}>
+              <span style={{ fontWeight: 'bold', color: '#b91c1c', fontSize: '14px' }}>{expiredCount}</span>
+              <span style={{ color: '#b91c1c', fontSize: '11px', marginLeft: '4px' }}>Expired</span>
+            </div>
+          )}
+          {criticalCount > 0 && (
+            <div style={{ padding: '8px 12px', backgroundColor: '#fff7ed', borderRadius: '4px', border: '1px solid #fed7aa' }}>
+              <span style={{ fontWeight: 'bold', color: '#c2410c', fontSize: '14px' }}>{criticalCount}</span>
+              <span style={{ color: '#c2410c', fontSize: '11px', marginLeft: '4px' }}>Critical (≤30 days)</span>
+            </div>
+          )}
+          {warningCount > 0 && (
+            <div style={{ padding: '8px 12px', backgroundColor: '#fffbeb', borderRadius: '4px', border: '1px solid #fde68a' }}>
+              <span style={{ fontWeight: 'bold', color: '#b45309', fontSize: '14px' }}>{warningCount}</span>
+              <span style={{ color: '#b45309', fontSize: '11px', marginLeft: '4px' }}>Warning (≤90 days)</span>
+            </div>
+          )}
+        </div>
+
+        {/* Alerts Table */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#f9fafb' }}>
+              <th style={{ padding: '8px', border: '1px solid #e5e7eb', textAlign: 'left' }}>Material</th>
+              <th style={{ padding: '8px', border: '1px solid #e5e7eb', textAlign: 'left' }}>EPD Number</th>
+              <th style={{ padding: '8px', border: '1px solid #e5e7eb', textAlign: 'left' }}>Manufacturer</th>
+              <th style={{ padding: '8px', border: '1px solid #e5e7eb', textAlign: 'left' }}>Expiry Date</th>
+              <th style={{ padding: '8px', border: '1px solid #e5e7eb', textAlign: 'center' }}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {epdExpiryAlerts.slice(0, 15).map((alert, idx) => {
+              const statusStyle = getStatusStyle(alert.status);
+              return (
+                <tr key={idx}>
+                  <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb', fontWeight: '500' }}>{alert.materialName}</td>
+                  <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb', fontFamily: 'monospace' }}>{alert.epdNumber || '-'}</td>
+                  <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb' }}>{alert.manufacturer || '-'}</td>
+                  <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb' }}>{new Date(alert.expiryDate).toLocaleDateString()}</td>
+                  <td style={{ 
+                    padding: '6px 8px', 
+                    border: '1px solid #e5e7eb', 
+                    textAlign: 'center',
+                    backgroundColor: statusStyle.backgroundColor,
+                    color: statusStyle.color,
+                    fontWeight: '600'
+                  }}>
+                    {getStatusLabel(alert.status, alert.daysUntil)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {epdExpiryAlerts.length > 15 && (
+          <p style={{ fontSize: '9px', color: '#666', marginTop: '8px', fontStyle: 'italic' }}>
+            Showing first 15 of {epdExpiryAlerts.length} alerts. See full procurement export for complete list.
+          </p>
+        )}
+
+        <p style={{ fontSize: '9px', color: '#666', marginTop: '12px' }}>
+          EPD certifications should be renewed before expiry to maintain compliance with EN 15804+A2 and Green Star requirements.
+          Contact your material suppliers or the EPD program operator to obtain updated certifications.
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div 
       id={contentId}
@@ -633,6 +749,9 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
       {/* ECO Platform Compliance Section */}
       {ecoComplianceReport && renderEcoComplianceSection()}
 
+      {/* EPD Expiry Alerts Section */}
+      {epdExpiryAlerts && epdExpiryAlerts.length > 0 && renderEPDExpiryAlerts()}
+
       {/* Data Source Attribution */}
       <div className="pdf-attribution" style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
         <ICEAttributionFooter className="print:block" />
@@ -671,6 +790,7 @@ interface PDFReportProps {
   branding?: ReportBranding;
   showWatermark?: boolean;
   ecoComplianceReport?: EcoPlatformComplianceReport | null;
+  epdExpiryAlerts?: EPDExpiryAlert[];
 }
 
 export const PDFReport: React.FC<PDFReportProps> = ({ 
@@ -679,7 +799,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({
   filename,
   branding,
   showWatermark = false,
-  ecoComplianceReport = null
+  ecoComplianceReport = null,
+  epdExpiryAlerts = []
 }) => {
   const [loading, setLoading] = useState(false);
   const contentId = useId().replace(/:/g, '-') + '-pdf-content';
@@ -731,6 +852,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         showWatermark={showWatermark}
         contentId={contentId}
         ecoComplianceReport={ecoComplianceReport}
+        epdExpiryAlerts={epdExpiryAlerts}
       />
       <Button onClick={handleDownload} disabled={loading} className="w-full">
         {loading ? (

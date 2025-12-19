@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { PDFReport, ReportBranding } from '@/components/PDFReport';
+import { PDFReport, ReportBranding, EPDExpiryAlert } from '@/components/PDFReport';
 import { useReportData, validateReportData, calculateDataCompleteness } from '@/components/ReportData';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
@@ -17,11 +17,13 @@ import { useComplianceCheck } from '@/hooks/useComplianceCheck';
 import { useEmissionTotals } from '@/hooks/useEmissionTotals';
 import { loadStoredWholeLifeTotals } from '@/hooks/useWholeLifeCarbonCalculations';
 import { useEcoCompliance } from '@/hooks/useEcoCompliance';
+import { useEPDRenewalReminders } from '@/hooks/useEPDRenewalReminders';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ReportErrorBoundary } from '@/components/ReportErrorBoundary';
 import { SkeletonPage } from '@/components/SkeletonPage';
 import { ComplianceCard } from '@/components/ComplianceCard';
+import { EPDRenewalReminders } from '@/components/calculator/EPDRenewalReminders';
 import { supabase } from '@/integrations/supabase/client';
 import type { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
 import { 
@@ -86,6 +88,37 @@ const Reports = () => {
     enabled: true, // Will check project settings internally
     autoValidate: true 
   });
+
+  // Get EPD expiry alerts for materials in report
+  const epdMaterialsForReminders = useMemo(() => {
+    if (!reportData?.breakdown?.materials) return [];
+    return reportData.breakdown.materials.map((m, idx) => ({
+      id: `report-material-${idx}`,
+      name: m.name,
+      expiryDate: undefined, // Materials from report don't have expiry dates directly
+      epdNumber: undefined,
+      manufacturer: undefined,
+    }));
+  }, [reportData?.breakdown?.materials]);
+
+  const {
+    expiryWarnings: epdExpiryWarnings,
+    summary: epdExpirySummary,
+  } = useEPDRenewalReminders({
+    materials: epdMaterialsForReminders,
+    showNotifications: false
+  });
+
+  // Convert to EPDExpiryAlert format for PDF
+  const epdAlertsForPDF: EPDExpiryAlert[] = useMemo(() => 
+    epdExpiryWarnings.map(w => ({
+      materialName: w.materialName,
+      epdNumber: w.epdNumber,
+      manufacturer: w.manufacturer,
+      expiryDate: w.expiryDate,
+      daysUntil: w.daysUntil,
+      status: w.status,
+    })), [epdExpiryWarnings]);
 
   // Fetch ECO compliance report from database if available
   const [dbEcoComplianceReport, setDbEcoComplianceReport] = useState<EcoPlatformComplianceReport | null>(null);
@@ -322,8 +355,18 @@ const Reports = () => {
             branding={effectiveBranding} 
             showWatermark={!canCustomBrand}
             ecoComplianceReport={dbEcoComplianceReport}
+            epdExpiryAlerts={epdAlertsForPDF}
           />
         </ErrorBoundary>
+
+        {/* EPD Renewal Alerts Summary */}
+        {epdExpiryWarnings.length > 0 && (
+          <EPDRenewalReminders
+            expiryWarnings={epdExpiryWarnings}
+            summary={epdExpirySummary}
+            projectName={currentProject?.name}
+          />
+        )}
       </div>
 
       {/* Report Template Selector */}
