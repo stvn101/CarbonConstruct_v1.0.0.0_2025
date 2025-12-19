@@ -208,6 +208,14 @@ serve(async (req) => {
     
     console.log(`Processing ${materials.length} ICE materials (dryRun: ${dryRun}, jobId: ${jobId || 'none'})`);
     
+    // Log first row's keys for debugging column mapping
+    if (materials.length > 0) {
+      const sampleRow = materials[0];
+      const columnNames = Object.keys(sampleRow);
+      console.log(`Detected ${columnNames.length} columns in data:`, columnNames.slice(0, 10).join(', '));
+      console.log('Sample row values:', JSON.stringify(sampleRow).slice(0, 500));
+    }
+    
     const parsed: ICEMaterial[] = [];
     const errors: { row: number; error: string }[] = [];
     const seenKeys = new Set<string>();
@@ -216,7 +224,16 @@ serve(async (req) => {
     // Parse, validate, and dedupe each row
     for (let i = 0; i < materials.length; i++) {
       try {
-        const material = parseICERow(materials[i]);
+        const row = materials[i];
+        
+        // Debug first few rows
+        if (i < 3) {
+          const rawName = findColumnValue(row, 'material_name');
+          const rawEf = findColumnValue(row, 'ef_total');
+          console.log(`Row ${i}: material_name='${rawName}', ef_total='${rawEf}'`);
+        }
+        
+        const material = parseICERow(row);
         if (material) {
           // Create a dedupe key: normalized name + unit
           const dedupeKey = `${material.material_name}|${material.unit}`;
@@ -228,6 +245,9 @@ serve(async (req) => {
           seenKeys.add(dedupeKey);
           parsed.push(material);
         } else {
+          if (i < 5) {
+            console.log(`Row ${i} failed parsing. Keys: ${Object.keys(row).join(', ')}`);
+          }
           errors.push({ row: i, error: 'Invalid or empty material data' });
         }
       } catch (err) {
