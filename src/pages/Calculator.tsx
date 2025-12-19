@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet, Cloud, CloudOff, FileUp, FileDown, CheckCircle } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet, Cloud, CloudOff, FileUp, FileDown, CheckCircle, History, RotateCcw } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
@@ -268,6 +268,31 @@ export default function Calculator() {
   const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites, syncWithDatabase, cloudSyncEnabled, isSyncing, lastSyncTime, saveToCloud } = useFavoriteMaterials();
   const csvInputRef = useRef<HTMLInputElement>(null);
   
+  // Import history state
+  interface ImportHistoryEntry {
+    id: string;
+    fileName: string;
+    importedAt: Date;
+    materialCount: number;
+    materials: { name: string; quantity: number; unit: string; factor: number; category: string }[];
+  }
+  const [importHistory, setImportHistory] = useState<ImportHistoryEntry[]>(() => {
+    try {
+      const stored = localStorage.getItem('carbonConstruct_importHistory');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.map((h: any) => ({ ...h, importedAt: new Date(h.importedAt) }));
+      }
+    } catch {}
+    return [];
+  });
+  const [showImportHistory, setShowImportHistory] = useState(false);
+
+  // Persist import history
+  useEffect(() => {
+    localStorage.setItem('carbonConstruct_importHistory', JSON.stringify(importHistory));
+  }, [importHistory]);
+  
   // Download sample CSV template
   const downloadCSVTemplate = () => {
     const template = `name,quantity,unit,factor,category
@@ -297,6 +322,32 @@ export default function Calculator() {
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
     return date.toLocaleDateString();
+  };
+
+  // Re-import from history
+  const reImportFromHistory = (entry: ImportHistoryEntry) => {
+    const newMaterials: Material[] = entry.materials.map((m, i) => ({
+      id: `reimport_${Date.now()}_${i}`,
+      category: m.category,
+      typeId: 'csv_import',
+      name: m.name,
+      unit: m.unit,
+      factor: m.factor,
+      source: 'CSV Import',
+      quantity: m.quantity,
+      isCustom: true,
+    }));
+    setSelectedMaterials(prev => [...prev, ...newMaterials]);
+    toast({ 
+      title: "Re-imported", 
+      description: `Added ${newMaterials.length} materials from "${entry.fileName}"` 
+    });
+  };
+
+  // Clear import history
+  const clearImportHistory = () => {
+    setImportHistory([]);
+    toast({ title: "History Cleared" });
   };
   
   // Category counts for browser - using EPD database
@@ -831,6 +882,23 @@ export default function Calculator() {
 
       if (newMaterials.length > 0) {
         setSelectedMaterials(prev => [...prev, ...newMaterials]);
+        
+        // Save to import history
+        const historyEntry: ImportHistoryEntry = {
+          id: `import_${Date.now()}`,
+          fileName: file.name,
+          importedAt: new Date(),
+          materialCount: newMaterials.length,
+          materials: newMaterials.map(m => ({
+            name: m.name,
+            quantity: m.quantity,
+            unit: m.unit,
+            factor: m.factor,
+            category: m.category,
+          })),
+        };
+        setImportHistory(prev => [historyEntry, ...prev].slice(0, 10)); // Keep last 10
+        
         toast({ 
           title: "CSV Import Complete", 
           description: `Added ${newMaterials.length} materials from CSV` 
@@ -1619,6 +1687,23 @@ export default function Calculator() {
                           <FileUp className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                           <span className="hidden md:inline">Import CSV</span>
                         </Button>
+                        {importHistory.length > 0 && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setShowImportHistory(!showImportHistory)}
+                                className={`px-2 text-xs ${showImportHistory 
+                                  ? 'bg-amber-100 text-amber-800 border-amber-300' 
+                                  : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'}`}
+                              >
+                                <History className="h-3 w-3 md:h-4 md:w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>{showImportHistory ? 'Hide' : 'Show'} import history ({importHistory.length})</TooltipContent>
+                          </Tooltip>
+                        )}
                       </div>
                       {/* Cloud Sync with Status Indicator */}
                       <div className="flex items-center gap-1">
@@ -1670,6 +1755,55 @@ export default function Calculator() {
                       </Button>
                     </div>
                   </div>
+                  
+                  {/* Import History Panel */}
+                  {showImportHistory && importHistory.length > 0 && (
+                    <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-medium text-amber-700 dark:text-amber-300 uppercase tracking-wide flex items-center gap-1">
+                          <History className="h-3 w-3" />
+                          Import History
+                        </span>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={clearImportHistory}
+                          className="h-6 text-xs text-amber-600 hover:text-amber-800 hover:bg-amber-100"
+                        >
+                          Clear All
+                        </Button>
+                      </div>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {importHistory.map(entry => (
+                          <div 
+                            key={entry.id} 
+                            className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-md border border-amber-200 dark:border-amber-700"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium truncate text-foreground">{entry.fileName}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {entry.materialCount} materials • {formatSyncTime(entry.importedAt)}
+                              </div>
+                            </div>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => reImportFromHistory(entry)}
+                                  className="h-7 px-2 text-xs bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200"
+                                >
+                                  <RotateCcw className="h-3 w-3 mr-1" />
+                                  Re-import
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Add these {entry.materialCount} materials again</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Quick-Add Materials */}
                   {useNewMaterialUI ? (
