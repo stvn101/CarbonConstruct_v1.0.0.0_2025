@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { SEOHead } from "@/components/SEOHead";
 import { DataSourceAttribution } from "@/components/DataSourceAttribution";
 import { AdminSidebar } from "@/components/AdminSidebar";
-
+import ExcelJS from "exceljs";
 interface ImportResult {
   success: boolean;
   imported: number;
@@ -62,18 +62,60 @@ export default function AdminICEImport() {
     );
   }
 
+  const parseExcelFile = async (): Promise<Record<string, unknown>[]> => {
+    const response = await fetch('/demo/ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx');
+    const arrayBuffer = await response.arrayBuffer();
+    
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(arrayBuffer);
+    
+    const worksheet = workbook.worksheets[0];
+    if (!worksheet) throw new Error('No worksheet found in Excel file');
+    
+    const materials: Record<string, unknown>[] = [];
+    const headers: string[] = [];
+    
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) {
+        row.eachCell((cell) => {
+          headers.push(String(cell.value || ''));
+        });
+        return;
+      }
+      
+      const rowData: Record<string, unknown> = {};
+      row.eachCell((cell, colNumber) => {
+        const header = headers[colNumber - 1];
+        if (header) {
+          rowData[header] = cell.value;
+        }
+      });
+      
+      if (Object.keys(rowData).length > 0) {
+        materials.push(rowData);
+      }
+    });
+    
+    return materials;
+  };
+
   const runImport = async (dryRun: boolean) => {
     setIsImporting(true);
     setProgress(10);
     setCurrentStep(dryRun ? 'previewing' : 'importing');
 
     try {
-      setProgress(30);
+      setProgress(20);
+      toast.info('Reading Excel file...');
+      
+      const materials = await parseExcelFile();
+      setProgress(40);
+      toast.info(`Parsed ${materials.length} rows, sending to server...`);
       
       const { data, error } = await supabase.functions.invoke('import-ice-materials', {
         body: { 
           dryRun,
-          sourceFile: '/demo/ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx'
+          materials
         }
       });
 
@@ -87,25 +129,25 @@ export default function AdminICEImport() {
         setPreviewData(data.preview.slice(0, 20));
         setImportResult({
           success: true,
-          imported: data.totalRecords || 0,
+          imported: data.validCount || 0,
           updated: 0,
-          skipped: data.skipped || 0,
-          errors: data.errors || [],
-          validationIssues: data.validationIssues || [],
+          skipped: data.errorCount || 0,
+          errors: data.errors?.map((e: { row: number; error: string }) => `Row ${e.row}: ${e.error}`) || [],
+          validationIssues: [],
           timestamp: new Date().toISOString()
         });
-        toast.success(`Preview complete: ${data.totalRecords} materials ready for import`);
+        toast.success(`Preview complete: ${data.validCount} materials ready for import`);
       } else {
         setImportResult({
           success: data?.success ?? true,
-          imported: data?.imported || 0,
-          updated: data?.updated || 0,
-          skipped: data?.skipped || 0,
-          errors: data?.errors || [],
-          validationIssues: data?.validationIssues || [],
+          imported: data?.inserted || 0,
+          updated: 0,
+          skipped: data?.errorCount || 0,
+          errors: data?.errors?.map((e: { row: number; error: string }) => `Row ${e.row}: ${e.error}`) || [],
+          validationIssues: [],
           timestamp: new Date().toISOString()
         });
-        toast.success(`Import complete: ${data?.imported || 0} materials imported`);
+        toast.success(`Import complete: ${data?.inserted || 0} materials imported`);
       }
 
       setProgress(100);
