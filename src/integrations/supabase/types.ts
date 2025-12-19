@@ -897,6 +897,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_material_favorites: {
+        Row: {
+          created_at: string | null
+          epd_number: string | null
+          factor: number
+          id: string
+          last_used: string | null
+          material_category: string
+          material_id: string
+          material_name: string
+          source: string | null
+          unit: string
+          updated_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          epd_number?: string | null
+          factor: number
+          id?: string
+          last_used?: string | null
+          material_category: string
+          material_id: string
+          material_name: string
+          source?: string | null
+          unit: string
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          epd_number?: string | null
+          factor?: number
+          id?: string
+          last_used?: string | null
+          material_category?: string
+          material_id?: string
+          material_name?: string
+          source?: string | null
+          unit?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           account_status: string
