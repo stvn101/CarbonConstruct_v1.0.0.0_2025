@@ -293,6 +293,56 @@ export default function AdminICEImport() {
     return null;
   };
 
+  // ICE individual material sheet names (fallback when Summary fails)
+  const ICE_MATERIAL_SHEETS = [
+    'Aggregates', 'Aluminium', 'Asphalt', 'Bitumen', 'Bricks', 'Cement', 'Ceramics',
+    'Clay', 'Concrete', 'Glass', 'Insulation', 'Lead', 'Lime', 'Metals', 'Paint',
+    'Paper', 'Plastics', 'Plaster', 'Rubber', 'Sand', 'Sealants', 'Steel', 'Stone',
+    'Timber', 'Zinc', 'Copper', 'Iron', 'Brass'
+  ];
+
+  // Find individual material sheets that have valid data
+  const findIndividualMaterialSheets = (wb: XLSX.WorkBook): string[] => {
+    const validSheets: string[] = [];
+    
+    for (const sheetName of wb.SheetNames) {
+      // Check if sheet name matches known ICE material categories
+      const isKnownMaterialSheet = ICE_MATERIAL_SHEETS.some(
+        ms => sheetName.toLowerCase().includes(ms.toLowerCase())
+      );
+      
+      if (!isKnownMaterialSheet) continue;
+      
+      const sheet = wb.Sheets[sheetName];
+      if (!sheet || !sheet['!ref']) continue;
+      
+      const range = XLSX.utils.decode_range(sheet['!ref']);
+      if (range.e.r < 5) continue; // Skip sheets with too few rows
+      
+      // Check first 20 rows for header patterns
+      const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+        header: 1,
+        range: { s: { c: range.s.c, r: 0 }, e: { c: Math.min(range.e.c, 20), r: Math.min(range.e.r, 30) } },
+        raw: true,
+      });
+      
+      // Look for Material/EF header in individual sheets
+      const headerResult = findICEHeaderRow(aoa, 0);
+      if (headerResult) {
+        validSheets.push(sheetName);
+      }
+    }
+    
+    return validSheets;
+  };
+
+  // Check if columns look valid (has material_name and ef_total mappings)
+  const hasValidColumnMappings = (columns: ColumnMapping[]): boolean => {
+    const hasMaterialName = columns.some(c => c.mappedTo === 'material_name');
+    const hasEfTotal = columns.some(c => c.mappedTo === 'ef_total');
+    return hasMaterialName && hasEfTotal;
+  };
+
   // Check if detected columns look suspicious (like data instead of headers)
   const validateColumnMapping = (columns: ColumnMapping[]): { valid: boolean; warnings: string[] } => {
     const warnings: string[] = [];
@@ -596,10 +646,144 @@ export default function AdminICEImport() {
     setProgress(0);
 
     try {
-      const preview = await analyzeWorkbook(fileSource);
+      let preview = await analyzeWorkbook(fileSource);
+      
+      // AUTO-RETRY: Check if detected columns are valid
+      if (!hasValidColumnMappings(preview.detectedColumns) && workbook) {
+        console.log('[ICE Import] Auto-retry: No valid Material/EF columns detected, searching for header row...');
+        toast.info('Auto-detecting header row...', { duration: 2000 });
+        
+        const sheet = workbook.Sheets[preview.selectedWorksheet];
+        if (sheet && sheet['!ref']) {
+          const range = XLSX.utils.decode_range(sheet['!ref']);
+          const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+            header: 1,
+            range: { s: { c: range.s.c, r: 0 }, e: { c: Math.min(range.e.c, 50), r: Math.min(range.e.r, 100) } },
+            raw: true,
+          });
+          
+          const headerResult = findICEHeaderRow(aoa, 0);
+          if (headerResult) {
+            console.log(`[ICE Import] Auto-retry found header at row ${headerResult.row}`);
+            
+            // Re-parse with correct header row
+            const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+              defval: null,
+              raw: true,
+              range: headerResult.row,
+            });
+            
+            const sampleRows = rows.slice(0, 10);
+            const headers = Object.keys(sampleRows[0] || {});
+            
+            const detectedColumns: ColumnMapping[] = headers
+              .filter(h => h.length > 0)
+              .slice(0, 15)
+              .map((original) => ({
+                original,
+                mappedTo: mapColumnName(original),
+                sampleValue: normalize(sampleRows[0]?.[original] ?? ''),
+              }));
+            
+            const parsedMaterials = rows.filter((row) => {
+              const values = Object.values(row).filter(v => v !== null && v !== undefined && String(v).trim() !== '');
+              return values.length >= 3;
+            });
+            
+            preview = {
+              ...preview,
+              selectedHeaderRow: headerResult.row,
+              detectedColumns,
+              sampleRows,
+              totalRows: parsedMaterials.length,
+              parsedMaterials,
+            };
+            
+            toast.success(`Auto-detected header at row ${headerResult.row}`);
+          }
+        }
+      }
+      
+      // FALLBACK: If still no valid columns, try individual material sheets
+      if (!hasValidColumnMappings(preview.detectedColumns) && workbook) {
+        console.log('[ICE Import] Fallback: Trying individual material sheets...');
+        toast.info('Trying individual material sheets...', { duration: 2000 });
+        
+        const validSheets = findIndividualMaterialSheets(workbook);
+        
+        if (validSheets.length > 0) {
+          console.log(`[ICE Import] Found ${validSheets.length} valid individual sheets: ${validSheets.join(', ')}`);
+          setUseIndividualSheets(true);
+          
+          // Use first valid individual sheet
+          const firstValidSheet = validSheets[0];
+          const sheet = workbook.Sheets[firstValidSheet];
+          
+          if (sheet && sheet['!ref']) {
+            const range = XLSX.utils.decode_range(sheet['!ref']);
+            const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+              header: 1,
+              range: { s: { c: range.s.c, r: 0 }, e: { c: Math.min(range.e.c, 50), r: Math.min(range.e.r, 50) } },
+              raw: true,
+            });
+            
+            const headerResult = findICEHeaderRow(aoa, 0);
+            const headerRow = headerResult?.row ?? 0;
+            
+            const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+              defval: null,
+              raw: true,
+              range: headerRow,
+            });
+            
+            const sampleRows = rows.slice(0, 10);
+            const headers = Object.keys(sampleRows[0] || {});
+            
+            const detectedColumns: ColumnMapping[] = headers
+              .filter(h => h.length > 0)
+              .slice(0, 15)
+              .map((original) => ({
+                original,
+                mappedTo: mapColumnName(original),
+                sampleValue: normalize(sampleRows[0]?.[original] ?? ''),
+              }));
+            
+            const parsedMaterials = rows.filter((row) => {
+              const values = Object.values(row).filter(v => v !== null && v !== undefined && String(v).trim() !== '');
+              return values.length >= 3;
+            });
+            
+            // Update worksheets list with valid individual sheets
+            const updatedWorksheets = validSheets.map(name => ({
+              name,
+              rowCount: workbook.Sheets[name] ? XLSX.utils.decode_range(workbook.Sheets[name]['!ref'] || 'A1').e.r + 1 : 0,
+              detectedHeaderRow: headerRow,
+              headerScore: 100,
+            }));
+            
+            preview = {
+              worksheets: updatedWorksheets,
+              selectedWorksheet: firstValidSheet,
+              selectedHeaderRow: headerRow,
+              detectedColumns,
+              sampleRows,
+              totalRows: parsedMaterials.length,
+              parsedMaterials,
+            };
+            
+            toast.success(`Switched to individual sheet: "${firstValidSheet}" (${validSheets.length} sheets available)`);
+          }
+        }
+      }
+      
       setValidationPreview(preview);
       setStep('preview');
-      toast.success(`Found ${preview.totalRows} potential materials in "${preview.selectedWorksheet}"`);
+      
+      if (hasValidColumnMappings(preview.detectedColumns)) {
+        toast.success(`Found ${preview.totalRows} potential materials in "${preview.selectedWorksheet}"`);
+      } else {
+        toast.warning(`Found ${preview.totalRows} rows but column detection may need manual adjustment`);
+      }
     } catch (error) {
       console.error('Parse error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to parse spreadsheet');
