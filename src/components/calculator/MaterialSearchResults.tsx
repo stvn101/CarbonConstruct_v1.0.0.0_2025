@@ -1,6 +1,6 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Plus, Database, FlaskConical, RefreshCcw, Info, MapPin, AlertTriangle, Clock, Scale } from "lucide-react";
+import { Plus, Database, FlaskConical, RefreshCcw, Info, MapPin, AlertTriangle, Clock, Scale, Filter } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { UnitInfoTooltip } from "./UnitInfoTooltip";
 import { WhyFactorsVaryDialog } from "./RegionalVariantTooltip";
@@ -49,6 +49,8 @@ interface MaterialSearchResultsProps {
   onToggleComparisonMode?: () => void;
   selectedForComparison?: string[];
   onToggleComparison?: (id: string) => void;
+  hideExpiredEPDs?: boolean;
+  onToggleHideExpired?: () => void;
 }
 
 // Helper to check EPD expiry status
@@ -130,7 +132,9 @@ export function MaterialSearchResults({
   comparisonMode = false,
   onToggleComparisonMode,
   selectedForComparison = [],
-  onToggleComparison
+  onToggleComparison,
+  hideExpiredEPDs = false,
+  onToggleHideExpired
 }: MaterialSearchResultsProps) {
   if (groupedMaterials.length === 0) {
     return (
@@ -168,6 +172,30 @@ export function MaterialSearchResults({
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {/* Hide Expired EPDs Toggle */}
+            {onToggleHideExpired && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={onToggleHideExpired}
+                    className={`h-7 gap-1.5 text-xs ${hideExpiredEPDs 
+                      ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700' 
+                      : 'border-gray-200 dark:border-gray-700'}`}
+                  >
+                    <Filter className="h-3.5 w-3.5" />
+                    Valid Only
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="font-semibold">{hideExpiredEPDs ? 'Showing Valid EPDs Only' : 'Show Valid EPDs Only'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {hideExpiredEPDs ? 'Click to show all materials including expired EPDs' : 'Hide materials with expired EPD certifications'}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
             {/* Comparison Mode Toggle */}
             {onToggleComparisonMode && (
               <Button 

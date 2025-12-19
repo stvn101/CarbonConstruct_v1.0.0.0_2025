@@ -102,6 +102,7 @@ export function useEPDMaterials() {
   const [selectedState, setSelectedState] = useState<string>('all');
   const [selectedManufacturer, setSelectedManufacturer] = useState<string>('all');
   const [selectedDataSource, setSelectedDataSource] = useState<string>('all');
+  const [hideExpiredEPDs, setHideExpiredEPDs] = useState<boolean>(false);
 
   // Get subscription tier to determine database access
   const { currentTier } = useSubscription();
@@ -172,9 +173,20 @@ export function useEPDMaterials() {
     return sources.sort() as string[];
   }, [accessibleMaterials]);
 
+  // Helper to check if EPD is expired
+  const isExpired = useCallback((expiryDate: string | null | undefined): boolean => {
+    if (!expiryDate) return false;
+    return new Date(expiryDate) < new Date();
+  }, []);
+
   // Filter materials based on search and filters (from accessible materials only)
   const filteredMaterials = useMemo(() => {
     let result = accessibleMaterials;
+
+    // Filter out expired EPDs if enabled
+    if (hideExpiredEPDs) {
+      result = result.filter(m => !isExpired(m.expiry_date));
+    }
 
     // Filter by category
     if (selectedCategory !== 'all') {
@@ -209,7 +221,7 @@ export function useEPDMaterials() {
     }
 
     return result;
-  }, [accessibleMaterials, searchTerm, selectedCategory, selectedState, selectedManufacturer, selectedDataSource]);
+  }, [accessibleMaterials, searchTerm, selectedCategory, selectedState, selectedManufacturer, selectedDataSource, hideExpiredEPDs, isExpired]);
 
   // Group materials by category
   const groupedMaterials = useMemo((): GroupedEPDMaterials[] => {
@@ -235,6 +247,7 @@ export function useEPDMaterials() {
     setSelectedState('all');
     setSelectedManufacturer('all');
     setSelectedDataSource('all');
+    setHideExpiredEPDs(false);
   }, []);
 
   // Get unit label
@@ -270,6 +283,7 @@ export function useEPDMaterials() {
     selectedState,
     selectedManufacturer,
     selectedDataSource,
+    hideExpiredEPDs,
     loading,
     error,
     
@@ -279,8 +293,12 @@ export function useEPDMaterials() {
     setSelectedState,
     setSelectedManufacturer,
     setSelectedDataSource,
+    setHideExpiredEPDs,
     resetFilters,
     refetch,
+    
+    // Helpers
+    isExpired,
     
     // Helpers
     getUnitLabel,

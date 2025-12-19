@@ -38,6 +38,8 @@ import { ModuleDCalculator, ModuleDEmissions } from "@/components/calculator/Mod
 import { EcoComplianceToggle } from "@/components/EcoComplianceToggle";
 import { EcoCompliancePanel } from "@/components/EcoCompliancePanel";
 import { SkeletonPage } from "@/components/SkeletonPage";
+import { useEPDRenewalReminders } from "@/hooks/useEPDRenewalReminders";
+import { EPDRenewalReminders } from "@/components/calculator/EPDRenewalReminders";
 
 interface Material {
   id: string;
@@ -250,7 +252,16 @@ export default function Calculator() {
   const canAccessMaterialComparer = currentTier?.limits?.material_comparer ?? false;
   
   // Fetch materials from EPD database (Supabase materials_epd table)
-  const { materials: dbMaterials, loading: materialsLoading, error: materialsError, states, dataSources, refetch: refetchMaterials } = useEPDMaterials();
+  const { 
+    materials: dbMaterials, 
+    loading: materialsLoading, 
+    error: materialsError, 
+    states, 
+    dataSources, 
+    refetch: refetchMaterials,
+    hideExpiredEPDs,
+    setHideExpiredEPDs
+  } = useEPDMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -505,6 +516,23 @@ export default function Calculator() {
   
   // Building size for lifecycle calculations
   const buildingSqm = parseFloat(projectDetails.buildingSqm) || 0;
+  
+  // EPD Renewal Reminders - track expiring materials in project
+  const { 
+    activeWarnings: epdExpiryWarnings, 
+    summary: epdExpirySummary,
+    dismissWarning: dismissEPDWarning,
+    clearDismissedWarnings: clearDismissedEPDWarnings
+  } = useEPDRenewalReminders({
+    materials: selectedMaterials.map(m => ({
+      id: m.id,
+      name: m.name,
+      expiryDate: m.expiryDate,
+      epdNumber: m.epdNumber,
+      manufacturer: m.manufacturer,
+    })),
+    showNotifications: true,
+  });
   
   // Group database materials by category and filter by search/category/state
   const groupedMaterials = useMemo(() => {
@@ -2234,6 +2262,8 @@ export default function Calculator() {
                         onToggleComparisonMode={() => setComparisonMode(!comparisonMode)}
                         selectedForComparison={selectedForComparison}
                         onToggleComparison={toggleComparison}
+                        hideExpiredEPDs={hideExpiredEPDs}
+                        onToggleHideExpired={() => setHideExpiredEPDs(!hideExpiredEPDs)}
                       />
                     </div>
                   )}
@@ -2730,6 +2760,18 @@ export default function Calculator() {
                 <EcoCompliancePanel 
                   complianceReport={complianceReport} 
                   isLoading={complianceLoading} 
+                />
+              </div>
+            )}
+            
+            {/* EPD Renewal Reminders Panel */}
+            {epdExpiryWarnings.length > 0 && (
+              <div className="mt-4">
+                <EPDRenewalReminders
+                  expiryWarnings={epdExpiryWarnings}
+                  summary={epdExpirySummary}
+                  onDismiss={dismissEPDWarning}
+                  onClearDismissed={clearDismissedEPDWarnings}
                 />
               </div>
             )}
