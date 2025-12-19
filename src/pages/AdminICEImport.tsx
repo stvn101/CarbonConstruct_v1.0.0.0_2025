@@ -46,6 +46,7 @@ export default function AdminICEImport() {
   const [isImporting, setIsImporting] = useState(false);
   const [isDryRun, setIsDryRun] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [progressLabel, setProgressLabel] = useState<string>("");
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [previewData, setPreviewData] = useState<MaterialPreview[]>([]);
   const [currentStep, setCurrentStep] = useState<'ready' | 'previewing' | 'importing' | 'complete'>('ready');
@@ -62,6 +63,8 @@ export default function AdminICEImport() {
     );
   }
 
+  const CHUNK_SIZE = 500;
+
   const parseExcelFile = async (): Promise<Record<string, unknown>[]> => {
     const response = await fetch('/demo/ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx');
     const arrayBuffer = await response.arrayBuffer();
@@ -74,23 +77,58 @@ export default function AdminICEImport() {
       raw: true,
     });
 
-    const sheetName =
-      workbook.SheetNames.find((name) => {
-        const n = name.toLowerCase();
-        return n.includes('material') || n.includes('data') || n === 'sheet1';
-      }) ?? workbook.SheetNames[0];
+    const normalize = (v: unknown) => String(v ?? '').trim();
 
-    if (!sheetName) throw new Error('No worksheet found in Excel file');
+    const findBestSheet = (): { sheetName: string; headerRow: number } => {
+      const headerLooksRight = (row: unknown[]) => {
+        const tokens = row.map((c) => normalize(c).toLowerCase()).filter(Boolean);
+        const hasMaterial = tokens.some((t) => t.includes('material'));
+        const hasName = tokens.some((t) => t.includes('name'));
+        const hasCategory = tokens.some((t) => t.includes('category'));
+        const hasEf = tokens.some((t) => t.includes('ef') || t.includes('kgco2') || t.includes('co2'));
+        return hasMaterial && (hasName || hasCategory) && hasEf;
+      };
 
+      for (const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        if (!sheet || !sheet['!ref']) continue;
+
+        const r = XLSX.utils.decode_range(sheet['!ref']);
+        const sampleRange = {
+          s: { c: r.s.c, r: r.s.r },
+          e: { c: Math.min(r.e.c, r.s.c + 50), r: Math.min(r.e.r, r.s.r + 80) },
+        };
+
+        const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+          header: 1,
+          range: sampleRange,
+          blankrows: false,
+          raw: true,
+        });
+
+        for (let i = 0; i < aoa.length; i++) {
+          const row = aoa[i] ?? [];
+          if (Array.isArray(row) && headerLooksRight(row)) {
+            return { sheetName, headerRow: sampleRange.s.r + i };
+          }
+        }
+      }
+
+      // fallback to the first sheet (may still work for simpler files)
+      return { sheetName: workbook.SheetNames[0], headerRow: 0 };
+    };
+
+    const { sheetName, headerRow } = findBestSheet();
     const sheet = workbook.Sheets[sheetName];
     if (!sheet) throw new Error('Worksheet could not be loaded');
 
     const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
       defval: null,
       raw: true,
+      range: headerRow,
     });
 
-    console.log(`Using worksheet: ${sheetName} with ${rows.length} rows`);
+    console.log(`Using worksheet: ${sheetName} (header row: ${headerRow + 1}) with ${rows.length} rows`);
 
     const normalized = rows
       .map((row) =>
@@ -99,6 +137,10 @@ export default function AdminICEImport() {
         ) as Record<string, unknown>
       )
       .filter((row) => {
+        const keys = Object.keys(row).map((k) => k.toLowerCase());
+        const looksLikeMaterialRow = keys.some((k) => k.includes('material')) && keys.some((k) => k.includes('ef') || k.includes('kgco2') || k.includes('co2'));
+        if (!looksLikeMaterialRow) return false;
+
         const meaningful = Object.values(row).filter(
           (v) => v !== null && v !== undefined && String(v).trim() !== ''
         );
@@ -111,56 +153,104 @@ export default function AdminICEImport() {
 
   const runImport = async (dryRun: boolean) => {
     setIsImporting(true);
-    setProgress(10);
+    setProgress(5);
+    setProgressLabel('Reading spreadsheet…');
     setCurrentStep(dryRun ? 'previewing' : 'importing');
 
     try {
-      setProgress(20);
-      toast.info('Reading Excel file...');
-      
       const materials = await parseExcelFile();
-      setProgress(40);
-      toast.info(`Parsed ${materials.length} rows, sending to server...`);
-      
-      const { data, error } = await supabase.functions.invoke('import-ice-materials', {
-        body: { 
-          dryRun,
-          materials
-        }
-      });
 
-      setProgress(90);
-
-      if (error) {
-        throw new Error(error.message || 'Import failed');
+      if (!materials.length) {
+        throw new Error('No material rows found in the spreadsheet (check worksheet/header detection).');
       }
 
-      if (dryRun && data?.preview) {
-        setPreviewData(data.preview.slice(0, 20));
+      const totalChunks = Math.ceil(materials.length / CHUNK_SIZE);
+      const totalRows = materials.length;
+
+      let totalValid = 0;
+      let totalErrors = 0;
+      let totalInserted = 0;
+      const allErrors: string[] = [];
+      const categories = new Set<string>();
+      const preview: MaterialPreview[] = [];
+
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const start = chunkIndex * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, totalRows);
+
+        setProgressLabel(
+          `${dryRun ? 'Previewing' : 'Importing'} rows ${start + 1}-${end} of ${totalRows} (chunk ${chunkIndex + 1}/${totalChunks})…`
+        );
+
+        const pct = 20 + Math.round(((chunkIndex + 1) / totalChunks) * 70);
+        setProgress(pct);
+
+        const { data, error } = await supabase.functions.invoke('import-ice-materials', {
+          body: {
+            dryRun,
+            materials: materials.slice(start, end),
+          },
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Import failed');
+        }
+
+        if (dryRun) {
+          totalValid += data?.validCount || 0;
+        } else {
+          totalInserted += data?.inserted || 0;
+        }
+
+        totalErrors += data?.errorCount || 0;
+
+        if (Array.isArray(data?.categories)) {
+          for (const c of data.categories) categories.add(c);
+        }
+
+        if (Array.isArray(data?.preview) && preview.length < 20) {
+          preview.push(...data.preview.slice(0, 20 - preview.length));
+        }
+
+        if (Array.isArray(data?.errors) && allErrors.length < 200) {
+          for (const e of data.errors) {
+            const rowNum = start + (e?.row ?? 0);
+            allErrors.push(`Row ${rowNum}: ${e?.error ?? 'Invalid or empty material data'}`);
+            if (allErrors.length >= 200) break;
+          }
+        }
+      }
+
+      setProgressLabel('Finalizing…');
+      setProgress(95);
+
+      if (dryRun) {
+        setPreviewData(preview);
         setImportResult({
           success: true,
-          imported: data.validCount || 0,
+          imported: totalValid,
           updated: 0,
-          skipped: data.errorCount || 0,
-          errors: data.errors?.map((e: { row: number; error: string }) => `Row ${e.row}: ${e.error}`) || [],
+          skipped: totalErrors,
+          errors: allErrors,
           validationIssues: [],
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-        toast.success(`Preview complete: ${data.validCount} materials ready for import`);
+        toast.success(`Preview complete: ${totalValid} materials ready for import`);
       } else {
         setImportResult({
-          success: data?.success ?? true,
-          imported: data?.inserted || 0,
+          success: true,
+          imported: totalInserted,
           updated: 0,
-          skipped: data?.errorCount || 0,
-          errors: data?.errors?.map((e: { row: number; error: string }) => `Row ${e.row}: ${e.error}`) || [],
+          skipped: totalErrors,
+          errors: allErrors,
           validationIssues: [],
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-        toast.success(`Import complete: ${data?.inserted || 0} materials imported`);
+        toast.success(`Import complete: ${totalInserted} materials imported`);
       }
 
       setProgress(100);
+      setProgressLabel('');
       setCurrentStep('complete');
     } catch (error) {
       console.error('Import error:', error);
@@ -172,11 +262,12 @@ export default function AdminICEImport() {
         skipped: 0,
         errors: [error instanceof Error ? error.message : 'Unknown error'],
         validationIssues: [],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       setCurrentStep('complete');
     } finally {
       setIsImporting(false);
+      setProgressLabel('');
     }
   };
 
@@ -184,6 +275,7 @@ export default function AdminICEImport() {
     setImportResult(null);
     setPreviewData([]);
     setProgress(0);
+    setProgressLabel('');
     setCurrentStep('ready');
   };
 
@@ -263,7 +355,9 @@ export default function AdminICEImport() {
           {isImporting && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span>{currentStep === 'previewing' ? 'Analyzing materials...' : 'Importing materials...'}</span>
+                <span>
+                  {progressLabel || (currentStep === 'previewing' ? 'Analyzing materials…' : 'Importing materials…')}
+                </span>
                 <span>{progress}%</span>
               </div>
               <Progress value={progress} className="h-2" />
