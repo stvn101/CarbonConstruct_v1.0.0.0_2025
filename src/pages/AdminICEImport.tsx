@@ -153,10 +153,17 @@ export default function AdminICEImport() {
     'wool', 'fibre', 'fiber', 'foam', 'rubber', 'iron', 'brass', 'chrome'
   ];
 
-  const scoreHeaderRow = (row: unknown[]): number => {
+  // Score a row for being a header - pass rowIndex to apply position bonus
+  const scoreHeaderRow = (row: unknown[], rowIndex: number = 0): number => {
     const cells = row.map((c) => normalize(c));
     const tokens = cells.filter(c => c && c.length > 0).map(c => c.toLowerCase());
     let score = 0;
+    
+    // CRITICAL: Early row bonus - headers are almost always in first 10 rows
+    if (rowIndex <= 5) score += 50;  // Rows 0-5 get huge bonus
+    else if (rowIndex <= 10) score += 30;  // Rows 6-10 get good bonus
+    else if (rowIndex <= 20) score += 10;  // Rows 11-20 get small bonus
+    else score -= (rowIndex - 20) * 2;  // Beyond row 20, increasingly unlikely
     
     let numericCount = 0;
     let longCellCount = 0;
@@ -176,6 +183,7 @@ export default function AdminICEImport() {
       
       // Penalize very long cells (descriptions are data, not headers)
       if (cell.length > 60) longCellCount++;
+      if (cell.length > 100) longCellCount += 2; // Extra penalty for very long
       
       // Strong penalty if cell looks like a material name (DATA, not header)
       for (const pattern of MATERIAL_PATTERNS) {
@@ -185,32 +193,33 @@ export default function AdminICEImport() {
         }
       }
       
-      // Reward header keywords
+      // Reward header keywords - exact matches score higher
       for (const keyword of HEADER_KEYWORDS) {
         if (lower === keyword) {
-          headerKeywordMatches += 4;
+          headerKeywordMatches += 6;
         } else if (lower.includes(keyword)) {
-          headerKeywordMatches += 2;
+          headerKeywordMatches += 3;
         }
       }
       
-      // ICE-specific header patterns
-      if (lower.includes('kgco2e') || lower.includes('ef (')) score += 10;
-      if (lower === 'material' || lower === 'materials') score += 15;
-      if (lower === 'unit' || lower === 'units') score += 10;
-      if (lower.includes('embodied carbon')) score += 15;
-      if (lower.includes('category')) score += 5;
+      // ICE-specific header patterns - these are definitive
+      if (lower.includes('kgco2e') || lower.includes('ef (')) score += 20;
+      if (lower === 'material' || lower === 'materials') score += 25;
+      if (lower === 'unit' || lower === 'units') score += 20;
+      if (lower.includes('embodied carbon')) score += 20;
+      if (lower === 'category' || lower === 'sub-category') score += 15;
+      if (lower === 'density' || lower === 'notes') score += 10;
     }
     
     // Apply scores
     score += headerKeywordMatches;
-    score -= numericCount * 4;
-    score -= longCellCount * 3;
-    score -= materialDataMatches * 20; // Heavy penalty for material name patterns
+    score -= numericCount * 5;  // Increased penalty
+    score -= longCellCount * 5;  // Increased penalty
+    score -= materialDataMatches * 30; // Heavy penalty for material name patterns
     
-    if (tokens.length < 3) score -= 10;
-    if (numericCount >= 2) score -= 15;
-    if (materialDataMatches >= 1) score -= 25; // Row with any material name is definitely DATA
+    if (tokens.length < 3) score -= 15;
+    if (numericCount >= 2) score -= 25;  // Increased penalty
+    if (materialDataMatches >= 1) score -= 40; // Row with any material name is definitely DATA
     
     return score;
   };
@@ -388,28 +397,30 @@ export default function AdminICEImport() {
       let bestRowIndex = 0;
 
       // Debug: Log first few rows to help diagnose header detection
-      console.log(`[ICE Import] Analyzing sheet "${sheetName}" - first 10 rows:`);
-      for (let i = 0; i < Math.min(10, aoa.length); i++) {
+      console.log(`[ICE Import] Analyzing sheet "${sheetName}" - first 15 rows:`);
+      for (let i = 0; i < Math.min(15, aoa.length); i++) {
         const row = aoa[i] ?? [];
         if (Array.isArray(row)) {
-          const score = scoreHeaderRow(row);
-          const preview = row.slice(0, 5).map(c => String(c ?? '').substring(0, 20));
-          console.log(`  Row ${sampleRange.s.r + i}: score=${score}, preview=${JSON.stringify(preview)}`);
+          const actualRowIndex = sampleRange.s.r + i;
+          const score = scoreHeaderRow(row, actualRowIndex);
+          const preview = row.slice(0, 5).map(c => String(c ?? '').substring(0, 25));
+          console.log(`  Row ${actualRowIndex}: score=${score}, preview=${JSON.stringify(preview)}`);
           if (score > bestRowScore) {
             bestRowScore = score;
-            bestRowIndex = sampleRange.s.r + i;
+            bestRowIndex = actualRowIndex;
           }
         }
       }
       
-      // Continue scoring remaining rows
-      for (let i = 10; i < aoa.length; i++) {
+      // Continue scoring remaining rows (with row position factored in)
+      for (let i = 15; i < aoa.length; i++) {
         const row = aoa[i] ?? [];
         if (Array.isArray(row)) {
-          const score = scoreHeaderRow(row);
+          const actualRowIndex = sampleRange.s.r + i;
+          const score = scoreHeaderRow(row, actualRowIndex);
           if (score > bestRowScore) {
             bestRowScore = score;
-            bestRowIndex = sampleRange.s.r + i;
+            bestRowIndex = actualRowIndex;
           }
         }
       }
@@ -1179,7 +1190,7 @@ export default function AdminICEImport() {
                       min={0}
                       value={validationPreview.selectedHeaderRow}
                       onChange={(e) => updateHeaderRow(parseInt(e.target.value) || 0)}
-                      className="flex-1"
+                      className="w-20 text-center"
                     />
                     <Button
                       variant="outline"
@@ -1188,9 +1199,28 @@ export default function AdminICEImport() {
                     >
                       +1
                     </Button>
+                    {/* Quick preset buttons for common header positions */}
+                    <div className="flex gap-1 ml-2">
+                      {[3, 4, 5].map(row => (
+                        <Button
+                          key={row}
+                          variant={validationPreview.selectedHeaderRow === row ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => updateHeaderRow(row)}
+                          className="px-2"
+                        >
+                          Row {row}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Auto-detected: row {validationPreview.selectedHeaderRow}. Use +/- buttons to adjust if headers look wrong.
+                    Auto-detected: row {validationPreview.selectedHeaderRow}. 
+                    {validationPreview.selectedHeaderRow > 10 && (
+                      <span className="text-destructive font-medium ml-1">
+                        Warning: Header usually in rows 3-5 for ICE files. Try clicking "Row 3" or "Row 4" above.
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
