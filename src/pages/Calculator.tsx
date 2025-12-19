@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet, Cloud, CloudOff, FileUp } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet, Cloud, CloudOff, FileUp, FileDown, CheckCircle } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
@@ -265,8 +265,39 @@ export default function Calculator() {
   });
   
   // Favorite materials for quick-add
-  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites, syncWithDatabase, cloudSyncEnabled, isSyncing, saveToCloud } = useFavoriteMaterials();
+  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites, syncWithDatabase, cloudSyncEnabled, isSyncing, lastSyncTime, saveToCloud } = useFavoriteMaterials();
   const csvInputRef = useRef<HTMLInputElement>(null);
+  
+  // Download sample CSV template
+  const downloadCSVTemplate = () => {
+    const template = `name,quantity,unit,factor,category
+"Concrete 32MPa",100,m³,320,Concrete
+"Steel Reinforcing",500,kg,1.99,Steel
+"Timber Softwood",25,m³,718,Timber`;
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'material-import-template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: "Template Downloaded", description: "Open in Excel or any spreadsheet app" });
+  };
+
+  // Format last sync time
+  const formatSyncTime = (date: Date | null) => {
+    if (!date) return null;
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return date.toLocaleDateString();
+  };
   
   // Category counts for browser - using EPD database
   const categoryCounts = useMemo(() => {
@@ -1557,7 +1588,7 @@ export default function Calculator() {
                           <Crown className="h-3 w-3 ml-1 text-amber-500" />
                         </Button>
                       )}
-                      {/* Bulk CSV Import */}
+                      {/* Bulk CSV Import with Template Download */}
                       <input
                         ref={csvInputRef}
                         type="file"
@@ -1565,41 +1596,69 @@ export default function Calculator() {
                         onChange={handleBulkCSVImport}
                         className="hidden"
                       />
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => csvInputRef.current?.click()}
-                        className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 text-xs md:text-sm"
-                      >
-                        <FileUp className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                        <span className="hidden md:inline">Import CSV</span>
-                      </Button>
-                      {/* Cloud Sync */}
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={async () => {
-                          const result = await saveToCloud();
-                          toast({ 
-                            title: result.success ? "Synced to Cloud" : "Sync Failed",
-                            description: result.message,
-                            variant: result.success ? "default" : "destructive"
-                          });
-                        }}
-                        disabled={isSyncing}
-                        className={`text-xs md:text-sm ${cloudSyncEnabled 
-                          ? 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100' 
-                          : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
-                      >
-                        {isSyncing ? (
-                          <Loader2 className="h-3 w-3 md:h-4 md:w-4 mr-1 animate-spin" />
-                        ) : cloudSyncEnabled ? (
-                          <Cloud className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                        ) : (
-                          <CloudOff className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                      <div className="flex items-center gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={downloadCSVTemplate}
+                              className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 text-xs px-2"
+                            >
+                              <FileDown className="h-3 w-3 md:h-4 md:w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Download CSV template</TooltipContent>
+                        </Tooltip>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => csvInputRef.current?.click()}
+                          className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 text-xs md:text-sm"
+                        >
+                          <FileUp className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                          <span className="hidden md:inline">Import CSV</span>
+                        </Button>
+                      </div>
+                      {/* Cloud Sync with Status Indicator */}
+                      <div className="flex items-center gap-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={async () => {
+                            const result = await saveToCloud();
+                            toast({ 
+                              title: result.success ? "Synced to Cloud" : "Sync Failed",
+                              description: result.message,
+                              variant: result.success ? "default" : "destructive"
+                            });
+                          }}
+                          disabled={isSyncing}
+                          className={`text-xs md:text-sm ${cloudSyncEnabled 
+                            ? 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100' 
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                        >
+                          {isSyncing ? (
+                            <Loader2 className="h-3 w-3 md:h-4 md:w-4 mr-1 animate-spin" />
+                          ) : cloudSyncEnabled ? (
+                            <Cloud className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                          ) : (
+                            <CloudOff className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                          )}
+                          <span className="hidden md:inline">{isSyncing ? 'Syncing...' : 'Sync'}</span>
+                        </Button>
+                        {cloudSyncEnabled && lastSyncTime && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs border border-emerald-200">
+                                <CheckCircle className="h-3 w-3" />
+                                <span className="hidden lg:inline">{formatSyncTime(lastSyncTime)}</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>Last synced: {lastSyncTime.toLocaleString()}</TooltipContent>
+                          </Tooltip>
                         )}
-                        <span className="hidden md:inline">{isSyncing ? 'Syncing...' : 'Sync'}</span>
-                      </Button>
+                      </div>
                       <Button 
                         variant="outline" 
                         size="sm" 
