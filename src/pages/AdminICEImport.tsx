@@ -147,7 +147,8 @@ export default function AdminICEImport() {
 
   const scoreHeaderRow = (row: unknown[]): number => {
     const cells = row.map((c) => normalize(c));
-    const tokens = cells.map(c => c.toLowerCase()).filter(Boolean);
+    // Filter out empty cells and safely lowercase
+    const tokens = cells.filter(c => c && c.length > 0).map(c => c.toLowerCase());
     let score = 0;
     
     // Count how many cells look like header names vs data values
@@ -156,6 +157,9 @@ export default function AdminICEImport() {
     let headerKeywordMatches = 0;
     
     for (const cell of cells) {
+      // Skip empty cells
+      if (!cell || cell.length === 0) continue;
+      
       const lower = cell.toLowerCase();
       
       // Penalize numeric values (data rows have numbers)
@@ -644,10 +648,18 @@ export default function AdminICEImport() {
         const pct = 10 + Math.round(((chunkIndex + 1) / totalChunks) * 80);
         setProgress(pct);
 
+        const chunkMaterials = materials.slice(start, end);
+        
+        // Debug: log first chunk's structure
+        if (chunkIndex === 0 && chunkMaterials.length > 0) {
+          console.log('[ICE Import] Sample material columns:', Object.keys(chunkMaterials[0]));
+          console.log('[ICE Import] Sample material data:', JSON.stringify(chunkMaterials[0]).slice(0, 500));
+        }
+        
         const { data, error } = await supabase.functions.invoke('import-ice-materials', {
           body: {
             dryRun,
-            materials: materials.slice(start, end),
+            materials: chunkMaterials,
             jobId,
           },
         });
