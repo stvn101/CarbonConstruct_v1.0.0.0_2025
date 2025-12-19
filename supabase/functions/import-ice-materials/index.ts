@@ -123,14 +123,15 @@ function normalizeUnit(unit: string): string {
 }
 
 // Column name mapping for ICE spreadsheet variations (ICE Database V4.1 Oct 2025)
-// Also includes mapped column names that the frontend sends after transformation
+// EXACT column names from ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx
 const COLUMN_MAPPINGS: Record<string, string[]> = {
   material_name: [
-    // Direct mapped names from frontend
-    'material_name', 'Material', 'Materials', 'Material Name', 'Name',
-    'MATERIAL', 'Material name', 'MATERIALS',
-    // ICE V4.1 patterns
-    'Name Exactly as in ICE DB'
+    // EXACT ICE V4.1 column names (priority order)
+    'Materials',
+    'Name Exactly as in ICE DB',
+    // Fallback names
+    'material_name', 'Material', 'Material Name', 'Name',
+    'MATERIAL', 'Material name', 'MATERIALS'
   ],
   material_category: [
     'material_category', 'Category', 'Material Category', 'Main Category',
@@ -145,17 +146,17 @@ const COLUMN_MAPPINGS: Record<string, string[]> = {
     'UNITS', 'Unit of measurement'
   ],
   ef_total: [
-    // Direct mapped name from frontend
-    'ef_total',
-    // ICE V4.1 specific headers
-    'EF (kgCO2e/ unit)', 'EF (kgCO2e/unit)', 'EF(kgCO2e/unit)',
-    'EF (kgCO2e / unit)', 'Embodied Carbon (kgCO2e/kg)',
-    'EF kgCO2e/kg', 'kgCO2e/kg', 'kgCO2e / kg',
-    'Embodied Carbon - kgCO2e per tonne', 'Embodied Carbon -  kgCO2e per tonne',
+    // EXACT ICE V4.1 column name
     'Embodied Carbon - kgCO2e/kg',
-    // Generic headers
+    // Other ICE variations
+    'Embodied Carbon -  kgCO2e per tonne',
+    'Embodied Carbon - kgCO2e per tonne',
+    'Embodied Carbon (kgCO2e/kg)',
+    // Fallback names
+    'ef_total', 'EF (kgCO2e/unit)', 'EF (kgCO2e/ unit)',
+    'EF kgCO2e/kg', 'kgCO2e/kg', 'kgCO2e / kg',
     'EF Total', 'EF', 'Embodied Carbon', 'Total EF',
-    'GWP', 'Total GWP', 'EF_Total', 'GWP Total', 'Total GWP-fossil',
+    'GWP', 'Total GWP', 'EF_Total', 'GWP Total',
     'EF (kgCO2e)', 'kgCO2e'
   ],
   ef_a1a3: [
@@ -166,11 +167,18 @@ const COLUMN_MAPPINGS: Record<string, string[]> = {
     'ef_d', 'Module D', 'EF D', 'D', 'Mod D', 'Module_D'
   ],
   data_quality: [
-    'data_quality', 'data_quality_tier', 'DQI Score', 'DQI', 'Data Quality',
+    // EXACT ICE V4.1 column names
+    'DQI Score',
+    'DQI Version',
+    // Fallback names
+    'data_quality', 'data_quality_tier', 'DQI', 'Data Quality',
     'Quality', 'Data Quality Rating', 'Quality Score'
   ],
   notes: [
-    'notes', 'Notes', 'Comments', 'Comment', 'Description',
+    // EXACT ICE V4.1 column name
+    'Comments',
+    // Fallback names
+    'notes', 'Notes', 'Comment', 'Description',
     'NOTES', 'Additional Notes', 'Remarks'
   ],
   year: [
@@ -184,6 +192,10 @@ const COLUMN_MAPPINGS: Record<string, string[]> = {
   recycled_content: [
     'recycled_content', 'Recycled Content', 'Recycled', 'Recycled %',
     '% Recycled', 'Recycled Content (%)'
+  ],
+  canonical_name: [
+    // EXACT ICE V4.1 column name for canonical material name
+    'Name Exactly as in ICE DB'
   ],
 };
 
