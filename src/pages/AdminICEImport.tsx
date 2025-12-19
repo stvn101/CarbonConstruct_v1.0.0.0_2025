@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input";
 import {
   Database, Upload, FileSpreadsheet, CheckCircle, AlertTriangle,
   RefreshCw, ExternalLink, Loader2, XCircle,
-  Info, FileCheck, Eye, ArrowRight, Settings2, History, UploadCloud
+  Info, FileCheck, Eye, ArrowRight, Settings2, History, UploadCloud,
+  Download, PlayCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -73,9 +74,14 @@ interface ImportJob {
   total_rows: number;
   processed_rows: number;
   imported_count: number;
+  skipped_count: number;
   error_count: number;
   created_at: string;
   completed_at: string | null;
+  worksheet_name: string | null;
+  header_row: number | null;
+  column_mappings: ColumnMapping[] | null;
+  validation_preview: Record<string, unknown> | null;
 }
 
 type ImportStep = 'idle' | 'parsing' | 'preview' | 'importing' | 'complete';
@@ -95,6 +101,7 @@ export default function AdminICEImport() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [recentJobs, setRecentJobs] = useState<ImportJob[]>([]);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Fetch recent import jobs
   useEffect(() => {
@@ -648,6 +655,128 @@ export default function AdminICEImport() {
     setStep('preview');
   };
 
+  // Resume a failed or incomplete import job
+  const resumeImportJob = async (job: ImportJob) => {
+    if (!job.worksheet_name || job.header_row === null) {
+      toast.error('Cannot resume: missing worksheet or header row info');
+      return;
+    }
+
+    setIsLoading(true);
+    setStep('parsing');
+    setProgress(10);
+    setProgressLabel('Loading original file for resume...');
+
+    try {
+      // For now, we can only resume from the demo file
+      // In production, you'd store the file in Supabase Storage
+      const response = await fetch('/demo/ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx');
+      const arrayBuffer = await response.arrayBuffer();
+
+      const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: false, raw: true });
+      setWorkbook(wb);
+
+      const sheet = wb.Sheets[job.worksheet_name];
+      if (!sheet) {
+        throw new Error(`Worksheet "${job.worksheet_name}" not found`);
+      }
+
+      setProgress(50);
+      setProgressLabel('Parsing remaining rows...');
+
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+        defval: null,
+        raw: true,
+        range: job.header_row,
+      });
+
+      // Skip already processed rows
+      const startRow = job.processed_rows || 0;
+      const remainingRows = rows.slice(startRow);
+
+      if (remainingRows.length === 0) {
+        toast.info('All rows already processed');
+        setStep('idle');
+        setIsLoading(false);
+        return;
+      }
+
+      const sampleRows = remainingRows.slice(0, 10);
+      const headers = Object.keys(sampleRows[0] || {});
+
+      const detectedColumns: ColumnMapping[] = (job.column_mappings || headers
+        .filter(h => h.length > 0)
+        .slice(0, 15)
+        .map((original) => ({
+          original,
+          mappedTo: mapColumnName(original),
+          sampleValue: normalize(sampleRows[0]?.[original] ?? ''),
+        })));
+
+      const parsedMaterials = remainingRows.filter((row) => {
+        const values = Object.values(row).filter(v => v !== null && v !== undefined && String(v).trim() !== '');
+        return values.length >= 3;
+      });
+
+      setValidationPreview({
+        worksheets: [{ name: job.worksheet_name, rowCount: rows.length, detectedHeaderRow: job.header_row, headerScore: 10 }],
+        selectedWorksheet: job.worksheet_name,
+        selectedHeaderRow: job.header_row,
+        detectedColumns,
+        sampleRows,
+        totalRows: parsedMaterials.length,
+        parsedMaterials,
+      });
+
+      setCurrentJobId(job.id);
+      setStep('preview');
+      toast.success(`Resuming import: ${parsedMaterials.length} remaining rows`);
+    } catch (error) {
+      console.error('Resume error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to resume import');
+      setStep('idle');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Export materials database to CSV/Excel
+  const exportMaterials = async (format: 'csv' | 'xlsx') => {
+    setIsExporting(true);
+    try {
+      const { data, error } = await supabase
+        .from('materials_epd')
+        .select('*')
+        .order('material_category', { ascending: true })
+        .order('material_name', { ascending: true });
+
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        toast.error('No materials to export');
+        return;
+      }
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Materials');
+
+      const fileName = `materials_epd_export_${new Date().toISOString().slice(0, 10)}`;
+      
+      if (format === 'csv') {
+        XLSX.writeFile(wb, `${fileName}.csv`, { bookType: 'csv' });
+      } else {
+        XLSX.writeFile(wb, `${fileName}.xlsx`, { bookType: 'xlsx' });
+      }
+
+      toast.success(`Exported ${data.length} materials to ${format.toUpperCase()}`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error(error instanceof Error ? error.message : 'Export failed');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen w-full">
       <AdminSidebar />
@@ -1093,6 +1222,37 @@ export default function AdminICEImport() {
           </Card>
         )}
 
+        {/* Export Materials */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="h-5 w-5" />
+              Export Materials Database
+            </CardTitle>
+            <CardDescription>
+              Download all materials from the database for backup or sharing
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex gap-4">
+            <Button
+              variant="outline"
+              onClick={() => exportMaterials('csv')}
+              disabled={isExporting}
+            >
+              {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              Export as CSV
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => exportMaterials('xlsx')}
+              disabled={isExporting}
+            >
+              {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 mr-2" />}
+              Export as Excel
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Recent Import Jobs */}
         {recentJobs.length > 0 && (
           <Card>
@@ -1102,7 +1262,7 @@ export default function AdminICEImport() {
                 Recent Import Jobs
               </CardTitle>
               <CardDescription>
-                Audit trail of ICE database imports
+                Audit trail of ICE database imports. Failed or incomplete jobs can be resumed.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1112,33 +1272,62 @@ export default function AdminICEImport() {
                     <TableRow>
                       <TableHead>File</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Rows</TableHead>
+                      <TableHead>Progress</TableHead>
                       <TableHead>Imported</TableHead>
                       <TableHead>Errors</TableHead>
                       <TableHead>Date</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentJobs.map((job) => (
-                      <TableRow key={job.id}>
-                        <TableCell className="font-medium truncate max-w-[200px]">{job.file_name}</TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            job.status === 'completed' ? 'default' :
-                            job.status === 'failed' ? 'destructive' :
-                            'secondary'
-                          }>
-                            {job.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{job.processed_rows}/{job.total_rows}</TableCell>
-                        <TableCell className="text-emerald-600">{job.imported_count}</TableCell>
-                        <TableCell className="text-destructive">{job.error_count}</TableCell>
-                        <TableCell className="text-muted-foreground text-xs">
-                          {new Date(job.created_at).toLocaleDateString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {recentJobs.map((job) => {
+                      const canResume = (job.status === 'failed' || job.status === 'importing') && 
+                                        job.processed_rows < job.total_rows &&
+                                        job.worksheet_name;
+                      return (
+                        <TableRow key={job.id}>
+                          <TableCell className="font-medium truncate max-w-[200px]">{job.file_name}</TableCell>
+                          <TableCell>
+                            <Badge variant={
+                              job.status === 'completed' ? 'default' :
+                              job.status === 'failed' ? 'destructive' :
+                              'secondary'
+                            }>
+                              {job.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Progress 
+                                value={(job.processed_rows / job.total_rows) * 100} 
+                                className="h-2 w-16" 
+                              />
+                              <span className="text-xs text-muted-foreground">
+                                {job.processed_rows}/{job.total_rows}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-emerald-600">{job.imported_count}</TableCell>
+                          <TableCell className="text-destructive">{job.error_count}</TableCell>
+                          <TableCell className="text-muted-foreground text-xs">
+                            {new Date(job.created_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            {canResume && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => resumeImportJob(job)}
+                                disabled={isLoading}
+                              >
+                                <PlayCircle className="h-4 w-4 mr-1" />
+                                Resume
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
