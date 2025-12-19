@@ -1,15 +1,187 @@
-import { Database, CheckCircle, BarChart3, FileCheck, Clock, Layers, PieChart, AlertTriangle, Shield, AlertCircle, Calendar } from "lucide-react";
+import { Database, CheckCircle, BarChart3, FileCheck, Clock, Layers, PieChart, AlertTriangle, Shield, AlertCircle, Calendar, Download, FileSpreadsheet, FileText } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMaterialsDatabaseStats, DataSourceStats } from "@/hooks/useMaterialsDatabaseStats";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useMaterialsDatabaseStats, DataSourceStats, MaterialsDatabaseStats } from "@/hooks/useMaterialsDatabaseStats";
 import { SEOHead } from "@/components/SEOHead";
 import { DataSourceAttribution, MultiSourceAttribution } from "@/components/DataSourceAttribution";
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { toast } from "sonner";
 
 export default function MaterialDatabaseStatus() {
   const { data: stats, isLoading, error } = useMaterialsDatabaseStats();
+
+  const exportToCSV = (statsData: MaterialsDatabaseStats) => {
+    const rows = [
+      ['CarbonConstruct Materials Database Statistics Report'],
+      [`Generated: ${new Date().toISOString()}`],
+      [''],
+      ['=== Overview ==='],
+      ['Total Materials', statsData.totalMaterials.toString()],
+      ['Total Categories', statsData.totalCategories.toString()],
+      ['Total Sources', statsData.totalSources.toString()],
+      ['Last Updated', statsData.lastUpdated || 'N/A'],
+      [''],
+      ['=== Data Source Breakdown ==='],
+      ['Source', 'Count', 'Percentage', 'Last Imported'],
+      ...Object.values(statsData.dataSourceStats).map(s => [
+        s.name,
+        s.count.toString(),
+        `${s.percentage}%`,
+        s.lastImported || 'N/A'
+      ]),
+      [''],
+      ['=== Validation Status ==='],
+      ['Pass Rate', `${statsData.validationStatus.passRate}%`],
+      ['Methodology', statsData.validationStatus.methodology],
+      ['Last Validation Date', statsData.validationStatus.lastValidationDate],
+      [''],
+      ['=== Confidence Levels ==='],
+      ['Verified', statsData.confidenceLevelCounts.verified.toString()],
+      ['Documented', statsData.confidenceLevelCounts.documented.toString()],
+      ['Industry Average', statsData.confidenceLevelCounts.industry_average.toString()],
+      ['Needs Review', statsData.confidenceLevelCounts.needs_review.toString()],
+      [''],
+      ['=== Source Tier Distribution ==='],
+      ['Tier 1 (EPD Australasia/NABERS)', statsData.sourceTierCounts.tier1.toString()],
+      ['Tier 2 (ICM/International EPD)', statsData.sourceTierCounts.tier2.toString()],
+      ['Tier 3 (Requires Review)', statsData.sourceTierCounts.tier3.toString()],
+      [''],
+      ['=== Metadata Completeness ==='],
+      ['With EPD Number', statsData.metadataCompleteness.withEpdNumber.toString()],
+      ['With Manufacturer', statsData.metadataCompleteness.withManufacturer.toString()],
+      ['With EPD URL', statsData.metadataCompleteness.withEpdUrl.toString()],
+      ['With State', statsData.metadataCompleteness.withState.toString()],
+      [''],
+      ['=== Category Breakdown ==='],
+      ['Category', 'Count'],
+      ...statsData.categoryBreakdown.map(c => [c.category, c.count.toString()]),
+    ];
+
+    const csvContent = rows.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `carbonconstruct-database-stats-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success('CSV report downloaded successfully');
+  };
+
+  const exportToPDF = async (statsData: MaterialsDatabaseStats) => {
+    // Create HTML content for PDF
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+            h1 { color: #059669; margin-bottom: 8px; }
+            h2 { color: #064e3b; margin-top: 24px; border-bottom: 2px solid #10b981; padding-bottom: 8px; }
+            .subtitle { color: #6b7280; margin-bottom: 24px; }
+            table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+            th, td { border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; }
+            th { background-color: #f3f4f6; font-weight: 600; }
+            .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 16px 0; }
+            .stat-box { background: #f9fafb; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; }
+            .stat-label { font-size: 12px; color: #6b7280; }
+            .stat-value { font-size: 24px; font-weight: 700; color: #059669; }
+            .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+          </style>
+        </head>
+        <body>
+          <h1>CarbonConstruct Materials Database Report</h1>
+          <p class="subtitle">Generated: ${new Date().toLocaleDateString('en-AU', { dateStyle: 'full' })}</p>
+          
+          <div class="stat-grid">
+            <div class="stat-box">
+              <div class="stat-label">Total Materials</div>
+              <div class="stat-value">${statsData.totalMaterials.toLocaleString()}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Total Categories</div>
+              <div class="stat-value">${statsData.totalCategories}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Validation Pass Rate</div>
+              <div class="stat-value">${statsData.validationStatus.passRate}%</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Data Sources</div>
+              <div class="stat-value">${statsData.totalSources}</div>
+            </div>
+          </div>
+
+          <h2>Data Source Breakdown</h2>
+          <table>
+            <thead>
+              <tr><th>Source</th><th>Count</th><th>Percentage</th><th>Last Imported</th></tr>
+            </thead>
+            <tbody>
+              ${Object.values(statsData.dataSourceStats).map(s => `
+                <tr>
+                  <td>${s.name}</td>
+                  <td>${s.count.toLocaleString()}</td>
+                  <td>${s.percentage}%</td>
+                  <td>${s.lastImported ? new Date(s.lastImported).toLocaleDateString() : 'N/A'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <h2>Confidence Levels</h2>
+          <table>
+            <thead><tr><th>Level</th><th>Count</th></tr></thead>
+            <tbody>
+              <tr><td>Verified EPD</td><td>${statsData.confidenceLevelCounts.verified.toLocaleString()}</td></tr>
+              <tr><td>Documented Variant</td><td>${statsData.confidenceLevelCounts.documented.toLocaleString()}</td></tr>
+              <tr><td>Industry Average</td><td>${statsData.confidenceLevelCounts.industry_average.toLocaleString()}</td></tr>
+              <tr><td>Needs Review</td><td>${statsData.confidenceLevelCounts.needs_review.toLocaleString()}</td></tr>
+            </tbody>
+          </table>
+
+          <h2>Source Credibility Tiers</h2>
+          <table>
+            <thead><tr><th>Tier</th><th>Count</th></tr></thead>
+            <tbody>
+              <tr><td>Tier 1: EPD Australasia / NABERS</td><td>${statsData.sourceTierCounts.tier1.toLocaleString()}</td></tr>
+              <tr><td>Tier 2: ICM / International EPD</td><td>${statsData.sourceTierCounts.tier2.toLocaleString()}</td></tr>
+              <tr><td>Tier 3: Requires Review</td><td>${statsData.sourceTierCounts.tier3.toLocaleString()}</td></tr>
+            </tbody>
+          </table>
+
+          <div class="footer">
+            <p><strong>CarbonConstruct</strong> • Materials Database Statistics Report</p>
+            <p>Version: v2025.1 • Last Database Update: ${statsData.lastUpdated ? new Date(statsData.lastUpdated).toLocaleDateString() : 'N/A'}</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Dynamic import html2pdf.js
+    const html2pdf = (await import('html2pdf.js')).default;
+    const element = document.createElement('div');
+    element.innerHTML = htmlContent;
+    document.body.appendChild(element);
+    
+    html2pdf()
+      .set({
+        margin: 10,
+        filename: `carbonconstruct-database-stats-${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
+      .from(element)
+      .save()
+      .then(() => {
+        document.body.removeChild(element);
+        toast.success('PDF report downloaded successfully');
+      });
+  };
 
   if (error) {
     return (
@@ -47,6 +219,28 @@ export default function MaterialDatabaseStatus() {
           Real-time validation statistics using our comprehensive 6-layer validation framework. 
           All emission factors validated against NABERS v2025.1 standards.
         </p>
+        
+        {/* Export Buttons */}
+        <div className="flex justify-center gap-2 pt-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={isLoading || !stats}>
+                <Download className="h-4 w-4 mr-2" />
+                Export Report
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => stats && exportToCSV(stats)}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Download as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => stats && exportToPDF(stats)}>
+                <FileText className="h-4 w-4 mr-2" />
+                Download as PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Key Stats */}
