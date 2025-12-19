@@ -125,6 +125,7 @@ export default function AdminICEImport() {
   const [hasEmptyColumns, setHasEmptyColumns] = useState(false);
   const [useIndividualSheets, setUseIndividualSheets] = useState(false);
   const [availableIndividualSheets, setAvailableIndividualSheets] = useState<string[]>([]);
+  const [sheetParseProgress, setSheetParseProgress] = useState<{ name: string; status: 'pending' | 'parsing' | 'done' | 'error'; count: number }[]>([]);
 
   // Fetch recent import jobs
   useEffect(() => {
@@ -888,6 +889,9 @@ export default function AdminICEImport() {
     setProgressLabel('Parsing all individual sheets...');
     setProgress(0);
     
+    // Initialize progress tracking for all sheets
+    setSheetParseProgress(availableIndividualSheets.map(name => ({ name, status: 'pending', count: 0 })));
+    
     try {
       let allMaterials: Record<string, unknown>[] = [];
       let totalRows = 0;
@@ -895,6 +899,11 @@ export default function AdminICEImport() {
       
       for (let i = 0; i < availableIndividualSheets.length; i++) {
         const sheetName = availableIndividualSheets[i];
+        
+        // Update progress for current sheet
+        setSheetParseProgress(prev => prev.map(s => 
+          s.name === sheetName ? { ...s, status: 'parsing' } : s
+        ));
         setProgressLabel(`Parsing ${sheetName}... (${i + 1}/${availableIndividualSheets.length})`);
         setProgress(Math.round((i / availableIndividualSheets.length) * 100));
         
@@ -928,6 +937,11 @@ export default function AdminICEImport() {
         sheetRowCounts.push({ name: sheetName, count: materialsWithSource.length });
         allMaterials = [...allMaterials, ...materialsWithSource];
         totalRows += materialsWithSource.length;
+        
+        // Update progress for completed sheet
+        setSheetParseProgress(prev => prev.map(s => 
+          s.name === sheetName ? { ...s, status: 'done', count: materialsWithSource.length } : s
+        ));
       }
       
       // Get column mappings from the first sheet with data
@@ -1611,6 +1625,79 @@ export default function AdminICEImport() {
                           Materials from all {availableIndividualSheets.length} sheets have been combined. Total: {validationPreview.totalRows} materials.
                         </AlertDescription>
                       </Alert>
+                    )}
+                    
+                    {/* Sheet Parse Progress */}
+                    {sheetParseProgress.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm">Sheet Parse Progress</Label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
+                          {sheetParseProgress.map(sheet => (
+                            <div 
+                              key={sheet.name} 
+                              className={`flex items-center gap-2 text-xs p-2 rounded border ${
+                                sheet.status === 'done' ? 'bg-primary/10 border-primary/30' :
+                                sheet.status === 'parsing' ? 'bg-amber-500/10 border-amber-500/30' :
+                                sheet.status === 'error' ? 'bg-destructive/10 border-destructive/30' :
+                                'bg-muted/50 border-muted'
+                              }`}
+                            >
+                              {sheet.status === 'done' && <CheckCircle className="h-3 w-3 text-primary" />}
+                              {sheet.status === 'parsing' && <Loader2 className="h-3 w-3 text-amber-500 animate-spin" />}
+                              {sheet.status === 'pending' && <div className="h-3 w-3 rounded-full bg-muted-foreground/30" />}
+                              {sheet.status === 'error' && <XCircle className="h-3 w-3 text-destructive" />}
+                              <span className="truncate flex-1">{sheet.name}</span>
+                              {sheet.status === 'done' && <Badge variant="secondary" className="text-[10px] px-1">{sheet.count}</Badge>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Merged Data Preview Table */}
+                    {validationPreview?.selectedWorksheet?.startsWith('All Sheets') && validationPreview.parsedMaterials.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm">Merged Materials Preview (first 15)</Label>
+                        <div className="border rounded-lg overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-muted/50">
+                                <TableHead className="w-24">Source</TableHead>
+                                <TableHead>Material</TableHead>
+                                <TableHead className="w-24 text-right">EF</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {validationPreview.parsedMaterials.slice(0, 15).map((material, idx) => {
+                                const sourceSheet = String(material.__sourceSheet || 'Unknown');
+                                const materialName = String(
+                                  material['Materials'] || material['Material'] || 
+                                  material['material_name'] || Object.values(material).find(v => typeof v === 'string' && v.length > 3) || 'N/A'
+                                ).slice(0, 50);
+                                const ef = Object.entries(material).find(([k]) => 
+                                  k.toLowerCase().includes('embodied') || k.toLowerCase().includes('kgco2e') || k === 'ef_total'
+                                )?.[1];
+                                return (
+                                  <TableRow key={idx} className="text-xs">
+                                    <TableCell>
+                                      <Badge variant="outline" className="text-[10px]">{sourceSheet}</Badge>
+                                    </TableCell>
+                                    <TableCell className="font-medium truncate max-w-[200px]">{materialName}</TableCell>
+                                    <TableCell className="text-right font-mono">
+                                      {typeof ef === 'number' ? ef.toFixed(3) : '-'}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                        {validationPreview.parsedMaterials.length > 15 && (
+                          <p className="text-xs text-muted-foreground text-center">
+                            + {validationPreview.parsedMaterials.length - 15} more materials...
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
