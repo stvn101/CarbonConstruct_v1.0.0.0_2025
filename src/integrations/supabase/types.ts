@@ -274,6 +274,75 @@ export type Database = {
         }
         Relationships: []
       }
+      ice_import_jobs: {
+        Row: {
+          column_mappings: Json | null
+          completed_at: string | null
+          created_at: string
+          error_count: number | null
+          errors: Json | null
+          file_name: string
+          file_size_bytes: number | null
+          header_row: number | null
+          id: string
+          imported_count: number | null
+          processed_rows: number | null
+          skipped_count: number | null
+          started_at: string | null
+          status: string
+          total_rows: number | null
+          updated_at: string
+          updated_count: number | null
+          user_id: string
+          validation_preview: Json | null
+          worksheet_name: string | null
+        }
+        Insert: {
+          column_mappings?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          error_count?: number | null
+          errors?: Json | null
+          file_name: string
+          file_size_bytes?: number | null
+          header_row?: number | null
+          id?: string
+          imported_count?: number | null
+          processed_rows?: number | null
+          skipped_count?: number | null
+          started_at?: string | null
+          status?: string
+          total_rows?: number | null
+          updated_at?: string
+          updated_count?: number | null
+          user_id: string
+          validation_preview?: Json | null
+          worksheet_name?: string | null
+        }
+        Update: {
+          column_mappings?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          error_count?: number | null
+          errors?: Json | null
+          file_name?: string
+          file_size_bytes?: number | null
+          header_row?: number | null
+          id?: string
+          imported_count?: number | null
+          processed_rows?: number | null
+          skipped_count?: number | null
+          started_at?: string | null
+          status?: string
+          total_rows?: number | null
+          updated_at?: string
+          updated_count?: number | null
+          user_id?: string
+          validation_preview?: Json | null
+          worksheet_name?: string | null
+        }
+        Relationships: []
+      }
       materials_epd: {
         Row: {
           allocation_method: string | null

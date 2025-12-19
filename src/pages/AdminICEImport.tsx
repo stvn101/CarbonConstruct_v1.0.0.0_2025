@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,14 +9,13 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
   Database, Upload, FileSpreadsheet, CheckCircle, AlertTriangle,
   RefreshCw, ExternalLink, Loader2, XCircle,
-  Info, FileCheck, Eye, ArrowRight, Settings2
+  Info, FileCheck, Eye, ArrowRight, Settings2, History, UploadCloud
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -33,6 +32,7 @@ interface ImportResult {
   errors: string[];
   validationIssues: { material: string; issue: string }[];
   timestamp: string;
+  duplicatesSkipped?: number;
 }
 
 interface MaterialPreview {
@@ -66,6 +66,18 @@ interface ValidationPreview {
   parsedMaterials: Record<string, unknown>[];
 }
 
+interface ImportJob {
+  id: string;
+  file_name: string;
+  status: string;
+  total_rows: number;
+  processed_rows: number;
+  imported_count: number;
+  error_count: number;
+  created_at: string;
+  completed_at: string | null;
+}
+
 type ImportStep = 'idle' | 'parsing' | 'preview' | 'importing' | 'complete';
 
 export default function AdminICEImport() {
@@ -79,6 +91,29 @@ export default function AdminICEImport() {
   const [previewData, setPreviewData] = useState<MaterialPreview[]>([]);
   const [validationPreview, setValidationPreview] = useState<ValidationPreview | null>(null);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [recentJobs, setRecentJobs] = useState<ImportJob[]>([]);
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+
+  // Fetch recent import jobs
+  useEffect(() => {
+    if (user) {
+      fetchRecentJobs();
+    }
+  }, [user]);
+
+  const fetchRecentJobs = async () => {
+    const { data, error } = await supabase
+      .from('ice_import_jobs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    
+    if (!error && data) {
+      setRecentJobs(data as ImportJob[]);
+    }
+  };
 
   if (!user) {
     return (
@@ -99,7 +134,6 @@ export default function AdminICEImport() {
     const tokens = row.map((c) => normalize(c).toLowerCase()).filter(Boolean);
     let score = 0;
     
-    // Key column indicators
     if (tokens.some((t) => t.includes('material'))) score += 3;
     if (tokens.some((t) => t === 'material' || t === 'materials')) score += 2;
     if (tokens.some((t) => t.includes('name'))) score += 2;
@@ -110,7 +144,6 @@ export default function AdminICEImport() {
     if (tokens.some((t) => t.includes('density'))) score += 1;
     if (tokens.some((t) => t.includes('a1') || t.includes('a1-a3'))) score += 2;
     
-    // Penalty for too few columns
     if (tokens.length < 3) score -= 5;
     
     return score;
@@ -119,15 +152,10 @@ export default function AdminICEImport() {
   const mapColumnName = (original: string): string => {
     const lower = original.toLowerCase().trim();
     
-    // Material name mappings
     if (lower === 'material' || lower === 'materials' || lower === 'material name') return 'material_name';
     if (lower === 'name') return 'material_name';
-    
-    // Category mappings
     if (lower.includes('sub category') || lower.includes('subcategory')) return 'subcategory';
     if (lower.includes('category')) return 'material_category';
-    
-    // EF mappings - ICE specific
     if (lower.includes('embodied carbon') && lower.includes('kgco2e/kg')) return 'ef_total';
     if (lower.includes('ef_total') || lower === 'ef total') return 'ef_total';
     if (lower.includes('a1-a3') || lower.includes('a1a3')) return 'ef_a1a3';
@@ -136,8 +164,6 @@ export default function AdminICEImport() {
     if (lower.includes('b1-b5') || lower.includes('b1b5')) return 'ef_b1b5';
     if (lower.includes('c1-c4') || lower.includes('c1c4')) return 'ef_c1c4';
     if (lower.includes('module d') || lower === 'd') return 'ef_d';
-    
-    // Unit and other mappings
     if (lower === 'unit' || lower === 'units') return 'unit';
     if (lower.includes('density')) return 'density';
     if (lower.includes('recycled')) return 'recycled_content';
@@ -145,15 +171,63 @@ export default function AdminICEImport() {
     if (lower.includes('source') || lower.includes('reference')) return 'data_source';
     if (lower.includes('notes') || lower.includes('comment')) return 'notes';
     
-    return original; // Keep original if no mapping found
+    return original;
   };
 
-  const analyzeWorkbook = async (): Promise<ValidationPreview> => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        setUploadedFile(file);
+        toast.success(`File "${file.name}" ready for analysis`);
+      } else {
+        toast.error('Please upload an Excel file (.xlsx or .xls)');
+      }
+    }
+  }, []);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        setUploadedFile(file);
+        toast.success(`File "${file.name}" ready for analysis`);
+      } else {
+        toast.error('Please upload an Excel file (.xlsx or .xls)');
+      }
+    }
+  }, []);
+
+  const analyzeWorkbook = async (fileSource: 'demo' | 'uploaded'): Promise<ValidationPreview> => {
     setProgressLabel('Loading spreadsheet...');
     setProgress(10);
     
-    const response = await fetch('/demo/ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx');
-    const arrayBuffer = await response.arrayBuffer();
+    let arrayBuffer: ArrayBuffer;
+    
+    if (fileSource === 'uploaded' && uploadedFile) {
+      arrayBuffer = await uploadedFile.arrayBuffer();
+    } else {
+      const response = await fetch('/demo/ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx');
+      arrayBuffer = await response.arrayBuffer();
+    }
 
     setProgressLabel('Parsing Excel file...');
     setProgress(30);
@@ -181,7 +255,6 @@ export default function AdminICEImport() {
       const r = XLSX.utils.decode_range(sheet['!ref']);
       const rowCount = r.e.r - r.s.r + 1;
 
-      // Scan first 100 rows for header
       const sampleRange = {
         s: { c: r.s.c, r: r.s.r },
         e: { c: Math.min(r.e.c, r.s.c + 50), r: Math.min(r.e.r, r.s.r + 100) },
@@ -223,11 +296,9 @@ export default function AdminICEImport() {
     setProgress(70);
     setProgressLabel('Extracting sample data...');
 
-    // Get sample data from best sheet
     const selectedSheet = wb.Sheets[bestSheet.name];
     const headerRow = bestSheet.headerRow;
 
-    // Get column headers
     const headerRange = XLSX.utils.decode_range(selectedSheet['!ref']!);
     const headerAoa = XLSX.utils.sheet_to_json<unknown[]>(selectedSheet, {
       header: 1,
@@ -237,31 +308,27 @@ export default function AdminICEImport() {
 
     const headers = (headerAoa[0] as unknown[] || []).map((h) => normalize(h));
 
-    // Get sample rows (next 10 rows after header)
     const sampleRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(selectedSheet, {
       defval: null,
       raw: true,
       range: headerRow,
     }).slice(0, 10);
 
-    // Create column mappings
     const detectedColumns: ColumnMapping[] = headers
       .filter(h => h.length > 0)
-      .slice(0, 15) // Limit to first 15 columns for display
+      .slice(0, 15)
       .map((original) => ({
         original,
         mappedTo: mapColumnName(original),
         sampleValue: normalize(sampleRows[0]?.[original] ?? ''),
       }));
 
-    // Parse all materials for count
     const allRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(selectedSheet, {
       defval: null,
       raw: true,
       range: headerRow,
     });
 
-    // Filter to likely material rows
     const parsedMaterials = allRows.filter((row) => {
       const values = Object.values(row).filter(v => v !== null && v !== undefined && String(v).trim() !== '');
       return values.length >= 3;
@@ -281,13 +348,18 @@ export default function AdminICEImport() {
     };
   };
 
-  const startValidation = async () => {
+  const startValidation = async (fileSource: 'demo' | 'uploaded') => {
+    if (fileSource === 'uploaded' && !uploadedFile) {
+      toast.error('Please upload a file first');
+      return;
+    }
+
     setIsLoading(true);
     setStep('parsing');
     setProgress(0);
 
     try {
-      const preview = await analyzeWorkbook();
+      const preview = await analyzeWorkbook(fileSource);
       setValidationPreview(preview);
       setStep('preview');
       toast.success(`Found ${preview.totalRows} potential materials in "${preview.selectedWorksheet}"`);
@@ -309,7 +381,6 @@ export default function AdminICEImport() {
     const wsInfo = validationPreview.worksheets.find(w => w.name === sheetName);
     const headerRow = wsInfo?.detectedHeaderRow ?? 0;
 
-    // Re-extract data for new sheet
     const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
       defval: null,
       raw: true,
@@ -391,10 +462,35 @@ export default function AdminICEImport() {
 
     setIsLoading(true);
     setProgress(5);
-    setProgressLabel('Preparing import...');
+    setProgressLabel('Creating import job...');
     setStep('importing');
 
     try {
+      // Create import job record
+      const fileName = uploadedFile?.name || 'ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx';
+      const { data: jobData, error: jobError } = await supabase
+        .from('ice_import_jobs')
+        .insert([{
+          user_id: user.id,
+          file_name: fileName,
+          file_size_bytes: uploadedFile?.size || 0,
+          status: dryRun ? 'validating' : 'importing',
+          worksheet_name: validationPreview.selectedWorksheet,
+          header_row: validationPreview.selectedHeaderRow,
+          total_rows: validationPreview.totalRows,
+          column_mappings: JSON.parse(JSON.stringify(validationPreview.detectedColumns)),
+          started_at: new Date().toISOString(),
+        }])
+        .select('id')
+        .single();
+
+      if (jobError) {
+        console.error('Failed to create import job:', jobError);
+      }
+
+      const jobId = jobData?.id || null;
+      setCurrentJobId(jobId);
+
       const materials = validationPreview.parsedMaterials;
       const totalChunks = Math.ceil(materials.length / CHUNK_SIZE);
       const totalRows = materials.length;
@@ -402,6 +498,7 @@ export default function AdminICEImport() {
       let totalValid = 0;
       let totalErrors = 0;
       let totalInserted = 0;
+      let totalDuplicatesSkipped = 0;
       const allErrors: string[] = [];
       const preview: MaterialPreview[] = [];
 
@@ -420,6 +517,7 @@ export default function AdminICEImport() {
           body: {
             dryRun,
             materials: materials.slice(start, end),
+            jobId,
           },
         });
 
@@ -434,6 +532,7 @@ export default function AdminICEImport() {
         }
 
         totalErrors += data?.errorCount || 0;
+        totalDuplicatesSkipped += data?.duplicatesSkipped || 0;
 
         if (Array.isArray(data?.preview) && preview.length < 20) {
           preview.push(...data.preview.slice(0, 20 - preview.length));
@@ -451,6 +550,22 @@ export default function AdminICEImport() {
       setProgressLabel('Finalizing…');
       setProgress(95);
 
+      // Update job as completed
+      if (jobId) {
+        await supabase
+          .from('ice_import_jobs')
+          .update({
+            status: 'completed',
+            processed_rows: totalRows,
+            imported_count: dryRun ? totalValid : totalInserted,
+            skipped_count: totalDuplicatesSkipped,
+            error_count: totalErrors,
+            errors: allErrors.slice(0, 100),
+            completed_at: new Date().toISOString(),
+          })
+          .eq('id', jobId);
+      }
+
       if (dryRun) {
         setPreviewData(preview);
         setImportResult({
@@ -461,6 +576,7 @@ export default function AdminICEImport() {
           errors: allErrors,
           validationIssues: [],
           timestamp: new Date().toISOString(),
+          duplicatesSkipped: totalDuplicatesSkipped,
         });
         toast.success(`Validation complete: ${totalValid} materials ready for import`);
       } else {
@@ -472,6 +588,7 @@ export default function AdminICEImport() {
           errors: allErrors,
           validationIssues: [],
           timestamp: new Date().toISOString(),
+          duplicatesSkipped: totalDuplicatesSkipped,
         });
         toast.success(`Import complete: ${totalInserted} materials imported`);
       }
@@ -479,9 +596,22 @@ export default function AdminICEImport() {
       setProgress(100);
       setProgressLabel('');
       setStep('complete');
+      fetchRecentJobs();
     } catch (error) {
       console.error('Import error:', error);
       toast.error(error instanceof Error ? error.message : 'Import failed');
+      
+      if (currentJobId) {
+        await supabase
+          .from('ice_import_jobs')
+          .update({
+            status: 'failed',
+            errors: [{ error: error instanceof Error ? error.message : 'Unknown error' }],
+            completed_at: new Date().toISOString(),
+          })
+          .eq('id', currentJobId);
+      }
+      
       setImportResult({
         success: false,
         imported: 0,
@@ -503,8 +633,10 @@ export default function AdminICEImport() {
     setPreviewData([]);
     setValidationPreview(null);
     setWorkbook(null);
+    setUploadedFile(null);
     setProgress(0);
     setProgressLabel('');
+    setCurrentJobId(null);
     setStep('idle');
   };
 
@@ -529,7 +661,7 @@ export default function AdminICEImport() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">ICE Database Import</h1>
-            <p className="text-muted-foreground">Import Circular Ecology ICE Database V4.1 materials</p>
+            <p className="text-muted-foreground">Import Circular Ecology ICE Database materials with deduplication</p>
           </div>
           <DataSourceAttribution source="ICE" variant="badge" showLogo />
         </div>
@@ -562,7 +694,7 @@ export default function AdminICEImport() {
           </CardContent>
         </Card>
 
-        {/* Step 1: File Selection */}
+        {/* Step 1: File Selection with Drag & Drop */}
         {step === 'idle' && (
           <Card>
             <CardHeader>
@@ -571,32 +703,93 @@ export default function AdminICEImport() {
                 Step 1: Select Source File
               </CardTitle>
               <CardDescription>
-                Analyze the ICE Database spreadsheet to detect worksheets and headers
+                Upload your own ICE spreadsheet or use the bundled demo file
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Drag & Drop Zone */}
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                  isDragOver 
+                    ? 'border-primary bg-primary/5' 
+                    : uploadedFile 
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20' 
+                      : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                }`}
+              >
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleFileSelect}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <UploadCloud className={`h-12 w-12 mx-auto mb-4 ${
+                  uploadedFile ? 'text-emerald-600' : 'text-muted-foreground'
+                }`} />
+                {uploadedFile ? (
+                  <>
+                    <p className="font-medium text-emerald-700 dark:text-emerald-300">{uploadedFile.name}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium">Drag & drop your ICE spreadsheet here</p>
+                    <p className="text-sm text-muted-foreground mt-1">or click to browse (.xlsx, .xls)</p>
+                  </>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4">
+                {uploadedFile && (
+                  <Button onClick={() => startValidation('uploaded')} disabled={isLoading} className="flex-1">
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Analyze Uploaded File
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Button 
+                  onClick={() => startValidation('demo')} 
+                  disabled={isLoading}
+                  variant={uploadedFile ? 'outline' : 'default'}
+                  className={uploadedFile ? '' : 'flex-1'}
+                >
+                  {isLoading && !uploadedFile ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Use Demo File (ICE V4.1)
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Demo File Info */}
               <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
                 <FileSpreadsheet className="h-10 w-10 text-emerald-600" />
                 <div className="flex-1">
                   <p className="font-medium">ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx</p>
-                  <p className="text-sm text-muted-foreground">Circular Ecology ICE Database Advanced V4.1 (October 2025)</p>
+                  <p className="text-sm text-muted-foreground">Bundled demo: Circular Ecology ICE Database Advanced V4.1</p>
                 </div>
-                <Badge variant="secondary">Ready</Badge>
+                <Badge variant="secondary">Bundled</Badge>
               </div>
-
-              <Button onClick={startValidation} disabled={isLoading} className="w-full">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Analyze & Preview
-                  </>
-                )}
-              </Button>
             </CardContent>
           </Card>
         )}
@@ -623,7 +816,7 @@ export default function AdminICEImport() {
                 Step 2: Validate & Preview
               </CardTitle>
               <CardDescription>
-                Review detected worksheet, header row, and column mappings before importing
+                Review detected worksheet, header row, and column mappings. Duplicates will be automatically deduplicated.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -673,6 +866,7 @@ export default function AdminICEImport() {
                 <AlertDescription>
                   Found <strong>{validationPreview.totalRows}</strong> potential material rows 
                   with <strong>{validationPreview.detectedColumns.length}</strong> mapped columns.
+                  Duplicates will be automatically skipped or updated (upsert).
                 </AlertDescription>
               </Alert>
 
@@ -802,7 +996,7 @@ export default function AdminICEImport() {
                 </TabsList>
 
                 <TabsContent value="summary" className="mt-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div className="p-4 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-200 dark:border-emerald-800">
                       <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{importResult.imported}</p>
                       <p className="text-sm text-emerald-600 dark:text-emerald-400">
@@ -812,6 +1006,10 @@ export default function AdminICEImport() {
                     <div className="p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
                       <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{importResult.updated}</p>
                       <p className="text-sm text-blue-600 dark:text-blue-400">Updated</p>
+                    </div>
+                    <div className="p-4 bg-purple-50 dark:bg-purple-950/50 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{importResult.duplicatesSkipped || 0}</p>
+                      <p className="text-sm text-purple-600 dark:text-purple-400">Deduped</p>
                     </div>
                     <div className="p-4 bg-amber-50 dark:bg-amber-950/50 rounded-lg border border-amber-200 dark:border-amber-800">
                       <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">{importResult.skipped}</p>
@@ -890,6 +1088,59 @@ export default function AdminICEImport() {
                     Import to Database
                   </Button>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recent Import Jobs */}
+        {recentJobs.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Recent Import Jobs
+              </CardTitle>
+              <CardDescription>
+                Audit trail of ICE database imports
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>File</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Rows</TableHead>
+                      <TableHead>Imported</TableHead>
+                      <TableHead>Errors</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentJobs.map((job) => (
+                      <TableRow key={job.id}>
+                        <TableCell className="font-medium truncate max-w-[200px]">{job.file_name}</TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            job.status === 'completed' ? 'default' :
+                            job.status === 'failed' ? 'destructive' :
+                            'secondary'
+                          }>
+                            {job.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{job.processed_rows}/{job.total_rows}</TableCell>
+                        <TableCell className="text-emerald-600">{job.imported_count}</TableCell>
+                        <TableCell className="text-destructive">{job.error_count}</TableCell>
+                        <TableCell className="text-muted-foreground text-xs">
+                          {new Date(job.created_at).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
