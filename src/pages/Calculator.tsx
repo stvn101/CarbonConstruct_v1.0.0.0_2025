@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet, Cloud, CloudOff, FileUp } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
@@ -265,7 +265,8 @@ export default function Calculator() {
   });
   
   // Favorite materials for quick-add
-  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites, syncWithDatabase } = useFavoriteMaterials();
+  const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites, syncWithDatabase, cloudSyncEnabled, isSyncing, saveToCloud } = useFavoriteMaterials();
+  const csvInputRef = useRef<HTMLInputElement>(null);
   
   // Category counts for browser - using EPD database
   const categoryCounts = useMemo(() => {
@@ -740,6 +741,79 @@ export default function Calculator() {
     setWasteInputs({});
     setA5Inputs({});
     setSelectedMaterials([]);
+  };
+
+  // Bulk CSV import handler
+  const handleBulkCSVImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      toast({ title: "Invalid file", description: "Please upload a CSV file", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      if (lines.length < 2) {
+        toast({ title: "Empty CSV", description: "CSV file must have headers and at least one row", variant: "destructive" });
+        return;
+      }
+
+      // Parse headers (first row)
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
+      const nameIdx = headers.findIndex(h => h.includes('name') || h.includes('material'));
+      const qtyIdx = headers.findIndex(h => h.includes('quantity') || h.includes('qty') || h.includes('amount'));
+      const unitIdx = headers.findIndex(h => h.includes('unit'));
+      const factorIdx = headers.findIndex(h => h.includes('factor') || h.includes('ef') || h.includes('emission'));
+      const categoryIdx = headers.findIndex(h => h.includes('category') || h.includes('type'));
+
+      if (nameIdx === -1) {
+        toast({ title: "Invalid CSV format", description: "CSV must have a 'name' or 'material' column", variant: "destructive" });
+        return;
+      }
+
+      const newMaterials: Material[] = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/['"]/g, ''));
+        const name = values[nameIdx];
+        if (!name) continue;
+
+        const quantity = qtyIdx >= 0 ? parseFloat(values[qtyIdx]) || 0 : 0;
+        const unit = unitIdx >= 0 && values[unitIdx] ? values[unitIdx] : 'kg';
+        const factor = factorIdx >= 0 ? parseFloat(values[factorIdx]) || 0 : 0;
+        const category = categoryIdx >= 0 && values[categoryIdx] ? values[categoryIdx] : 'Imported';
+
+        newMaterials.push({
+          id: `csv_${Date.now()}_${i}`,
+          category,
+          typeId: 'csv_import',
+          name,
+          unit,
+          factor,
+          source: 'CSV Import',
+          quantity,
+          isCustom: true,
+        });
+      }
+
+      if (newMaterials.length > 0) {
+        setSelectedMaterials(prev => [...prev, ...newMaterials]);
+        toast({ 
+          title: "CSV Import Complete", 
+          description: `Added ${newMaterials.length} materials from CSV` 
+        });
+      } else {
+        toast({ title: "No materials found", description: "CSV did not contain valid material rows", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error('CSV parse error:', err);
+      toast({ title: "CSV Parse Error", description: "Failed to parse CSV file", variant: "destructive" });
+    }
+    
+    // Reset input
+    if (csvInputRef.current) csvInputRef.current.value = '';
   };
 
   // File validation helper
@@ -1483,6 +1557,49 @@ export default function Calculator() {
                           <Crown className="h-3 w-3 ml-1 text-amber-500" />
                         </Button>
                       )}
+                      {/* Bulk CSV Import */}
+                      <input
+                        ref={csvInputRef}
+                        type="file"
+                        accept=".csv"
+                        onChange={handleBulkCSVImport}
+                        className="hidden"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => csvInputRef.current?.click()}
+                        className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 text-xs md:text-sm"
+                      >
+                        <FileUp className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                        <span className="hidden md:inline">Import CSV</span>
+                      </Button>
+                      {/* Cloud Sync */}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={async () => {
+                          const result = await saveToCloud();
+                          toast({ 
+                            title: result.success ? "Synced to Cloud" : "Sync Failed",
+                            description: result.message,
+                            variant: result.success ? "default" : "destructive"
+                          });
+                        }}
+                        disabled={isSyncing}
+                        className={`text-xs md:text-sm ${cloudSyncEnabled 
+                          ? 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100' 
+                          : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                      >
+                        {isSyncing ? (
+                          <Loader2 className="h-3 w-3 md:h-4 md:w-4 mr-1 animate-spin" />
+                        ) : cloudSyncEnabled ? (
+                          <Cloud className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                        ) : (
+                          <CloudOff className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                        )}
+                        <span className="hidden md:inline">{isSyncing ? 'Syncing...' : 'Sync'}</span>
+                      </Button>
                       <Button 
                         variant="outline" 
                         size="sm" 

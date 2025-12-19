@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface FavoriteMaterial {
   materialId: string;
@@ -122,7 +123,10 @@ const DEFAULT_MATERIALS: FavoriteMaterial[] = [
 ];
 
 export function useFavoriteMaterials() {
+  const { user } = useAuth();
   const [favorites, setFavorites] = useState<FavoriteMaterial[]>([]);
+  const [cloudSyncEnabled, setCloudSyncEnabled] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Load from localStorage on mount, merge with defaults
   useEffect(() => {
@@ -148,10 +152,126 @@ export function useFavoriteMaterials() {
     }
   }, []);
 
+  // Load from cloud when user logs in
+  useEffect(() => {
+    if (user) {
+      loadFromCloud();
+    }
+  }, [user]);
+
   // Persist to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
   }, [favorites]);
+
+  // Load favorites from cloud
+  const loadFromCloud = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_material_favorites')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.warn('Failed to load cloud favorites:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setCloudSyncEnabled(true);
+        // Merge cloud data with local, preferring cloud for matching materials
+        setFavorites(prev => {
+          const cloudMaterials: FavoriteMaterial[] = data.map(d => ({
+            materialId: d.material_id,
+            materialName: d.material_name,
+            category: d.material_category,
+            unit: d.unit,
+            factor: Number(d.factor),
+            source: d.source || '',
+            usageCount: d.usage_count || 1,
+            isPinned: true, // Cloud synced = pinned
+            isHidden: false,
+            lastUsed: d.last_used || new Date().toISOString(),
+            epdNumber: d.epd_number || undefined,
+          }));
+
+          // Merge: cloud materials take precedence, then local
+          const merged = [...DEFAULT_MATERIALS];
+          
+          // Add cloud materials
+          cloudMaterials.forEach(cloud => {
+            const existingIdx = merged.findIndex(m => m.materialId === cloud.materialId);
+            if (existingIdx >= 0) {
+              merged[existingIdx] = { ...merged[existingIdx], ...cloud };
+            } else {
+              merged.push(cloud);
+            }
+          });
+
+          // Add local-only materials that aren't in cloud
+          prev.forEach(local => {
+            if (!merged.find(m => m.materialId === local.materialId)) {
+              merged.push(local);
+            }
+          });
+
+          return merged;
+        });
+      }
+    } catch (err) {
+      console.warn('Cloud sync failed:', err);
+    }
+  }, [user]);
+
+  // Save favorites to cloud
+  const saveToCloud = useCallback(async () => {
+    if (!user) return { success: false, message: 'Not logged in' };
+    
+    setIsSyncing(true);
+    try {
+      // Get non-default favorites to sync
+      const toSync = favorites.filter(f => 
+        !f.materialId.startsWith('default_') && 
+        !f.isHidden && 
+        (f.isPinned || f.usageCount >= MIN_USAGE_FOR_QUICK_ADD)
+      );
+
+      // Delete existing and insert fresh
+      await supabase
+        .from('user_material_favorites')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (toSync.length > 0) {
+        const { error } = await supabase
+          .from('user_material_favorites')
+          .insert(toSync.map(f => ({
+            user_id: user.id,
+            material_id: f.materialId,
+            material_name: f.materialName,
+            material_category: f.category,
+            unit: f.unit,
+            factor: f.factor,
+            source: f.source,
+            epd_number: f.epdNumber,
+            usage_count: f.usageCount,
+            last_used: f.lastUsed,
+          })));
+
+        if (error) throw error;
+      }
+
+      setCloudSyncEnabled(true);
+      return { success: true, message: `Synced ${toSync.length} materials to cloud` };
+    } catch (err) {
+      console.error('Failed to save to cloud:', err);
+      return { success: false, message: 'Failed to sync to cloud' };
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [user, favorites]);
 
   // Track material usage - call this when a material is added to calculation
   const trackMaterialUsage = useCallback((material: {
@@ -457,6 +577,11 @@ export function useFavoriteMaterials() {
     hideMaterial,
     unhideMaterial,
     clearAllFavorites,
-    syncWithDatabase
+    syncWithDatabase,
+    // Cloud sync features
+    cloudSyncEnabled,
+    isSyncing,
+    saveToCloud,
+    loadFromCloud,
   };
 }
