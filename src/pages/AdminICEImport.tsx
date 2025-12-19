@@ -11,8 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { 
-  Database, Upload, FileSpreadsheet, CheckCircle, AlertTriangle, 
+import {
+  Database, Upload, FileSpreadsheet, CheckCircle, AlertTriangle,
   RefreshCw, ExternalLink, Loader2, XCircle,
   Info, FileCheck
 } from "lucide-react";
@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { SEOHead } from "@/components/SEOHead";
 import { DataSourceAttribution } from "@/components/DataSourceAttribution";
 import { AdminSidebar } from "@/components/AdminSidebar";
-import ExcelJS from "exceljs";
+import * as XLSX from "xlsx";
 interface ImportResult {
   success: boolean;
   imported: number;
@@ -65,94 +65,48 @@ export default function AdminICEImport() {
   const parseExcelFile = async (): Promise<Record<string, unknown>[]> => {
     const response = await fetch('/demo/ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx');
     const arrayBuffer = await response.arrayBuffer();
-    
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(arrayBuffer);
-    
-    // Try to find the main data worksheet (usually first or named "Materials", "Data", etc.)
-    let worksheet = workbook.worksheets.find(ws => 
-      ws.name.toLowerCase().includes('material') || 
-      ws.name.toLowerCase().includes('data') ||
-      ws.name.toLowerCase() === 'sheet1'
-    ) || workbook.worksheets[0];
-    
-    if (!worksheet) throw new Error('No worksheet found in Excel file');
-    
-    console.log(`Using worksheet: ${worksheet.name} with ${worksheet.rowCount} rows`);
-    
-    const materials: Record<string, unknown>[] = [];
-    const headers: string[] = [];
-    
-    // Find header row (first row with actual content)
-    let headerRowNumber = 1;
-    worksheet.eachRow((row, rowNumber) => {
-      if (headerRowNumber === 1) {
-        const cellValues = row.values as unknown[];
-        // Check if this looks like a header row (has text values)
-        const hasHeaders = cellValues.some(val => 
-          typeof val === 'string' && val.length > 0 && val.length < 100
+
+    // ExcelJS can throw `RangeError: Too many properties to enumerate` on complex XLSX files in the browser.
+    // SheetJS (xlsx) is more resilient for client-side parsing.
+    const workbook = XLSX.read(arrayBuffer, {
+      type: 'array',
+      cellDates: false,
+      raw: true,
+    });
+
+    const sheetName =
+      workbook.SheetNames.find((name) => {
+        const n = name.toLowerCase();
+        return n.includes('material') || n.includes('data') || n === 'sheet1';
+      }) ?? workbook.SheetNames[0];
+
+    if (!sheetName) throw new Error('No worksheet found in Excel file');
+
+    const sheet = workbook.Sheets[sheetName];
+    if (!sheet) throw new Error('Worksheet could not be loaded');
+
+    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+      defval: null,
+      raw: true,
+    });
+
+    console.log(`Using worksheet: ${sheetName} with ${rows.length} rows`);
+
+    const normalized = rows
+      .map((row) =>
+        Object.fromEntries(
+          Object.entries(row).map(([k, v]) => [String(k).trim(), v])
+        ) as Record<string, unknown>
+      )
+      .filter((row) => {
+        const meaningful = Object.values(row).filter(
+          (v) => v !== null && v !== undefined && String(v).trim() !== ''
         );
-        if (hasHeaders) {
-          headerRowNumber = rowNumber;
-        }
-      }
-    });
-    
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === headerRowNumber) {
-        row.eachCell((cell, colNumber) => {
-          const value = cell.value;
-          // Handle rich text cells
-          const headerText = typeof value === 'object' && value !== null && 'richText' in value
-            ? (value as { richText: Array<{ text: string }> }).richText.map(r => r.text).join('')
-            : String(value || '');
-          headers[colNumber - 1] = headerText.trim();
-        });
-        console.log('Headers found:', headers.filter(Boolean).slice(0, 10));
-        return;
-      }
-      
-      if (rowNumber <= headerRowNumber) return;
-      
-      const rowData: Record<string, unknown> = {};
-      row.eachCell((cell, colNumber) => {
-        const header = headers[colNumber - 1];
-        if (header) {
-          // Handle different cell value types
-          const cellValue = cell.value;
-          let value: string | number | boolean | null = null;
-          
-          if (cellValue === null || cellValue === undefined) {
-            value = null;
-          } else if (typeof cellValue === 'string' || typeof cellValue === 'number' || typeof cellValue === 'boolean') {
-            value = cellValue;
-          } else if (typeof cellValue === 'object') {
-            if ('richText' in cellValue && Array.isArray(cellValue.richText)) {
-              value = cellValue.richText.map((r: { text: string }) => r.text).join('');
-            } else if ('result' in cellValue) {
-              const result = (cellValue as { result: unknown }).result;
-              value = typeof result === 'string' || typeof result === 'number' ? result : String(result);
-            } else {
-              value = String(cellValue);
-            }
-          } else {
-            value = String(cellValue);
-          }
-          rowData[header] = value;
-        }
+        return meaningful.length >= 3;
       });
-      
-      // Only add rows that have at least some meaningful data
-      const meaningfulKeys = Object.keys(rowData).filter(k => 
-        rowData[k] !== null && rowData[k] !== undefined && rowData[k] !== ''
-      );
-      if (meaningfulKeys.length >= 3) {
-        materials.push(rowData);
-      }
-    });
-    
-    console.log(`Parsed ${materials.length} material rows`);
-    return materials;
+
+    console.log(`Parsed ${normalized.length} material rows`);
+    return normalized;
   };
 
   const runImport = async (dryRun: boolean) => {
