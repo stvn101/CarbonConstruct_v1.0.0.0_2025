@@ -306,18 +306,27 @@ export default function AdminICEImport() {
   const mapColumnName = (original: string): string => {
     const lower = original.toLowerCase().trim();
     
-    // Exact matches first (ICE Database V4.1 specific)
-    if (lower === 'material' || lower === 'materials') return 'material_name';
-    if (lower === 'material name' || lower === 'name') return 'material_name';
+    // EXACT ICE Database V4.1 column names (from ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx)
+    if (lower === 'materials') return 'material_name';
+    if (lower === 'name exactly as in ice db') return 'material_name';
+    if (lower === 'embodied carbon - kgco2e/kg') return 'ef_total';
+    if (lower === 'embodied carbon -  kgco2e per tonne') return 'ef_total';
+    if (lower === 'embodied carbon - kgco2e per tonne') return 'ef_total';
+    if (lower === 'comments') return 'notes';
+    if (lower === 'dqi score') return 'data_quality_tier';
+    if (lower === 'dqi version') return 'data_quality_tier';
+    
+    // Fallback matches
+    if (lower === 'material' || lower === 'material name' || lower === 'name') return 'material_name';
     if (lower === 'sub-category' || lower === 'subcategory' || lower === 'sub category') return 'subcategory';
     if (lower === 'category' || lower === 'main category' || lower === 'material category') return 'material_category';
     if (lower === 'unit' || lower === 'units' || lower === 'functional unit') return 'unit';
     
-    // ICE V4.1 specific EF column names
-    if (lower.includes('ef (kgco2e/') || lower.includes('ef(kgco2e/')) return 'ef_total';
-    if (lower.includes('ef (kgco2e/ unit)')) return 'ef_total';
-    if (lower.includes('embodied carbon (kgco2e/kg)')) return 'ef_total';
+    // EF column variations
+    if (lower.includes('embodied carbon')) return 'ef_total';
     if (lower.includes('kgco2e/kg') && !lower.includes('a1')) return 'ef_total';
+    if (lower.includes('kgco2e per')) return 'ef_total';
+    if (lower.includes('ef (kgco2e/') || lower.includes('ef(kgco2e/')) return 'ef_total';
     if (lower === 'ef' || lower === 'ef total' || lower === 'total ef') return 'ef_total';
     if (lower.includes('gwp') && lower.includes('total')) return 'ef_total';
     
