@@ -208,7 +208,7 @@ export default function MaterialDatabaseStatus() {
       
       {/* Hero Section */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium">
+        <div className="inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200 px-4 py-2 rounded-full text-sm font-medium">
           <CheckCircle className="h-4 w-4" />
           6-Layer Validation Framework v1.0
         </div>
@@ -323,20 +323,20 @@ export default function MaterialDatabaseStatus() {
           <CardContent className="space-y-3">
             {isLoading ? <Skeleton className="h-32 w-full" /> : (
               <>
-                <div className="flex items-center justify-between p-2 bg-emerald-50 rounded border border-emerald-200">
-                  <span className="text-sm flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-600" /> Verified EPD</span>
+                <div className="flex items-center justify-between p-2 bg-emerald-50 dark:bg-emerald-950/50 rounded border border-emerald-200 dark:border-emerald-800">
+                  <span className="text-sm flex items-center gap-2 text-emerald-800 dark:text-emerald-200"><CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Verified EPD</span>
                   <Badge className="bg-emerald-600">{stats?.confidenceLevelCounts.verified.toLocaleString()}</Badge>
                 </div>
-                <div className="flex items-center justify-between p-2 bg-yellow-50 rounded border border-yellow-200">
-                  <span className="text-sm flex items-center gap-2"><AlertCircle className="h-4 w-4 text-yellow-600" /> Documented Variant</span>
+                <div className="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-950/50 rounded border border-yellow-200 dark:border-yellow-800">
+                  <span className="text-sm flex items-center gap-2 text-yellow-800 dark:text-yellow-200"><AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" /> Documented Variant</span>
                   <Badge className="bg-yellow-600">{stats?.confidenceLevelCounts.documented.toLocaleString()}</Badge>
                 </div>
-                <div className="flex items-center justify-between p-2 bg-orange-50 rounded border border-orange-200">
-                  <span className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-orange-600" /> Industry Average</span>
+                <div className="flex items-center justify-between p-2 bg-orange-50 dark:bg-orange-950/50 rounded border border-orange-200 dark:border-orange-800">
+                  <span className="text-sm flex items-center gap-2 text-orange-800 dark:text-orange-200"><AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" /> Industry Average</span>
                   <Badge className="bg-orange-600">{stats?.confidenceLevelCounts.industry_average.toLocaleString()}</Badge>
                 </div>
-                <div className="flex items-center justify-between p-2 bg-red-50 rounded border border-red-200">
-                  <span className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-red-600" /> Needs Review</span>
+                <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/50 rounded border border-red-200 dark:border-red-800">
+                  <span className="text-sm flex items-center gap-2 text-red-800 dark:text-red-200"><AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" /> Needs Review</span>
                   <Badge variant="destructive">{stats?.confidenceLevelCounts.needs_review.toLocaleString()}</Badge>
                 </div>
               </>
@@ -397,11 +397,11 @@ export default function MaterialDatabaseStatus() {
                 <div 
                   key={key} 
                   className={`p-4 rounded-lg border ${
-                    source.count > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-muted/50 border-muted'
+                    source.count > 0 ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800' : 'bg-muted/50 border-muted'
                   }`}
                 >
                   <p className="text-sm font-medium text-foreground">{source.name}</p>
-                  <p className="text-2xl font-bold mt-1">{source.count.toLocaleString()}</p>
+                  <p className="text-2xl font-bold mt-1 text-foreground">{source.count.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">{source.percentage}% of total</p>
                   {source.lastImported && (
                     <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
@@ -627,10 +627,10 @@ export default function MaterialDatabaseStatus() {
               <Skeleton className="h-32 w-full" />
             ) : (
               <>
-                <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-200 dark:border-emerald-800">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-emerald-600" />
-                    <span className="font-medium text-emerald-800">Validation Passed</span>
+                    <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    <span className="font-medium text-emerald-800 dark:text-emerald-200">Validation Passed</span>
                   </div>
                   <Badge className="bg-emerald-600">{stats?.validationStatus.passRate}%</Badge>
                 </div>
@@ -641,7 +641,7 @@ export default function MaterialDatabaseStatus() {
                     Last Validated: {stats?.validationStatus.lastValidationDate}
                   </div>
                   <p className="text-muted-foreground">
-                    <strong>Methodology:</strong> {stats?.validationStatus.methodology}
+                    <strong className="text-foreground">Methodology:</strong> {stats?.validationStatus.methodology}
                   </p>
                 </div>
 
