@@ -25,6 +25,23 @@ import { DataSourceAttribution } from "@/components/DataSourceAttribution";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import * as XLSX from "xlsx";
 
+// Circular Ecology logo for ICE Database attribution
+const CircularEcologyLogo = () => (
+  <a 
+    href="https://circularecology.com" 
+    target="_blank" 
+    rel="noopener noreferrer"
+    className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
+    title="ICE Database by Circular Ecology"
+  >
+    <img 
+      src="/logos/circular-ecology-logo.png" 
+      alt="Circular Ecology" 
+      className="h-8 w-auto"
+    />
+  </a>
+);
+
 interface ImportResult {
   success: boolean;
   imported: number;
@@ -970,7 +987,10 @@ export default function AdminICEImport() {
             <h1 className="text-2xl font-bold text-foreground">ICE Database Import</h1>
             <p className="text-muted-foreground">Import Circular Ecology ICE Database materials with deduplication</p>
           </div>
-          <DataSourceAttribution source="ICE" variant="badge" showLogo />
+          <div className="flex items-center gap-4">
+            <CircularEcologyLogo />
+            <DataSourceAttribution source="ICE" variant="badge" showLogo />
+          </div>
         </div>
 
         {/* Step Indicator */}
