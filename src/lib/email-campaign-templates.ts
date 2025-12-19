@@ -1,6 +1,7 @@
 /**
  * Email Campaign Templates for CarbonConstruct
  * Personalized content for each audience segment with links to dedicated landing pages
+ * Includes A/B testing variants for subject lines and CTAs
  */
 
 export interface EmailCampaignTemplate {
@@ -24,6 +25,84 @@ export interface EmailCampaignTemplate {
   urgencyMessage?: string;
   psLine?: string;
 }
+
+export interface ABTestVariant {
+  variant: 'A' | 'B';
+  subject: string;
+  ctaText: string;
+}
+
+/**
+ * A/B Test variants for email subject lines and CTAs
+ * Variant A = Original/Control
+ * Variant B = Alternative/Test
+ */
+export const abTestVariants: Record<string, { A: ABTestVariant; B: ABTestVariant }> = {
+  builders: {
+    A: { variant: 'A', subject: 'NCC 2024 is here—is your business carbon-ready?', ctaText: 'See How Builders Use It' },
+    B: { variant: 'B', subject: '🏗️ Win more tenders with carbon compliance', ctaText: 'Start Free Trial' },
+  },
+  architects: {
+    A: { variant: 'A', subject: 'Design for carbon—without slowing down your creative process', ctaText: 'Design Smarter with Carbon' },
+    B: { variant: 'B', subject: 'Real-time carbon feedback for design decisions', ctaText: 'Try Free for 14 Days' },
+  },
+  developers: {
+    A: { variant: 'A', subject: 'Turn carbon compliance into competitive advantage', ctaText: 'Get ESG-Ready Reporting' },
+    B: { variant: 'B', subject: '📈 ESG investors are asking about embodied carbon', ctaText: 'See Portfolio Dashboard' },
+  },
+  engineers: {
+    A: { variant: 'A', subject: 'Optimize structures for strength AND carbon', ctaText: 'Engineer Lower Carbon' },
+    B: { variant: 'B', subject: 'Concrete vs steel vs timber: see the carbon difference', ctaText: 'Compare Materials Now' },
+  },
+  'site-supervisors': {
+    A: { variant: 'A', subject: 'Carbon compliance without leaving the site', ctaText: 'Simplify Site Compliance' },
+    B: { variant: 'B', subject: '📱 Check EPD compliance from your phone', ctaText: 'See Mobile Tools' },
+  },
+  'cost-planners': {
+    A: { variant: 'A', subject: 'Add carbon estimates to your cost plans', ctaText: 'Start Carbon Estimating' },
+    B: { variant: 'B', subject: 'BOQ to carbon report in minutes, not hours', ctaText: 'Upload Your First BOQ' },
+  },
+  'environmental-officers': {
+    A: { variant: 'A', subject: 'Streamline your Green Star submissions', ctaText: 'Streamline Compliance' },
+    B: { variant: 'B', subject: '⏱️ Cut Green Star submission time by 80%', ctaText: 'See How It Works' },
+  },
+  'sustainability-managers': {
+    A: { variant: 'A', subject: 'Portfolio-wide carbon visibility for ESG reporting', ctaText: 'Drive Portfolio Reduction' },
+    B: { variant: 'B', subject: 'From carbon data to board-ready KPIs', ctaText: 'View Sample Dashboard' },
+  },
+  'project-managers': {
+    A: { variant: 'A', subject: 'Keep carbon on track alongside cost and time', ctaText: 'Start Managing Carbon' },
+    B: { variant: 'B', subject: 'Carbon is now a project deliverable—are you ready?', ctaText: 'See PM Dashboard' },
+  },
+  subcontractors: {
+    A: { variant: 'A', subject: 'Win more work with carbon credentials', ctaText: 'Build Carbon Credentials' },
+    B: { variant: 'B', subject: '🏆 Stand out from competitors with EPD reports', ctaText: 'Create Your First Report' },
+  },
+  estimators: {
+    A: { variant: 'A', subject: 'Add carbon to your estimates—fast', ctaText: 'Estimate Faster' },
+    B: { variant: 'B', subject: 'Carbon estimates that don\'t slow you down', ctaText: 'Try BOQ Import' },
+  },
+  procurement: {
+    A: { variant: 'A', subject: 'Make carbon-smart procurement decisions', ctaText: 'Procure Sustainably' },
+    B: { variant: 'B', subject: 'Compare suppliers by price AND carbon', ctaText: 'See Supplier Comparison' },
+  },
+  'supply-chain': {
+    A: { variant: 'A', subject: 'Help your customers meet carbon targets', ctaText: 'Feature Your Products' },
+    B: { variant: 'B', subject: '📊 40% more specifications when you\'re in our database', ctaText: 'List Your EPDs Free' },
+  },
+  consultants: {
+    A: { variant: 'A', subject: 'Scale your LCA practice with the right tools', ctaText: 'Scale Your Practice' },
+    B: { variant: 'B', subject: 'Deliver 2x more LCAs without hiring', ctaText: 'See White-Label Options' },
+  },
+  government: {
+    A: { variant: 'A', subject: 'Lead by example on embodied carbon', ctaText: 'Lead on Climate' },
+    B: { variant: 'B', subject: 'Set evidence-based carbon limits for public tenders', ctaText: 'View Benchmarks' },
+  },
+  investors: {
+    A: { variant: 'A', subject: 'Embodied carbon: the next frontier of ESG risk', ctaText: 'Assess Climate Risk' },
+    B: { variant: 'B', subject: '⚠️ Is embodied carbon a stranded asset risk?', ctaText: 'Run Portfolio Analysis' },
+  },
+};
 
 const BASE_URL = 'https://carbonconstruct.com.au';
 
@@ -497,6 +576,21 @@ export const emailCampaignTemplates: EmailCampaignTemplate[] = [
     },
   },
 ];
+
+/**
+ * Get A/B test variants for a given template
+ */
+export function getABTestVariants(template: EmailCampaignTemplate): ABTestVariant[] {
+  const variants = abTestVariants[template.audience];
+  if (variants) {
+    return [variants.A, variants.B];
+  }
+  // Fallback: return the original subject and CTA as variant A
+  return [
+    { variant: 'A', subject: template.subject, ctaText: template.ctaText },
+    { variant: 'B', subject: template.subject, ctaText: template.ctaText },
+  ];
+}
 
 /**
  * Get email template by audience identifier
