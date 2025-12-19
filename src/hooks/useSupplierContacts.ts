@@ -194,6 +194,30 @@ export function useSupplierContacts() {
     );
   }, [contacts]);
 
+  // Find contacts by manufacturer name
+  const findContactByManufacturer = useCallback((manufacturerName: string): SupplierContact | undefined => {
+    if (!manufacturerName) return undefined;
+    const lowerName = manufacturerName.toLowerCase();
+    return contacts.find(c => 
+      c.company_name.toLowerCase().includes(lowerName) ||
+      lowerName.includes(c.company_name.toLowerCase())
+    );
+  }, [contacts]);
+
+  // Find contact for a material (by EPD number or manufacturer)
+  const findContactForMaterial = useCallback((epdNumber?: string, manufacturer?: string): SupplierContact | undefined => {
+    // First try by EPD number
+    if (epdNumber) {
+      const byEpd = findContactByEPD(epdNumber);
+      if (byEpd) return byEpd;
+    }
+    // Then try by manufacturer name
+    if (manufacturer) {
+      return findContactByManufacturer(manufacturer);
+    }
+    return undefined;
+  }, [findContactByEPD, findContactByManufacturer]);
+
   // Get contacts by type
   const getContactsByType = useCallback((type: ContactType): SupplierContact[] => {
     return contacts.filter(c => c.contact_type === type);
@@ -207,6 +231,8 @@ export function useSupplierContacts() {
     updateContact,
     deleteContact,
     findContactByEPD,
+    findContactByManufacturer,
+    findContactForMaterial,
     getContactsByType,
     refetch: fetchContacts,
   };

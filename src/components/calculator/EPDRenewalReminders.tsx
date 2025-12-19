@@ -1,26 +1,20 @@
 /**
  * EPD Renewal Reminders Panel
  * Displays expiring and expired EPD certifications in the project
+ * With linked supplier contacts for quick renewal requests
  */
 
-import { AlertTriangle, Clock, X, ChevronDown, ChevronUp, Bell, BellOff } from "lucide-react";
+import { AlertTriangle, Clock, X, ChevronDown, ChevronUp, Bell, BellOff, User, Mail, Phone, Building2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState } from "react";
 import { EPDRenewalExport } from "./EPDRenewalExport";
-
-export interface ExpiryWarning {
-  id: string;
-  materialName: string;
-  epdNumber?: string;
-  manufacturer?: string;
-  expiryDate: string;
-  daysUntil: number;
-  status: 'expired' | 'critical' | 'warning' | 'upcoming';
-}
+import { useSupplierContacts, SupplierContact } from "@/hooks/useSupplierContacts";
+import { ExpiryWarning } from "@/hooks/useEPDRenewalReminders";
 
 interface EPDRenewalRemindersProps {
   expiryWarnings: ExpiryWarning[];
@@ -38,6 +32,62 @@ interface EPDRenewalRemindersProps {
   projectName?: string;
 }
 
+function SupplierContactPopover({ contact }: { contact: SupplierContact }) {
+  return (
+    <PopoverContent className="w-64 p-3" align="end">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Building2 className="h-4 w-4 text-primary" />
+          {contact.company_name}
+        </div>
+        {contact.contact_name && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <User className="h-3 w-3" />
+            {contact.contact_name}
+          </div>
+        )}
+        {contact.email && (
+          <div className="flex items-center gap-2 text-xs">
+            <Mail className="h-3 w-3 text-muted-foreground" />
+            <a href={`mailto:${contact.email}`} className="text-primary hover:underline truncate">
+              {contact.email}
+            </a>
+          </div>
+        )}
+        {contact.phone && (
+          <div className="flex items-center gap-2 text-xs">
+            <Phone className="h-3 w-3 text-muted-foreground" />
+            <a href={`tel:${contact.phone}`} className="hover:underline">
+              {contact.phone}
+            </a>
+          </div>
+        )}
+        {contact.website && (
+          <a 
+            href={contact.website} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Visit website
+          </a>
+        )}
+        {contact.email && (
+          <Button 
+            size="sm" 
+            className="w-full mt-2 h-7 text-xs"
+            onClick={() => window.location.href = `mailto:${contact.email}?subject=EPD Renewal Request`}
+          >
+            <Mail className="h-3 w-3 mr-1" />
+            Request EPD Renewal
+          </Button>
+        )}
+      </div>
+    </PopoverContent>
+  );
+}
+
 export function EPDRenewalReminders({ 
   expiryWarnings, 
   summary, 
@@ -46,6 +96,7 @@ export function EPDRenewalReminders({
   projectName = 'Project'
 }: EPDRenewalRemindersProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { findContactForMaterial } = useSupplierContacts();
 
   if (expiryWarnings.length === 0) return null;
 
@@ -117,47 +168,83 @@ export function EPDRenewalReminders({
 
           <CollapsibleContent>
             <div className="mt-3 pt-3 border-t border-dashed">
-              <ScrollArea className="max-h-48">
+              <ScrollArea className="max-h-64">
                 <div className="space-y-2">
-                  {expiryWarnings.map((warning) => (
-                    <div 
-                      key={warning.id}
-                      className={`flex items-center justify-between p-2 rounded-md border ${getStatusColor(warning.status)}`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        {getStatusIcon(warning.status)}
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium text-sm truncate" title={warning.materialName}>
-                            {warning.materialName}
-                          </div>
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs opacity-80">
-                            <span>{getStatusLabel(warning.status, warning.daysUntil)}</span>
-                            {warning.epdNumber && (
-                              <span className="font-mono">EPD: {warning.epdNumber}</span>
-                            )}
+                  {expiryWarnings.map((warning) => {
+                    const contact = findContactForMaterial(warning.epdNumber, warning.manufacturer);
+                    
+                    return (
+                      <div 
+                        key={warning.id}
+                        className={`flex items-center justify-between p-2 rounded-md border ${getStatusColor(warning.status)}`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          {getStatusIcon(warning.status)}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-sm truncate" title={warning.materialName}>
+                              {warning.materialName}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs opacity-80">
+                              <span>{getStatusLabel(warning.status, warning.daysUntil)}</span>
+                              {warning.epdNumber && (
+                                <span className="font-mono">EPD: {warning.epdNumber}</span>
+                              )}
+                              {warning.manufacturer && (
+                                <span>• {warning.manufacturer}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {contact ? (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 px-2 text-xs gap-1 hover:bg-white/50 dark:hover:bg-black/20"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Building2 className="h-3 w-3" />
+                                  Contact
+                                </Button>
+                              </PopoverTrigger>
+                              <SupplierContactPopover contact={contact} />
+                            </Popover>
+                          ) : (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="h-5 text-xs opacity-60">
+                                  No contact
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Add this manufacturer to Supplier Contacts in Settings
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {onDismiss && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 w-6 p-0 hover:bg-white/50 dark:hover:bg-black/20"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDismiss(warning.id);
+                                  }}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Dismiss reminder</TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
                       </div>
-                      {onDismiss && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 w-6 p-0 flex-shrink-0 hover:bg-white/50 dark:hover:bg-black/20"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDismiss(warning.id);
-                              }}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Dismiss reminder</TooltipContent>
-                        </Tooltip>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
 

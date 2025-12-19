@@ -13,16 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-
-interface ExpiryWarning {
-  id: string;
-  materialName: string;
-  epdNumber?: string;
-  manufacturer?: string;
-  expiryDate: string;
-  daysUntil: number;
-  status: 'expired' | 'critical' | 'warning' | 'upcoming';
-}
+import { ExpiryWarning } from "@/hooks/useEPDRenewalReminders";
 
 interface EPDRenewalExportProps {
   expiryWarnings: ExpiryWarning[];
