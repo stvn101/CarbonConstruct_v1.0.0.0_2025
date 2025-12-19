@@ -99,6 +99,7 @@ export function useEPDMaterials() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedState, setSelectedState] = useState<string>('all');
   const [selectedManufacturer, setSelectedManufacturer] = useState<string>('all');
+  const [selectedDataSource, setSelectedDataSource] = useState<string>('all');
 
   // Get subscription tier to determine database access
   const { currentTier } = useSubscription();
@@ -163,6 +164,12 @@ export function useEPDMaterials() {
     return mfrs.sort() as string[];
   }, [accessibleMaterials]);
 
+  // Get unique data sources from accessible materials
+  const dataSources = useMemo(() => {
+    const sources = [...new Set(accessibleMaterials.map(m => m.data_source).filter(Boolean))];
+    return sources.sort() as string[];
+  }, [accessibleMaterials]);
+
   // Filter materials based on search and filters (from accessible materials only)
   const filteredMaterials = useMemo(() => {
     let result = accessibleMaterials;
@@ -182,6 +189,11 @@ export function useEPDMaterials() {
       result = result.filter(m => m.manufacturer === selectedManufacturer);
     }
 
+    // Filter by data source (ICE, NABERS, Bluescope, etc.)
+    if (selectedDataSource !== 'all') {
+      result = result.filter(m => m.data_source === selectedDataSource);
+    }
+
     // Filter by search term
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
@@ -195,7 +207,7 @@ export function useEPDMaterials() {
     }
 
     return result;
-  }, [accessibleMaterials, searchTerm, selectedCategory, selectedState, selectedManufacturer]);
+  }, [accessibleMaterials, searchTerm, selectedCategory, selectedState, selectedManufacturer, selectedDataSource]);
 
   // Group materials by category
   const groupedMaterials = useMemo((): GroupedEPDMaterials[] => {
@@ -220,6 +232,7 @@ export function useEPDMaterials() {
     setSelectedCategory('all');
     setSelectedState('all');
     setSelectedManufacturer('all');
+    setSelectedDataSource('all');
   }, []);
 
   // Get unit label
@@ -244,6 +257,7 @@ export function useEPDMaterials() {
     categories,
     states,
     manufacturers,
+    dataSources,
     
     // Access info
     hasFullDatabaseAccess,
@@ -253,6 +267,7 @@ export function useEPDMaterials() {
     selectedCategory,
     selectedState,
     selectedManufacturer,
+    selectedDataSource,
     loading,
     error,
     
@@ -261,6 +276,7 @@ export function useEPDMaterials() {
     setSelectedCategory,
     setSelectedState,
     setSelectedManufacturer,
+    setSelectedDataSource,
     resetFilters,
     refetch,
     
