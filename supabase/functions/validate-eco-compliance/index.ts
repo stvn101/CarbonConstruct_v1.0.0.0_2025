@@ -519,8 +519,8 @@ serve(async (req) => {
       );
     }
 
-    // Fetch project data
-    const { data: project, error: projectError } = await supabaseClient
+    // Fetch project data - use service client but verify user ownership
+    const { data: project, error: projectError } = await supabaseServiceClient
       .from('projects')
       .select('*')
       .eq('id', projectId)
