@@ -24,6 +24,8 @@ import { toast } from "sonner";
 import { SEOHead } from "@/components/SEOHead";
 import { DataSourceAttribution } from "@/components/DataSourceAttribution";
 import { AdminSidebar } from "@/components/AdminSidebar";
+import { MaterialsAnalyticsCharts } from "@/components/MaterialsAnalyticsCharts";
+import { MaterialsHealthCheck } from "@/components/MaterialsHealthCheck";
 import * as XLSX from "xlsx";
 
 // Circular Ecology logo for ICE Database attribution
@@ -1684,6 +1686,12 @@ export default function AdminICEImport() {
             </CardContent>
           </Card>
         )}
+
+        {/* Analytics Charts */}
+        <MaterialsAnalyticsCharts />
+
+        {/* Health Check */}
+        <MaterialsHealthCheck />
 
         {/* Quick Links */}
         <Card>
