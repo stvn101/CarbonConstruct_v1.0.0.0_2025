@@ -250,10 +250,11 @@ export default function Calculator() {
   const canAccessMaterialComparer = currentTier?.limits?.material_comparer ?? false;
   
   // Fetch materials from EPD database (Supabase materials_epd table)
-  const { materials: dbMaterials, loading: materialsLoading, error: materialsError, states, refetch: refetchMaterials } = useEPDMaterials();
+  const { materials: dbMaterials, loading: materialsLoading, error: materialsError, states, dataSources, refetch: refetchMaterials } = useEPDMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedDataSource, setSelectedDataSource] = useState<string | null>(null);
   const [useNewMaterialUI] = useState(() => {
     try {
       const stored = localStorage.getItem('useNewMaterialUI');
@@ -356,6 +357,11 @@ export default function Calculator() {
       filtered = filtered.filter(m => m.state === selectedState);
     }
     
+    // Filter by selected data source (ICE, NABERS, Bluescope, etc.)
+    if (selectedDataSource) {
+      filtered = filtered.filter(m => m.data_source === selectedDataSource);
+    }
+    
     // Filter by selected category
     if (selectedCategory) {
       filtered = filtered.filter(m => m.material_category === selectedCategory);
@@ -388,7 +394,7 @@ export default function Calculator() {
     // For new UI, show results when category is selected OR search is active
     // For old UI, only show when search is active
     const shouldShow = useNewMaterialUI 
-      ? (selectedCategory || materialSearch.trim().length >= 2 || selectedState)
+      ? (selectedCategory || materialSearch.trim().length >= 2 || selectedState || selectedDataSource)
       : materialSearch.trim().length >= 2;
     
     if (!shouldShow) return [];
@@ -407,7 +413,7 @@ export default function Calculator() {
         category: cat,
         items: items // Show all matching items, no limit
       }));
-  }, [dbMaterials, materialSearch, selectedCategory, selectedState, useNewMaterialUI]);
+  }, [dbMaterials, materialSearch, selectedCategory, selectedState, selectedDataSource, useNewMaterialUI]);
   
   // Total count of filtered materials for display
   const filteredMaterialsCount = useMemo(() => 
@@ -1584,13 +1590,26 @@ export default function Calculator() {
                         
                         {/* State Filter Dropdown */}
                         <Select value={selectedState || "all"} onValueChange={(v) => setSelectedState(v === "all" ? null : v)}>
-                          <SelectTrigger className="w-[140px] bg-background">
+                          <SelectTrigger className="w-[120px] bg-background">
                             <SelectValue placeholder="All States" />
                           </SelectTrigger>
                           <SelectContent className="bg-popover z-50">
                             <SelectItem value="all">All States</SelectItem>
                             {states.map((state) => (
                               <SelectItem key={state} value={state}>{state}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        {/* Data Source Filter Dropdown */}
+                        <Select value={selectedDataSource || "all"} onValueChange={(v) => setSelectedDataSource(v === "all" ? null : v)}>
+                          <SelectTrigger className="w-[130px] bg-background">
+                            <SelectValue placeholder="All Sources" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-50">
+                            <SelectItem value="all">All Sources</SelectItem>
+                            {dataSources.map((source) => (
+                              <SelectItem key={source} value={source}>{source}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
