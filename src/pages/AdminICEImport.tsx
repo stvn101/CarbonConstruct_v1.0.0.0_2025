@@ -16,7 +16,7 @@ import {
   Database, Upload, FileSpreadsheet, CheckCircle, AlertTriangle,
   RefreshCw, ExternalLink, Loader2, XCircle,
   Info, FileCheck, Eye, ArrowRight, Settings2, History, UploadCloud,
-  Download, PlayCircle, Sparkles
+  Download, PlayCircle, Sparkles, Search
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
@@ -193,17 +193,25 @@ export default function AdminICEImport() {
     'wool', 'fibre', 'fiber', 'foam', 'rubber', 'iron', 'brass', 'chrome'
   ];
 
-  // Score a row for being a header - pass rowIndex to apply position bonus
-  const scoreHeaderRow = (row: unknown[], rowIndex: number = 0): number => {
+  // Score a row for being a header - CRITICAL: reject empty rows first
+  const scoreHeaderRow = (row: unknown[], _rowIndex: number = 0): number => {
     const cells = row.map((c) => normalize(c));
-    const tokens = cells.filter(c => c && c.length > 0).map(c => c.toLowerCase());
+    const nonEmptyCells = cells.filter(c => c && c.length > 0);
+    const tokens = nonEmptyCells.map(c => c.toLowerCase());
+    
+    // CRITICAL: Empty or near-empty rows are NEVER headers - return minimum score
+    if (nonEmptyCells.length < 3) return -1000;
+    
     let score = 0;
     
-    // CRITICAL: Early row bonus - headers are almost always in first 10 rows
-    if (rowIndex <= 5) score += 50;  // Rows 0-5 get huge bonus
-    else if (rowIndex <= 10) score += 30;  // Rows 6-10 get good bonus
-    else if (rowIndex <= 20) score += 10;  // Rows 11-20 get small bonus
-    else score -= (rowIndex - 20) * 2;  // Beyond row 20, increasingly unlikely
+    // Check for ICE-specific definitive header patterns FIRST
+    const hasMaterlalsCol = tokens.some(t => t === 'materials' || t === 'material');
+    const hasEmbodiedCarbon = tokens.some(t => t.includes('embodied carbon') || t.includes('kgco2e'));
+    
+    // If row has BOTH "Materials" and "Embodied Carbon" - this is almost certainly the header
+    if (hasMaterlalsCol && hasEmbodiedCarbon) {
+      score += 200; // Very high score for definitive match
+    }
     
     let numericCount = 0;
     let longCellCount = 0;
@@ -223,7 +231,7 @@ export default function AdminICEImport() {
       
       // Penalize very long cells (descriptions are data, not headers)
       if (cell.length > 60) longCellCount++;
-      if (cell.length > 100) longCellCount += 2; // Extra penalty for very long
+      if (cell.length > 100) longCellCount += 2;
       
       // Strong penalty if cell looks like a material name (DATA, not header)
       for (const pattern of MATERIAL_PATTERNS) {
@@ -242,7 +250,7 @@ export default function AdminICEImport() {
         }
       }
       
-      // ICE-specific header patterns - these are definitive
+      // ICE-specific header patterns
       if (lower.includes('kgco2e') || lower.includes('ef (')) score += 20;
       if (lower === 'material' || lower === 'materials') score += 25;
       if (lower === 'unit' || lower === 'units') score += 20;
@@ -253,15 +261,36 @@ export default function AdminICEImport() {
     
     // Apply scores
     score += headerKeywordMatches;
-    score -= numericCount * 5;  // Increased penalty
-    score -= longCellCount * 5;  // Increased penalty
-    score -= materialDataMatches * 30; // Heavy penalty for material name patterns
+    score -= numericCount * 5;
+    score -= longCellCount * 5;
+    score -= materialDataMatches * 30;
     
-    if (tokens.length < 3) score -= 15;
-    if (numericCount >= 2) score -= 25;  // Increased penalty
-    if (materialDataMatches >= 1) score -= 40; // Row with any material name is definitely DATA
+    if (numericCount >= 2) score -= 25;
+    if (materialDataMatches >= 1) score -= 40;
     
     return score;
+  };
+
+  // Find the first row containing both "Materials" and "Embodied Carbon" - the definitive ICE header
+  const findICEHeaderRow = (aoa: unknown[][], startRow: number = 0): { row: number; headers: string[] } | null => {
+    for (let i = 0; i < aoa.length; i++) {
+      const row = aoa[i];
+      if (!Array.isArray(row)) continue;
+      
+      const cells = row.map(c => normalize(c));
+      const tokens = cells.filter(c => c.length > 0).map(c => c.toLowerCase());
+      
+      const hasMaterials = tokens.some(t => t === 'materials' || t === 'material');
+      const hasEmbodiedCarbon = tokens.some(t => t.includes('embodied carbon') || t.includes('kgco2e'));
+      
+      if (hasMaterials && hasEmbodiedCarbon) {
+        return {
+          row: startRow + i,
+          headers: cells.filter(c => c.length > 0).slice(0, 10)
+        };
+      }
+    }
+    return null;
   };
 
   // Check if detected columns look suspicious (like data instead of headers)
@@ -1258,7 +1287,7 @@ export default function AdminICEImport() {
 
                 <div className="space-y-2">
                   <Label>Header Row (0-indexed)</Label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -1281,26 +1310,53 @@ export default function AdminICEImport() {
                     >
                       +1
                     </Button>
-                    {/* Quick preset buttons for common header positions */}
-                    <div className="flex gap-1 ml-2">
-                      {[3, 4, 5].map(row => (
-                        <Button
-                          key={row}
-                          variant={validationPreview.selectedHeaderRow === row ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => updateHeaderRow(row)}
-                          className="px-2"
-                        >
-                          Row {row}
-                        </Button>
-                      ))}
-                    </div>
+                    {/* Find Header Button - searches for Materials + Embodied Carbon */}
+                    <Button
+                      variant="eco"
+                      size="sm"
+                      onClick={() => {
+                        if (!workbook) return;
+                        const sheet = workbook.Sheets[validationPreview.selectedWorksheet];
+                        if (!sheet || !sheet['!ref']) return;
+                        
+                        const range = XLSX.utils.decode_range(sheet['!ref']);
+                        const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+                          header: 1,
+                          range: { s: { c: range.s.c, r: 0 }, e: { c: Math.min(range.e.c, 50), r: Math.min(range.e.r, 100) } },
+                          raw: true,
+                        });
+                        
+                        const result = findICEHeaderRow(aoa, 0);
+                        if (result) {
+                          updateHeaderRow(result.row);
+                          toast.success(`Found ICE header at row ${result.row}: ${result.headers.slice(0, 3).join(', ')}...`);
+                        } else {
+                          toast.error('Could not find row with "Materials" and "Embodied Carbon" columns');
+                        }
+                      }}
+                      className="ml-2"
+                    >
+                      <Search className="h-3 w-3 mr-1" />
+                      Find Header Row
+                    </Button>
                   </div>
+                  
+                  {/* Detected Headers Preview */}
+                  {validationPreview.detectedColumns.length > 0 && (
+                    <div className="mt-2 p-2 bg-muted/50 rounded text-xs">
+                      <span className="font-medium">Detected headers: </span>
+                      <span className="text-muted-foreground">
+                        {validationPreview.detectedColumns.slice(0, 5).map(c => c.original).join(' | ')}
+                        {validationPreview.detectedColumns.length > 5 && ` (+${validationPreview.detectedColumns.length - 5} more)`}
+                      </span>
+                    </div>
+                  )}
+                  
                   <p className="text-xs text-muted-foreground">
-                    Auto-detected: row {validationPreview.selectedHeaderRow}. 
+                    Current: row {validationPreview.selectedHeaderRow}. 
                     {validationPreview.selectedHeaderRow > 10 && (
                       <span className="text-destructive font-medium ml-1">
-                        Warning: Header usually in rows 3-5 for ICE files. Try clicking "Row 3" or "Row 4" above.
+                        Warning: Header usually in rows 3-5 for ICE files.
                       </span>
                     )}
                   </p>
