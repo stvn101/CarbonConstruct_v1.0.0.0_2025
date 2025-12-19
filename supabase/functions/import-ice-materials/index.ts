@@ -673,6 +673,11 @@ serve(async (req) => {
     // Parse materials using the unified parsing function
     const parsed = parseICEMaterials(materials);
 
+    if (parsed.length === 0) {
+      console.error('[ICE Import] No materials parsed from input!');
+      console.error('[ICE Import] Input sample:', JSON.stringify(materials.slice(0, 2)).slice(0, 500));
+    }
+
     // Deduplicate by material name + unit
     const seenKeys = new Set<string>();
     const dedupedMaterials: ICEMaterial[] = [];
@@ -697,6 +702,10 @@ serve(async (req) => {
     }
 
     console.log(`Parsed ${dedupedMaterials.length} valid materials, ${errorCount} parse errors, ${duplicatesSkipped} duplicates skipped`);
+
+    if (dedupedMaterials.length === 0 && !dryRun) {
+      throw new Error(`No valid materials found in input. Parsed 0 out of ${materials.length} rows. Check that the spreadsheet has the correct format and column mappings.`);
+    }
 
     if (dryRun) {
       return new Response(
@@ -751,6 +760,7 @@ serve(async (req) => {
 
       if (error) {
         console.error(`Batch ${Math.floor(i / batchSize) + 1} error:`, error);
+        console.error(`Error details:`, JSON.stringify(error));
         // Continue with other batches instead of failing entirely
         errors.push({ row: i, error: `Batch insert failed: ${error.message}` });
         continue;
