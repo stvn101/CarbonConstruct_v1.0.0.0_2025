@@ -1,10 +1,12 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Plus, Database, FlaskConical, RefreshCcw, Info, MapPin } from "lucide-react";
+import { Plus, Database, FlaskConical, RefreshCcw, Info, MapPin, AlertTriangle, Clock, Scale } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { UnitInfoTooltip } from "./UnitInfoTooltip";
 import { WhyFactorsVaryDialog } from "./RegionalVariantTooltip";
 import { DataSourceAttribution } from "@/components/DataSourceAttribution";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import {
   Dialog,
@@ -25,6 +27,9 @@ interface MaterialItem {
   state?: string | null;
   manufacturer?: string | null;
   plant_location?: string | null;
+  expiry_date?: string | null;
+  publish_date?: string | null;
+  material_category?: string;
 }
 
 interface GroupedMaterials {
@@ -40,6 +45,21 @@ interface MaterialSearchResultsProps {
   searchTerm: string;
   selectedCategory: string | null;
   totalResultCount?: number;
+  comparisonMode?: boolean;
+  onToggleComparisonMode?: () => void;
+  selectedForComparison?: string[];
+  onToggleComparison?: (id: string) => void;
+}
+
+// Helper to check EPD expiry status
+function getExpiryStatus(expiryDate: string | null | undefined): { status: 'valid' | 'expiring' | 'expired'; daysUntil: number | null } {
+  if (!expiryDate) return { status: 'valid', daysUntil: null };
+  const expiry = new Date(expiryDate);
+  const now = new Date();
+  const daysUntil = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysUntil < 0) return { status: 'expired', daysUntil };
+  if (daysUntil <= 90) return { status: 'expiring', daysUntil };
+  return { status: 'valid', daysUntil };
 }
 
 function LCAMethodologyInfo() {
@@ -106,7 +126,11 @@ export function MaterialSearchResults({
   onAddMaterial, 
   searchTerm,
   selectedCategory,
-  totalResultCount 
+  totalResultCount,
+  comparisonMode = false,
+  onToggleComparisonMode,
+  selectedForComparison = [],
+  onToggleComparison
 }: MaterialSearchResultsProps) {
   if (groupedMaterials.length === 0) {
     return (
@@ -144,6 +168,20 @@ export function MaterialSearchResults({
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {/* Comparison Mode Toggle */}
+            {onToggleComparisonMode && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onToggleComparisonMode}
+                className={`h-7 gap-1.5 text-xs ${comparisonMode 
+                  ? 'bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 border-violet-300 dark:border-violet-700' 
+                  : 'border-gray-200 dark:border-gray-700'}`}
+              >
+                <Scale className="h-3.5 w-3.5" />
+                Compare {selectedForComparison.length > 0 && `(${selectedForComparison.length})`}
+              </Button>
+            )}
             <WhyFactorsVaryDialog />
             <LCAMethodologyInfo />
           </div>
@@ -166,16 +204,73 @@ export function MaterialSearchResults({
                 const hasProcess = item.embodied_carbon_a1a3 != null && item.embodied_carbon_a1a3 > 0;
                 const hasHybrid = item.embodied_carbon_total != null && item.embodied_carbon_total > 0;
                 const hasBoth = hasProcess && hasHybrid;
+                const expiryStatus = getExpiryStatus(item.expiry_date);
+                const isSelected = selectedForComparison.includes(item.id);
                 
                 return (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg group transition-colors border border-transparent hover:border-emerald-200 dark:hover:border-emerald-800 overflow-hidden"
+                    className={`grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg group transition-colors border overflow-hidden ${
+                      isSelected 
+                        ? 'border-violet-400 dark:border-violet-600 bg-violet-50 dark:bg-violet-950/30' 
+                        : expiryStatus.status === 'expired'
+                        ? 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
+                        : expiryStatus.status === 'expiring'
+                        ? 'border-amber-200 dark:border-amber-800'
+                        : 'border-transparent hover:border-emerald-200 dark:hover:border-emerald-800'
+                    }`}
                   >
+                    {/* Comparison checkbox */}
+                    {comparisonMode && onToggleComparison && (
+                      <div className="col-span-2 flex items-center gap-2 pb-1.5 border-b border-dashed border-gray-200 dark:border-gray-700 mb-1.5">
+                        <Checkbox 
+                          checked={isSelected}
+                          onCheckedChange={() => onToggleComparison(item.id)}
+                          className="data-[state=checked]:bg-violet-600 data-[state=checked]:border-violet-600"
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          {isSelected ? 'Selected for comparison' : 'Select to compare'}
+                        </span>
+                      </div>
+                    )}
+                    
                     {/* Material info - constrained, truncates */}
                     <div className="min-w-0 overflow-hidden">
-                      <div className="font-medium text-sm text-foreground truncate block" title={item.material_name}>
-                        {item.material_name}
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-sm text-foreground truncate block" title={item.material_name}>
+                          {item.material_name}
+                        </div>
+                        {/* EPD Expiry Warning */}
+                        {expiryStatus.status === 'expired' && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="destructive" className="h-5 px-1.5 text-xs gap-0.5 flex-shrink-0">
+                                <AlertTriangle className="h-3 w-3" />
+                                Expired
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-semibold text-red-600">EPD Expired</p>
+                              <p className="text-xs">Expired {Math.abs(expiryStatus.daysUntil!)} days ago on {new Date(item.expiry_date!).toLocaleDateString()}</p>
+                              <p className="text-xs text-muted-foreground mt-1">Consider using a material with a valid EPD for compliance.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                        {expiryStatus.status === 'expiring' && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge className="h-5 px-1.5 text-xs gap-0.5 bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-100 flex-shrink-0">
+                                <Clock className="h-3 w-3" />
+                                {expiryStatus.daysUntil}d
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-semibold text-amber-600">EPD Expiring Soon</p>
+                              <p className="text-xs">Expires in {expiryStatus.daysUntil} days on {new Date(item.expiry_date!).toLocaleDateString()}</p>
+                              <p className="text-xs text-muted-foreground mt-1">Plan to update to a renewed EPD before expiry.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
                         <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground">
