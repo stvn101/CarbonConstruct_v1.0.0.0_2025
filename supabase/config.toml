@@ -113,3 +113,6 @@ verify_jwt = false
 
 [functions.check-epd-expiry]
 verify_jwt = false
+
+[functions.send-campaign-email]
+verify_jwt = true

@@ -77,6 +77,99 @@ export type Database = {
         }
         Relationships: []
       }
+      email_campaign_analytics: {
+        Row: {
+          audience: string
+          campaign_id: string
+          click_url: string | null
+          clicked_at: string | null
+          conversion_type: string | null
+          converted_at: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          opened_at: string | null
+          recipient_email: string
+          sent_at: string
+          variant: string
+        }
+        Insert: {
+          audience: string
+          campaign_id: string
+          click_url?: string | null
+          clicked_at?: string | null
+          conversion_type?: string | null
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          opened_at?: string | null
+          recipient_email: string
+          sent_at?: string
+          variant: string
+        }
+        Update: {
+          audience?: string
+          campaign_id?: string
+          click_url?: string | null
+          clicked_at?: string | null
+          conversion_type?: string | null
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          opened_at?: string | null
+          recipient_email?: string
+          sent_at?: string
+          variant?: string
+        }
+        Relationships: []
+      }
+      email_campaign_schedules: {
+        Row: {
+          audience: string
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          name: string
+          recipient_filter: Json | null
+          scheduled_at: string
+          sent_count: number | null
+          status: string
+          updated_at: string
+          variant: string
+        }
+        Insert: {
+          audience: string
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          name: string
+          recipient_filter?: Json | null
+          scheduled_at: string
+          sent_count?: number | null
+          status?: string
+          updated_at?: string
+          variant: string
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          name?: string
+          recipient_filter?: Json | null
+          scheduled_at?: string
+          sent_count?: number | null
+          status?: string
+          updated_at?: string
+          variant?: string
+        }
+        Relationships: []
+      }
       emission_factors: {
         Row: {
           category: string

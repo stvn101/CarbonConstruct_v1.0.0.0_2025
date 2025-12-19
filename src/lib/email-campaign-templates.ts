@@ -30,77 +30,272 @@ export interface ABTestVariant {
   variant: 'A' | 'B';
   subject: string;
   ctaText: string;
+  preheader: string;
+  testimonialPosition: 'before-cta' | 'after-benefits' | 'none';
 }
 
 /**
- * A/B Test variants for email subject lines and CTAs
+ * Extended A/B Test variants for email campaigns
+ * Includes subject lines, CTAs, preheaders, and testimonial placement
  * Variant A = Original/Control
  * Variant B = Alternative/Test
  */
 export const abTestVariants: Record<string, { A: ABTestVariant; B: ABTestVariant }> = {
   builders: {
-    A: { variant: 'A', subject: 'NCC 2024 is here—is your business carbon-ready?', ctaText: 'See How Builders Use It' },
-    B: { variant: 'B', subject: '🏗️ Win more tenders with carbon compliance', ctaText: 'Start Free Trial' },
+    A: { 
+      variant: 'A', 
+      subject: 'NCC 2024 is here—is your business carbon-ready?', 
+      ctaText: 'See How Builders Use It',
+      preheader: 'The simple carbon tool built by a builder, for builders',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: '🏗️ Win more tenders with carbon compliance', 
+      ctaText: 'Start Free Trial',
+      preheader: 'Join 500+ builders already using CarbonConstruct',
+      testimonialPosition: 'before-cta'
+    },
   },
   architects: {
-    A: { variant: 'A', subject: 'Design for carbon—without slowing down your creative process', ctaText: 'Design Smarter with Carbon' },
-    B: { variant: 'B', subject: 'Real-time carbon feedback for design decisions', ctaText: 'Try Free for 14 Days' },
+    A: { 
+      variant: 'A', 
+      subject: 'Design for carbon—without slowing down your creative process', 
+      ctaText: 'Design Smarter with Carbon',
+      preheader: 'Real-time carbon feedback as you design',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: 'Real-time carbon feedback for design decisions', 
+      ctaText: 'Try Free for 14 Days',
+      preheader: 'See carbon impacts before you finalise materials',
+      testimonialPosition: 'before-cta'
+    },
   },
   developers: {
-    A: { variant: 'A', subject: 'Turn carbon compliance into competitive advantage', ctaText: 'Get ESG-Ready Reporting' },
-    B: { variant: 'B', subject: '📈 ESG investors are asking about embodied carbon', ctaText: 'See Portfolio Dashboard' },
+    A: { 
+      variant: 'A', 
+      subject: 'Turn carbon compliance into competitive advantage', 
+      ctaText: 'Get ESG-Ready Reporting',
+      preheader: 'ESG-ready carbon reporting for your portfolio',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: '📈 ESG investors are asking about embodied carbon', 
+      ctaText: 'See Portfolio Dashboard',
+      preheader: 'Institutional investors want carbon data—are you ready?',
+      testimonialPosition: 'before-cta'
+    },
   },
   engineers: {
-    A: { variant: 'A', subject: 'Optimize structures for strength AND carbon', ctaText: 'Engineer Lower Carbon' },
-    B: { variant: 'B', subject: 'Concrete vs steel vs timber: see the carbon difference', ctaText: 'Compare Materials Now' },
+    A: { 
+      variant: 'A', 
+      subject: 'Optimize structures for strength AND carbon', 
+      ctaText: 'Engineer Lower Carbon',
+      preheader: 'Technical carbon analysis for engineering professionals',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: 'Concrete vs steel vs timber: see the carbon difference', 
+      ctaText: 'Compare Materials Now',
+      preheader: 'ICE Database + Australian EPDs in one place',
+      testimonialPosition: 'before-cta'
+    },
   },
   'site-supervisors': {
-    A: { variant: 'A', subject: 'Carbon compliance without leaving the site', ctaText: 'Simplify Site Compliance' },
-    B: { variant: 'B', subject: '📱 Check EPD compliance from your phone', ctaText: 'See Mobile Tools' },
+    A: { 
+      variant: 'A', 
+      subject: 'Carbon compliance without leaving the site', 
+      ctaText: 'Simplify Site Compliance',
+      preheader: 'Mobile-ready EPD verification for site delivery',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: '📱 Check EPD compliance from your phone', 
+      ctaText: 'See Mobile Tools',
+      preheader: 'Verify material substitutions in seconds on-site',
+      testimonialPosition: 'before-cta'
+    },
   },
   'cost-planners': {
-    A: { variant: 'A', subject: 'Add carbon estimates to your cost plans', ctaText: 'Start Carbon Estimating' },
-    B: { variant: 'B', subject: 'BOQ to carbon report in minutes, not hours', ctaText: 'Upload Your First BOQ' },
+    A: { 
+      variant: 'A', 
+      subject: 'Add carbon estimates to your cost plans', 
+      ctaText: 'Start Carbon Estimating',
+      preheader: 'BOQ import for instant carbon calculations',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: 'BOQ to carbon report in minutes, not hours', 
+      ctaText: 'Upload Your First BOQ',
+      preheader: 'Deliver carbon + cost estimates with QS-level rigour',
+      testimonialPosition: 'before-cta'
+    },
   },
   'environmental-officers': {
-    A: { variant: 'A', subject: 'Streamline your Green Star submissions', ctaText: 'Streamline Compliance' },
-    B: { variant: 'B', subject: '⏱️ Cut Green Star submission time by 80%', ctaText: 'See How It Works' },
+    A: { 
+      variant: 'A', 
+      subject: 'Streamline your Green Star submissions', 
+      ctaText: 'Streamline Compliance',
+      preheader: 'Verified EPD database with audit-ready documentation',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: '⏱️ Cut Green Star submission time by 80%', 
+      ctaText: 'See How It Works',
+      preheader: 'Full traceability for third-party audits',
+      testimonialPosition: 'before-cta'
+    },
   },
   'sustainability-managers': {
-    A: { variant: 'A', subject: 'Portfolio-wide carbon visibility for ESG reporting', ctaText: 'Drive Portfolio Reduction' },
-    B: { variant: 'B', subject: 'From carbon data to board-ready KPIs', ctaText: 'View Sample Dashboard' },
+    A: { 
+      variant: 'A', 
+      subject: 'Portfolio-wide carbon visibility for ESG reporting', 
+      ctaText: 'Drive Portfolio Reduction',
+      preheader: 'Track reduction pathways across all projects',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: 'From carbon data to board-ready KPIs', 
+      ctaText: 'View Sample Dashboard',
+      preheader: 'Executive-ready reporting for sustainability leaders',
+      testimonialPosition: 'before-cta'
+    },
   },
   'project-managers': {
-    A: { variant: 'A', subject: 'Keep carbon on track alongside cost and time', ctaText: 'Start Managing Carbon' },
-    B: { variant: 'B', subject: 'Carbon is now a project deliverable—are you ready?', ctaText: 'See PM Dashboard' },
+    A: { 
+      variant: 'A', 
+      subject: 'Keep carbon on track alongside cost and time', 
+      ctaText: 'Start Managing Carbon',
+      preheader: 'Real-time carbon tracking for construction projects',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: 'Carbon is now a project deliverable—are you ready?', 
+      ctaText: 'See PM Dashboard',
+      preheader: 'Early warning on compliance risks',
+      testimonialPosition: 'before-cta'
+    },
   },
   subcontractors: {
-    A: { variant: 'A', subject: 'Win more work with carbon credentials', ctaText: 'Build Carbon Credentials' },
-    B: { variant: 'B', subject: '🏆 Stand out from competitors with EPD reports', ctaText: 'Create Your First Report' },
+    A: { 
+      variant: 'A', 
+      subject: 'Win more work with carbon credentials', 
+      ctaText: 'Build Carbon Credentials',
+      preheader: 'Simple EPD documentation for trade contractors',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: '🏆 Stand out from competitors with EPD reports', 
+      ctaText: 'Create Your First Report',
+      preheader: 'Professional reports for tender submissions',
+      testimonialPosition: 'before-cta'
+    },
   },
   estimators: {
-    A: { variant: 'A', subject: 'Add carbon to your estimates—fast', ctaText: 'Estimate Faster' },
-    B: { variant: 'B', subject: 'Carbon estimates that don\'t slow you down', ctaText: 'Try BOQ Import' },
+    A: { 
+      variant: 'A', 
+      subject: 'Add carbon to your estimates—fast', 
+      ctaText: 'Estimate Faster',
+      preheader: 'Instant carbon calculations from your material take-offs',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: 'Carbon estimates that don\'t slow you down', 
+      ctaText: 'Try BOQ Import',
+      preheader: 'Australian EPD database built in—no manual research',
+      testimonialPosition: 'before-cta'
+    },
   },
   procurement: {
-    A: { variant: 'A', subject: 'Make carbon-smart procurement decisions', ctaText: 'Procure Sustainably' },
-    B: { variant: 'B', subject: 'Compare suppliers by price AND carbon', ctaText: 'See Supplier Comparison' },
+    A: { 
+      variant: 'A', 
+      subject: 'Make carbon-smart procurement decisions', 
+      ctaText: 'Procure Sustainably',
+      preheader: 'Compare suppliers by cost AND carbon performance',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: 'Compare suppliers by price AND carbon', 
+      ctaText: 'See Supplier Comparison',
+      preheader: 'Sustainable procurement reporting made easy',
+      testimonialPosition: 'before-cta'
+    },
   },
   'supply-chain': {
-    A: { variant: 'A', subject: 'Help your customers meet carbon targets', ctaText: 'Feature Your Products' },
-    B: { variant: 'B', subject: '📊 40% more specifications when you\'re in our database', ctaText: 'List Your EPDs Free' },
+    A: { 
+      variant: 'A', 
+      subject: 'Help your customers meet carbon targets', 
+      ctaText: 'Feature Your Products',
+      preheader: 'Make your EPDs work harder for your business',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: '📊 40% more specifications when you\'re in our database', 
+      ctaText: 'List Your EPDs Free',
+      preheader: 'Turn your EPD investment into sales results',
+      testimonialPosition: 'before-cta'
+    },
   },
   consultants: {
-    A: { variant: 'A', subject: 'Scale your LCA practice with the right tools', ctaText: 'Scale Your Practice' },
-    B: { variant: 'B', subject: 'Deliver 2x more LCAs without hiring', ctaText: 'See White-Label Options' },
+    A: { 
+      variant: 'A', 
+      subject: 'Scale your LCA practice with the right tools', 
+      ctaText: 'Scale Your Practice',
+      preheader: 'Verified data and white-label reporting for consultants',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: 'Deliver 2x more LCAs without hiring', 
+      ctaText: 'See White-Label Options',
+      preheader: 'White-label reports in your branding',
+      testimonialPosition: 'before-cta'
+    },
   },
   government: {
-    A: { variant: 'A', subject: 'Lead by example on embodied carbon', ctaText: 'Lead on Climate' },
-    B: { variant: 'B', subject: 'Set evidence-based carbon limits for public tenders', ctaText: 'View Benchmarks' },
+    A: { 
+      variant: 'A', 
+      subject: 'Lead by example on embodied carbon', 
+      ctaText: 'Lead on Climate',
+      preheader: 'Procurement tools for public sector carbon targets',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: 'Set evidence-based carbon limits for public tenders', 
+      ctaText: 'View Benchmarks',
+      preheader: 'Support whole-of-government sustainability targets',
+      testimonialPosition: 'before-cta'
+    },
   },
   investors: {
-    A: { variant: 'A', subject: 'Embodied carbon: the next frontier of ESG risk', ctaText: 'Assess Climate Risk' },
-    B: { variant: 'B', subject: '⚠️ Is embodied carbon a stranded asset risk?', ctaText: 'Run Portfolio Analysis' },
+    A: { 
+      variant: 'A', 
+      subject: 'Embodied carbon: the next frontier of ESG risk', 
+      ctaText: 'Assess Climate Risk',
+      preheader: 'Assess climate risk in your property portfolio',
+      testimonialPosition: 'after-benefits'
+    },
+    B: { 
+      variant: 'B', 
+      subject: '⚠️ Is embodied carbon a stranded asset risk?', 
+      ctaText: 'Run Portfolio Analysis',
+      preheader: 'GRESB and TCFD-aligned reporting',
+      testimonialPosition: 'before-cta'
+    },
   },
 };
 
@@ -587,8 +782,8 @@ export function getABTestVariants(template: EmailCampaignTemplate): ABTestVarian
   }
   // Fallback: return the original subject and CTA as variant A
   return [
-    { variant: 'A', subject: template.subject, ctaText: template.ctaText },
-    { variant: 'B', subject: template.subject, ctaText: template.ctaText },
+    { variant: 'A', subject: template.subject, ctaText: template.ctaText, preheader: template.preheader, testimonialPosition: 'after-benefits' },
+    { variant: 'B', subject: template.subject, ctaText: template.ctaText, preheader: template.preheader, testimonialPosition: 'before-cta' },
   ];
 }
 
