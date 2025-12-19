@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet, Cloud, CloudOff, FileUp, FileDown, CheckCircle, History, RotateCcw } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet, Cloud, CloudOff, FileUp, FileDown, CheckCircle, History, RotateCcw, FileJson, Hash } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
@@ -349,6 +349,59 @@ export default function Calculator() {
     setImportHistory([]);
     toast({ title: "History Cleared" });
   };
+
+  // Export import history as JSON
+  const exportImportHistory = () => {
+    if (importHistory.length === 0) {
+      toast({ title: "No history to export", variant: "destructive" });
+      return;
+    }
+    const data = JSON.stringify(importHistory, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `import-history-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: "History Exported", description: "JSON file downloaded" });
+  };
+
+  // Import history from JSON
+  const jsonHistoryInputRef = useRef<HTMLInputElement>(null);
+  const handleImportHistoryJSON = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (!Array.isArray(parsed)) throw new Error("Invalid format");
+      const validated = parsed.map((entry: any) => ({
+        id: entry.id || `imported_${Date.now()}_${Math.random()}`,
+        fileName: entry.fileName || 'Unknown',
+        importedAt: new Date(entry.importedAt),
+        materialCount: entry.materialCount || entry.materials?.length || 0,
+        materials: Array.isArray(entry.materials) ? entry.materials : [],
+      }));
+      setImportHistory(prev => [...validated, ...prev].slice(0, 20));
+      toast({ title: "History Imported", description: `Loaded ${validated.length} entries` });
+    } catch (err) {
+      toast({ title: "Invalid JSON", description: "Could not parse import history file", variant: "destructive" });
+    }
+    if (jsonHistoryInputRef.current) jsonHistoryInputRef.current.value = '';
+  };
+
+  // EPD number search state
+  const [epdSearch, setEpdSearch] = useState('');
+  const epdSearchResults = useMemo(() => {
+    if (epdSearch.trim().length < 3) return [];
+    const searchLower = epdSearch.toLowerCase().trim();
+    return dbMaterials
+      .filter(m => m.epd_number?.toLowerCase().includes(searchLower))
+      .slice(0, 20);
+  }, [dbMaterials, epdSearch]);
   
   // Category counts for browser - using EPD database
   const categoryCounts = useMemo(() => {
@@ -1764,14 +1817,49 @@ export default function Calculator() {
                           <History className="h-3 w-3" />
                           Import History
                         </span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={clearImportHistory}
-                          className="h-6 text-xs text-amber-600 hover:text-amber-800 hover:bg-amber-100"
-                        >
-                          Clear All
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={exportImportHistory}
+                                className="h-6 px-2 text-xs bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200"
+                              >
+                                <FileJson className="h-3 w-3" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Export history as JSON</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => jsonHistoryInputRef.current?.click()}
+                                className="h-6 px-2 text-xs bg-sky-100 text-sky-700 border-sky-300 hover:bg-sky-200"
+                              >
+                                <Upload className="h-3 w-3" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Import history from JSON</TooltipContent>
+                          </Tooltip>
+                          <input
+                            type="file"
+                            ref={jsonHistoryInputRef}
+                            onChange={handleImportHistoryJSON}
+                            accept=".json"
+                            className="hidden"
+                          />
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={clearImportHistory}
+                            className="h-6 text-xs text-amber-600 hover:text-amber-800 hover:bg-amber-100"
+                          >
+                            Clear All
+                          </Button>
+                        </div>
                       </div>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
                         {importHistory.map(entry => (
@@ -1961,6 +2049,69 @@ export default function Calculator() {
                           </SelectContent>
                         </Select>
                       </div>
+
+                      {/* EPD Number Search */}
+                      <div className="flex gap-3 items-start">
+                        <div className="relative flex-1">
+                          <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Search by EPD number (e.g. EPD-BLU-001)..."
+                            value={epdSearch}
+                            onChange={(e) => setEpdSearch(e.target.value)}
+                            className="pl-10 text-foreground"
+                          />
+                          {epdSearch && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                              onClick={() => setEpdSearch('')}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* EPD Search Results */}
+                      {epdSearchResults.length > 0 && (
+                        <div className="p-3 bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 rounded-lg">
+                          <div className="text-xs font-medium text-violet-700 dark:text-violet-300 uppercase tracking-wide mb-2 flex items-center gap-1">
+                            <Hash className="h-3 w-3" />
+                            EPD Matches ({epdSearchResults.length})
+                          </div>
+                          <ScrollArea className="max-h-48">
+                            <div className="space-y-1">
+                              {epdSearchResults.map(item => (
+                                <button
+                                  key={item.id}
+                                  onClick={() => addMaterialFromDb(item.id)}
+                                  className="w-full text-left px-3 py-2 text-sm bg-white dark:bg-gray-800 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-md border border-violet-200 dark:border-violet-700 flex justify-between items-center group transition-colors"
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-foreground truncate">{item.material_name}</div>
+                                    <div className="text-xs text-violet-600 dark:text-violet-400 font-mono">{item.epd_number}</div>
+                                    {item.manufacturer && (
+                                      <div className="text-xs text-muted-foreground truncate">{item.manufacturer}</div>
+                                    )}
+                                  </div>
+                                  <div className="text-right ml-2 flex-shrink-0">
+                                    <div className="text-xs text-muted-foreground group-hover:text-violet-600">
+                                      {item.ef_total.toFixed(1)} kgCO2/{item.unit}
+                                    </div>
+                                    <Plus className="h-4 w-4 text-violet-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
+                      )}
+                      {epdSearch.length >= 3 && epdSearchResults.length === 0 && (
+                        <div className="text-xs text-muted-foreground text-center py-2">
+                          No EPDs found matching "{epdSearch}"
+                        </div>
+                      )}
 
                       {/* Local database loads instantly - no loading state needed */}
                       
