@@ -2,6 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getSourceTier } from "@/lib/material-validation";
 
+export interface DataSourceStats {
+  name: string;
+  count: number;
+  percentage: number;
+  lastImported: string | null;
+}
+
 export interface MaterialsDatabaseStats {
   totalMaterials: number;
   totalCategories: number;
@@ -40,6 +47,14 @@ export interface MaterialsDatabaseStats {
     medium: number;
     low: number;
   };
+  // Data source specific stats
+  dataSourceStats: {
+    ice: DataSourceStats;
+    nabers: DataSourceStats;
+    bluescope: DataSourceStats;
+    icm: DataSourceStats;
+    other: DataSourceStats;
+  };
 }
 
 async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
@@ -51,17 +66,54 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
   // Fetch all materials for validation analysis
   const { data: allMaterials } = await supabase
     .from("materials_epd")
-    .select("data_source, material_category, unit, epd_number, manufacturer, epd_url, state, ef_total");
+    .select("data_source, material_category, unit, epd_number, manufacturer, epd_url, state, ef_total, created_at");
 
-  // Calculate source tier distribution
+  // Calculate source tier distribution and data source stats
   let tier1Count = 0, tier2Count = 0, tier3Count = 0;
   let verifiedCount = 0, documentedCount = 0, industryAvgCount = 0, needsReviewCount = 0;
+  
+  // Data source counters
+  let iceCount = 0, nabersCount = 0, bluescopeCount = 0, icmCount = 0, otherCount = 0;
+  let iceLastImported: string | null = null;
+  let nabersLastImported: string | null = null;
+  let bluescopeLastImported: string | null = null;
+  let icmLastImported: string | null = null;
+  let otherLastImported: string | null = null;
   
   allMaterials?.forEach(m => {
     const tier = getSourceTier(m.data_source);
     if (tier.tier === 1) { tier1Count++; verifiedCount++; }
     else if (tier.tier === 2) { tier2Count++; industryAvgCount++; }
     else { tier3Count++; needsReviewCount++; }
+    
+    // Count by data source
+    const source = (m.data_source || '').toLowerCase();
+    if (source.includes('ice') || source.includes('ice v4')) {
+      iceCount++;
+      if (!iceLastImported || (m.created_at && m.created_at > iceLastImported)) {
+        iceLastImported = m.created_at;
+      }
+    } else if (source.includes('nabers') || source.includes('nabers epd')) {
+      nabersCount++;
+      if (!nabersLastImported || (m.created_at && m.created_at > nabersLastImported)) {
+        nabersLastImported = m.created_at;
+      }
+    } else if (source.includes('bluescope')) {
+      bluescopeCount++;
+      if (!bluescopeLastImported || (m.created_at && m.created_at > bluescopeLastImported)) {
+        bluescopeLastImported = m.created_at;
+      }
+    } else if (source.includes('icm') || source.includes('australian icm')) {
+      icmCount++;
+      if (!icmLastImported || (m.created_at && m.created_at > icmLastImported)) {
+        icmLastImported = m.created_at;
+      }
+    } else {
+      otherCount++;
+      if (!otherLastImported || (m.created_at && m.created_at > otherLastImported)) {
+        otherLastImported = m.created_at;
+      }
+    }
   });
 
   // Unique categories
@@ -161,6 +213,38 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
       high: needsReviewCount,
       medium: 0,
       low: 0
+    },
+    dataSourceStats: {
+      ice: {
+        name: 'ICE Database',
+        count: iceCount,
+        percentage: totalMaterials ? Math.round((iceCount / totalMaterials) * 1000) / 10 : 0,
+        lastImported: iceLastImported
+      },
+      nabers: {
+        name: 'NABERS EPD',
+        count: nabersCount,
+        percentage: totalMaterials ? Math.round((nabersCount / totalMaterials) * 1000) / 10 : 0,
+        lastImported: nabersLastImported
+      },
+      bluescope: {
+        name: 'BlueScope Steel',
+        count: bluescopeCount,
+        percentage: totalMaterials ? Math.round((bluescopeCount / totalMaterials) * 1000) / 10 : 0,
+        lastImported: bluescopeLastImported
+      },
+      icm: {
+        name: 'Australian ICM',
+        count: icmCount,
+        percentage: totalMaterials ? Math.round((icmCount / totalMaterials) * 1000) / 10 : 0,
+        lastImported: icmLastImported
+      },
+      other: {
+        name: 'Other Sources',
+        count: otherCount,
+        percentage: totalMaterials ? Math.round((otherCount / totalMaterials) * 1000) / 10 : 0,
+        lastImported: otherLastImported
+      }
     }
   };
 }
