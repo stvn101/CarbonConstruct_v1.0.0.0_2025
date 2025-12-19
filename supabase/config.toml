@@ -106,4 +106,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.send-epd-reminders]
-verify_jwt = true
+verify_jwt = false
+
+[functions.check-epd-expiry]
+verify_jwt = false

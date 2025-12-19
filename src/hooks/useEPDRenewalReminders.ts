@@ -14,8 +14,9 @@ interface Material {
   manufacturer?: string;
 }
 
-interface ExpiryWarning {
+export interface ExpiryWarning {
   id: string;
+  materialId: string;
   materialName: string;
   epdNumber?: string;
   manufacturer?: string;
@@ -72,7 +73,8 @@ export function useEPDRenewalReminders({
       // Only include materials that are expired, critical (30 days), warning (90 days), or upcoming (180 days)
       if (daysUntil <= 180) {
         warnings.push({
-          id: material.id,
+          id: `${material.id}-expiry`,
+          materialId: material.id,
           materialName: material.name,
           epdNumber: material.epdNumber,
           manufacturer: material.manufacturer,
