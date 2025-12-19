@@ -32,6 +32,8 @@ export interface EPDMaterial {
   data_quality_tier: string | null;
   year: number | null;
   recycled_content: number | null;
+  publish_date: string | null;
+  expiry_date: string | null;
   // ECO Platform compliance fields
   manufacturing_country: string | null;
   manufacturing_city: string | null;

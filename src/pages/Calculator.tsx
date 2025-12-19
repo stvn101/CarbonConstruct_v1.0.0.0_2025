@@ -402,6 +402,28 @@ export default function Calculator() {
       .filter(m => m.epd_number?.toLowerCase().includes(searchLower))
       .slice(0, 20);
   }, [dbMaterials, epdSearch]);
+
+  // Material comparison mode state
+  const [comparisonMode, setComparisonMode] = useState(false);
+  const [selectedForComparison, setSelectedForComparison] = useState<string[]>([]);
+  
+  const toggleComparison = (id: string) => {
+    setSelectedForComparison(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id].slice(0, 5)
+    );
+  };
+
+  const comparisonMaterials = useMemo(() => 
+    dbMaterials.filter(m => selectedForComparison.includes(m.id)),
+    [dbMaterials, selectedForComparison]
+  );
+
+  const addAllFromComparison = () => {
+    comparisonMaterials.forEach(m => addMaterialFromDb(m.id));
+    setSelectedForComparison([]);
+    setComparisonMode(false);
+    toast({ title: "Materials Added", description: `Added ${comparisonMaterials.length} materials to calculator` });
+  };
   
   // Category counts for browser - using EPD database
   const categoryCounts = useMemo(() => {
@@ -2122,6 +2144,71 @@ export default function Calculator() {
                         </div>
                       )}
 
+                      {/* Comparison Panel */}
+                      {comparisonMode && selectedForComparison.length > 0 && (
+                        <div className="p-3 bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 rounded-lg mb-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-medium text-violet-700 dark:text-violet-300 uppercase tracking-wide flex items-center gap-1">
+                              <Scale className="h-3 w-3" />
+                              Comparing {selectedForComparison.length} Materials
+                            </span>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setSelectedForComparison([])}
+                                className="h-6 text-xs text-violet-600 hover:text-violet-800 hover:bg-violet-100"
+                              >
+                                Clear
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                onClick={addAllFromComparison}
+                                className="h-6 text-xs bg-violet-600 hover:bg-violet-700"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Add All
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="border-b border-violet-200 dark:border-violet-700">
+                                  <th className="text-left py-2 font-medium text-violet-700 dark:text-violet-300">Material</th>
+                                  <th className="text-right py-2 font-medium text-violet-700 dark:text-violet-300">Unit</th>
+                                  <th className="text-right py-2 font-medium text-emerald-600">A1-A3</th>
+                                  <th className="text-right py-2 font-medium text-amber-600">Total</th>
+                                  <th className="text-right py-2 font-medium text-violet-700 dark:text-violet-300">Source</th>
+                                  <th className="text-center py-2"></th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {comparisonMaterials.map(m => (
+                                  <tr key={m.id} className="border-b border-violet-100 dark:border-violet-800 last:border-0">
+                                    <td className="py-2 font-medium text-foreground max-w-[200px] truncate">{m.material_name}</td>
+                                    <td className="py-2 text-right text-muted-foreground">{m.unit}</td>
+                                    <td className="py-2 text-right font-mono text-emerald-600">{m.ef_a1a3?.toFixed(1) || '-'}</td>
+                                    <td className="py-2 text-right font-mono text-amber-600">{m.ef_total.toFixed(1)}</td>
+                                    <td className="py-2 text-right text-muted-foreground truncate max-w-[100px]">{m.data_source}</td>
+                                    <td className="py-2 text-center">
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        onClick={() => addMaterialFromDb(m.id)}
+                                        className="h-6 w-6 p-0 text-emerald-600 hover:bg-emerald-100"
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                      </Button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+
                       <MaterialSearchResults
                         groupedMaterials={groupedMaterials.map(g => ({ 
                           category: g.category, 
@@ -2134,13 +2221,19 @@ export default function Calculator() {
                             embodied_carbon_a1a3: i.ef_a1a3,
                             embodied_carbon_a4: i.ef_a4 || null,
                             embodied_carbon_a5: i.ef_a5 || null,
-                            data_source: i.data_source
+                            data_source: i.data_source,
+                            expiry_date: i.expiry_date,
+                            publish_date: i.publish_date
                           }))
                         }))}
                         onAddMaterial={addMaterialFromDb}
                         searchTerm={materialSearch}
                         selectedCategory={selectedCategory}
                         totalResultCount={filteredMaterialsCount}
+                        comparisonMode={comparisonMode}
+                        onToggleComparisonMode={() => setComparisonMode(!comparisonMode)}
+                        selectedForComparison={selectedForComparison}
+                        onToggleComparison={toggleComparison}
                       />
                     </div>
                   )}
