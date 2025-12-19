@@ -16,8 +16,9 @@ import {
   Database, Upload, FileSpreadsheet, CheckCircle, AlertTriangle,
   RefreshCw, ExternalLink, Loader2, XCircle,
   Info, FileCheck, Eye, ArrowRight, Settings2, History, UploadCloud,
-  Download, PlayCircle
+  Download, PlayCircle, Sparkles
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { SEOHead } from "@/components/SEOHead";
@@ -102,6 +103,8 @@ export default function AdminICEImport() {
   const [recentJobs, setRecentJobs] = useState<ImportJob[]>([]);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [hasEmptyColumns, setHasEmptyColumns] = useState(false);
+  const [useIndividualSheets, setUseIndividualSheets] = useState(false);
 
   // Fetch recent import jobs
   useEffect(() => {
@@ -116,10 +119,28 @@ export default function AdminICEImport() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(10);
-    
+
     if (!error && data) {
       setRecentJobs(data as ImportJob[]);
     }
+  };
+
+  // Detect __EMPTY columns when validation preview changes
+  useEffect(() => {
+    if (validationPreview?.detectedColumns) {
+      const columnNames = validationPreview.detectedColumns.map(c => c.original);
+      const emptyCount = columnNames.filter(c => c.startsWith('__EMPTY')).length;
+      setHasEmptyColumns(emptyCount > columnNames.length * 0.3); // More than 30% are __EMPTY
+    }
+  }, [validationPreview]);
+
+  // Helper to display cleaner column names for __EMPTY columns
+  const getDisplayColumnName = (col: string): string => {
+    if (col.startsWith('__EMPTY')) {
+      const num = parseInt(col.replace('__EMPTY_', '').replace('__EMPTY', '0')) || 0;
+      return `Column ${String.fromCharCode(65 + num)}`; // A, B, C, etc.
+    }
+    return col;
   };
 
   if (!user) {
@@ -703,6 +724,7 @@ export default function AdminICEImport() {
             dryRun,
             materials: chunkMaterials,
             jobId,
+            useIndividualSheets,
           },
         });
 
@@ -1127,6 +1149,35 @@ export default function AdminICEImport() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Auto-detection Warning for __EMPTY columns */}
+              {hasEmptyColumns && (
+                <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
+                  <Sparkles className="h-4 w-4 text-amber-600" />
+                  <AlertTitle className="text-amber-800 dark:text-amber-300">Auto-Column Detection Active</AlertTitle>
+                  <AlertDescription className="text-amber-700 dark:text-amber-400">
+                    The ICE worksheet uses a non-standard format with multiple sub-sections and repeating headers.
+                    Column names appear as "__EMPTY" which indicates the XLSX parser couldn't detect proper headers.
+                    <strong className="block mt-2">The import will use position-based detection</strong> to identify
+                    material names and emission factors automatically. This is handled by the import function.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Individual Sheets Option */}
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+                <div className="space-y-0.5">
+                  <Label htmlFor="individual-sheets" className="text-base font-medium">Use Individual Material Sheets</Label>
+                  <p className="text-sm text-muted-foreground">
+                    If ICE Summary import fails, try parsing individual material sheets (Aggregates, Aluminium, Concrete, etc.) instead.
+                  </p>
+                </div>
+                <Switch
+                  id="individual-sheets"
+                  checked={useIndividualSheets}
+                  onCheckedChange={setUseIndividualSheets}
+                />
+              </div>
+
               {/* Validation Warnings */}
               {(() => {
                 const validation = validateColumnMapping(validationPreview.detectedColumns);
@@ -1258,10 +1309,16 @@ export default function AdminICEImport() {
                         const isMapped = col.mappedTo !== col.original;
                         const isImportant = ['material_name', 'ef_total', 'unit'].includes(col.mappedTo);
                         
+                        const displayName = col.original.startsWith('__EMPTY')
+                          ? getDisplayColumnName(col.original)
+                          : col.original;
+                        const isEmptyColumn = col.original.startsWith('__EMPTY');
+
                         return (
-                          <TableRow key={i} className={isSuspicious ? 'bg-destructive/10' : ''}>
+                          <TableRow key={i} className={isSuspicious ? 'bg-destructive/10' : isEmptyColumn ? 'bg-amber-50/50 dark:bg-amber-950/10' : ''}>
                             <TableCell className="font-mono text-xs max-w-[200px] truncate" title={col.original}>
-                              {col.original}
+                              <span className={isEmptyColumn ? 'text-amber-600' : ''}>{displayName}</span>
+                              {isEmptyColumn && <span className="text-muted-foreground ml-1">({col.original})</span>}
                             </TableCell>
                             <TableCell>
                               <Badge variant={isMapped ? (isImportant ? 'default' : 'secondary') : 'outline'}>
@@ -1274,6 +1331,8 @@ export default function AdminICEImport() {
                             <TableCell>
                               {isSuspicious ? (
                                 <Badge variant="destructive" className="text-xs">⚠ Data?</Badge>
+                              ) : isEmptyColumn ? (
+                                <Badge className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Auto-detect</Badge>
                               ) : isMapped ? (
                                 <Badge variant="secondary" className="text-xs">✓</Badge>
                               ) : null}
