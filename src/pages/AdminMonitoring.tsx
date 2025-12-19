@@ -700,6 +700,12 @@ export default function AdminMonitoring() {
                 Material Verification Report
               </Button>
             </Link>
+            <Link to="/admin/ice-import">
+              <Button variant="outline" className="gap-2">
+                <Database className="h-4 w-4" />
+                ICE Database Import
+              </Button>
+            </Link>
             <a href="/SECURITY_CONTROLS_SUMMARY.md" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" className="gap-2">
                 <Shield className="h-4 w-4" />
