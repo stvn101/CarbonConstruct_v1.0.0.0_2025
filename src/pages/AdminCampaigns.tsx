@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
-import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark, TrendingUp, Award, HardHat, ClipboardList } from 'lucide-react';
+import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark, TrendingUp, Award, HardHat, ClipboardList, FolderKanban, Globe2 } from 'lucide-react';
 import { AdminSidebar } from '@/components/AdminSidebar';
+import { LandingPageAnalytics } from '@/components/LandingPageAnalytics';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface CampaignPage {
   path: string;
@@ -161,6 +163,20 @@ const campaignPages: CampaignPage[] = [
     icon: <HardHat className="h-5 w-5" />,
     description: 'Navigate carbon accountability - "The Silent Transfer" whitepaper',
   },
+  {
+    path: '/lp/project-managers',
+    name: 'Project Managers',
+    audience: 'Construction PMs',
+    icon: <FolderKanban className="h-5 w-5" />,
+    description: 'Track carbon alongside cost, time, and quality metrics',
+  },
+  {
+    path: '/lp/sustainability-managers',
+    name: 'Sustainability Managers',
+    audience: 'ESG & Sustainability Leaders',
+    icon: <Globe2 className="h-5 w-5" />,
+    description: 'Portfolio-wide carbon tracking and ESG reporting',
+  },
 ];
 
 const utmSources = ['facebook', 'linkedin', 'google', 'instagram', 'twitter', 'email', 'direct', 'referral'];
@@ -204,13 +220,25 @@ export default function AdminCampaigns() {
       
       <div className="flex min-h-screen w-full">
         <AdminSidebar />
-        <div className="flex-1 p-6 max-w-5xl">
+        <div className="flex-1 p-6 max-w-6xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Campaign URL Generator</h1>
+            <h1 className="text-3xl font-bold mb-2">Campaign Management</h1>
             <p className="text-muted-foreground">
-              Generate UTM-tagged URLs for your marketing campaigns. All URLs include automatic tracking for conversion attribution.
+              Generate UTM-tagged URLs and track landing page performance.
             </p>
           </div>
+
+          <Tabs defaultValue="analytics" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="urls">URL Generator</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="analytics">
+              <LandingPageAnalytics />
+            </TabsContent>
+
+            <TabsContent value="urls">
 
         {/* UTM Configuration */}
         <Card className="mb-8">
@@ -350,6 +378,8 @@ export default function AdminCampaigns() {
             </div>
           </CardContent>
         </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </>
