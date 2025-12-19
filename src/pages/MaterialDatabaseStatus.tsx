@@ -1,11 +1,12 @@
-import { Database, CheckCircle, BarChart3, FileCheck, Clock, Layers, PieChart, AlertTriangle, Shield, AlertCircle } from "lucide-react";
+import { Database, CheckCircle, BarChart3, FileCheck, Clock, Layers, PieChart, AlertTriangle, Shield, AlertCircle, Calendar } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMaterialsDatabaseStats } from "@/hooks/useMaterialsDatabaseStats";
+import { useMaterialsDatabaseStats, DataSourceStats } from "@/hooks/useMaterialsDatabaseStats";
 import { SEOHead } from "@/components/SEOHead";
 import { DataSourceAttribution, MultiSourceAttribution } from "@/components/DataSourceAttribution";
+import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 export default function MaterialDatabaseStatus() {
   const { data: stats, isLoading, error } = useMaterialsDatabaseStats();
@@ -178,13 +179,109 @@ export default function MaterialDatabaseStatus() {
         </Card>
       </div>
 
+      {/* Data Source Stats Cards */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-5 w-5" />
+            Data Sources Breakdown
+          </CardTitle>
+          <CardDescription>
+            Material counts and import status by data source
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {stats?.dataSourceStats && Object.entries(stats.dataSourceStats).map(([key, source]: [string, DataSourceStats]) => (
+                <div 
+                  key={key} 
+                  className={`p-4 rounded-lg border ${
+                    source.count > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-muted/50 border-muted'
+                  }`}
+                >
+                  <p className="text-sm font-medium text-foreground">{source.name}</p>
+                  <p className="text-2xl font-bold mt-1">{source.count.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">{source.percentage}% of total</p>
+                  {source.lastImported && (
+                    <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(source.lastImported).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pie Chart and Source Distribution */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Data Source Distribution */}
+        {/* Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="h-5 w-5" />
+              Data Source Distribution
+            </CardTitle>
+            <CardDescription>
+              Visual breakdown of materials by source
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Skeleton className="h-64 w-full" />
+            ) : (
+              <ResponsiveContainer width="100%" height={280}>
+                <RechartsPie>
+                  <Pie
+                    data={stats?.dataSourceStats ? Object.entries(stats.dataSourceStats)
+                      .filter(([, s]) => (s as DataSourceStats).count > 0)
+                      .map(([, s]) => ({
+                        name: (s as DataSourceStats).name,
+                        value: (s as DataSourceStats).count,
+                        percentage: (s as DataSourceStats).percentage
+                      })) : []}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={({ name, payload }) => `${name}: ${payload?.percentage || 0}%`}
+                    labelLine={false}
+                  >
+                    {stats?.dataSourceStats && Object.entries(stats.dataSourceStats)
+                      .filter(([, s]) => (s as DataSourceStats).count > 0)
+                      .map(([, ], index) => {
+                        const colors = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#6b7280'];
+                        return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                      })}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value: number) => [value.toLocaleString(), 'Materials']}
+                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                  />
+                  <Legend />
+                </RechartsPie>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Data Source Distribution List */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
-              Data Source Distribution
+              All Data Sources
             </CardTitle>
             <CardDescription>
               Breakdown of materials by EPD data source
@@ -215,6 +312,9 @@ export default function MaterialDatabaseStatus() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
 
         {/* Category Breakdown */}
         <Card>
