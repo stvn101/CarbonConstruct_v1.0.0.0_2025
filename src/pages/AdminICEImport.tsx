@@ -9,12 +9,14 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
+
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   Database, Upload, FileSpreadsheet, CheckCircle, AlertTriangle,
   RefreshCw, ExternalLink, Loader2, XCircle,
-  Info, FileCheck
+  Info, FileCheck, Eye, ArrowRight, Settings2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -22,6 +24,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { DataSourceAttribution } from "@/components/DataSourceAttribution";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import * as XLSX from "xlsx";
+
 interface ImportResult {
   success: boolean;
   imported: number;
@@ -40,18 +43,43 @@ interface MaterialPreview {
   data_quality_tier: string;
 }
 
+interface WorksheetInfo {
+  name: string;
+  rowCount: number;
+  detectedHeaderRow: number | null;
+  headerScore: number;
+}
+
+interface ColumnMapping {
+  original: string;
+  mappedTo: string;
+  sampleValue: string;
+}
+
+interface ValidationPreview {
+  worksheets: WorksheetInfo[];
+  selectedWorksheet: string;
+  selectedHeaderRow: number;
+  detectedColumns: ColumnMapping[];
+  sampleRows: Record<string, unknown>[];
+  totalRows: number;
+  parsedMaterials: Record<string, unknown>[];
+}
+
+type ImportStep = 'idle' | 'parsing' | 'preview' | 'importing' | 'complete';
+
 export default function AdminICEImport() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [isImporting, setIsImporting] = useState(false);
-  const [isDryRun, setIsDryRun] = useState(true);
+  const [step, setStep] = useState<ImportStep>('idle');
+  const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState<string>("");
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [previewData, setPreviewData] = useState<MaterialPreview[]>([]);
-  const [currentStep, setCurrentStep] = useState<'ready' | 'previewing' | 'importing' | 'complete'>('ready');
+  const [validationPreview, setValidationPreview] = useState<ValidationPreview | null>(null);
+  const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
 
-  // Check admin access
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -65,62 +93,262 @@ export default function AdminICEImport() {
 
   const CHUNK_SIZE = 500;
 
-  const parseExcelFile = async (): Promise<Record<string, unknown>[]> => {
+  const normalize = (v: unknown) => String(v ?? '').trim();
+
+  const scoreHeaderRow = (row: unknown[]): number => {
+    const tokens = row.map((c) => normalize(c).toLowerCase()).filter(Boolean);
+    let score = 0;
+    
+    // Key column indicators
+    if (tokens.some((t) => t.includes('material'))) score += 3;
+    if (tokens.some((t) => t === 'material' || t === 'materials')) score += 2;
+    if (tokens.some((t) => t.includes('name'))) score += 2;
+    if (tokens.some((t) => t.includes('category') || t.includes('sub category'))) score += 2;
+    if (tokens.some((t) => t.includes('ef') || t.includes('embodied'))) score += 3;
+    if (tokens.some((t) => t.includes('kgco2') || t.includes('co2'))) score += 3;
+    if (tokens.some((t) => t.includes('unit'))) score += 2;
+    if (tokens.some((t) => t.includes('density'))) score += 1;
+    if (tokens.some((t) => t.includes('a1') || t.includes('a1-a3'))) score += 2;
+    
+    // Penalty for too few columns
+    if (tokens.length < 3) score -= 5;
+    
+    return score;
+  };
+
+  const mapColumnName = (original: string): string => {
+    const lower = original.toLowerCase().trim();
+    
+    // Material name mappings
+    if (lower === 'material' || lower === 'materials' || lower === 'material name') return 'material_name';
+    if (lower === 'name') return 'material_name';
+    
+    // Category mappings
+    if (lower.includes('sub category') || lower.includes('subcategory')) return 'subcategory';
+    if (lower.includes('category')) return 'material_category';
+    
+    // EF mappings - ICE specific
+    if (lower.includes('embodied carbon') && lower.includes('kgco2e/kg')) return 'ef_total';
+    if (lower.includes('ef_total') || lower === 'ef total') return 'ef_total';
+    if (lower.includes('a1-a3') || lower.includes('a1a3')) return 'ef_a1a3';
+    if (lower.includes('a4') && !lower.includes('a1')) return 'ef_a4';
+    if (lower.includes('a5') && !lower.includes('a1')) return 'ef_a5';
+    if (lower.includes('b1-b5') || lower.includes('b1b5')) return 'ef_b1b5';
+    if (lower.includes('c1-c4') || lower.includes('c1c4')) return 'ef_c1c4';
+    if (lower.includes('module d') || lower === 'd') return 'ef_d';
+    
+    // Unit and other mappings
+    if (lower === 'unit' || lower === 'units') return 'unit';
+    if (lower.includes('density')) return 'density';
+    if (lower.includes('recycled')) return 'recycled_content';
+    if (lower.includes('data quality')) return 'data_quality_tier';
+    if (lower.includes('source') || lower.includes('reference')) return 'data_source';
+    if (lower.includes('notes') || lower.includes('comment')) return 'notes';
+    
+    return original; // Keep original if no mapping found
+  };
+
+  const analyzeWorkbook = async (): Promise<ValidationPreview> => {
+    setProgressLabel('Loading spreadsheet...');
+    setProgress(10);
+    
     const response = await fetch('/demo/ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx');
     const arrayBuffer = await response.arrayBuffer();
 
-    // ExcelJS can throw `RangeError: Too many properties to enumerate` on complex XLSX files in the browser.
-    // SheetJS (xlsx) is more resilient for client-side parsing.
-    const workbook = XLSX.read(arrayBuffer, {
+    setProgressLabel('Parsing Excel file...');
+    setProgress(30);
+
+    const wb = XLSX.read(arrayBuffer, {
       type: 'array',
       cellDates: false,
       raw: true,
     });
+    
+    setWorkbook(wb);
+    setProgress(50);
+    setProgressLabel('Analyzing worksheets...');
 
-    const normalize = (v: unknown) => String(v ?? '').trim();
+    const worksheets: WorksheetInfo[] = [];
+    let bestSheet = { name: '', score: -1, headerRow: 0 };
 
-    const findBestSheet = (): { sheetName: string; headerRow: number } => {
-      const headerLooksRight = (row: unknown[]) => {
-        const tokens = row.map((c) => normalize(c).toLowerCase()).filter(Boolean);
-        const hasMaterial = tokens.some((t) => t.includes('material'));
-        const hasName = tokens.some((t) => t.includes('name'));
-        const hasCategory = tokens.some((t) => t.includes('category'));
-        const hasEf = tokens.some((t) => t.includes('ef') || t.includes('kgco2') || t.includes('co2'));
-        return hasMaterial && (hasName || hasCategory) && hasEf;
+    for (const sheetName of wb.SheetNames) {
+      const sheet = wb.Sheets[sheetName];
+      if (!sheet || !sheet['!ref']) {
+        worksheets.push({ name: sheetName, rowCount: 0, detectedHeaderRow: null, headerScore: 0 });
+        continue;
+      }
+
+      const r = XLSX.utils.decode_range(sheet['!ref']);
+      const rowCount = r.e.r - r.s.r + 1;
+
+      // Scan first 100 rows for header
+      const sampleRange = {
+        s: { c: r.s.c, r: r.s.r },
+        e: { c: Math.min(r.e.c, r.s.c + 50), r: Math.min(r.e.r, r.s.r + 100) },
       };
 
-      for (const sheetName of workbook.SheetNames) {
-        const sheet = workbook.Sheets[sheetName];
-        if (!sheet || !sheet['!ref']) continue;
+      const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+        header: 1,
+        range: sampleRange,
+        blankrows: false,
+        raw: true,
+      });
 
-        const r = XLSX.utils.decode_range(sheet['!ref']);
-        const sampleRange = {
-          s: { c: r.s.c, r: r.s.r },
-          e: { c: Math.min(r.e.c, r.s.c + 50), r: Math.min(r.e.r, r.s.r + 80) },
-        };
+      let bestRowScore = 0;
+      let bestRowIndex = 0;
 
-        const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
-          header: 1,
-          range: sampleRange,
-          blankrows: false,
-          raw: true,
-        });
-
-        for (let i = 0; i < aoa.length; i++) {
-          const row = aoa[i] ?? [];
-          if (Array.isArray(row) && headerLooksRight(row)) {
-            return { sheetName, headerRow: sampleRange.s.r + i };
+      for (let i = 0; i < aoa.length; i++) {
+        const row = aoa[i] ?? [];
+        if (Array.isArray(row)) {
+          const score = scoreHeaderRow(row);
+          if (score > bestRowScore) {
+            bestRowScore = score;
+            bestRowIndex = sampleRange.s.r + i;
           }
         }
       }
 
-      // fallback to the first sheet (may still work for simpler files)
-      return { sheetName: workbook.SheetNames[0], headerRow: 0 };
-    };
+      worksheets.push({
+        name: sheetName,
+        rowCount,
+        detectedHeaderRow: bestRowScore > 5 ? bestRowIndex : null,
+        headerScore: bestRowScore,
+      });
 
-    const { sheetName, headerRow } = findBestSheet();
+      if (bestRowScore > bestSheet.score) {
+        bestSheet = { name: sheetName, score: bestRowScore, headerRow: bestRowIndex };
+      }
+    }
+
+    setProgress(70);
+    setProgressLabel('Extracting sample data...');
+
+    // Get sample data from best sheet
+    const selectedSheet = wb.Sheets[bestSheet.name];
+    const headerRow = bestSheet.headerRow;
+
+    // Get column headers
+    const headerRange = XLSX.utils.decode_range(selectedSheet['!ref']!);
+    const headerAoa = XLSX.utils.sheet_to_json<unknown[]>(selectedSheet, {
+      header: 1,
+      range: { s: { c: headerRange.s.c, r: headerRow }, e: { c: headerRange.e.c, r: headerRow } },
+      raw: true,
+    });
+
+    const headers = (headerAoa[0] as unknown[] || []).map((h) => normalize(h));
+
+    // Get sample rows (next 10 rows after header)
+    const sampleRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(selectedSheet, {
+      defval: null,
+      raw: true,
+      range: headerRow,
+    }).slice(0, 10);
+
+    // Create column mappings
+    const detectedColumns: ColumnMapping[] = headers
+      .filter(h => h.length > 0)
+      .slice(0, 15) // Limit to first 15 columns for display
+      .map((original) => ({
+        original,
+        mappedTo: mapColumnName(original),
+        sampleValue: normalize(sampleRows[0]?.[original] ?? ''),
+      }));
+
+    // Parse all materials for count
+    const allRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(selectedSheet, {
+      defval: null,
+      raw: true,
+      range: headerRow,
+    });
+
+    // Filter to likely material rows
+    const parsedMaterials = allRows.filter((row) => {
+      const values = Object.values(row).filter(v => v !== null && v !== undefined && String(v).trim() !== '');
+      return values.length >= 3;
+    });
+
+    setProgress(100);
+    setProgressLabel('');
+
+    return {
+      worksheets,
+      selectedWorksheet: bestSheet.name,
+      selectedHeaderRow: headerRow,
+      detectedColumns,
+      sampleRows,
+      totalRows: parsedMaterials.length,
+      parsedMaterials,
+    };
+  };
+
+  const startValidation = async () => {
+    setIsLoading(true);
+    setStep('parsing');
+    setProgress(0);
+
+    try {
+      const preview = await analyzeWorkbook();
+      setValidationPreview(preview);
+      setStep('preview');
+      toast.success(`Found ${preview.totalRows} potential materials in "${preview.selectedWorksheet}"`);
+    } catch (error) {
+      console.error('Parse error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to parse spreadsheet');
+      setStep('idle');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateWorksheetSelection = (sheetName: string) => {
+    if (!workbook || !validationPreview) return;
+
     const sheet = workbook.Sheets[sheetName];
-    if (!sheet) throw new Error('Worksheet could not be loaded');
+    if (!sheet || !sheet['!ref']) return;
+
+    const wsInfo = validationPreview.worksheets.find(w => w.name === sheetName);
+    const headerRow = wsInfo?.detectedHeaderRow ?? 0;
+
+    // Re-extract data for new sheet
+    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+      defval: null,
+      raw: true,
+      range: headerRow,
+    });
+
+    const sampleRows = rows.slice(0, 10);
+    const headers = Object.keys(sampleRows[0] || {});
+
+    const detectedColumns: ColumnMapping[] = headers
+      .filter(h => h.length > 0)
+      .slice(0, 15)
+      .map((original) => ({
+        original,
+        mappedTo: mapColumnName(original),
+        sampleValue: normalize(sampleRows[0]?.[original] ?? ''),
+      }));
+
+    const parsedMaterials = rows.filter((row) => {
+      const values = Object.values(row).filter(v => v !== null && v !== undefined && String(v).trim() !== '');
+      return values.length >= 3;
+    });
+
+    setValidationPreview({
+      ...validationPreview,
+      selectedWorksheet: sheetName,
+      selectedHeaderRow: headerRow,
+      detectedColumns,
+      sampleRows,
+      totalRows: parsedMaterials.length,
+      parsedMaterials,
+    });
+  };
+
+  const updateHeaderRow = (headerRow: number) => {
+    if (!workbook || !validationPreview) return;
+
+    const sheet = workbook.Sheets[validationPreview.selectedWorksheet];
+    if (!sheet) return;
 
     const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
       defval: null,
@@ -128,42 +356,46 @@ export default function AdminICEImport() {
       range: headerRow,
     });
 
-    console.log(`Using worksheet: ${sheetName} (header row: ${headerRow + 1}) with ${rows.length} rows`);
+    const sampleRows = rows.slice(0, 10);
+    const headers = Object.keys(sampleRows[0] || {});
 
-    const normalized = rows
-      .map((row) =>
-        Object.fromEntries(
-          Object.entries(row).map(([k, v]) => [String(k).trim(), v])
-        ) as Record<string, unknown>
-      )
-      .filter((row) => {
-        const keys = Object.keys(row).map((k) => k.toLowerCase());
-        const looksLikeMaterialRow = keys.some((k) => k.includes('material')) && keys.some((k) => k.includes('ef') || k.includes('kgco2') || k.includes('co2'));
-        if (!looksLikeMaterialRow) return false;
+    const detectedColumns: ColumnMapping[] = headers
+      .filter(h => h.length > 0)
+      .slice(0, 15)
+      .map((original) => ({
+        original,
+        mappedTo: mapColumnName(original),
+        sampleValue: normalize(sampleRows[0]?.[original] ?? ''),
+      }));
 
-        const meaningful = Object.values(row).filter(
-          (v) => v !== null && v !== undefined && String(v).trim() !== ''
-        );
-        return meaningful.length >= 3;
-      });
+    const parsedMaterials = rows.filter((row) => {
+      const values = Object.values(row).filter(v => v !== null && v !== undefined && String(v).trim() !== '');
+      return values.length >= 3;
+    });
 
-    console.log(`Parsed ${normalized.length} material rows`);
-    return normalized;
+    setValidationPreview({
+      ...validationPreview,
+      selectedHeaderRow: headerRow,
+      detectedColumns,
+      sampleRows,
+      totalRows: parsedMaterials.length,
+      parsedMaterials,
+    });
   };
 
   const runImport = async (dryRun: boolean) => {
-    setIsImporting(true);
+    if (!validationPreview || validationPreview.parsedMaterials.length === 0) {
+      toast.error('No materials to import. Please validate the spreadsheet first.');
+      return;
+    }
+
+    setIsLoading(true);
     setProgress(5);
-    setProgressLabel('Reading spreadsheet…');
-    setCurrentStep(dryRun ? 'previewing' : 'importing');
+    setProgressLabel('Preparing import...');
+    setStep('importing');
 
     try {
-      const materials = await parseExcelFile();
-
-      if (!materials.length) {
-        throw new Error('No material rows found in the spreadsheet (check worksheet/header detection).');
-      }
-
+      const materials = validationPreview.parsedMaterials;
       const totalChunks = Math.ceil(materials.length / CHUNK_SIZE);
       const totalRows = materials.length;
 
@@ -171,7 +403,6 @@ export default function AdminICEImport() {
       let totalErrors = 0;
       let totalInserted = 0;
       const allErrors: string[] = [];
-      const categories = new Set<string>();
       const preview: MaterialPreview[] = [];
 
       for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
@@ -179,10 +410,10 @@ export default function AdminICEImport() {
         const end = Math.min(start + CHUNK_SIZE, totalRows);
 
         setProgressLabel(
-          `${dryRun ? 'Previewing' : 'Importing'} rows ${start + 1}-${end} of ${totalRows} (chunk ${chunkIndex + 1}/${totalChunks})…`
+          `${dryRun ? 'Validating' : 'Importing'} rows ${start + 1}-${end} of ${totalRows} (chunk ${chunkIndex + 1}/${totalChunks})…`
         );
 
-        const pct = 20 + Math.round(((chunkIndex + 1) / totalChunks) * 70);
+        const pct = 10 + Math.round(((chunkIndex + 1) / totalChunks) * 80);
         setProgress(pct);
 
         const { data, error } = await supabase.functions.invoke('import-ice-materials', {
@@ -203,10 +434,6 @@ export default function AdminICEImport() {
         }
 
         totalErrors += data?.errorCount || 0;
-
-        if (Array.isArray(data?.categories)) {
-          for (const c of data.categories) categories.add(c);
-        }
 
         if (Array.isArray(data?.preview) && preview.length < 20) {
           preview.push(...data.preview.slice(0, 20 - preview.length));
@@ -235,7 +462,7 @@ export default function AdminICEImport() {
           validationIssues: [],
           timestamp: new Date().toISOString(),
         });
-        toast.success(`Preview complete: ${totalValid} materials ready for import`);
+        toast.success(`Validation complete: ${totalValid} materials ready for import`);
       } else {
         setImportResult({
           success: true,
@@ -251,7 +478,7 @@ export default function AdminICEImport() {
 
       setProgress(100);
       setProgressLabel('');
-      setCurrentStep('complete');
+      setStep('complete');
     } catch (error) {
       console.error('Import error:', error);
       toast.error(error instanceof Error ? error.message : 'Import failed');
@@ -264,9 +491,9 @@ export default function AdminICEImport() {
         validationIssues: [],
         timestamp: new Date().toISOString(),
       });
-      setCurrentStep('complete');
+      setStep('complete');
     } finally {
-      setIsImporting(false);
+      setIsLoading(false);
       setProgressLabel('');
     }
   };
@@ -274,9 +501,19 @@ export default function AdminICEImport() {
   const resetImport = () => {
     setImportResult(null);
     setPreviewData([]);
+    setValidationPreview(null);
+    setWorkbook(null);
     setProgress(0);
     setProgressLabel('');
-    setCurrentStep('ready');
+    setStep('idle');
+  };
+
+  const goBackToPreview = () => {
+    setImportResult(null);
+    setPreviewData([]);
+    setProgress(0);
+    setProgressLabel('');
+    setStep('preview');
   };
 
   return (
@@ -297,251 +534,385 @@ export default function AdminICEImport() {
           <DataSourceAttribution source="ICE" variant="badge" showLogo />
         </div>
 
-      {/* ICE Attribution Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="h-5 w-5" />
-            Data Source Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataSourceAttribution source="ICE" variant="full" showLogo showLink />
-        </CardContent>
-      </Card>
+        {/* Step Indicator */}
+        <div className="flex items-center gap-2 text-sm">
+          <Badge variant={step === 'idle' ? 'default' : 'secondary'} className="gap-1">
+            <span>1</span> Select File
+          </Badge>
+          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          <Badge variant={step === 'preview' ? 'default' : 'secondary'} className="gap-1">
+            <span>2</span> Validate & Preview
+          </Badge>
+          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          <Badge variant={step === 'importing' || step === 'complete' ? 'default' : 'secondary'} className="gap-1">
+            <span>3</span> Import
+          </Badge>
+        </div>
 
-      {/* Import Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Import Controls
-          </CardTitle>
-          <CardDescription>
-            Import ICE Database V4.1 materials into the CarbonConstruct materials database
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Source File Info */}
-          <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
-            <FileSpreadsheet className="h-10 w-10 text-emerald-600" />
-            <div className="flex-1">
-              <p className="font-medium">ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx</p>
-              <p className="text-sm text-muted-foreground">Circular Ecology ICE Database Advanced V4.1 (October 2025)</p>
-            </div>
-            <Badge variant="secondary">Ready</Badge>
-          </div>
-
-          {/* Dry Run Toggle */}
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Info className="h-5 w-5 text-blue-500" />
-              <div>
-                <Label htmlFor="dry-run" className="font-medium">Preview Mode (Dry Run)</Label>
-                <p className="text-sm text-muted-foreground">
-                  Preview materials before importing to the database
-                </p>
-              </div>
-            </div>
-            <Switch 
-              id="dry-run" 
-              checked={isDryRun} 
-              onCheckedChange={setIsDryRun}
-              disabled={isImporting}
-            />
-          </div>
-
-          {/* Progress */}
-          {isImporting && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>
-                  {progressLabel || (currentStep === 'previewing' ? 'Analyzing materials…' : 'Importing materials…')}
-                </span>
-                <span>{progress}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-4">
-            <Button 
-              onClick={() => runImport(isDryRun)} 
-              disabled={isImporting}
-              className="flex-1"
-            >
-              {isImporting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {isDryRun ? 'Previewing...' : 'Importing...'}
-                </>
-              ) : (
-                <>
-                  {isDryRun ? <FileCheck className="h-4 w-4 mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-                  {isDryRun ? 'Preview Import' : 'Run Import'}
-                </>
-              )}
-            </Button>
-            
-            {importResult && (
-              <Button variant="outline" onClick={resetImport}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Reset
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Results */}
-      {importResult && (
+        {/* ICE Attribution Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              {importResult.success ? (
-                <CheckCircle className="h-5 w-5 text-emerald-600" />
-              ) : (
-                <XCircle className="h-5 w-5 text-destructive" />
-              )}
-              {isDryRun ? 'Preview Results' : 'Import Results'}
+              <FileSpreadsheet className="h-5 w-5" />
+              Data Source Information
             </CardTitle>
-            <CardDescription>
-              {isDryRun ? 'Review before running the actual import' : 'Summary of the import operation'}
-            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="summary">
-              <TabsList>
-                <TabsTrigger value="summary">Summary</TabsTrigger>
-                {previewData.length > 0 && <TabsTrigger value="preview">Preview Data</TabsTrigger>}
-                {importResult.errors.length > 0 && <TabsTrigger value="errors">Errors</TabsTrigger>}
-                {importResult.validationIssues.length > 0 && <TabsTrigger value="validation">Validation</TabsTrigger>}
-              </TabsList>
-
-              <TabsContent value="summary" className="mt-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{importResult.imported}</p>
-                    <p className="text-sm text-emerald-600 dark:text-emerald-400">{isDryRun ? 'Ready to Import' : 'Imported'}</p>
-                  </div>
-                  <div className="p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{importResult.updated}</p>
-                    <p className="text-sm text-blue-600 dark:text-blue-400">Updated</p>
-                  </div>
-                  <div className="p-4 bg-amber-50 dark:bg-amber-950/50 rounded-lg border border-amber-200 dark:border-amber-800">
-                    <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">{importResult.skipped}</p>
-                    <p className="text-sm text-amber-600 dark:text-amber-400">Skipped</p>
-                  </div>
-                  <div className="p-4 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-200 dark:border-red-800">
-                    <p className="text-2xl font-bold text-red-700 dark:text-red-300">{importResult.errors.length}</p>
-                    <p className="text-sm text-red-600 dark:text-red-400">Errors</p>
-                  </div>
-                </div>
-
-                {isDryRun && importResult.success && (
-                  <Alert className="mt-4">
-                    <Info className="h-4 w-4" />
-                    <AlertTitle>Ready to Import</AlertTitle>
-                    <AlertDescription>
-                      {importResult.imported} materials are ready. Disable "Preview Mode" and click "Run Import" to add them to the database.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </TabsContent>
-
-              <TabsContent value="preview" className="mt-4">
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Material Name</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>EF (kgCO₂e)</TableHead>
-                        <TableHead>Unit</TableHead>
-                        <TableHead>Quality</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {previewData.map((material, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="font-medium max-w-[200px] truncate">
-                            {material.material_name}
-                          </TableCell>
-                          <TableCell>{material.material_category}</TableCell>
-                          <TableCell>{material.ef_total?.toFixed(4)}</TableCell>
-                          <TableCell>{material.unit}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">{material.data_quality_tier}</Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                {previewData.length === 20 && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Showing first 20 of {importResult.imported} materials
-                  </p>
-                )}
-              </TabsContent>
-
-              <TabsContent value="errors" className="mt-4">
-                <div className="space-y-2">
-                  {importResult.errors.map((error, idx) => (
-                    <Alert key={idx} variant="destructive">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="validation" className="mt-4">
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Material</TableHead>
-                        <TableHead>Issue</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {importResult.validationIssues.map((issue, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="font-medium">{issue.material}</TableCell>
-                          <TableCell className="text-amber-600">{issue.issue}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
-            </Tabs>
+            <DataSourceAttribution source="ICE" variant="full" showLogo showLink />
           </CardContent>
         </Card>
-      )}
+
+        {/* Step 1: File Selection */}
+        {step === 'idle' && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Step 1: Select Source File
+              </CardTitle>
+              <CardDescription>
+                Analyze the ICE Database spreadsheet to detect worksheets and headers
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                <FileSpreadsheet className="h-10 w-10 text-emerald-600" />
+                <div className="flex-1">
+                  <p className="font-medium">ICE_DB_Advanced_V4.1_-_Oct_2025.xlsx</p>
+                  <p className="text-sm text-muted-foreground">Circular Ecology ICE Database Advanced V4.1 (October 2025)</p>
+                </div>
+                <Badge variant="secondary">Ready</Badge>
+              </div>
+
+              <Button onClick={startValidation} disabled={isLoading} className="w-full">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Analyze & Preview
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Parsing Progress */}
+        {step === 'parsing' && (
+          <Card>
+            <CardContent className="py-8">
+              <div className="space-y-4 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                <p className="text-muted-foreground">{progressLabel || 'Analyzing spreadsheet...'}</p>
+                <Progress value={progress} className="h-2 max-w-md mx-auto" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 2: Validation Preview */}
+        {step === 'preview' && validationPreview && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings2 className="h-5 w-5" />
+                Step 2: Validate & Preview
+              </CardTitle>
+              <CardDescription>
+                Review detected worksheet, header row, and column mappings before importing
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Worksheet & Header Selection */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Worksheet</Label>
+                  <Select
+                    value={validationPreview.selectedWorksheet}
+                    onValueChange={updateWorksheetSelection}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {validationPreview.worksheets.map((ws) => (
+                        <SelectItem key={ws.name} value={ws.name}>
+                          {ws.name} ({ws.rowCount} rows)
+                          {ws.headerScore > 5 && ' ✓'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {validationPreview.worksheets.length} worksheets found
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Header Row (0-indexed)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={validationPreview.selectedHeaderRow}
+                    onChange={(e) => updateHeaderRow(parseInt(e.target.value) || 0)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Auto-detected: row {validationPreview.selectedHeaderRow}
+                  </p>
+                </div>
+              </div>
+
+              {/* Summary */}
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertTitle>Detection Summary</AlertTitle>
+                <AlertDescription>
+                  Found <strong>{validationPreview.totalRows}</strong> potential material rows 
+                  with <strong>{validationPreview.detectedColumns.length}</strong> mapped columns.
+                </AlertDescription>
+              </Alert>
+
+              {/* Column Mappings */}
+              <div className="space-y-2">
+                <Label>Detected Column Mappings</Label>
+                <div className="rounded-md border max-h-48 overflow-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Original Column</TableHead>
+                        <TableHead>Maps To</TableHead>
+                        <TableHead>Sample Value</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {validationPreview.detectedColumns.map((col, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-mono text-xs">{col.original}</TableCell>
+                          <TableCell>
+                            <Badge variant={col.mappedTo !== col.original ? 'default' : 'secondary'}>
+                              {col.mappedTo}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-xs truncate max-w-[200px]">
+                            {col.sampleValue || '—'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              {/* Sample Data */}
+              <div className="space-y-2">
+                <Label>Sample Data (first 5 rows)</Label>
+                <div className="rounded-md border overflow-auto max-h-64">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {validationPreview.detectedColumns.slice(0, 6).map((col, i) => (
+                          <TableHead key={i} className="text-xs whitespace-nowrap">
+                            {col.mappedTo}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {validationPreview.sampleRows.slice(0, 5).map((row, rowIndex) => (
+                        <TableRow key={rowIndex}>
+                          {validationPreview.detectedColumns.slice(0, 6).map((col, colIndex) => (
+                            <TableCell key={colIndex} className="text-xs truncate max-w-[150px]">
+                              {normalize(row[col.original]) || '—'}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-4">
+                <Button variant="outline" onClick={resetImport}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => runImport(true)} 
+                  disabled={isLoading || validationPreview.totalRows === 0}
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  <FileCheck className="h-4 w-4 mr-2" />
+                  Validate ({validationPreview.totalRows} rows)
+                </Button>
+                <Button 
+                  onClick={() => runImport(false)} 
+                  disabled={isLoading || validationPreview.totalRows === 0}
+                  className="flex-1"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import to Database
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Importing Progress */}
+        {step === 'importing' && (
+          <Card>
+            <CardContent className="py-8">
+              <div className="space-y-4 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                <p className="text-muted-foreground">{progressLabel || 'Importing materials...'}</p>
+                <Progress value={progress} className="h-2 max-w-md mx-auto" />
+                <p className="text-xs text-muted-foreground">{progress}%</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 3: Results */}
+        {step === 'complete' && importResult && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {importResult.success ? (
+                  <CheckCircle className="h-5 w-5 text-emerald-600" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-destructive" />
+                )}
+                Step 3: Results
+              </CardTitle>
+              <CardDescription>
+                Summary of the import operation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="summary">
+                <TabsList>
+                  <TabsTrigger value="summary">Summary</TabsTrigger>
+                  {previewData.length > 0 && <TabsTrigger value="preview">Preview Data</TabsTrigger>}
+                  {importResult.errors.length > 0 && <TabsTrigger value="errors">Errors</TabsTrigger>}
+                </TabsList>
+
+                <TabsContent value="summary" className="mt-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-4 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                      <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{importResult.imported}</p>
+                      <p className="text-sm text-emerald-600 dark:text-emerald-400">
+                        {importResult.updated === 0 && importResult.skipped === 0 ? 'Imported' : 'Ready'}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{importResult.updated}</p>
+                      <p className="text-sm text-blue-600 dark:text-blue-400">Updated</p>
+                    </div>
+                    <div className="p-4 bg-amber-50 dark:bg-amber-950/50 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">{importResult.skipped}</p>
+                      <p className="text-sm text-amber-600 dark:text-amber-400">Skipped</p>
+                    </div>
+                    <div className="p-4 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-200 dark:border-red-800">
+                      <p className="text-2xl font-bold text-red-700 dark:text-red-300">{importResult.errors.length}</p>
+                      <p className="text-sm text-red-600 dark:text-red-400">Errors</p>
+                    </div>
+                  </div>
+
+                  {importResult.success && previewData.length > 0 && (
+                    <Alert className="mt-4">
+                      <Info className="h-4 w-4" />
+                      <AlertTitle>Validation Complete</AlertTitle>
+                      <AlertDescription>
+                        {importResult.imported} materials validated. Click "Import to Database" to save them.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="preview" className="mt-4">
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Material Name</TableHead>
+                          <TableHead>Category</TableHead>
+                          <TableHead>EF Total</TableHead>
+                          <TableHead>Unit</TableHead>
+                          <TableHead>Quality</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {previewData.map((material, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">{material.material_name}</TableCell>
+                            <TableCell>{material.material_category}</TableCell>
+                            <TableCell>{material.ef_total?.toFixed(4)}</TableCell>
+                            <TableCell>{material.unit}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">{material.data_quality_tier}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="errors" className="mt-4">
+                  <div className="rounded-md border p-4 max-h-64 overflow-auto bg-muted/50">
+                    <ul className="space-y-1 text-sm font-mono">
+                      {importResult.errors.map((error, index) => (
+                        <li key={index} className="text-destructive">{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex gap-4 mt-6">
+                <Button variant="outline" onClick={resetImport}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Start Over
+                </Button>
+                {validationPreview && (
+                  <Button variant="secondary" onClick={goBackToPreview}>
+                    Back to Preview
+                  </Button>
+                )}
+                {importResult.success && previewData.length > 0 && validationPreview && (
+                  <Button onClick={() => runImport(false)} disabled={isLoading} className="flex-1">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import to Database
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Links */}
         <Card>
           <CardHeader>
-            <CardTitle>Related Pages</CardTitle>
+            <CardTitle className="text-lg">Quick Links</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-3">
-              <Link to="/materials/status">
-                <Button variant="outline" size="sm">
-                  <Database className="h-4 w-4 mr-2" />
-                  Database Status
-                </Button>
+          <CardContent className="flex gap-4 flex-wrap">
+            <Button variant="outline" asChild>
+              <Link to="/material-database">
+                <Database className="h-4 w-4 mr-2" />
+                Database Status
               </Link>
+            </Button>
+            <Button variant="outline" asChild>
               <Link to="/calculator">
-                <Button variant="outline" size="sm">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Calculator
-                </Button>
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Calculator
               </Link>
-            </div>
+            </Button>
           </CardContent>
         </Card>
       </div>
