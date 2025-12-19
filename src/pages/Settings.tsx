@@ -8,6 +8,8 @@ import { DataExportButton } from "@/components/DataExportButton";
 import { AccountStatusManager } from "@/components/AccountStatusManager";
 import { EPDReminderSettings } from "@/components/calculator/EPDReminderSettings";
 import { SupplierContactManager } from "@/components/calculator/SupplierContactManager";
+import { EPDRenewalWorkflowTracker } from "@/components/calculator/EPDRenewalWorkflowTracker";
+import { EPDRegistryChecker } from "@/components/calculator/EPDRegistryChecker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -412,6 +414,12 @@ const Settings = () => {
 
           {/* Supplier Contact Manager */}
           <SupplierContactManager />
+
+          {/* EPD Renewal Workflow Tracker */}
+          <EPDRenewalWorkflowTracker />
+
+          {/* EPD Registry Checker */}
+          <EPDRegistryChecker />
 
           <CookieSettings />
 

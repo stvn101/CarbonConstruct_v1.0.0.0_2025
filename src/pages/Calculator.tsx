@@ -40,6 +40,7 @@ import { EcoCompliancePanel } from "@/components/EcoCompliancePanel";
 import { SkeletonPage } from "@/components/SkeletonPage";
 import { useEPDRenewalReminders } from "@/hooks/useEPDRenewalReminders";
 import { EPDRenewalReminders } from "@/components/calculator/EPDRenewalReminders";
+import { EPDWorkflowDashboardWidget } from "@/components/calculator/EPDWorkflowDashboardWidget";
 
 interface Material {
   id: string;
@@ -2763,6 +2764,11 @@ export default function Calculator() {
                 />
               </div>
             )}
+            
+            {/* EPD Workflow Dashboard Widget */}
+            <div className="mt-4">
+              <EPDWorkflowDashboardWidget />
+            </div>
             
             {/* EPD Renewal Reminders Panel */}
             {epdExpiryWarnings.length > 0 && (
