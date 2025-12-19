@@ -127,6 +127,7 @@ export function useFavoriteMaterials() {
   const [favorites, setFavorites] = useState<FavoriteMaterial[]>([]);
   const [cloudSyncEnabled, setCloudSyncEnabled] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
   // Load from localStorage on mount, merge with defaults
   useEffect(() => {
@@ -264,6 +265,7 @@ export function useFavoriteMaterials() {
       }
 
       setCloudSyncEnabled(true);
+      setLastSyncTime(new Date());
       return { success: true, message: `Synced ${toSync.length} materials to cloud` };
     } catch (err) {
       console.error('Failed to save to cloud:', err);
@@ -581,6 +583,7 @@ export function useFavoriteMaterials() {
     // Cloud sync features
     cloudSyncEnabled,
     isSyncing,
+    lastSyncTime,
     saveToCloud,
     loadFromCloud,
   };
