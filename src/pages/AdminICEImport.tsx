@@ -145,59 +145,72 @@ export default function AdminICEImport() {
     'recycled', 'data quality', 'dqi', 'reference', 'functional unit'
   ];
 
+  // Material name patterns that indicate DATA rows, not headers
+  const MATERIAL_PATTERNS = [
+    'aluminium', 'aluminum', 'concrete', 'steel', 'timber', 'wood', 'asphalt', 
+    'brick', 'glass', 'copper', 'zinc', 'lead', 'plastic', 'pvc', 'hdpe', 
+    'cement', 'mortar', 'aggregate', 'sand', 'gravel', 'bitumen', 'insulation',
+    'wool', 'fibre', 'fiber', 'foam', 'rubber', 'iron', 'brass', 'chrome'
+  ];
+
   const scoreHeaderRow = (row: unknown[]): number => {
     const cells = row.map((c) => normalize(c));
-    // Filter out empty cells and safely lowercase
     const tokens = cells.filter(c => c && c.length > 0).map(c => c.toLowerCase());
     let score = 0;
     
-    // Count how many cells look like header names vs data values
     let numericCount = 0;
     let longCellCount = 0;
     let headerKeywordMatches = 0;
+    let materialDataMatches = 0;
     
     for (const cell of cells) {
-      // Skip empty cells
       if (!cell || cell.length === 0) continue;
       
       const lower = cell.toLowerCase();
       
       // Penalize numeric values (data rows have numbers)
-      if (/^\d+(\.\d+)?$/.test(cell) || /^-?\d+\.?\d*$/.test(cell)) {
+      if (/^[\d.,\-\s]+$/.test(cell) || /^-?\d+\.?\d*%?$/.test(cell)) {
         numericCount++;
+        continue;
       }
       
-      // Penalize very long cells (data descriptions are longer than headers)
-      if (cell.length > 50) {
-        longCellCount++;
-      }
+      // Penalize very long cells (descriptions are data, not headers)
+      if (cell.length > 60) longCellCount++;
       
-      // Reward exact or partial matches to known header keywords
-      for (const keyword of HEADER_KEYWORDS) {
-        if (lower === keyword) {
-          headerKeywordMatches += 3; // Exact match
-        } else if (lower.includes(keyword)) {
-          headerKeywordMatches += 1; // Partial match
+      // Strong penalty if cell looks like a material name (DATA, not header)
+      for (const pattern of MATERIAL_PATTERNS) {
+        if (lower.includes(pattern)) {
+          materialDataMatches++;
+          break;
         }
       }
       
-      // ICE-specific patterns
-      if (lower.includes('kgco2e') || lower.includes('ef (')) score += 3;
-      if (lower === 'material' || lower === 'materials') score += 5;
-      if (lower === 'unit' || lower === 'units') score += 3;
-      if (lower.includes('category')) score += 2;
+      // Reward header keywords
+      for (const keyword of HEADER_KEYWORDS) {
+        if (lower === keyword) {
+          headerKeywordMatches += 4;
+        } else if (lower.includes(keyword)) {
+          headerKeywordMatches += 2;
+        }
+      }
+      
+      // ICE-specific header patterns
+      if (lower.includes('kgco2e') || lower.includes('ef (')) score += 10;
+      if (lower === 'material' || lower === 'materials') score += 15;
+      if (lower === 'unit' || lower === 'units') score += 10;
+      if (lower.includes('embodied carbon')) score += 15;
+      if (lower.includes('category')) score += 5;
     }
     
-    // Apply penalties and bonuses
+    // Apply scores
     score += headerKeywordMatches;
-    score -= numericCount * 3;  // Strong penalty for numeric cells
-    score -= longCellCount * 2;  // Penalty for long text (likely data)
+    score -= numericCount * 4;
+    score -= longCellCount * 3;
+    score -= materialDataMatches * 20; // Heavy penalty for material name patterns
     
-    // Rows with too few non-empty cells are unlikely headers
     if (tokens.length < 3) score -= 10;
-    
-    // Rows with too many numeric cells are definitely data rows
-    if (numericCount >= 3) score -= 15;
+    if (numericCount >= 2) score -= 15;
+    if (materialDataMatches >= 1) score -= 25; // Row with any material name is definitely DATA
     
     return score;
   };
@@ -648,12 +661,30 @@ export default function AdminICEImport() {
         const pct = 10 + Math.round(((chunkIndex + 1) / totalChunks) * 80);
         setProgress(pct);
 
-        const chunkMaterials = materials.slice(start, end);
+        const rawChunk = materials.slice(start, end);
+        
+        // Transform data: remap column names using the detected column mappings
+        const columnMap = validationPreview.detectedColumns.reduce((acc, col) => {
+          if (col.original && col.mappedTo) {
+            acc[col.original] = col.mappedTo;
+          }
+          return acc;
+        }, {} as Record<string, string>);
+        
+        const chunkMaterials = rawChunk.map((row: Record<string, unknown>) => {
+          const transformed: Record<string, unknown> = {};
+          for (const [key, value] of Object.entries(row)) {
+            const mappedKey = columnMap[key] || key;
+            transformed[mappedKey] = value;
+          }
+          return transformed;
+        });
         
         // Debug: log first chunk's structure
         if (chunkIndex === 0 && chunkMaterials.length > 0) {
-          console.log('[ICE Import] Sample material columns:', Object.keys(chunkMaterials[0]));
-          console.log('[ICE Import] Sample material data:', JSON.stringify(chunkMaterials[0]).slice(0, 500));
+          console.log('[ICE Import] Original columns:', Object.keys(rawChunk[0]));
+          console.log('[ICE Import] Mapped columns:', Object.keys(chunkMaterials[0]));
+          console.log('[ICE Import] Sample transformed data:', JSON.stringify(chunkMaterials[0]).slice(0, 500));
         }
         
         const { data, error } = await supabase.functions.invoke('import-ice-materials', {

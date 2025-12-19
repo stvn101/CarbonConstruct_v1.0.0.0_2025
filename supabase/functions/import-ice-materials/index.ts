@@ -68,55 +68,65 @@ function normalizeUnit(unit: string): string {
 }
 
 // Column name mapping for ICE spreadsheet variations (ICE Database V4.1 Oct 2025)
+// Also includes mapped column names that the frontend sends after transformation
 const COLUMN_MAPPINGS: Record<string, string[]> = {
   material_name: [
-    'Material', 'Materials', 'Material Name', 'Name', 'material_name', 
-    'MATERIAL', 'Material name', 'MATERIALS'
+    // Direct mapped names from frontend
+    'material_name', 'Material', 'Materials', 'Material Name', 'Name',
+    'MATERIAL', 'Material name', 'MATERIALS',
+    // ICE V4.1 patterns
+    'Name Exactly as in ICE DB'
   ],
   material_category: [
-    'Category', 'Material Category', 'Main Category', 'material_category', 
+    'material_category', 'Category', 'Material Category', 'Main Category',
     'CATEGORY', 'Material Type'
   ],
   subcategory: [
-    'Sub-Category', 'Subcategory', 'Sub Category', 'subcategory', 
+    'subcategory', 'Sub-Category', 'Subcategory', 'Sub Category',
     'SUB-CATEGORY', 'Sub-category', 'Sub_Category'
   ],
   unit: [
-    'Unit', 'Units', 'unit', 'UNIT', 'Functional Unit', 
+    'unit', 'Unit', 'Units', 'UNIT', 'Functional Unit',
     'UNITS', 'Unit of measurement'
   ],
   ef_total: [
+    // Direct mapped name from frontend
+    'ef_total',
     // ICE V4.1 specific headers
     'EF (kgCO2e/ unit)', 'EF (kgCO2e/unit)', 'EF(kgCO2e/unit)',
     'EF (kgCO2e / unit)', 'Embodied Carbon (kgCO2e/kg)',
     'EF kgCO2e/kg', 'kgCO2e/kg', 'kgCO2e / kg',
+    'Embodied Carbon - kgCO2e per tonne', 'Embodied Carbon -  kgCO2e per tonne',
     // Generic headers
-    'EF Total', 'EF', 'ef_total', 'Embodied Carbon', 'Total EF',
+    'EF Total', 'EF', 'Embodied Carbon', 'Total EF',
     'GWP', 'Total GWP', 'EF_Total', 'GWP Total', 'Total GWP-fossil',
     'EF (kgCO2e)', 'kgCO2e'
   ],
   ef_a1a3: [
-    'EF A1-A3', 'A1-A3', 'ef_a1a3', 'Process EF', 'A1A3', 
+    'ef_a1a3', 'EF A1-A3', 'A1-A3', 'Process EF', 'A1A3',
     'Modules A1-A3', 'A1-A3 EF', 'A1-A3 (kgCO2e)', 'A1-A3 EF (kgCO2e)'
   ],
+  ef_d: [
+    'ef_d', 'Module D', 'EF D', 'D', 'Mod D', 'Module_D'
+  ],
   data_quality: [
-    'DQI Score', 'DQI', 'Data Quality', 'data_quality_rating', 
+    'data_quality', 'data_quality_tier', 'DQI Score', 'DQI', 'Data Quality',
     'Quality', 'Data Quality Rating', 'Quality Score'
   ],
   notes: [
-    'Notes', 'notes', 'Comments', 'Comment', 'Description', 
+    'notes', 'Notes', 'Comments', 'Comment', 'Description',
     'NOTES', 'Additional Notes', 'Remarks'
   ],
   year: [
-    'Year', 'year', 'Reference Year', 'Data Year', 
+    'year', 'Year', 'Reference Year', 'Data Year',
     'YEAR', 'Source Year', 'Validity'
   ],
   density: [
-    'Density', 'density', 'Density (kg/m3)', 'kg/m³', 
+    'density', 'Density', 'Density (kg/m3)', 'kg/m³',
     'Density (kg/m³)', 'DENSITY'
   ],
   recycled_content: [
-    'Recycled Content', 'Recycled', 'Recycled %', 'recycled_content',
+    'recycled_content', 'Recycled Content', 'Recycled', 'Recycled %',
     '% Recycled', 'Recycled Content (%)'
   ],
 };
