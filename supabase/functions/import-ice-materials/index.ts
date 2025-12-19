@@ -791,7 +791,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        success: true,
+        success: inserted > 0 || dedupedMaterials.length === 0,
         dryRun: false,
         inserted,
         updated,
