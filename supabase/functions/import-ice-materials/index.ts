@@ -67,20 +67,58 @@ function normalizeUnit(unit: string): string {
   return unitMap[lower] || unit.trim();
 }
 
-// Column name mapping for ICE spreadsheet variations
+// Column name mapping for ICE spreadsheet variations (ICE Database V4.1 Oct 2025)
 const COLUMN_MAPPINGS: Record<string, string[]> = {
-  material_name: ['Material', 'Materials', 'Material Name', 'Name', 'material_name', 'MATERIAL', 'Material name'],
-  material_category: ['Category', 'Material Category', 'Main Category', 'material_category', 'CATEGORY'],
-  subcategory: ['Sub-Category', 'Subcategory', 'Sub Category', 'subcategory', 'SUB-CATEGORY'],
-  unit: ['Unit', 'Units', 'unit', 'UNIT', 'Functional Unit'],
-  ef_total: ['EF Total', 'EF (kgCO2e/unit)', 'ef_total', 'Embodied Carbon', 'EF', 'Total EF', 
-             'Embodied Carbon (kgCO2e/kg)', 'kgCO2e/kg', 'GWP', 'Total GWP', 'EF_Total'],
-  ef_a1a3: ['EF A1-A3', 'A1-A3', 'ef_a1a3', 'Process EF', 'A1A3', 'Modules A1-A3'],
-  data_quality: ['DQI Score', 'DQI', 'Data Quality', 'data_quality_rating', 'Quality'],
-  notes: ['Notes', 'notes', 'Comments', 'Comment', 'Description'],
-  year: ['Year', 'year', 'Reference Year', 'Data Year'],
-  density: ['Density', 'density', 'Density (kg/m3)', 'kg/m³'],
-  recycled_content: ['Recycled Content', 'Recycled', 'Recycled %', 'recycled_content'],
+  material_name: [
+    'Material', 'Materials', 'Material Name', 'Name', 'material_name', 
+    'MATERIAL', 'Material name', 'MATERIALS'
+  ],
+  material_category: [
+    'Category', 'Material Category', 'Main Category', 'material_category', 
+    'CATEGORY', 'Material Type'
+  ],
+  subcategory: [
+    'Sub-Category', 'Subcategory', 'Sub Category', 'subcategory', 
+    'SUB-CATEGORY', 'Sub-category', 'Sub_Category'
+  ],
+  unit: [
+    'Unit', 'Units', 'unit', 'UNIT', 'Functional Unit', 
+    'UNITS', 'Unit of measurement'
+  ],
+  ef_total: [
+    // ICE V4.1 specific headers
+    'EF (kgCO2e/ unit)', 'EF (kgCO2e/unit)', 'EF(kgCO2e/unit)',
+    'EF (kgCO2e / unit)', 'Embodied Carbon (kgCO2e/kg)',
+    'EF kgCO2e/kg', 'kgCO2e/kg', 'kgCO2e / kg',
+    // Generic headers
+    'EF Total', 'EF', 'ef_total', 'Embodied Carbon', 'Total EF',
+    'GWP', 'Total GWP', 'EF_Total', 'GWP Total', 'Total GWP-fossil',
+    'EF (kgCO2e)', 'kgCO2e'
+  ],
+  ef_a1a3: [
+    'EF A1-A3', 'A1-A3', 'ef_a1a3', 'Process EF', 'A1A3', 
+    'Modules A1-A3', 'A1-A3 EF', 'A1-A3 (kgCO2e)', 'A1-A3 EF (kgCO2e)'
+  ],
+  data_quality: [
+    'DQI Score', 'DQI', 'Data Quality', 'data_quality_rating', 
+    'Quality', 'Data Quality Rating', 'Quality Score'
+  ],
+  notes: [
+    'Notes', 'notes', 'Comments', 'Comment', 'Description', 
+    'NOTES', 'Additional Notes', 'Remarks'
+  ],
+  year: [
+    'Year', 'year', 'Reference Year', 'Data Year', 
+    'YEAR', 'Source Year', 'Validity'
+  ],
+  density: [
+    'Density', 'density', 'Density (kg/m3)', 'kg/m³', 
+    'Density (kg/m³)', 'DENSITY'
+  ],
+  recycled_content: [
+    'Recycled Content', 'Recycled', 'Recycled %', 'recycled_content',
+    '% Recycled', 'Recycled Content (%)'
+  ],
 };
 
 function findColumnValue(row: Record<string, unknown>, targetField: string): unknown {

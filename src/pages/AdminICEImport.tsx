@@ -137,46 +137,139 @@ export default function AdminICEImport() {
 
   const normalize = (v: unknown) => String(v ?? '').trim();
 
+  // Known ICE/EPD header keywords - exact matches get high scores
+  const HEADER_KEYWORDS = [
+    'material', 'materials', 'name', 'category', 'sub-category', 'subcategory',
+    'unit', 'units', 'ef', 'embodied', 'kgco2e', 'co2', 'gwp', 'density',
+    'a1-a3', 'a1a3', 'module', 'notes', 'comments', 'year', 'source',
+    'recycled', 'data quality', 'dqi', 'reference', 'functional unit'
+  ];
+
   const scoreHeaderRow = (row: unknown[]): number => {
-    const tokens = row.map((c) => normalize(c).toLowerCase()).filter(Boolean);
+    const cells = row.map((c) => normalize(c));
+    const tokens = cells.map(c => c.toLowerCase()).filter(Boolean);
     let score = 0;
     
-    if (tokens.some((t) => t.includes('material'))) score += 3;
-    if (tokens.some((t) => t === 'material' || t === 'materials')) score += 2;
-    if (tokens.some((t) => t.includes('name'))) score += 2;
-    if (tokens.some((t) => t.includes('category') || t.includes('sub category'))) score += 2;
-    if (tokens.some((t) => t.includes('ef') || t.includes('embodied'))) score += 3;
-    if (tokens.some((t) => t.includes('kgco2') || t.includes('co2'))) score += 3;
-    if (tokens.some((t) => t.includes('unit'))) score += 2;
-    if (tokens.some((t) => t.includes('density'))) score += 1;
-    if (tokens.some((t) => t.includes('a1') || t.includes('a1-a3'))) score += 2;
+    // Count how many cells look like header names vs data values
+    let numericCount = 0;
+    let longCellCount = 0;
+    let headerKeywordMatches = 0;
     
-    if (tokens.length < 3) score -= 5;
+    for (const cell of cells) {
+      const lower = cell.toLowerCase();
+      
+      // Penalize numeric values (data rows have numbers)
+      if (/^\d+(\.\d+)?$/.test(cell) || /^-?\d+\.?\d*$/.test(cell)) {
+        numericCount++;
+      }
+      
+      // Penalize very long cells (data descriptions are longer than headers)
+      if (cell.length > 50) {
+        longCellCount++;
+      }
+      
+      // Reward exact or partial matches to known header keywords
+      for (const keyword of HEADER_KEYWORDS) {
+        if (lower === keyword) {
+          headerKeywordMatches += 3; // Exact match
+        } else if (lower.includes(keyword)) {
+          headerKeywordMatches += 1; // Partial match
+        }
+      }
+      
+      // ICE-specific patterns
+      if (lower.includes('kgco2e') || lower.includes('ef (')) score += 3;
+      if (lower === 'material' || lower === 'materials') score += 5;
+      if (lower === 'unit' || lower === 'units') score += 3;
+      if (lower.includes('category')) score += 2;
+    }
+    
+    // Apply penalties and bonuses
+    score += headerKeywordMatches;
+    score -= numericCount * 3;  // Strong penalty for numeric cells
+    score -= longCellCount * 2;  // Penalty for long text (likely data)
+    
+    // Rows with too few non-empty cells are unlikely headers
+    if (tokens.length < 3) score -= 10;
+    
+    // Rows with too many numeric cells are definitely data rows
+    if (numericCount >= 3) score -= 15;
     
     return score;
+  };
+
+  // Check if detected columns look suspicious (like data instead of headers)
+  const validateColumnMapping = (columns: ColumnMapping[]): { valid: boolean; warnings: string[] } => {
+    const warnings: string[] = [];
+    
+    const hasMaterialName = columns.some(c => c.mappedTo === 'material_name');
+    const hasEfTotal = columns.some(c => c.mappedTo === 'ef_total');
+    const hasUnit = columns.some(c => c.mappedTo === 'unit');
+    
+    if (!hasMaterialName) {
+      warnings.push('No "Material" column detected - check if header row is correct');
+    }
+    if (!hasEfTotal) {
+      warnings.push('No emission factor (EF) column detected - check header row');
+    }
+    if (!hasUnit) {
+      warnings.push('No "Unit" column detected');
+    }
+    
+    // Check for suspicious column names (look like data values)
+    const suspiciousColumns = columns.filter(c => {
+      const name = c.original;
+      // Data values often start with numbers or are very long
+      if (/^\d/.test(name)) return true;
+      if (name.length > 40) return true;
+      // Check if it looks like a material name (contains commas, parentheses with numbers)
+      if (/\d+\.\d+/.test(name)) return true;
+      return false;
+    });
+    
+    if (suspiciousColumns.length >= 2) {
+      warnings.push('Column names look like data values - the header row may be incorrect');
+    }
+    
+    return {
+      valid: hasMaterialName && hasEfTotal,
+      warnings
+    };
   };
 
   const mapColumnName = (original: string): string => {
     const lower = original.toLowerCase().trim();
     
-    if (lower === 'material' || lower === 'materials' || lower === 'material name') return 'material_name';
-    if (lower === 'name') return 'material_name';
-    if (lower.includes('sub category') || lower.includes('subcategory')) return 'subcategory';
-    if (lower.includes('category')) return 'material_category';
-    if (lower.includes('embodied carbon') && lower.includes('kgco2e/kg')) return 'ef_total';
-    if (lower.includes('ef_total') || lower === 'ef total') return 'ef_total';
-    if (lower.includes('a1-a3') || lower.includes('a1a3')) return 'ef_a1a3';
-    if (lower.includes('a4') && !lower.includes('a1')) return 'ef_a4';
-    if (lower.includes('a5') && !lower.includes('a1')) return 'ef_a5';
+    // Exact matches first (ICE Database V4.1 specific)
+    if (lower === 'material' || lower === 'materials') return 'material_name';
+    if (lower === 'material name' || lower === 'name') return 'material_name';
+    if (lower === 'sub-category' || lower === 'subcategory' || lower === 'sub category') return 'subcategory';
+    if (lower === 'category' || lower === 'main category' || lower === 'material category') return 'material_category';
+    if (lower === 'unit' || lower === 'units' || lower === 'functional unit') return 'unit';
+    
+    // ICE V4.1 specific EF column names
+    if (lower.includes('ef (kgco2e/') || lower.includes('ef(kgco2e/')) return 'ef_total';
+    if (lower.includes('ef (kgco2e/ unit)')) return 'ef_total';
+    if (lower.includes('embodied carbon (kgco2e/kg)')) return 'ef_total';
+    if (lower.includes('kgco2e/kg') && !lower.includes('a1')) return 'ef_total';
+    if (lower === 'ef' || lower === 'ef total' || lower === 'total ef') return 'ef_total';
+    if (lower.includes('gwp') && lower.includes('total')) return 'ef_total';
+    
+    // Module-specific EF columns
+    if (lower.includes('a1-a3') || lower.includes('a1a3') || lower.includes('modules a1-a3')) return 'ef_a1a3';
+    if ((lower.includes('a4') && !lower.includes('a1')) || lower === 'a4') return 'ef_a4';
+    if ((lower.includes('a5') && !lower.includes('a1')) || lower === 'a5') return 'ef_a5';
     if (lower.includes('b1-b5') || lower.includes('b1b5')) return 'ef_b1b5';
     if (lower.includes('c1-c4') || lower.includes('c1c4')) return 'ef_c1c4';
     if (lower.includes('module d') || lower === 'd') return 'ef_d';
-    if (lower === 'unit' || lower === 'units') return 'unit';
-    if (lower.includes('density')) return 'density';
+    
+    // Other fields
+    if (lower.includes('density') || lower.includes('kg/m')) return 'density';
     if (lower.includes('recycled')) return 'recycled_content';
-    if (lower.includes('data quality')) return 'data_quality_tier';
+    if (lower.includes('data quality') || lower.includes('dqi')) return 'data_quality_tier';
     if (lower.includes('source') || lower.includes('reference')) return 'data_source';
     if (lower.includes('notes') || lower.includes('comment')) return 'notes';
+    if (lower.includes('year')) return 'year';
     
     return original;
   };
@@ -274,10 +367,26 @@ export default function AdminICEImport() {
         raw: true,
       });
 
-      let bestRowScore = 0;
+      let bestRowScore = -Infinity;
       let bestRowIndex = 0;
 
-      for (let i = 0; i < aoa.length; i++) {
+      // Debug: Log first few rows to help diagnose header detection
+      console.log(`[ICE Import] Analyzing sheet "${sheetName}" - first 10 rows:`);
+      for (let i = 0; i < Math.min(10, aoa.length); i++) {
+        const row = aoa[i] ?? [];
+        if (Array.isArray(row)) {
+          const score = scoreHeaderRow(row);
+          const preview = row.slice(0, 5).map(c => String(c ?? '').substring(0, 20));
+          console.log(`  Row ${sampleRange.s.r + i}: score=${score}, preview=${JSON.stringify(preview)}`);
+          if (score > bestRowScore) {
+            bestRowScore = score;
+            bestRowIndex = sampleRange.s.r + i;
+          }
+        }
+      }
+      
+      // Continue scoring remaining rows
+      for (let i = 10; i < aoa.length; i++) {
         const row = aoa[i] ?? [];
         if (Array.isArray(row)) {
           const score = scoreHeaderRow(row);
@@ -287,11 +396,13 @@ export default function AdminICEImport() {
           }
         }
       }
+      
+      console.log(`[ICE Import] Best header for "${sheetName}": row ${bestRowIndex} with score ${bestRowScore}`);
 
       worksheets.push({
         name: sheetName,
         rowCount,
-        detectedHeaderRow: bestRowScore > 5 ? bestRowIndex : null,
+        detectedHeaderRow: bestRowScore > 3 ? bestRowIndex : null,
         headerScore: bestRowScore,
       });
 
@@ -314,12 +425,22 @@ export default function AdminICEImport() {
     });
 
     const headers = (headerAoa[0] as unknown[] || []).map((h) => normalize(h));
+    
+    // Debug: Log detected headers
+    console.log(`[ICE Import] Detected headers at row ${headerRow}:`, headers.slice(0, 10));
 
     const sampleRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(selectedSheet, {
       defval: null,
       raw: true,
       range: headerRow,
     }).slice(0, 10);
+    
+    // Debug: Log first sample row
+    if (sampleRows[0]) {
+      console.log(`[ICE Import] First data row sample:`, Object.fromEntries(
+        Object.entries(sampleRows[0]).slice(0, 5).map(([k, v]) => [k, String(v).substring(0, 30)])
+      ));
+    }
 
     const detectedColumns: ColumnMapping[] = headers
       .filter(h => h.length > 0)
@@ -329,6 +450,9 @@ export default function AdminICEImport() {
         mappedTo: mapColumnName(original),
         sampleValue: normalize(sampleRows[0]?.[original] ?? ''),
       }));
+    
+    // Debug: Log column mappings
+    console.log(`[ICE Import] Column mappings:`, detectedColumns.map(c => `${c.original} → ${c.mappedTo}`));
 
     const allRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(selectedSheet, {
       defval: null,
@@ -949,6 +1073,28 @@ export default function AdminICEImport() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Validation Warnings */}
+              {(() => {
+                const validation = validateColumnMapping(validationPreview.detectedColumns);
+                if (validation.warnings.length > 0) {
+                  return (
+                    <Alert variant="destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle>Column Mapping Issues Detected</AlertTitle>
+                      <AlertDescription>
+                        <ul className="list-disc list-inside mt-2 space-y-1">
+                          {validation.warnings.map((warning, i) => (
+                            <li key={i}>{warning}</li>
+                          ))}
+                        </ul>
+                        <p className="mt-2 text-sm">Try adjusting the header row below.</p>
+                      </AlertDescription>
+                    </Alert>
+                  );
+                }
+                return null;
+              })()}
+
               {/* Worksheet & Header Selection */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -976,14 +1122,32 @@ export default function AdminICEImport() {
 
                 <div className="space-y-2">
                   <Label>Header Row (0-indexed)</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={validationPreview.selectedHeaderRow}
-                    onChange={(e) => updateHeaderRow(parseInt(e.target.value) || 0)}
-                  />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateHeaderRow(Math.max(0, validationPreview.selectedHeaderRow - 1))}
+                      disabled={validationPreview.selectedHeaderRow <= 0}
+                    >
+                      -1
+                    </Button>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={validationPreview.selectedHeaderRow}
+                      onChange={(e) => updateHeaderRow(parseInt(e.target.value) || 0)}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateHeaderRow(validationPreview.selectedHeaderRow + 1)}
+                    >
+                      +1
+                    </Button>
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Auto-detected: row {validationPreview.selectedHeaderRow}
+                    Auto-detected: row {validationPreview.selectedHeaderRow}. Use +/- buttons to adjust if headers look wrong.
                   </p>
                 </div>
               </div>
@@ -1009,25 +1173,47 @@ export default function AdminICEImport() {
                         <TableHead>Original Column</TableHead>
                         <TableHead>Maps To</TableHead>
                         <TableHead>Sample Value</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {validationPreview.detectedColumns.map((col, i) => (
-                        <TableRow key={i}>
-                          <TableCell className="font-mono text-xs">{col.original}</TableCell>
-                          <TableCell>
-                            <Badge variant={col.mappedTo !== col.original ? 'default' : 'secondary'}>
-                              {col.mappedTo}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-xs truncate max-w-[200px]">
-                            {col.sampleValue || '—'}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {validationPreview.detectedColumns.map((col, i) => {
+                        // Detect suspicious column names
+                        const isSuspicious = /^\d/.test(col.original) || 
+                          col.original.length > 40 || 
+                          /\d+\.\d+/.test(col.original);
+                        const isMapped = col.mappedTo !== col.original;
+                        const isImportant = ['material_name', 'ef_total', 'unit'].includes(col.mappedTo);
+                        
+                        return (
+                          <TableRow key={i} className={isSuspicious ? 'bg-destructive/10' : ''}>
+                            <TableCell className="font-mono text-xs max-w-[200px] truncate" title={col.original}>
+                              {col.original}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={isMapped ? (isImportant ? 'default' : 'secondary') : 'outline'}>
+                                {col.mappedTo}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-xs truncate max-w-[200px]">
+                              {col.sampleValue || '—'}
+                            </TableCell>
+                            <TableCell>
+                              {isSuspicious ? (
+                                <Badge variant="destructive" className="text-xs">⚠ Data?</Badge>
+                              ) : isMapped ? (
+                                <Badge variant="secondary" className="text-xs">✓</Badge>
+                              ) : null}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Columns highlighted in red may be data values instead of headers. Adjust header row if needed.
+                </p>
               </div>
 
               {/* Sample Data */}
@@ -1060,28 +1246,40 @@ export default function AdminICEImport() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-4">
-                <Button variant="outline" onClick={resetImport}>
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={() => runImport(true)} 
-                  disabled={isLoading || validationPreview.totalRows === 0}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  <FileCheck className="h-4 w-4 mr-2" />
-                  Validate ({validationPreview.totalRows} rows)
-                </Button>
-                <Button 
-                  onClick={() => runImport(false)} 
-                  disabled={isLoading || validationPreview.totalRows === 0}
-                  className="flex-1"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Import to Database
-                </Button>
-              </div>
+              {(() => {
+                const validation = validateColumnMapping(validationPreview.detectedColumns);
+                return (
+                  <div className="flex gap-4">
+                    <Button variant="outline" onClick={resetImport}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={() => runImport(true)} 
+                      disabled={isLoading || validationPreview.totalRows === 0}
+                      variant="secondary"
+                      className="flex-1"
+                    >
+                      <FileCheck className="h-4 w-4 mr-2" />
+                      Validate ({validationPreview.totalRows} rows)
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        if (!validation.valid) {
+                          toast.error('Please fix column mapping issues before importing. Adjust the header row.');
+                          return;
+                        }
+                        runImport(false);
+                      }} 
+                      disabled={isLoading || validationPreview.totalRows === 0}
+                      variant={validation.valid ? 'default' : 'secondary'}
+                      className="flex-1"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {validation.valid ? 'Import to Database' : 'Import (Fix Warnings First)'}
+                    </Button>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         )}
