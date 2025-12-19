@@ -69,33 +69,89 @@ export default function AdminICEImport() {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(arrayBuffer);
     
-    const worksheet = workbook.worksheets[0];
+    // Try to find the main data worksheet (usually first or named "Materials", "Data", etc.)
+    let worksheet = workbook.worksheets.find(ws => 
+      ws.name.toLowerCase().includes('material') || 
+      ws.name.toLowerCase().includes('data') ||
+      ws.name.toLowerCase() === 'sheet1'
+    ) || workbook.worksheets[0];
+    
     if (!worksheet) throw new Error('No worksheet found in Excel file');
+    
+    console.log(`Using worksheet: ${worksheet.name} with ${worksheet.rowCount} rows`);
     
     const materials: Record<string, unknown>[] = [];
     const headers: string[] = [];
     
+    // Find header row (first row with actual content)
+    let headerRowNumber = 1;
     worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) {
-        row.eachCell((cell) => {
-          headers.push(String(cell.value || ''));
+      if (headerRowNumber === 1) {
+        const cellValues = row.values as unknown[];
+        // Check if this looks like a header row (has text values)
+        const hasHeaders = cellValues.some(val => 
+          typeof val === 'string' && val.length > 0 && val.length < 100
+        );
+        if (hasHeaders) {
+          headerRowNumber = rowNumber;
+        }
+      }
+    });
+    
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === headerRowNumber) {
+        row.eachCell((cell, colNumber) => {
+          const value = cell.value;
+          // Handle rich text cells
+          const headerText = typeof value === 'object' && value !== null && 'richText' in value
+            ? (value as { richText: Array<{ text: string }> }).richText.map(r => r.text).join('')
+            : String(value || '');
+          headers[colNumber - 1] = headerText.trim();
         });
+        console.log('Headers found:', headers.filter(Boolean).slice(0, 10));
         return;
       }
+      
+      if (rowNumber <= headerRowNumber) return;
       
       const rowData: Record<string, unknown> = {};
       row.eachCell((cell, colNumber) => {
         const header = headers[colNumber - 1];
         if (header) {
-          rowData[header] = cell.value;
+          // Handle different cell value types
+          const cellValue = cell.value;
+          let value: string | number | boolean | null = null;
+          
+          if (cellValue === null || cellValue === undefined) {
+            value = null;
+          } else if (typeof cellValue === 'string' || typeof cellValue === 'number' || typeof cellValue === 'boolean') {
+            value = cellValue;
+          } else if (typeof cellValue === 'object') {
+            if ('richText' in cellValue && Array.isArray(cellValue.richText)) {
+              value = cellValue.richText.map((r: { text: string }) => r.text).join('');
+            } else if ('result' in cellValue) {
+              const result = (cellValue as { result: unknown }).result;
+              value = typeof result === 'string' || typeof result === 'number' ? result : String(result);
+            } else {
+              value = String(cellValue);
+            }
+          } else {
+            value = String(cellValue);
+          }
+          rowData[header] = value;
         }
       });
       
-      if (Object.keys(rowData).length > 0) {
+      // Only add rows that have at least some meaningful data
+      const meaningfulKeys = Object.keys(rowData).filter(k => 
+        rowData[k] !== null && rowData[k] !== undefined && rowData[k] !== ''
+      );
+      if (meaningfulKeys.length >= 3) {
         materials.push(rowData);
       }
     });
     
+    console.log(`Parsed ${materials.length} material rows`);
     return materials;
   };
 
@@ -317,21 +373,21 @@ export default function AdminICEImport() {
 
               <TabsContent value="summary" className="mt-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <p className="text-2xl font-bold text-emerald-700">{importResult.imported}</p>
-                    <p className="text-sm text-emerald-600">{isDryRun ? 'Ready to Import' : 'Imported'}</p>
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{importResult.imported}</p>
+                    <p className="text-sm text-emerald-600 dark:text-emerald-400">{isDryRun ? 'Ready to Import' : 'Imported'}</p>
                   </div>
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-2xl font-bold text-blue-700">{importResult.updated}</p>
-                    <p className="text-sm text-blue-600">Updated</p>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{importResult.updated}</p>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">Updated</p>
                   </div>
-                  <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                    <p className="text-2xl font-bold text-amber-700">{importResult.skipped}</p>
-                    <p className="text-sm text-amber-600">Skipped</p>
+                  <div className="p-4 bg-amber-50 dark:bg-amber-950/50 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">{importResult.skipped}</p>
+                    <p className="text-sm text-amber-600 dark:text-amber-400">Skipped</p>
                   </div>
-                  <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                    <p className="text-2xl font-bold text-red-700">{importResult.errors.length}</p>
-                    <p className="text-sm text-red-600">Errors</p>
+                  <div className="p-4 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-200 dark:border-red-800">
+                    <p className="text-2xl font-bold text-red-700 dark:text-red-300">{importResult.errors.length}</p>
+                    <p className="text-sm text-red-600 dark:text-red-400">Errors</p>
                   </div>
                 </div>
 
