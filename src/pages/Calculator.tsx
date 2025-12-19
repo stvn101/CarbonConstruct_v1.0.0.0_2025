@@ -2772,6 +2772,7 @@ export default function Calculator() {
                   summary={epdExpirySummary}
                   onDismiss={dismissEPDWarning}
                   onClearDismissed={clearDismissedEPDWarnings}
+                  projectName={currentProject?.name}
                 />
               </div>
             )}

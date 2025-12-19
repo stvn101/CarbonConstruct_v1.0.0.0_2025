@@ -10,8 +10,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { useState } from "react";
+import { EPDRenewalExport } from "./EPDRenewalExport";
 
-interface ExpiryWarning {
+export interface ExpiryWarning {
   id: string;
   materialName: string;
   epdNumber?: string;
@@ -34,13 +35,15 @@ interface EPDRenewalRemindersProps {
   };
   onDismiss?: (id: string) => void;
   onClearDismissed?: () => void;
+  projectName?: string;
 }
 
 export function EPDRenewalReminders({ 
   expiryWarnings, 
   summary, 
   onDismiss,
-  onClearDismissed 
+  onClearDismissed,
+  projectName = 'Project'
 }: EPDRenewalRemindersProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -158,21 +161,24 @@ export function EPDRenewalReminders({
                 </div>
               </ScrollArea>
 
-              <div className="mt-3 pt-2 border-t border-dashed flex justify-between items-center text-xs text-muted-foreground">
-                <span>
-                  {summary.total} material{summary.total !== 1 ? 's' : ''} with EPD expiry tracking
-                </span>
-                {onClearDismissed && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 text-xs gap-1"
-                    onClick={onClearDismissed}
-                  >
-                    <BellOff className="h-3 w-3" />
-                    Reset dismissed
-                  </Button>
-                )}
+              <div className="mt-3 pt-2 border-t border-dashed flex flex-col gap-2">
+                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                  <span>
+                    {summary.total} material{summary.total !== 1 ? 's' : ''} with EPD expiry tracking
+                  </span>
+                  {onClearDismissed && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-xs gap-1"
+                      onClick={onClearDismissed}
+                    >
+                      <BellOff className="h-3 w-3" />
+                      Reset dismissed
+                    </Button>
+                  )}
+                </div>
+                <EPDRenewalExport expiryWarnings={expiryWarnings} projectName={projectName} />
               </div>
             </div>
           </CollapsibleContent>
