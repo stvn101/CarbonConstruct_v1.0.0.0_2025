@@ -1,5 +1,8 @@
 project_id = "htruyldcvakkzpykfoxq"
 
+[functions.check-epd-registry]
+verify_jwt = true
+
 [functions.import-nger-data]
 verify_jwt = true
 

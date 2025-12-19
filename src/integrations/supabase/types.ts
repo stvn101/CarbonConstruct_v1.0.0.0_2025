@@ -161,6 +161,80 @@ export type Database = {
         }
         Relationships: []
       }
+      epd_renewal_workflows: {
+        Row: {
+          contact_date: string | null
+          created_at: string
+          epd_number: string | null
+          expected_response_date: string | null
+          expiry_date: string
+          id: string
+          manufacturer: string | null
+          material_id: string
+          material_name: string
+          new_epd_number: string | null
+          new_expiry_date: string | null
+          notes: string | null
+          priority: string
+          received_date: string | null
+          request_date: string | null
+          status: string
+          supplier_contact_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_date?: string | null
+          created_at?: string
+          epd_number?: string | null
+          expected_response_date?: string | null
+          expiry_date: string
+          id?: string
+          manufacturer?: string | null
+          material_id: string
+          material_name: string
+          new_epd_number?: string | null
+          new_expiry_date?: string | null
+          notes?: string | null
+          priority?: string
+          received_date?: string | null
+          request_date?: string | null
+          status?: string
+          supplier_contact_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_date?: string | null
+          created_at?: string
+          epd_number?: string | null
+          expected_response_date?: string | null
+          expiry_date?: string
+          id?: string
+          manufacturer?: string | null
+          material_id?: string
+          material_name?: string
+          new_epd_number?: string | null
+          new_expiry_date?: string | null
+          notes?: string | null
+          priority?: string
+          received_date?: string | null
+          request_date?: string | null
+          status?: string
+          supplier_contact_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "epd_renewal_workflows_supplier_contact_id_fkey"
+            columns: ["supplier_contact_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_logs: {
         Row: {
           browser_info: Json | null
