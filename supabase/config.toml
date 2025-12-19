@@ -104,3 +104,6 @@ verify_jwt = true
 
 [functions.import-ice-materials]
 verify_jwt = true
+
+[functions.send-epd-reminders]
+verify_jwt = true
