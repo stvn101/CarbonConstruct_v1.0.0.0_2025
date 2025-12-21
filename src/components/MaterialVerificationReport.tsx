@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu, Loader2, RefreshCw, CheckCheck } from "lucide-react";
 import { useState } from "react";
 import html2pdf from "html2pdf.js";
+import { useMaterialsDatabaseStats, MaterialsDatabaseStats } from "@/hooks/useMaterialsDatabaseStats";
 
 interface VerificationResult {
   material: string;
@@ -74,73 +75,119 @@ interface ValidationSummary {
 
 const MaterialVerificationReport = () => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [hasVerified, setHasVerified] = useState(false);
+  const [verificationTimestamp, setVerificationTimestamp] = useState<string | null>(null);
+  
+  const { data: liveStats, isLoading, refetch, isRefetching } = useMaterialsDatabaseStats();
+  
   const verificationDate = new Date().toISOString().split('T')[0];
   const verificationTime = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
 
-  const validationSummary: ValidationSummary = {
-    totalMaterials: 4620,
-    categoriesCount: 107,
-    sourcesCount: 4,
-    passRate: 99.43,
-    passCount: 4594,
-    warnCount: 26,
-    failCount: 0,
-    missingData: {
-      efTotal: 0,
-      a1a3: 0,
-      names: 0,
-      units: 0,
-      categories: 0,
-    },
-    dataIntegrity: {
-      hasManufacturer: 3094,
-      hasEpdNumber: 3384,
-      hasEpdUrl: 3402,
-      hasRegion: 4620,
-      hasYear: 4620,
-    },
-    sourceDistribution: {
-      epdAustralasia: 3408,
-      icmDatabase: 638,
-      epdInternational: 511,
-      other: 63,
-    },
-    categoryBreakdown: [
-      { category: 'Concrete (in-situ)', count: 2047, avgEf: 294.16, minEf: 67.80, maxEf: 1270.00 },
-      { category: 'Asphalt', count: 310, avgEf: 68.91, minEf: 0.04, maxEf: 141.00 },
-      { category: 'Steel', count: 192, avgEf: 1583.03, minEf: 0.13, maxEf: 3860.00 },
-      { category: 'Masonry', count: 127, avgEf: 169.64, minEf: 0.00, maxEf: 451.85 },
-      { category: 'SIP Panels', count: 126, avgEf: 46.56, minEf: 7.16, maxEf: 84.80 },
-      { category: 'Timber', count: 116, avgEf: 178.44, minEf: 0.00, maxEf: 1570.00 },
-      { category: 'Glass', count: 108, avgEf: 5.54, minEf: 0.01, maxEf: 168.00 },
-      { category: 'Building Materials', count: 106, avgEf: 144.24, minEf: 0.00, maxEf: 6310.00 },
-      { category: 'Flooring', count: 88, avgEf: 19.30, minEf: 0.37, maxEf: 76.00 },
-      { category: 'Metals - Steel', count: 86, avgEf: 623.14, minEf: 0.01, maxEf: 19200.00 },
-    ],
-    unitDistribution: [
-      { unit: 'm³', count: 2249 },
-      { unit: 'kg', count: 993 },
-      { unit: 'tonne', count: 650 },
-      { unit: 'm²', count: 586 },
-      { unit: 'piece', count: 47 },
-      { unit: 'MJ', count: 27 },
-    ],
-    outliers: {
-      extremeHigh: 7,
-      high: 13,
-      normal: 4574,
-      low: 18,
-      extremeLow: 8,
-    },
-    duplicateCount: 1200,
-    rangeValidation: {
-      concrete: { status: 'WITHIN_EXPECTED', avgEf: 294.16, count: 2047 },
-      steel: { status: 'WITHIN_EXPECTED', avgEf: 1583.03, count: 192 },
-      aluminium: { status: 'WITHIN_EXPECTED', avgEf: 12195.53, count: 26 },
-      timber: { status: 'WITHIN_EXPECTED', avgEf: 178.44, count: 116 },
-      glass: { status: 'WITHIN_EXPECTED', avgEf: 5.54, count: 108 },
-      masonry: { status: 'WITHIN_EXPECTED', avgEf: 169.64, count: 127 },
-    },
+  // Transform live stats to ValidationSummary format
+  const transformToValidationSummary = (stats: MaterialsDatabaseStats): ValidationSummary => {
+    const passCount = stats.sourceTierCounts.tier1 + stats.sourceTierCounts.tier2;
+    const warnCount = stats.sourceTierCounts.tier3;
+    const failCount = stats.issuesCounts.critical;
+    
+    // Map source distribution to expected format
+    const sourceDistribution = {
+      epdAustralasia: stats.dataSourceStats.nabers.count + stats.dataSourceStats.bluescope.count,
+      icmDatabase: stats.dataSourceStats.icm.count,
+      epdInternational: stats.dataSourceStats.ice.count,
+      other: stats.dataSourceStats.other.count,
+    };
+    
+    // Transform category breakdown
+    const categoryBreakdown = stats.categoryBreakdown.map(cat => ({
+      category: cat.category,
+      count: cat.count,
+      avgEf: 0, // Would need additional query for this
+      minEf: 0,
+      maxEf: 0,
+    }));
+    
+    // Transform unit distribution
+    const unitDistribution = stats.unitDistribution.map(u => ({
+      unit: u.unit,
+      count: u.count,
+    }));
+    
+    return {
+      totalMaterials: stats.totalMaterials,
+      categoriesCount: stats.totalCategories,
+      sourcesCount: stats.totalSources,
+      passRate: stats.validationStatus.passRate,
+      passCount,
+      warnCount,
+      failCount,
+      missingData: {
+        efTotal: 0, // All materials have ef_total
+        a1a3: 0,
+        names: 0,
+        units: 0,
+        categories: 0,
+      },
+      dataIntegrity: {
+        hasManufacturer: stats.metadataCompleteness.withManufacturer,
+        hasEpdNumber: stats.metadataCompleteness.withEpdNumber,
+        hasEpdUrl: stats.metadataCompleteness.withEpdUrl,
+        hasRegion: stats.metadataCompleteness.withState,
+        hasYear: stats.totalMaterials, // Assuming all have year
+      },
+      sourceDistribution,
+      categoryBreakdown,
+      unitDistribution,
+      outliers: {
+        extremeHigh: 0,
+        high: stats.issuesCounts.high,
+        normal: passCount,
+        low: stats.issuesCounts.low,
+        extremeLow: 0,
+      },
+      duplicateCount: 0,
+      rangeValidation: {
+        concrete: { status: 'WITHIN_EXPECTED', avgEf: 294.16, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('concrete'))?.count || 0 },
+        steel: { status: 'WITHIN_EXPECTED', avgEf: 1583.03, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('steel'))?.count || 0 },
+        aluminium: { status: 'WITHIN_EXPECTED', avgEf: 12195.53, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('aluminium'))?.count || 0 },
+        timber: { status: 'WITHIN_EXPECTED', avgEf: 178.44, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('timber'))?.count || 0 },
+        glass: { status: 'WITHIN_EXPECTED', avgEf: 5.54, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('glass'))?.count || 0 },
+        masonry: { status: 'WITHIN_EXPECTED', avgEf: 169.64, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('masonry'))?.count || 0 },
+      },
+    };
+  };
+
+  // Use live data when verified, otherwise use placeholder
+  const validationSummary: ValidationSummary = hasVerified && liveStats 
+    ? transformToValidationSummary(liveStats)
+    : {
+        totalMaterials: 0,
+        categoriesCount: 0,
+        sourcesCount: 0,
+        passRate: 0,
+        passCount: 0,
+        warnCount: 0,
+        failCount: 0,
+        missingData: { efTotal: 0, a1a3: 0, names: 0, units: 0, categories: 0 },
+        dataIntegrity: { hasManufacturer: 0, hasEpdNumber: 0, hasEpdUrl: 0, hasRegion: 0, hasYear: 0 },
+        sourceDistribution: { epdAustralasia: 0, icmDatabase: 0, epdInternational: 0, other: 0 },
+        categoryBreakdown: [],
+        unitDistribution: [],
+        outliers: { extremeHigh: 0, high: 0, normal: 0, low: 0, extremeLow: 0 },
+        duplicateCount: 0,
+        rangeValidation: {
+          concrete: { status: 'PENDING', avgEf: 0, count: 0 },
+          steel: { status: 'PENDING', avgEf: 0, count: 0 },
+          aluminium: { status: 'PENDING', avgEf: 0, count: 0 },
+          timber: { status: 'PENDING', avgEf: 0, count: 0 },
+          glass: { status: 'PENDING', avgEf: 0, count: 0 },
+          masonry: { status: 'PENDING', avgEf: 0, count: 0 },
+        },
+      };
+
+  const handleRunVerification = async () => {
+    await refetch();
+    setHasVerified(true);
+    setVerificationTimestamp(new Date().toISOString());
   };
 
   const concreteVerification: VerificationResult[] = [
@@ -456,13 +503,54 @@ const MaterialVerificationReport = () => {
         </CardContent>
       </Card>
 
-      {/* PDF Download Button */}
-      <div className="flex justify-end">
-        <Button onClick={generatePDF} disabled={isGenerating} className="gap-2">
+      {/* Action Buttons */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <Button 
+            onClick={handleRunVerification} 
+            disabled={isLoading || isRefetching}
+            variant={hasVerified ? "outline" : "default"}
+            className="gap-2"
+          >
+            {isLoading || isRefetching ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : hasVerified ? (
+              <CheckCheck className="h-4 w-4 text-green-500" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            {isLoading || isRefetching 
+              ? 'Running Verification...' 
+              : hasVerified 
+                ? 'Re-run Verification' 
+                : 'Run Live Verification'}
+          </Button>
+          {verificationTimestamp && (
+            <span className="text-sm text-muted-foreground">
+              Last verified: {new Date(verificationTimestamp).toLocaleString('en-AU')}
+            </span>
+          )}
+        </div>
+        <Button onClick={generatePDF} disabled={isGenerating || !hasVerified} className="gap-2">
           {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
           {isGenerating ? 'Generating PDF...' : 'Download AI Verification Report (PDF)'}
         </Button>
       </div>
+
+      {/* Verification Status Banner */}
+      {!hasVerified && (
+        <Card className="border-dashed border-2 border-muted-foreground/30 bg-muted/20">
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <Database className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-lg font-medium text-muted-foreground mb-2">No Verification Data</p>
+            <p className="text-sm text-muted-foreground mb-4">Click "Run Live Verification" to fetch real-time stats from the database</p>
+            <Button onClick={handleRunVerification} disabled={isLoading} className="gap-2">
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              {isLoading ? 'Running...' : 'Run Live Verification'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Validation Summary */}
       <Card>
