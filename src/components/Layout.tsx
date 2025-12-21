@@ -48,6 +48,9 @@ export function Layout({ children }: LayoutProps) {
             aria-label="Main navigation"
           >
             <SidebarTrigger className="mr-2 md:mr-4" aria-label="Toggle sidebar navigation" />
+            <a href="/" className="flex items-center">
+              <img src="/logo-optimized.webp" alt="CarbonConstruct" className="h-8 w-auto" />
+            </a>
             {isToolsPage && (
               <a href="https://calendar.app.google/1SMFPsNBFS7V5pu37" target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" size="sm" className="mr-4">
