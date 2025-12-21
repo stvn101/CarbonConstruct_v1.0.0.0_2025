@@ -10,8 +10,16 @@ import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { cn } from "@/lib/utils";
 
+// ============================================
+// MAINTENANCE MODE FLAG - Set to false to go live
+// ============================================
+const MAINTENANCE_MODE = true;
+
 // Eager load only the index page for faster initial render
 import Index from "./pages/Index";
+
+// Maintenance page
+import Maintenance from "./pages/Maintenance";
 
 // Lazy load all other routes to reduce initial bundle size
 const Auth = lazy(() => import("./pages/Auth"));
@@ -116,7 +124,17 @@ function MonitoringProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const App = () => (
+// Maintenance mode app - shows only the maintenance page
+const MaintenanceApp = () => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="*" element={<Maintenance />} />
+    </Routes>
+  </BrowserRouter>
+);
+
+// Full app with all routes
+const FullApp = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <ProjectProvider>
@@ -196,5 +214,8 @@ const App = () => (
     </AuthProvider>
   </QueryClientProvider>
 );
+
+// Export the appropriate app based on maintenance mode
+const App = () => (MAINTENANCE_MODE ? <MaintenanceApp /> : <FullApp />);
 
 export default App;
