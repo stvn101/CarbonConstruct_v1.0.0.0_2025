@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PDFReport, ReportBranding, EPDExpiryAlert } from '@/components/PDFReport';
 import { useReportData, validateReportData, calculateDataCompleteness } from '@/components/ReportData';
+import ProjectSelector from '@/components/ProjectSelector';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -237,17 +238,11 @@ const Reports = () => {
 
   if (!currentProject) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <FileBarChart className="mx-auto h-12 w-12 text-muted-foreground" />
-            <CardTitle>No Project Selected</CardTitle>
-            <CardDescription>
-              Please select a project to generate reports
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <main className="min-h-[60vh]">
+        <section className="container mx-auto py-10">
+          <ProjectSelector />
+        </section>
+      </main>
     );
   }
 
