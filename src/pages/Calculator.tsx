@@ -1380,16 +1380,7 @@ export default function Calculator() {
       try {
         const stored = localStorage.getItem('transportCalculatorItems');
         if (stored) {
-          const rawItems = JSON.parse(stored);
-          // Transform to match edge function schema (materialName, weight, distance, mode)
-          a4TransportItems = rawItems.map((item: any) => ({
-            id: item.id,
-            materialName: item.description || 'Material Transport',
-            weight: Number(item.materialTonnes) || 0,
-            distance: Number(item.distanceKm) || 0,
-            mode: item.modeId || 'truck',
-            emissions: Number(item.emissions) || 0
-          }));
+          a4TransportItems = JSON.parse(stored);
         }
       } catch {
         // Ignore localStorage errors
@@ -1404,14 +1395,9 @@ export default function Calculator() {
 
       setSaving(true);
       try {
-        // Server-side validation - ensure buildingSqm is a number
-        const validationProjectDetails = {
-          ...projectDetails,
-          buildingSqm: projectDetails.buildingSqm ? Number(projectDetails.buildingSqm) : undefined
-        };
-
+        // Server-side validation
         const validationData = {
-          projectDetails: validationProjectDetails,
+          projectDetails,
           materials: selectedMaterials,
           fuelInputs: scope1Inputs,
           electricityInputs: scope2Inputs,

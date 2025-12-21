@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PDFReport, ReportBranding, EPDExpiryAlert } from '@/components/PDFReport';
 import { useReportData, validateReportData, calculateDataCompleteness } from '@/components/ReportData';
-import ProjectSelector from '@/components/ProjectSelector';
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -196,14 +195,14 @@ const Reports = () => {
     trackUsage({ metricType: 'reports_per_month' });
     
     // Generate and download the PDF
-    const element = document.querySelector('.pdf-report-content') as HTMLElement | null;
+    const element = document.getElementById('pdf-report-content');
     if (element) {
       const html2pdf = (await import('html2pdf.js')).default;
       html2pdf()
         .set({
           margin: 10,
           filename: `${currentProject?.name || 'project'}-carbon-report.pdf`,
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+          html2canvas: { scale: 2 },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         })
         .from(element)
@@ -238,11 +237,17 @@ const Reports = () => {
 
   if (!currentProject) {
     return (
-      <main className="min-h-[60vh]">
-        <section className="container mx-auto py-10">
-          <ProjectSelector />
-        </section>
-      </main>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <FileBarChart className="mx-auto h-12 w-12 text-muted-foreground" />
+            <CardTitle>No Project Selected</CardTitle>
+            <CardDescription>
+              Please select a project to generate reports
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
     );
   }
 

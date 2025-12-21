@@ -703,12 +703,9 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
       className="pdf-report-content"
       data-theme="light"
       style={{ 
-        // Keep in the render tree so html2canvas can capture reliably, but place behind UI
-        position: 'fixed',
-        left: 0,
+        position: 'absolute',
+        left: '-9999px',
         top: 0,
-        zIndex: -1,
-        pointerEvents: 'none',
         width: '210mm',
         background: '#ffffff',
         backgroundColor: '#ffffff',
