@@ -286,7 +286,7 @@ const Reports = () => {
               scope2: reportData.emissions.scope2.toFixed(2),
               scope3: reportData.emissions.scope3.toFixed(2),
               complianceStatus: reportData.compliance.nccCompliant ? 'NCC Compliant' : 'Non-Compliant',
-              appUrl: window.location.origin,
+              appUrl: 'https://carbonconstruct.com.au',
             },
           },
         });
