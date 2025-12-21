@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 // ============================================
 // MAINTENANCE MODE FLAG - Set to false to go live
 // ============================================
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 
 // Eager load only the index page for faster initial render
 import Index from "./pages/Index";
