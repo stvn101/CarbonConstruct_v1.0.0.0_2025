@@ -844,7 +844,6 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     setLoading(true);
 
     let element: HTMLElement | null = null;
-    let originalInlineStyle: string | null = null;
 
     try {
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
@@ -855,14 +854,6 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         console.error('PDF content element not found');
         return;
       }
-
-      // Some browsers/html2canvas combos render empty output when the source node is far off-screen.
-      // Temporarily pin it to the viewport while generating, then restore.
-      originalInlineStyle = element.getAttribute('style');
-      element.setAttribute(
-        'style',
-        'position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; background: #ffffff; background-color: #ffffff; visibility: visible; display: block;'
-      );
 
       await html2pdf()
         .set({
@@ -875,6 +866,19 @@ export const PDFReport: React.FC<PDFReportProps> = ({
             letterRendering: true,
             backgroundColor: '#ffffff',
             logging: false,
+            onclone: (clonedDoc: Document) => {
+              const clonedEl = clonedDoc.getElementById(contentId) as HTMLElement | null;
+              if (!clonedEl) return;
+              clonedEl.style.position = 'fixed';
+              clonedEl.style.left = '0';
+              clonedEl.style.top = '0';
+              clonedEl.style.zIndex = '9999';
+              clonedEl.style.width = '210mm';
+              clonedEl.style.background = '#ffffff';
+              clonedEl.style.backgroundColor = '#ffffff';
+              clonedEl.style.display = 'block';
+              clonedEl.style.visibility = 'visible';
+            },
           },
           jsPDF: {
             unit: 'mm',
@@ -887,10 +891,6 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     } catch (error) {
       console.error('Error generating PDF:', error);
     } finally {
-      if (element) {
-        if (originalInlineStyle === null) element.removeAttribute('style');
-        else element.setAttribute('style', originalInlineStyle);
-      }
       setLoading(false);
     }
   };
