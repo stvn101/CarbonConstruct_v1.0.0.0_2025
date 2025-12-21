@@ -1,13 +1,15 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Download, Printer, FileText } from "lucide-react";
+import { Download, Printer, FileText, Loader2 } from "lucide-react";
 import Decimal from "decimal.js";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface TaxInvoiceData {
+export interface TaxInvoiceData {
   invoiceNumber: string;
   invoiceDate: string;
   grossAmountCents: number;
@@ -18,6 +20,7 @@ interface TaxInvoiceData {
   customerEmail: string;
   customerAbn?: string;
   description: string;
+  paymentStatus: string;
   subscriptionPeriod?: {
     start: string;
     end: string;
@@ -76,6 +79,8 @@ export function AustralianTaxInvoice({ data, onDownload, onPrint }: AustralianTa
       alert("PDF download functionality requires html2pdf.js integration");
     }
   };
+
+  const isPaid = data.paymentStatus === "succeeded" || data.paymentStatus === "paid";
 
   return (
     <div className="space-y-4">
@@ -207,12 +212,18 @@ export function AustralianTaxInvoice({ data, onDownload, onPrint }: AustralianTa
           </div>
 
           {/* Payment Status */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
-            <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+          <div className={`flex items-center justify-between p-4 rounded-lg border ${
+            isPaid 
+              ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800" 
+              : "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
+          }`}>
+            <span className={`text-sm font-medium ${
+              isPaid ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"
+            }`}>
               Payment Status
             </span>
-            <Badge variant="default" className="bg-emerald-600">
-              PAID
+            <Badge variant="default" className={isPaid ? "bg-emerald-600" : "bg-amber-600"}>
+              {isPaid ? "PAID" : data.paymentStatus.toUpperCase()}
             </Badge>
           </div>
 
@@ -257,16 +268,151 @@ export function AustralianTaxInvoice({ data, onDownload, onPrint }: AustralianTa
 }
 
 /**
- * Hook to fetch and transform payment_tax_records data for invoice display
+ * Hook to fetch tax invoice records for the current user
  */
-export function useTaxInvoiceData(_invoiceId: string) {
-  // This would fetch from payment_tax_records table
-  // Implementation depends on your data fetching pattern
-  return {
-    loading: false,
-    error: null,
-    data: null as TaxInvoiceData | null,
+export function useTaxInvoices() {
+  const { user } = useAuth();
+  const [invoices, setInvoices] = useState<TaxInvoiceData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchInvoices() {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error: fetchError } = await supabase
+          .from("payment_tax_records")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("invoice_date", { ascending: false });
+
+        if (fetchError) throw fetchError;
+
+        // Transform database records to TaxInvoiceData format
+        const transformed: TaxInvoiceData[] = (data || []).map((record) => ({
+          invoiceNumber: record.stripe_invoice_id,
+          invoiceDate: record.invoice_date,
+          grossAmountCents: record.gross_amount_cents,
+          gstAmountCents: record.gst_amount_cents,
+          netAmountCents: record.net_amount_cents,
+          currency: record.currency.toUpperCase(),
+          customerName: user.user_metadata?.full_name || user.email?.split("@")[0] || "Customer",
+          customerEmail: user.email || "",
+          description: "CarbonConstruct Subscription",
+          paymentStatus: record.payment_status,
+          subscriptionPeriod: record.subscription_id ? {
+            start: record.invoice_date,
+            end: record.invoice_date, // Would need to fetch from subscription data
+          } : undefined,
+        }));
+
+        setInvoices(transformed);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch invoices");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchInvoices();
+  }, [user]);
+
+  return { invoices, loading, error };
+}
+
+/**
+ * Component to display a list of tax invoices with expandable details
+ */
+export function TaxInvoiceList() {
+  const { invoices, loading, error } = useTaxInvoices();
+  const [selectedInvoice, setSelectedInvoice] = useState<TaxInvoiceData | null>(null);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-muted-foreground">Loading invoices...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 rounded-lg bg-destructive/10 text-destructive">
+        <p>Error loading invoices: {error}</p>
+      </div>
+    );
+  }
+
+  if (invoices.length === 0) {
+    return (
+      <div className="text-center p-8 text-muted-foreground">
+        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <p>No tax invoices found.</p>
+        <p className="text-sm">Invoices will appear here after your first payment.</p>
+      </div>
+    );
+  }
+
+  if (selectedInvoice) {
+    return (
+      <div className="space-y-4">
+        <Button
+          variant="ghost"
+          onClick={() => setSelectedInvoice(null)}
+          className="mb-4"
+        >
+          ← Back to Invoice List
+        </Button>
+        <AustralianTaxInvoice data={selectedInvoice} />
+      </div>
+    );
+  }
+
+  // Format currency with Decimal.js for precision
+  const formatCurrency = (cents: number): string => {
+    const dollars = new Decimal(cents).dividedBy(100);
+    return `$${dollars.toFixed(2)}`;
   };
+
+  return (
+    <div className="space-y-3">
+      {invoices.map((invoice) => (
+        <Card
+          key={invoice.invoiceNumber}
+          className="cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={() => setSelectedInvoice(invoice)}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <FileText className="h-8 w-8 text-primary" />
+                <div>
+                  <p className="font-medium">{invoice.invoiceNumber}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(invoice.invoiceDate), "dd MMM yyyy")}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-semibold">{formatCurrency(invoice.grossAmountCents)}</p>
+                <Badge 
+                  variant="outline" 
+                  className={invoice.paymentStatus === "succeeded" ? "text-emerald-600 border-emerald-600" : ""}
+                >
+                  {invoice.paymentStatus === "succeeded" ? "Paid" : invoice.paymentStatus}
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 }
 
 export default AustralianTaxInvoice;
