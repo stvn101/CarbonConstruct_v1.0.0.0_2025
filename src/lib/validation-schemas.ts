@@ -7,7 +7,7 @@ export const MaterialSchema = z.object({
   typeId: z.string().min(1).max(50),
   name: z.string().min(1, "Material name is required").max(100, "Material name too long"),
   unit: z.string().min(1).max(20),
-  factor: z.number().positive("Emission factor must be positive").max(100000, "Emission factor too high"),
+  factor: z.number().nonnegative("Emission factor cannot be negative").max(100000, "Emission factor too high"),
   source: z.string().max(100),
   quantity: z.number().nonnegative("Quantity cannot be negative").max(1000000, "Quantity too large"),
   isCustom: z.boolean()

@@ -617,13 +617,81 @@ All colors MUST be HSL.
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background rounded-sm;
   }
   
-  /* Print styles for PDF export */
+  /* Print styles for PDF export - hide non-report elements */
   @media print {
+    /* Show print-specific elements */
     .print\:block {
       display: block !important;
     }
+    /* Hide print-excluded elements */
     .print\:hidden {
       display: none !important;
+    }
+    
+    /* Hide sidebar, footer, and navigation for clean print */
+    .app-sidebar,
+    [data-sidebar],
+    footer,
+    #footer,
+    nav,
+    .sidebar-trigger,
+    .fixed:not(.print-include),
+    .sticky:not(.print-include) {
+      display: none !important;
+    }
+    
+    /* Full width for main content */
+    main,
+    .main-content,
+    [role="main"] {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      padding: 1rem !important;
+    }
+    
+    /* Reset page layout */
+    body {
+      background: white !important;
+      color: black !important;
+    }
+    
+    /* Ensure cards and content print properly */
+    .card,
+    [class*="Card"] {
+      box-shadow: none !important;
+      border: 1px solid #ddd !important;
+      break-inside: avoid;
+    }
+    
+    /* Hide interactive elements */
+    button:not(.print-include),
+    [role="button"]:not(.print-include),
+    input,
+    select,
+    .dialog,
+    .modal,
+    .tooltip,
+    .popover {
+      display: none !important;
+    }
+    
+    /* Page breaks */
+    .page-break-before {
+      page-break-before: always;
+    }
+    .page-break-after {
+      page-break-after: always;
+    }
+    .avoid-break {
+      break-inside: avoid;
+    }
+    
+    /* Print-friendly typography */
+    * {
+      color-adjust: exact !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
   }
 }
