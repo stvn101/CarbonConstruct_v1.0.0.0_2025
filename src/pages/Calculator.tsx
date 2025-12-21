@@ -1377,11 +1377,20 @@ export default function Calculator() {
       }
 
       // Load A4 transport items from localStorage (TransportCalculator data)
-      let a4TransportItems: any[] = [];
+      // and map to backend schema: description→materialName, materialTonnes→weight, distanceKm→distance, modeId→mode
+      let a4TransportItems: { id: string; materialName: string; weight: number; distance: number; mode: string; emissions: number }[] = [];
       try {
         const stored = localStorage.getItem('transportCalculatorItems');
         if (stored) {
-          a4TransportItems = JSON.parse(stored);
+          const rawItems = JSON.parse(stored);
+          a4TransportItems = rawItems.map((item: any) => ({
+            id: item.id,
+            materialName: item.description || '',
+            weight: item.materialTonnes || 0,
+            distance: item.distanceKm || 0,
+            mode: item.modeId || '',
+            emissions: item.emissions || 0
+          }));
         }
       } catch {
         // Ignore localStorage errors
@@ -1396,13 +1405,17 @@ export default function Calculator() {
 
       setSaving(true);
       try {
-        // Server-side validation
+        // Server-side validation - include all required fields
         const validationData = {
           projectDetails,
           materials: selectedMaterials,
           fuelInputs: scope1Inputs,
           electricityInputs: scope2Inputs,
-          transportInputs: mergedTransportInputs
+          transportInputs: mergedTransportInputs,
+          usePhaseInputs: {},
+          endOfLifeInputs: {},
+          moduleDInputs: {},
+          totals: calculations
         };
 
       const { data: validationResult, error: validationError } = await supabase.functions.invoke(
