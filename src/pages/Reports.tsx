@@ -234,7 +234,7 @@ const Reports = () => {
       try {
         element.setAttribute(
           'style',
-          `${originalInlineStyle || ''}; position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; background: #ffffff; background-color: #ffffff;`
+          'position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; background: #ffffff; background-color: #ffffff; visibility: visible; display: block;'
         );
 
         await html2pdf()
