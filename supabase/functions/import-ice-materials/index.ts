@@ -36,7 +36,7 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    // Create Supabase client
+    // Create Supabase client with service role
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -61,6 +61,18 @@ serve(async (req) => {
 
     console.log(`[ICE Import] Processing ${materials.length} materials...`);
 
+    // First, delete existing ICE materials to avoid duplicates
+    const { error: deleteError } = await supabase
+      .from('materials_epd')
+      .delete()
+      .eq('data_source', 'ICE V4.1 - Circular Ecology');
+
+    if (deleteError) {
+      console.error('[ICE Import] Delete error:', deleteError);
+    } else {
+      console.log('[ICE Import] Cleared existing ICE materials');
+    }
+
     // Transform materials to database schema
     const dbMaterials = materials.map((m: ICEMaterial) => ({
       material_name: m.material_name,
@@ -78,10 +90,9 @@ serve(async (req) => {
       updated_at: new Date().toISOString()
     }));
 
-    // Batch upsert (50 at a time)
+    // Batch insert (50 at a time)
     const batchSize = 50;
     let imported = 0;
-    let updated = 0;
     const errors: string[] = [];
 
     for (let i = 0; i < dbMaterials.length; i += batchSize) {
@@ -89,16 +100,14 @@ serve(async (req) => {
       
       const { error } = await supabase
         .from('materials_epd')
-        .upsert(batch, {
-          onConflict: 'material_name,data_source',
-          ignoreDuplicates: false
-        });
+        .insert(batch);
 
       if (error) {
         console.error(`[ICE Import] Batch error:`, error);
         errors.push(`Batch ${Math.floor(i / batchSize) + 1}: ${error.message}`);
       } else {
         imported += batch.length;
+        console.log(`[ICE Import] Imported batch: ${imported}/${dbMaterials.length}`);
       }
     }
 
@@ -106,9 +115,9 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        success: true,
+        success: errors.length === 0,
         imported,
-        updated,
+        updated: 0,
         errors
       }),
       { 
