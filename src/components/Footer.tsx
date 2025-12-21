@@ -172,7 +172,7 @@ export const Footer = () => {
             {/* ABN Display */}
             <div className="pt-2 border-t border-border/50">
               <p className="text-xs text-muted-foreground">
-                <span className="font-medium">ABN:</span> [YOUR-ABN]
+                <span className="font-medium">ABN:</span> 67 652 069 139
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Australian-owned & operated
