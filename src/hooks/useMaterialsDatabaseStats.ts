@@ -9,13 +9,31 @@ export interface DataSourceStats {
   lastImported: string | null;
 }
 
+export interface CategoryStats {
+  category: string;
+  count: number;
+  avgEf: number;
+  minEf: number;
+  maxEf: number;
+  stdDev: number;
+}
+
+export interface OutlierMaterial {
+  id: string;
+  name: string;
+  category: string;
+  efTotal: number;
+  expectedRange: { min: number; max: number };
+  severity: 'extreme_high' | 'high' | 'low' | 'extreme_low';
+}
+
 export interface MaterialsDatabaseStats {
   totalMaterials: number;
   totalCategories: number;
   totalSources: number;
   lastUpdated: string | null;
   sourceDistribution: { source: string; count: number; percentage: number }[];
-  categoryBreakdown: { category: string; count: number }[];
+  categoryBreakdown: CategoryStats[];
   unitDistribution: { unit: string; count: number }[];
   metadataCompleteness: {
     withEpdNumber: number;
@@ -29,7 +47,6 @@ export interface MaterialsDatabaseStats {
     lastValidationDate: string;
     methodology: string;
   };
-  // New: Framework v1.0 validation layers
   confidenceLevelCounts: {
     verified: number;
     documented: number;
@@ -47,7 +64,6 @@ export interface MaterialsDatabaseStats {
     medium: number;
     low: number;
   };
-  // Data source specific stats
   dataSourceStats: {
     ice: DataSourceStats;
     nabers: DataSourceStats;
@@ -55,6 +71,86 @@ export interface MaterialsDatabaseStats {
     icm: DataSourceStats;
     other: DataSourceStats;
   };
+  outliers: {
+    extremeHigh: OutlierMaterial[];
+    high: OutlierMaterial[];
+    low: OutlierMaterial[];
+    extremeLow: OutlierMaterial[];
+    totalCount: number;
+  };
+}
+
+// Expected EF ranges by category (kgCO2e per unit)
+const EXPECTED_RANGES: Record<string, { min: number; max: number; unit: string }> = {
+  'concrete': { min: 50, max: 800, unit: 'm³' },
+  'steel': { min: 500, max: 4000, unit: 'tonne' },
+  'aluminium': { min: 5000, max: 30000, unit: 'tonne' },
+  'timber': { min: 50, max: 800, unit: 'm³' },
+  'glass': { min: 0.5, max: 200, unit: 'm²' },
+  'masonry': { min: 50, max: 500, unit: 'tonne' },
+  'asphalt': { min: 5, max: 200, unit: 'tonne' },
+  'insulation': { min: 1, max: 50, unit: 'm²' },
+  'plasterboard': { min: 0.5, max: 20, unit: 'm²' },
+};
+
+function detectOutliers(materials: any[], categoryStats: Map<string, { avg: number; stdDev: number }>): {
+  extremeHigh: OutlierMaterial[];
+  high: OutlierMaterial[];
+  low: OutlierMaterial[];
+  extremeLow: OutlierMaterial[];
+} {
+  const outliers = {
+    extremeHigh: [] as OutlierMaterial[],
+    high: [] as OutlierMaterial[],
+    low: [] as OutlierMaterial[],
+    extremeLow: [] as OutlierMaterial[],
+  };
+
+  materials.forEach(m => {
+    const category = m.material_category?.toLowerCase() || '';
+    const efTotal = parseFloat(m.ef_total) || 0;
+    const stats = categoryStats.get(m.material_category);
+    
+    if (!stats || stats.stdDev === 0) return;
+
+    // Calculate z-score
+    const zScore = (efTotal - stats.avg) / stats.stdDev;
+    
+    // Find expected range from predefined or use category stats
+    let expectedRange = { min: stats.avg - 2 * stats.stdDev, max: stats.avg + 2 * stats.stdDev };
+    
+    for (const [key, range] of Object.entries(EXPECTED_RANGES)) {
+      if (category.includes(key)) {
+        expectedRange = { min: range.min, max: range.max };
+        break;
+      }
+    }
+
+    const outlierMaterial: OutlierMaterial = {
+      id: m.id,
+      name: m.material_name,
+      category: m.material_category,
+      efTotal,
+      expectedRange,
+      severity: 'high'
+    };
+
+    if (zScore > 3) {
+      outlierMaterial.severity = 'extreme_high';
+      outliers.extremeHigh.push(outlierMaterial);
+    } else if (zScore > 2) {
+      outlierMaterial.severity = 'high';
+      outliers.high.push(outlierMaterial);
+    } else if (zScore < -3) {
+      outlierMaterial.severity = 'extreme_low';
+      outliers.extremeLow.push(outlierMaterial);
+    } else if (zScore < -2) {
+      outlierMaterial.severity = 'low';
+      outliers.low.push(outlierMaterial);
+    }
+  });
+
+  return outliers;
 }
 
 async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
@@ -66,7 +162,7 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
   // Fetch all materials for validation analysis
   const { data: allMaterials } = await supabase
     .from("materials_epd")
-    .select("data_source, material_category, unit, epd_number, manufacturer, epd_url, state, ef_total, created_at");
+    .select("id, material_name, data_source, material_category, unit, epd_number, manufacturer, epd_url, state, ef_total, created_at");
 
   // Calculate source tier distribution and data source stats
   let tier1Count = 0, tier2Count = 0, tier3Count = 0;
@@ -80,11 +176,24 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
   let icmLastImported: string | null = null;
   let otherLastImported: string | null = null;
   
+  // Category stats aggregation
+  const categoryData = new Map<string, { values: number[]; count: number }>();
+  
   allMaterials?.forEach(m => {
     const tier = getSourceTier(m.data_source);
     if (tier.tier === 1) { tier1Count++; verifiedCount++; }
     else if (tier.tier === 2) { tier2Count++; industryAvgCount++; }
     else { tier3Count++; needsReviewCount++; }
+    
+    // Aggregate EF values by category
+    const category = m.material_category || 'Unknown';
+    const efTotal = parseFloat(m.ef_total as any) || 0;
+    if (!categoryData.has(category)) {
+      categoryData.set(category, { values: [], count: 0 });
+    }
+    const catStats = categoryData.get(category)!;
+    catStats.values.push(efTotal);
+    catStats.count++;
     
     // Count by data source
     const source = (m.data_source || '').toLowerCase();
@@ -116,10 +225,44 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
     }
   });
 
-  // Unique categories
-  const uniqueCategories = new Set(allMaterials?.map(c => c.material_category) || []);
+  // Calculate category breakdown with stats
+  const categoryStatsMap = new Map<string, { avg: number; stdDev: number }>();
+  const categoryBreakdown: CategoryStats[] = [];
+  
+  categoryData.forEach((data, category) => {
+    const values = data.values;
+    const count = data.count;
+    const sum = values.reduce((a, b) => a + b, 0);
+    const avg = count > 0 ? sum / count : 0;
+    const min = values.length > 0 ? Math.min(...values) : 0;
+    const max = values.length > 0 ? Math.max(...values) : 0;
+    
+    // Calculate standard deviation
+    const squaredDiffs = values.map(v => Math.pow(v - avg, 2));
+    const avgSquaredDiff = squaredDiffs.reduce((a, b) => a + b, 0) / count;
+    const stdDev = Math.sqrt(avgSquaredDiff);
+    
+    categoryStatsMap.set(category, { avg, stdDev });
+    
+    categoryBreakdown.push({
+      category,
+      count,
+      avgEf: Math.round(avg * 100) / 100,
+      minEf: Math.round(min * 100) / 100,
+      maxEf: Math.round(max * 100) / 100,
+      stdDev: Math.round(stdDev * 100) / 100,
+    });
+  });
+  
+  // Sort by count descending, take top 15
+  categoryBreakdown.sort((a, b) => b.count - a.count);
+  const topCategories = categoryBreakdown.slice(0, 15);
 
-  // Unique sources
+  // Detect outliers
+  const outliers = detectOutliers(allMaterials || [], categoryStatsMap);
+
+  // Unique categories and sources
+  const uniqueCategories = new Set(allMaterials?.map(c => c.material_category) || []);
   const uniqueSources = new Set(allMaterials?.map(s => s.data_source) || []);
 
   // Last updated
@@ -144,18 +287,6 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
     }))
     .sort((a, b) => b.count - a.count);
 
-  // Category breakdown (top 15)
-  const categoryCountMap = new Map<string, number>();
-  allMaterials?.forEach(c => {
-    const category = c.material_category || "Unknown";
-    categoryCountMap.set(category, (categoryCountMap.get(category) || 0) + 1);
-  });
-
-  const categoryBreakdown = Array.from(categoryCountMap.entries())
-    .map(([category, count]) => ({ category, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 15);
-
   // Unit distribution
   const unitCountMap = new Map<string, number>();
   allMaterials?.forEach(u => {
@@ -177,13 +308,15 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
   const passedMaterials = tier1Count + tier2Count;
   const passRate = totalMaterials ? Math.round((passedMaterials / totalMaterials) * 1000) / 10 : 0;
 
+  const outlierTotalCount = outliers.extremeHigh.length + outliers.high.length + outliers.low.length + outliers.extremeLow.length;
+
   return {
     totalMaterials: totalMaterials || 0,
     totalCategories: uniqueCategories.size,
     totalSources: uniqueSources.size,
     lastUpdated: lastUpdatedData?.[0]?.updated_at || null,
     sourceDistribution,
-    categoryBreakdown,
+    categoryBreakdown: topCategories,
     unitDistribution,
     metadataCompleteness: {
       withEpdNumber,
@@ -210,9 +343,9 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
     },
     issuesCounts: {
       critical: 0,
-      high: needsReviewCount,
+      high: outliers.high.length + outliers.extremeHigh.length,
       medium: 0,
-      low: 0
+      low: outliers.low.length + outliers.extremeLow.length
     },
     dataSourceStats: {
       ice: {
@@ -245,6 +378,10 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
         percentage: totalMaterials ? Math.round((otherCount / totalMaterials) * 1000) / 10 : 0,
         lastImported: otherLastImported
       }
+    },
+    outliers: {
+      ...outliers,
+      totalCount: outlierTotalCount
     }
   };
 }

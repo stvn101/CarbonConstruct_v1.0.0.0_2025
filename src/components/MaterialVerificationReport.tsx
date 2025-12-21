@@ -1,10 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu, Loader2, RefreshCw, CheckCheck } from "lucide-react";
-import { useState } from "react";
+import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu, Loader2, RefreshCw, CheckCheck, History } from "lucide-react";
+import { useState, useEffect } from "react";
 import html2pdf from "html2pdf.js";
-import { useMaterialsDatabaseStats, MaterialsDatabaseStats } from "@/hooks/useMaterialsDatabaseStats";
+import { useMaterialsDatabaseStats, MaterialsDatabaseStats, OutlierMaterial, CategoryStats } from "@/hooks/useMaterialsDatabaseStats";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface VerificationResult {
   material: string;
@@ -14,6 +16,14 @@ interface VerificationResult {
   unit: string;
   status: 'pass' | 'warn' | 'fail';
   notes: string;
+}
+
+interface VerificationHistoryItem {
+  id: string;
+  verified_at: string;
+  total_materials: number;
+  pass_rate: number;
+  outliers_count: number;
 }
 
 interface ValidationSummary {
@@ -44,23 +54,18 @@ interface ValidationSummary {
     epdInternational: number;
     other: number;
   };
-  categoryBreakdown: {
-    category: string;
-    count: number;
-    avgEf: number;
-    minEf: number;
-    maxEf: number;
-  }[];
+  categoryBreakdown: CategoryStats[];
   unitDistribution: {
     unit: string;
     count: number;
   }[];
   outliers: {
-    extremeHigh: number;
-    high: number;
+    extremeHigh: OutlierMaterial[];
+    high: OutlierMaterial[];
     normal: number;
-    low: number;
-    extremeLow: number;
+    low: OutlierMaterial[];
+    extremeLow: OutlierMaterial[];
+    totalCount: number;
   };
   duplicateCount: number;
   rangeValidation: {
@@ -77,11 +82,31 @@ const MaterialVerificationReport = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasVerified, setHasVerified] = useState(false);
   const [verificationTimestamp, setVerificationTimestamp] = useState<string | null>(null);
+  const [verificationHistory, setVerificationHistory] = useState<VerificationHistoryItem[]>([]);
+  const [isSavingHistory, setIsSavingHistory] = useState(false);
   
   const { data: liveStats, isLoading, refetch, isRefetching } = useMaterialsDatabaseStats();
+  const { toast } = useToast();
   
   const verificationDate = new Date().toISOString().split('T')[0];
   const verificationTime = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+
+  // Fetch verification history on mount
+  useEffect(() => {
+    fetchVerificationHistory();
+  }, []);
+
+  const fetchVerificationHistory = async () => {
+    const { data, error } = await supabase
+      .from('material_verification_history')
+      .select('id, verified_at, total_materials, pass_rate, outliers_count')
+      .order('verified_at', { ascending: false })
+      .limit(5);
+    
+    if (data && !error) {
+      setVerificationHistory(data);
+    }
+  };
 
   // Transform live stats to ValidationSummary format
   const transformToValidationSummary = (stats: MaterialsDatabaseStats): ValidationSummary => {
@@ -97,20 +122,11 @@ const MaterialVerificationReport = () => {
       other: stats.dataSourceStats.other.count,
     };
     
-    // Transform category breakdown
-    const categoryBreakdown = stats.categoryBreakdown.map(cat => ({
-      category: cat.category,
-      count: cat.count,
-      avgEf: 0, // Would need additional query for this
-      minEf: 0,
-      maxEf: 0,
-    }));
-    
-    // Transform unit distribution
-    const unitDistribution = stats.unitDistribution.map(u => ({
-      unit: u.unit,
-      count: u.count,
-    }));
+    // Find specific category stats for range validation
+    const findCategoryStats = (keyword: string) => {
+      const cat = stats.categoryBreakdown.find(c => c.category.toLowerCase().includes(keyword));
+      return cat ? { status: 'WITHIN_EXPECTED', avgEf: cat.avgEf, count: cat.count } : { status: 'PENDING', avgEf: 0, count: 0 };
+    };
     
     return {
       totalMaterials: stats.totalMaterials,
@@ -121,7 +137,7 @@ const MaterialVerificationReport = () => {
       warnCount,
       failCount,
       missingData: {
-        efTotal: 0, // All materials have ef_total
+        efTotal: 0,
         a1a3: 0,
         names: 0,
         units: 0,
@@ -132,26 +148,27 @@ const MaterialVerificationReport = () => {
         hasEpdNumber: stats.metadataCompleteness.withEpdNumber,
         hasEpdUrl: stats.metadataCompleteness.withEpdUrl,
         hasRegion: stats.metadataCompleteness.withState,
-        hasYear: stats.totalMaterials, // Assuming all have year
+        hasYear: stats.totalMaterials,
       },
       sourceDistribution,
-      categoryBreakdown,
-      unitDistribution,
+      categoryBreakdown: stats.categoryBreakdown,
+      unitDistribution: stats.unitDistribution,
       outliers: {
-        extremeHigh: 0,
-        high: stats.issuesCounts.high,
-        normal: passCount,
-        low: stats.issuesCounts.low,
-        extremeLow: 0,
+        extremeHigh: stats.outliers.extremeHigh,
+        high: stats.outliers.high,
+        normal: passCount - stats.outliers.totalCount,
+        low: stats.outliers.low,
+        extremeLow: stats.outliers.extremeLow,
+        totalCount: stats.outliers.totalCount,
       },
       duplicateCount: 0,
       rangeValidation: {
-        concrete: { status: 'WITHIN_EXPECTED', avgEf: 294.16, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('concrete'))?.count || 0 },
-        steel: { status: 'WITHIN_EXPECTED', avgEf: 1583.03, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('steel'))?.count || 0 },
-        aluminium: { status: 'WITHIN_EXPECTED', avgEf: 12195.53, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('aluminium'))?.count || 0 },
-        timber: { status: 'WITHIN_EXPECTED', avgEf: 178.44, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('timber'))?.count || 0 },
-        glass: { status: 'WITHIN_EXPECTED', avgEf: 5.54, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('glass'))?.count || 0 },
-        masonry: { status: 'WITHIN_EXPECTED', avgEf: 169.64, count: categoryBreakdown.find(c => c.category.toLowerCase().includes('masonry'))?.count || 0 },
+        concrete: findCategoryStats('concrete'),
+        steel: findCategoryStats('steel'),
+        aluminium: findCategoryStats('aluminium'),
+        timber: findCategoryStats('timber'),
+        glass: findCategoryStats('glass'),
+        masonry: findCategoryStats('masonry'),
       },
     };
   };
@@ -172,7 +189,7 @@ const MaterialVerificationReport = () => {
         sourceDistribution: { epdAustralasia: 0, icmDatabase: 0, epdInternational: 0, other: 0 },
         categoryBreakdown: [],
         unitDistribution: [],
-        outliers: { extremeHigh: 0, high: 0, normal: 0, low: 0, extremeLow: 0 },
+        outliers: { extremeHigh: [], high: [], normal: 0, low: [], extremeLow: [], totalCount: 0 },
         duplicateCount: 0,
         rangeValidation: {
           concrete: { status: 'PENDING', avgEf: 0, count: 0 },
@@ -184,10 +201,69 @@ const MaterialVerificationReport = () => {
         },
       };
 
+  const saveVerificationHistory = async (stats: MaterialsDatabaseStats) => {
+    setIsSavingHistory(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const passCount = stats.sourceTierCounts.tier1 + stats.sourceTierCounts.tier2;
+      const warnCount = stats.sourceTierCounts.tier3;
+
+      const historyRecord = {
+        user_id: user.id,
+        total_materials: stats.totalMaterials,
+        categories_count: stats.totalCategories,
+        sources_count: stats.totalSources,
+        pass_rate: stats.validationStatus.passRate,
+        pass_count: passCount,
+        warn_count: warnCount,
+        fail_count: stats.issuesCounts.critical,
+        outliers_count: stats.outliers.totalCount,
+        category_stats: JSON.parse(JSON.stringify(stats.categoryBreakdown)),
+        source_distribution: JSON.parse(JSON.stringify(stats.dataSourceStats)),
+        metadata_completeness: JSON.parse(JSON.stringify(stats.metadataCompleteness)),
+        outlier_materials: JSON.parse(JSON.stringify([
+          ...stats.outliers.extremeHigh.slice(0, 10),
+          ...stats.outliers.high.slice(0, 10),
+          ...stats.outliers.low.slice(0, 10),
+          ...stats.outliers.extremeLow.slice(0, 10),
+        ])),
+      };
+
+      const { error } = await supabase
+        .from('material_verification_history')
+        .insert([historyRecord]);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Verification Saved",
+        description: "Results saved to verification history.",
+      });
+      
+      fetchVerificationHistory();
+    } catch (error) {
+      console.error('Failed to save verification history:', error);
+      toast({
+        title: "Save Failed",
+        description: "Could not save verification to history.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingHistory(false);
+    }
+  };
+
   const handleRunVerification = async () => {
-    await refetch();
+    const result = await refetch();
     setHasVerified(true);
     setVerificationTimestamp(new Date().toISOString());
+    
+    // Save to history if data available
+    if (result.data) {
+      await saveVerificationHistory(result.data);
+    }
   };
 
   const concreteVerification: VerificationResult[] = [
@@ -552,6 +628,57 @@ const MaterialVerificationReport = () => {
         </Card>
       )}
 
+      {/* Verification History */}
+      {verificationHistory.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Verification History
+            </CardTitle>
+            <CardDescription>Recent verification runs</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Materials</TableHead>
+                  <TableHead>Pass Rate</TableHead>
+                  <TableHead>Outliers</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {verificationHistory.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>{new Date(item.verified_at).toLocaleString('en-AU')}</TableCell>
+                    <TableCell>{item.total_materials.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <span className={item.pass_rate >= 95 ? 'text-green-600 dark:text-green-400' : item.pass_rate >= 80 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'}>
+                        {item.pass_rate.toFixed(1)}%
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {item.outliers_count > 0 ? (
+                        <span className="text-yellow-600 dark:text-yellow-400">{item.outliers_count}</span>
+                      ) : (
+                        <span className="text-green-600 dark:text-green-400">0</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {isSavingHistory && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Saving verification...
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Validation Summary */}
       <Card>
         <CardHeader>
@@ -581,6 +708,117 @@ const MaterialVerificationReport = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Outlier Detection */}
+      {hasVerified && validationSummary.outliers.totalCount > 0 && (
+        <Card className="border-yellow-500/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Outlier Detection
+            </CardTitle>
+            <CardDescription>
+              {validationSummary.outliers.totalCount} materials with emission factors outside expected ranges
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800">
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400">{validationSummary.outliers.extremeHigh.length}</p>
+                <p className="text-xs text-red-700 dark:text-red-300">{"Extreme High (>3σ)"}</p>
+              </div>
+              <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg border border-orange-200 dark:border-orange-800">
+                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{validationSummary.outliers.high.length}</p>
+                <p className="text-xs text-orange-700 dark:text-orange-300">{"High (>2σ)"}</p>
+              </div>
+              <div className="text-center p-3 bg-cyan-50 dark:bg-cyan-900/30 rounded-lg border border-cyan-200 dark:border-cyan-800">
+                <p className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">{validationSummary.outliers.low.length}</p>
+                <p className="text-xs text-cyan-700 dark:text-cyan-300">{"Low (<-2σ)"}</p>
+              </div>
+              <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{validationSummary.outliers.extremeLow.length}</p>
+                <p className="text-xs text-blue-700 dark:text-blue-300">{"Extreme Low (<-3σ)"}</p>
+              </div>
+            </div>
+            
+            {/* Top outliers list */}
+            {(validationSummary.outliers.extremeHigh.length > 0 || validationSummary.outliers.extremeLow.length > 0) && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium mb-2">Extreme Outliers (requires review)</h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Material</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>EF Value</TableHead>
+                      <TableHead>Expected Range</TableHead>
+                      <TableHead>Severity</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...validationSummary.outliers.extremeHigh.slice(0, 5), ...validationSummary.outliers.extremeLow.slice(0, 5)].map((outlier, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="font-medium text-sm">{outlier.name.slice(0, 50)}{outlier.name.length > 50 ? '...' : ''}</TableCell>
+                        <TableCell className="text-sm">{outlier.category}</TableCell>
+                        <TableCell className="text-sm font-mono">{outlier.efTotal.toFixed(2)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{outlier.expectedRange.min.toFixed(0)} - {outlier.expectedRange.max.toFixed(0)}</TableCell>
+                        <TableCell>
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            outlier.severity === 'extreme_high' || outlier.severity === 'extreme_low' 
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' 
+                              : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                          }`}>
+                            {outlier.severity.replace('_', ' ').toUpperCase()}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Category Statistics with EF Data */}
+      {hasVerified && validationSummary.categoryBreakdown.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Category Emission Factor Statistics
+            </CardTitle>
+            <CardDescription>Real-time average, min, max emission factors by category</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Count</TableHead>
+                  <TableHead className="text-right">Avg EF</TableHead>
+                  <TableHead className="text-right">Min EF</TableHead>
+                  <TableHead className="text-right">Max EF</TableHead>
+                  <TableHead className="text-right">Std Dev</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {validationSummary.categoryBreakdown.slice(0, 10).map((cat, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="font-medium">{cat.category}</TableCell>
+                    <TableCell className="text-right">{cat.count.toLocaleString()}</TableCell>
+                    <TableCell className="text-right font-mono">{cat.avgEf.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono text-muted-foreground">{cat.minEf.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono text-muted-foreground">{cat.maxEf.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono text-muted-foreground">{cat.stdDev?.toFixed(2) || '-'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Data Integrity Checks */}
       <Card>
@@ -820,7 +1058,7 @@ const MaterialVerificationReport = () => {
             <li><strong>Range Validation:</strong> Cross-referenced emission factors against NABERS v2025.1 expected ranges for major material categories</li>
             <li><strong>Source Verification:</strong> Confirmed data sources from {validationSummary.sourcesCount} verified EPD registries</li>
             <li><strong>EPD Metadata Check:</strong> Validated traceability data (EPD numbers, URLs, manufacturers) for compliance</li>
-            <li><strong>Outlier Detection:</strong> Flagged extreme values ({validationSummary.outliers.extremeHigh} high, {validationSummary.outliers.extremeLow} low) for manual review</li>
+            <li><strong>Outlier Detection:</strong> Flagged extreme values ({validationSummary.outliers.extremeHigh.length} high, {validationSummary.outliers.extremeLow.length} low) for manual review</li>
             <li><strong>Unit Consistency:</strong> Verified declared units across {validationSummary.unitDistribution.length} unit types</li>
           </ol>
         </CardContent>
