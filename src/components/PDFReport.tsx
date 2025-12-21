@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileDown, Loader2, Eye } from 'lucide-react';
+import { FileDown, Loader2, Eye, Mail } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
 import { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
@@ -797,6 +799,7 @@ interface PDFReportProps {
   showWatermark?: boolean;
   ecoComplianceReport?: EcoPlatformComplianceReport | null;
   epdExpiryAlerts?: EPDExpiryAlert[];
+  onEmailSent?: () => void;
 }
 
 export const PDFReport: React.FC<PDFReportProps> = ({ 
@@ -806,9 +809,11 @@ export const PDFReport: React.FC<PDFReportProps> = ({
   branding,
   showWatermark = false,
   ecoComplianceReport = null,
-  epdExpiryAlerts = []
+  epdExpiryAlerts = [],
+  onEmailSent
 }) => {
   const [loading, setLoading] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const html2pdfRef = useRef<any>(null);
 
@@ -898,6 +903,42 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     }
   };
 
+  const handleSendEmail = async () => {
+    setEmailSending(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user?.email) {
+        toast.error('Please sign in to send email reports');
+        return;
+      }
+
+      await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'report_generated',
+          to: user.email,
+          data: {
+            projectName: data.project.name || 'Project',
+            totalEmissions: data.emissions.total.toFixed(2),
+            scope1: data.emissions.scope1.toFixed(2),
+            scope2: data.emissions.scope2.toFixed(2),
+            scope3: data.emissions.scope3.toFixed(2),
+            complianceStatus: data.compliance.nccCompliant ? 'NCC Compliant' : 'Non-Compliant',
+            appUrl: window.location.origin,
+          },
+        },
+      });
+
+      toast.success('Report summary sent to your email');
+      onEmailSent?.();
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      toast.error('Failed to send email. Please try again.');
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   return (
     <>
       <PDFReportContent 
@@ -909,7 +950,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         ecoComplianceReport={ecoComplianceReport}
         epdExpiryAlerts={epdExpiryAlerts}
       />
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <Button onClick={() => setIsPreviewOpen(true)} variant="outline" className="gap-2">
           <Eye className="h-4 w-4" />
           Preview
@@ -924,6 +965,19 @@ export const PDFReport: React.FC<PDFReportProps> = ({
             <>
               <FileDown className="h-4 w-4" />
               Download PDF
+            </>
+          )}
+        </Button>
+        <Button onClick={handleSendEmail} disabled={emailSending} variant="secondary" className="gap-2">
+          {emailSending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            <>
+              <Mail className="h-4 w-4" />
+              Email Report
             </>
           )}
         </Button>
