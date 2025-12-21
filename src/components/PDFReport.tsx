@@ -847,32 +847,53 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     setLoading(true);
     setRenderingPhase('rendering');
 
+    const element = document.getElementById(contentId);
+
+    if (!element) {
+      console.error('PDF content element not found');
+      toast.error('PDF content not found. Please try again.');
+      setRenderingPhase('idle');
+      setLoading(false);
+      return;
+    }
+
+    // Store original styles to restore after capture
+    const originalStyles = {
+      position: element.style.position,
+      left: element.style.left,
+      top: element.style.top,
+      opacity: element.style.opacity,
+      zIndex: element.style.zIndex,
+      pointerEvents: element.style.pointerEvents,
+      width: element.style.width,
+    };
+
     try {
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
       html2pdfRef.current = html2pdf;
-      const element = document.getElementById(contentId);
 
-      if (!element) {
-        console.error('PDF content element not found');
-        toast.error('PDF content not found. Please try again.');
-        setRenderingPhase('idle');
-        setLoading(false);
-        return;
-      }
+      // CRITICAL: Make element visible BEFORE capture (off-screen but renderable)
+      element.style.position = 'absolute';
+      element.style.left = '-9999px';
+      element.style.top = '0';
+      element.style.opacity = '1';
+      element.style.zIndex = '1';
+      element.style.pointerEvents = 'none';
+      element.style.width = '210mm';
+
+      // Wait for browser to repaint with visible element
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setTimeout(() => resolve(), 150);
+          });
+        });
+      });
 
       // Wait for all fonts to load before capture
       if (document.fonts && document.fonts.ready) {
         await document.fonts.ready;
       }
-
-      // Wait for browser to complete any pending renders
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            setTimeout(() => resolve(), 300);
-          });
-        });
-      });
 
       setRenderingPhase('capturing');
 
@@ -895,7 +916,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
           logging: false,
           scrollX: 0,
           scrollY: 0,
-          // CRITICAL: onclone callback forces explicit inline styles on all elements
+          // onclone callback forces explicit inline styles on all elements
           onclone: (_clonedDoc: Document, clonedElement: HTMLElement) => {
             // Force the root element to have explicit styles
             clonedElement.style.cssText = `
@@ -1004,6 +1025,15 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       console.error('Error generating PDF:', error);
       toast.error('Failed to generate PDF. Please try again.');
     } finally {
+      // CRITICAL: Restore original hidden state
+      element.style.position = originalStyles.position;
+      element.style.left = originalStyles.left;
+      element.style.top = originalStyles.top;
+      element.style.opacity = originalStyles.opacity;
+      element.style.zIndex = originalStyles.zIndex;
+      element.style.pointerEvents = originalStyles.pointerEvents;
+      element.style.width = originalStyles.width;
+      
       setLoading(false);
       setRenderingPhase('idle');
     }
