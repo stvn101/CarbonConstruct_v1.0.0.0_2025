@@ -125,11 +125,23 @@ export default function TermsOfService() {
                 </p>
 
                 <h3 className="text-xl font-semibold mb-3">6.4 Cancellation and Refunds</h3>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-4">
+                  <p className="text-sm font-medium text-foreground mb-2">
+                    Australian Consumer Law Refund Rights
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    You have statutory rights under Australian Consumer Law that cannot be excluded. 
+                    See Section 16 for full details on your consumer guarantee rights including 
+                    refund entitlements for major and minor service failures.
+                  </p>
+                </div>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
                   <li>You may cancel your subscription at any time through your account settings</li>
                   <li>Cancellations take effect at the end of the current billing period</li>
                   <li>Upon cancellation, you will retain access until the end of the paid period</li>
-                  <li>Refunds are provided in accordance with Australian Consumer Law (see Section 16 below)</li>
+                  <li>Pro-rata refunds may be available for annual subscriptions cancelled within 30 days</li>
+                  <li>Refunds for service failures are provided in accordance with Australian Consumer Law (Section 16)</li>
+                  <li>To request a refund, contact legal@carbonconstruct.com.au with your account details</li>
                 </ul>
 
                 <h3 className="text-xl font-semibold mb-3">6.5 Price Changes</h3>
