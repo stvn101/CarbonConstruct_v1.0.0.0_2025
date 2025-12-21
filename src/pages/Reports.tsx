@@ -402,25 +402,15 @@ const Reports = () => {
       />
       
       <div className="space-y-8">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      {/* Header Section */}
+      <div className="space-y-4">
         <div>
           <h1 className="text-3xl font-bold">Carbon Assessment Reports</h1>
           <p className="text-muted-foreground">
             Comprehensive analysis for {currentProject.name}
           </p>
         </div>
-        <ErrorBoundary>
-          <PDFReport 
-            data={reportData} 
-            template={selectedTemplate} 
-            branding={effectiveBranding} 
-            showWatermark={!canCustomBrand}
-            ecoComplianceReport={dbEcoComplianceReport}
-            epdExpiryAlerts={epdAlertsForPDF}
-          />
-        </ErrorBoundary>
-
+        
         {/* EPD Renewal Alerts Summary */}
         {epdExpiryWarnings.length > 0 && (
           <EPDRenewalReminders
@@ -430,6 +420,26 @@ const Reports = () => {
           />
         )}
       </div>
+      
+      {/* Report Actions Bar */}
+      <Card variant="glass" className="p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <FileBarChart className="h-5 w-5 text-primary" />
+            <span className="font-medium">Generate Report</span>
+          </div>
+          <ErrorBoundary>
+            <PDFReport 
+              data={reportData} 
+              template={selectedTemplate} 
+              branding={effectiveBranding} 
+              showWatermark={!canCustomBrand}
+              ecoComplianceReport={dbEcoComplianceReport}
+              epdExpiryAlerts={epdAlertsForPDF}
+            />
+          </ErrorBoundary>
+        </div>
+      </Card>
 
       {/* Report Template Selector */}
       <Card variant="glass" className="glass-glow-hover">

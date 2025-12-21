@@ -41,6 +41,7 @@ import { SkeletonPage } from "@/components/SkeletonPage";
 import { useEPDRenewalReminders } from "@/hooks/useEPDRenewalReminders";
 import { EPDRenewalReminders } from "@/components/calculator/EPDRenewalReminders";
 import { EPDWorkflowDashboardWidget } from "@/components/calculator/EPDWorkflowDashboardWidget";
+import { CalculatorReportSection } from "@/components/calculator/CalculatorReportSection";
 
 interface Material {
   id: string;
@@ -2784,6 +2785,9 @@ export default function Calculator() {
             )}
           </div>
         </div>
+        
+        {/* Generate Report Section */}
+        <CalculatorReportSection currentProject={currentProject} />
       </main>
       
       <UpgradeModal
