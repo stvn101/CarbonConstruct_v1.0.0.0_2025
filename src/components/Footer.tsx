@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, MapPin, Linkedin, Facebook, Instagram } from "lucide-react";
+import { Mail, MapPin, Linkedin, Facebook, Instagram, Shield, Database } from "lucide-react";
 const logoImage32 = "/logo-32.webp";
 
 export const Footer = () => {
@@ -19,6 +19,15 @@ export const Footer = () => {
               Professional carbon emissions calculator for Australian construction projects. 
               NCC compliant with Green Star and NABERS integration.
             </p>
+            
+            {/* Data Sovereignty Statement */}
+            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg border border-border/50">
+              <Database className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div className="text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">Data Sovereignty:</span> All primary data is stored in Sydney, Australia (ap-southeast-2) in compliance with Australian privacy requirements.
+              </div>
+            </div>
+            
             <div className="flex flex-wrap items-center gap-3">
               <a 
                 href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=steven-j-carbonconstruct" 
@@ -159,6 +168,16 @@ export const Footer = () => {
                 <span>Brisbane, QLD, Australia</span>
               </li>
             </ul>
+            
+            {/* ABN Display */}
+            <div className="pt-2 border-t border-border/50">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium">ABN:</span> [YOUR-ABN]
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Australian-owned & operated
+              </p>
+            </div>
           </div>
         </div>
 
@@ -178,7 +197,8 @@ export const Footer = () => {
               <Link to="/cookies" className="hover:text-primary transition-colors">
                 Cookie Policy
               </Link>
-              <Link to="/accessibility" className="hover:text-primary transition-colors">
+              <Link to="/accessibility" className="hover:text-primary transition-colors flex items-center gap-1">
+                <Shield className="h-3 w-3" />
                 Accessibility
               </Link>
               <a 

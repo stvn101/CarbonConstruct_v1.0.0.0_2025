@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText } from "lucide-react";
+import { FileText, AlertTriangle } from "lucide-react";
 
 export default function TermsOfService() {
   return (
@@ -115,6 +115,7 @@ export default function TermsOfService() {
                   <li>Subscription fees are charged monthly or annually in advance</li>
                   <li>All payments are processed securely through Stripe</li>
                   <li>Prices are in Australian Dollars (AUD) unless otherwise stated</li>
+                  <li>All prices are inclusive of GST where applicable</li>
                   <li>You authorize us to charge your payment method for recurring subscription fees</li>
                 </ul>
 
@@ -124,11 +125,23 @@ export default function TermsOfService() {
                 </p>
 
                 <h3 className="text-xl font-semibold mb-3">6.4 Cancellation and Refunds</h3>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-4">
+                  <p className="text-sm font-medium text-foreground mb-2">
+                    Australian Consumer Law Refund Rights
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    You have statutory rights under Australian Consumer Law that cannot be excluded. 
+                    See Section 16 for full details on your consumer guarantee rights including 
+                    refund entitlements for major and minor service failures.
+                  </p>
+                </div>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
                   <li>You may cancel your subscription at any time through your account settings</li>
                   <li>Cancellations take effect at the end of the current billing period</li>
-                  <li>No refunds are provided for partial subscription periods</li>
                   <li>Upon cancellation, you will retain access until the end of the paid period</li>
+                  <li>Pro-rata refunds may be available for annual subscriptions cancelled within 30 days</li>
+                  <li>Refunds for service failures are provided in accordance with Australian Consumer Law (Section 16)</li>
+                  <li>To request a refund, contact legal@carbonconstruct.com.au with your account details</li>
                 </ul>
 
                 <h3 className="text-xl font-semibold mb-3">6.5 Price Changes</h3>
@@ -219,7 +232,7 @@ export default function TermsOfService() {
                   Our total liability for any claim related to the Service is limited to the amount you paid us in the 12 months preceding the claim, or AUD $100, whichever is greater.
                 </p>
                 <p className="text-muted-foreground mb-4 text-sm italic">
-                  Note: Some jurisdictions do not allow the exclusion or limitation of certain warranties or liabilities. In such cases, our liability will be limited to the maximum extent permitted by law.
+                  Note: Some jurisdictions do not allow the exclusion or limitation of certain warranties or liabilities. In such cases, our liability will be limited to the maximum extent permitted by law. Nothing in these Terms excludes or limits liability that cannot be excluded or limited under the Australian Consumer Law.
                 </p>
               </section>
 
@@ -319,6 +332,62 @@ export default function TermsOfService() {
                   <p className="text-sm"><strong>Phone:</strong> 0459 148 862</p>
                   <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Legal Department, Lawnton, Queensland, Australia</p>
                 </div>
+              </section>
+
+              {/* Australian Consumer Law - NEW SECTION */}
+              <section className="border-2 border-primary/20 rounded-lg p-6 bg-primary/5">
+                <div className="flex items-start gap-3 mb-4">
+                  <AlertTriangle className="h-6 w-6 text-primary shrink-0 mt-1" />
+                  <h2 className="text-2xl font-semibold">16. Australian Consumer Law Guarantees</h2>
+                </div>
+                
+                <p className="text-muted-foreground mb-4">
+                  Our goods and services come with guarantees that cannot be excluded under the Australian Consumer Law. For major failures with the service, you are entitled to:
+                </p>
+
+                <h3 className="text-xl font-semibold mb-3">16.1 Major Failures</h3>
+                <p className="text-muted-foreground mb-3">
+                  A major failure occurs when:
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
+                  <li>The service would not have been acquired by a reasonable consumer fully acquainted with the nature and extent of the failure</li>
+                  <li>The service is substantially unfit for its common purpose and cannot be remedied within a reasonable time</li>
+                  <li>The service does not meet a specific purpose made known to us and cannot be remedied within a reasonable time</li>
+                  <li>The supply creates an unsafe situation</li>
+                </ul>
+                <p className="text-muted-foreground mb-4">
+                  <strong>Your entitlements for major failures:</strong>
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
+                  <li>Cancel your service contract and receive a refund for the unused portion</li>
+                  <li>Keep the existing contract and receive compensation for any reduction in value</li>
+                </ul>
+
+                <h3 className="text-xl font-semibold mb-3">16.2 Minor Failures</h3>
+                <p className="text-muted-foreground mb-4">
+                  For minor failures that can be fixed, you are entitled to have the problem remedied within a reasonable time. If the problem is not fixed within a reasonable time, you may:
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
+                  <li>Get the service completed by another provider and recover reasonable costs from us</li>
+                  <li>Cancel the contract and receive a refund for the unused portion</li>
+                </ul>
+
+                <h3 className="text-xl font-semibold mb-3">16.3 Important Notice</h3>
+                <div className="bg-background/50 p-4 rounded-lg border border-primary/30">
+                  <p className="text-sm text-foreground font-medium">
+                    These consumer guarantees apply regardless of any other terms in this agreement or any extended warranty you may have purchased. Nothing in these Terms of Service excludes, restricts or modifies the consumer guarantees under the Australian Consumer Law.
+                  </p>
+                </div>
+
+                <h3 className="text-xl font-semibold mb-3 mt-4">16.4 How to Make a Claim</h3>
+                <p className="text-muted-foreground mb-4">
+                  To make a claim under the Australian Consumer Law:
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                  <li>Contact us at legal@carbonconstruct.com.au with details of the failure</li>
+                  <li>Include your account details and relevant evidence</li>
+                  <li>We will respond within 5 business days to assess your claim</li>
+                </ul>
               </section>
 
               {/* Acknowledgment */}
