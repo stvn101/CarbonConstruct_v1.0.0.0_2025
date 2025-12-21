@@ -36,6 +36,7 @@ interface PDFReportContentProps {
   contentId: string;
   ecoComplianceReport?: EcoPlatformComplianceReport | null;
   epdExpiryAlerts?: EPDExpiryAlert[];
+  forPreview?: boolean;
 }
 
 // HTML-based report content component
@@ -46,7 +47,8 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
   showWatermark,
   contentId,
   ecoComplianceReport,
-  epdExpiryAlerts = []
+  epdExpiryAlerts = [],
+  forPreview = false
 }) => {
   const formatNumber = (num: number) => (num || 0).toFixed(2);
 
@@ -704,7 +706,14 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
       id={contentId}
       className="pdf-report-content"
       data-theme="light"
-      style={{ 
+      style={forPreview ? {
+        background: '#ffffff',
+        backgroundColor: '#ffffff',
+        padding: '40px',
+        fontFamily: 'Helvetica, Arial, sans-serif',
+        color: '#333333',
+        colorScheme: 'light'
+      } : { 
         position: 'absolute',
         left: '-9999px',
         top: 0,
@@ -896,6 +905,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
                 contentId={`${contentId}-preview`}
                 ecoComplianceReport={ecoComplianceReport}
                 epdExpiryAlerts={epdExpiryAlerts}
+                forPreview={true}
               />
             </div>
           </ScrollArea>
