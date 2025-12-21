@@ -59,6 +59,7 @@ const DEFAULT_BRANDING: ReportBranding = {
   companyName: 'CarbonConstruct',
   preparedBy: 'CarbonConstruct Platform',
   contactEmail: 'support@carbonconstruct.com.au',
+  logoUrl: '/logo-optimized.webp',
 };
 
 const Reports = () => {
