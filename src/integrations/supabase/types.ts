@@ -436,6 +436,63 @@ export type Database = {
         }
         Relationships: []
       }
+      material_verification_history: {
+        Row: {
+          categories_count: number
+          category_stats: Json
+          created_at: string
+          fail_count: number
+          id: string
+          metadata_completeness: Json
+          outlier_materials: Json
+          outliers_count: number
+          pass_count: number
+          pass_rate: number
+          source_distribution: Json
+          sources_count: number
+          total_materials: number
+          user_id: string
+          verified_at: string
+          warn_count: number
+        }
+        Insert: {
+          categories_count: number
+          category_stats?: Json
+          created_at?: string
+          fail_count: number
+          id?: string
+          metadata_completeness?: Json
+          outlier_materials?: Json
+          outliers_count?: number
+          pass_count: number
+          pass_rate: number
+          source_distribution?: Json
+          sources_count: number
+          total_materials: number
+          user_id: string
+          verified_at?: string
+          warn_count: number
+        }
+        Update: {
+          categories_count?: number
+          category_stats?: Json
+          created_at?: string
+          fail_count?: number
+          id?: string
+          metadata_completeness?: Json
+          outlier_materials?: Json
+          outliers_count?: number
+          pass_count?: number
+          pass_rate?: number
+          source_distribution?: Json
+          sources_count?: number
+          total_materials?: number
+          user_id?: string
+          verified_at?: string
+          warn_count?: number
+        }
+        Relationships: []
+      }
       materials_epd: {
         Row: {
           allocation_method: string | null
