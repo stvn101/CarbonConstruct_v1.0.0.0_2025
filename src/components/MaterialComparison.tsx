@@ -363,29 +363,31 @@ export const MaterialComparison = memo(() => {
           <div className="relative">
             
             {showSearch && filteredMaterials.length > 0 && (
-              <Card className="absolute z-20 w-full mt-1 p-2 shadow-lg">
-                <ScrollArea className="max-h-60">
-                  {filteredMaterials.map(m => (
-                    <button
-                      key={m.id}
-                      onClick={() => addMaterial(m)}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded flex justify-between items-center"
-                      disabled={selectedMaterials.find(sm => sm.id === m.id) !== undefined}
-                    >
-                      <span className="flex items-center gap-2">
-                        {m.material_name}
-                        {(m as any).carbon_sequestration && (
-                          <Leaf className="h-3 w-3 text-emerald-500" />
-                        )}
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
-                          {m.data_source}
-                        </Badge>
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {m.ef_total.toFixed(1)} kgCO₂/{m.unit}
-                      </span>
-                    </button>
-                  ))}
+              <Card className="absolute z-20 w-full mt-1 p-2 shadow-lg bg-popover">
+                <ScrollArea className="h-[300px]">
+                  <div className="space-y-1 pr-3">
+                    {filteredMaterials.map(m => (
+                      <button
+                        key={m.id}
+                        onClick={() => addMaterial(m)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded flex justify-between items-center"
+                        disabled={selectedMaterials.find(sm => sm.id === m.id) !== undefined}
+                      >
+                        <span className="flex items-center gap-2">
+                          {m.material_name}
+                          {(m as any).carbon_sequestration && (
+                            <Leaf className="h-3 w-3 text-emerald-500" />
+                          )}
+                          <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                            {m.data_source}
+                          </Badge>
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {m.ef_total.toFixed(1)} kgCO₂/{m.unit}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </ScrollArea>
               </Card>
             )}
@@ -720,34 +722,34 @@ export const MaterialComparison = memo(() => {
 
           {/* Recommendations */}
           {selectedMaterials.length >= 2 && bestOption && worstOption && (
-            <Card className="border-emerald-200 bg-emerald-50/50">
+            <Card className="border-emerald-500/30 bg-emerald-500/10 dark:bg-emerald-950/50">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                   Recommendation
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 text-sm">
+                <div className="space-y-3 text-sm text-foreground">
                   <p>
-                    <strong className="text-emerald-700">{bestOption.material.material_name}</strong> has the lowest net embodied carbon at{' '}
+                    <strong className="text-emerald-500">{bestOption.material.material_name}</strong> has the lowest net embodied carbon at{' '}
                     <strong>{bestOption.netCarbon.toFixed(1)} kgCO₂e/{bestOption.material.unit}</strong>
                     {bestOption.hasSequestration && (
-                      <span className="text-emerald-600"> (including {bestOption.sequestration.toFixed(1)} kgCO₂e of carbon storage)</span>
+                      <span className="text-emerald-500"> (including {bestOption.sequestration.toFixed(1)} kgCO₂e of carbon storage)</span>
                     )}.
                   </p>
                   {bestOption.material.id !== worstOption.material.id && (
                     <p>
                       Choosing <strong>{bestOption.material.material_name}</strong> over{' '}
                       <strong>{worstOption.material.material_name}</strong> could reduce net embodied carbon by{' '}
-                      <strong className="text-emerald-700">
+                      <strong className="text-emerald-500">
                         {(worstOption.netCarbon - bestOption.netCarbon).toFixed(1)} kgCO₂e/{bestOption.material.unit}
                       </strong> ({((worstOption.netCarbon - bestOption.netCarbon) / worstOption.netCarbon * 100).toFixed(1)}% reduction).
                     </p>
                   )}
                   {comparisonMetrics.some(m => m.hasSequestration) && (
-                    <p className="text-emerald-700 flex items-center gap-2 mt-4 p-3 bg-emerald-100 rounded-lg">
-                      <Leaf className="h-4 w-4" />
+                    <p className="text-emerald-400 dark:text-emerald-300 flex items-center gap-2 mt-4 p-3 bg-emerald-500/20 rounded-lg">
+                      <Leaf className="h-4 w-4 flex-shrink-0" />
                       <span>
                         <strong>Carbon storage benefit:</strong> Timber materials sequester CO₂ during tree growth. 
                         This stored carbon reduces their net climate impact compared to materials like concrete and steel.
