@@ -888,14 +888,14 @@ export const PDFReport: React.FC<PDFReportProps> = ({
 
       {/* PDF Preview Dialog */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Eye className="h-5 w-5" />
               Report Preview
             </DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1 border rounded-lg bg-white dark:bg-background">
+          <ScrollArea className="flex-1 min-h-0 border rounded-lg bg-white">
             <div className="p-4">
               <PDFReportContent 
                 data={data} 
