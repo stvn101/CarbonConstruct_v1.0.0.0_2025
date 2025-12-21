@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -813,8 +813,32 @@ export const PDFReport: React.FC<PDFReportProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const html2pdfRef = useRef<any>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    import('html2pdf.js')
+      .then((m) => {
+        if (!cancelled) html2pdfRef.current = m.default;
+      })
+      .catch(() => {
+        // ignore - will lazy load on click
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const contentId = 'pdf-report-content';
-  const defaultFilename = `carbon-report-${data.project.name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+  const safeProjectName = (data.project.name || 'project')
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  const defaultFilename = `carbon-report-${safeProjectName || 'project'}.pdf`;
 
   const handleDownload = async () => {
     setLoading(true);
@@ -823,7 +847,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     let originalInlineStyle: string | null = null;
 
     try {
-      const html2pdf = (await import('html2pdf.js')).default;
+      const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
+      html2pdfRef.current = html2pdf;
       element = document.getElementById(contentId);
 
       if (!element) {
@@ -838,9 +863,6 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         'style',
         `${originalInlineStyle || ''}; position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; background: #ffffff; background-color: #ffffff;`
       );
-
-      // Allow layout to settle before capture
-      await new Promise((r) => setTimeout(r, 50));
 
       await html2pdf()
         .set({
