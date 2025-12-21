@@ -1,13 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu, Loader2, RefreshCw, CheckCheck, History } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu, Loader2, RefreshCw, CheckCheck, History, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import html2pdf from "html2pdf.js";
 import { useMaterialsDatabaseStats, MaterialsDatabaseStats, OutlierMaterial, CategoryStats } from "@/hooks/useMaterialsDatabaseStats";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
+import { ScrollArea } from "@/components/ui/scroll-area";
 interface VerificationResult {
   material: string;
   nabersDefault: string;
@@ -84,6 +85,8 @@ const MaterialVerificationReport = () => {
   const [verificationTimestamp, setVerificationTimestamp] = useState<string | null>(null);
   const [verificationHistory, setVerificationHistory] = useState<VerificationHistoryItem[]>([]);
   const [isSavingHistory, setIsSavingHistory] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState<string>('');
   
   const { data: liveStats, isLoading, refetch, isRefetching } = useMaterialsDatabaseStats();
   const { toast } = useToast();
@@ -383,158 +386,168 @@ const MaterialVerificationReport = () => {
   };
 
 
+  // Extract HTML generation to reusable function
+  const generateReportHtml = () => {
+    // Build verification table HTML helper
+    const buildTableRows = (data: VerificationResult[]) => data.map(row => `
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 5px;">${row.material}</td>
+        <td style="padding: 5px;">${row.nabersDefault}</td>
+        <td style="padding: 5px;">${row.nabersRange}</td>
+        <td style="padding: 5px;">${row.databaseValue}</td>
+        <td style="padding: 5px;">${row.unit}</td>
+        <td style="padding: 5px; color: ${row.status === 'pass' ? '#16a34a' : row.status === 'warn' ? '#ca8a04' : '#dc2626'};">
+          ${row.status === 'pass' ? '✓ PASS' : row.status === 'warn' ? '⚠ WARN' : '✗ FAIL'}
+        </td>
+        <td style="padding: 5px;">${row.notes}</td>
+      </tr>
+    `).join('');
+
+    const buildTable = (data: VerificationResult[], title: string) => `
+      <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">
+          ${title}
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+          <thead>
+            <tr style="background-color: #f3f4f6; border-bottom: 1px solid #d1d5db;">
+              <th style="padding: 6px; text-align: left; width: 18%;">Material</th>
+              <th style="padding: 6px; text-align: left; width: 12%;">NABERS Default</th>
+              <th style="padding: 6px; text-align: left; width: 12%;">NABERS Range</th>
+              <th style="padding: 6px; text-align: left; width: 12%;">DB Value</th>
+              <th style="padding: 6px; text-align: left; width: 10%;">Unit</th>
+              <th style="padding: 6px; text-align: left; width: 8%;">Status</th>
+              <th style="padding: 6px; text-align: left; width: 28%;">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${buildTableRows(data)}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    return `
+      <div style="padding: 40px; font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #333; background-color: #ffffff;">
+        <!-- Header -->
+        <div style="margin-bottom: 20px; border-bottom: 2px solid #2d5a27; padding-bottom: 15px; text-align: center;">
+          <h1 style="font-size: 20px; font-weight: bold; color: #2d5a27; margin-bottom: 8px;">AI-Verified Materials Database Report</h1>
+          <p style="font-size: 12px; color: #666; margin-bottom: 5px;">CarbonConstruct Materials Database - Full Validation</p>
+          <p style="font-size: 12px; color: #666;">Reference: NABERS v2025.1-6 | Date: ${verificationDate} ${verificationTime}</p>
+          <div style="margin-top: 10px; padding: 8px; background-color: #eff6ff; border-radius: 4px; border: 1px solid #93c5fd;">
+            <p style="font-size: 10px; color: #1e40af; text-align: center;">🤖 VERIFIED BY: Claude Sonnet 4.5 (Anthropic AI Agent)</p>
+            <p style="font-size: 8px; color: #1e40af; text-align: center; margin-top: 4px;">
+              Comprehensive automated validation of ${validationSummary.totalMaterials.toLocaleString()} materials across ${validationSummary.categoriesCount} categories
+            </p>
+          </div>
+        </div>
+
+        <!-- Validation Summary -->
+        <div style="margin-bottom: 20px;">
+          <h2 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Validation Summary</h2>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <div style="width: 23%; padding: 10px; border-radius: 4px; text-align: center; background-color: #f0fdf4; border: 1px solid #86efac;">
+              <p style="font-size: 18px; font-weight: bold; color: #16a34a;">${validationSummary.passCount.toLocaleString()}</p>
+              <p style="font-size: 8px; color: #15803d; margin-top: 4px;">Validated</p>
+            </div>
+            <div style="width: 23%; padding: 10px; border-radius: 4px; text-align: center; background-color: #fefce8; border: 1px solid #fde047;">
+              <p style="font-size: 18px; font-weight: bold; color: #ca8a04;">${validationSummary.warnCount}</p>
+              <p style="font-size: 8px; color: #a16207; margin-top: 4px;">Review Required</p>
+            </div>
+            <div style="width: 23%; padding: 10px; border-radius: 4px; text-align: center; background-color: #fef2f2; border: 1px solid #fca5a5;">
+              <p style="font-size: 18px; font-weight: bold; color: #dc2626;">${validationSummary.failCount}</p>
+              <p style="font-size: 8px; color: #b91c1c; margin-top: 4px;">Failed</p>
+            </div>
+            <div style="width: 23%; padding: 10px; border-radius: 4px; text-align: center; background-color: #eff6ff; border: 1px solid #93c5fd;">
+              <p style="font-size: 18px; font-weight: bold; color: #2563eb;">${validationSummary.passRate.toFixed(1)}%</p>
+              <p style="font-size: 8px; color: #1d4ed8; margin-top: 4px;">Pass Rate</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Integrity -->
+        <div style="margin-top: 15px; padding: 10px; background-color: #fafafa; border-radius: 4px;">
+          <h3 style="font-size: 11px; font-weight: bold; margin-bottom: 8px; color: #374151;">Data Integrity Validation</h3>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-size: 9px; color: #6b7280;">Missing ef_total values:</span>
+            <span style="font-size: 9px; font-weight: bold; color: ${validationSummary.missingData.efTotal === 0 ? '#16a34a' : '#dc2626'};">
+              ${validationSummary.missingData.efTotal} ${validationSummary.missingData.efTotal === 0 ? '✓' : '✗'}
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-size: 9px; color: #6b7280;">Missing A1-A3 factors:</span>
+            <span style="font-size: 9px; font-weight: bold; color: ${validationSummary.missingData.a1a3 === 0 ? '#16a34a' : '#dc2626'};">
+              ${validationSummary.missingData.a1a3} ${validationSummary.missingData.a1a3 === 0 ? '✓' : '✗'}
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-size: 9px; color: #6b7280;">Missing material names:</span>
+            <span style="font-size: 9px; font-weight: bold; color: ${validationSummary.missingData.names === 0 ? '#16a34a' : '#dc2626'};">
+              ${validationSummary.missingData.names} ${validationSummary.missingData.names === 0 ? '✓' : '✗'}
+            </span>
+          </div>
+        </div>
+
+        <!-- Data Sources -->
+        <div style="margin-bottom: 20px; margin-top: 15px;">
+          <h2 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Data Source Distribution</h2>
+          <div style="display: flex; justify-content: space-between;">
+            <div style="width: 23%; padding: 8px; background-color: #f9fafb; border-radius: 4px;">
+              <p style="font-size: 10px; font-weight: bold; color: #16a34a;">${validationSummary.sourceDistribution.epdAustralasia.toLocaleString()}</p>
+              <p style="font-size: 8px; color: #6b7280;">EPD Australasia</p>
+            </div>
+            <div style="width: 23%; padding: 8px; background-color: #f9fafb; border-radius: 4px;">
+              <p style="font-size: 10px; font-weight: bold; color: #2563eb;">${validationSummary.sourceDistribution.icmDatabase.toLocaleString()}</p>
+              <p style="font-size: 8px; color: #6b7280;">ICM Database 2019</p>
+            </div>
+            <div style="width: 23%; padding: 8px; background-color: #f9fafb; border-radius: 4px;">
+              <p style="font-size: 10px; font-weight: bold; color: #7c3aed;">${validationSummary.sourceDistribution.epdInternational.toLocaleString()}</p>
+              <p style="font-size: 8px; color: #6b7280;">EPD International</p>
+            </div>
+            <div style="width: 23%; padding: 8px; background-color: #f9fafb; border-radius: 4px;">
+              <p style="font-size: 10px; font-weight: bold;">${validationSummary.sourceDistribution.other.toLocaleString()}</p>
+              <p style="font-size: 8px; color: #6b7280;">Other Sources</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Material Tables -->
+        ${buildTable(concreteVerification, 'Concrete Materials - NABERS Cross-Reference')}
+        ${buildTable(steelVerification, 'Steel & Metals - NABERS Cross-Reference')}
+        ${buildTable(timberVerification, 'Timber & Engineered Wood - NABERS Cross-Reference')}
+        ${buildTable(otherMaterialsVerification, 'Other Materials - NABERS Cross-Reference')}
+
+        <!-- AI Certification -->
+        <div style="margin-top: 20px; padding: 15px; border: 2px solid #22c55e; border-radius: 4px; text-align: center;">
+          <h3 style="font-size: 14px; font-weight: bold; color: #16a34a; margin-bottom: 8px;">✓ AI Verification Certificate</h3>
+          <p style="font-size: 9px; color: #4b5563;">
+            This materials database has been comprehensively validated by Claude Sonnet 4.5 (Anthropic AI Agent).
+            All ${validationSummary.totalMaterials.toLocaleString()} materials across ${validationSummary.categoriesCount} categories have been analyzed.
+          </p>
+          <p style="font-size: 9px; font-weight: bold; color: #374151; margin-top: 8px;">
+            VALIDATION RESULT: ${validationSummary.passRate.toFixed(1)}% PASS RATE - DATABASE APPROVED FOR PRODUCTION USE
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 8px; color: #9ca3af; text-align: center;">
+          <p>CarbonConstruct AI-Verified Materials Database Report | Generated: ${verificationDate} ${verificationTime}</p>
+          <p>Verified by: Claude Sonnet 4.5 (Anthropic) | Reference: NABERS v2025.1-6 | Materials: ${validationSummary.totalMaterials.toLocaleString()}</p>
+        </div>
+      </div>
+    `;
+  };
+
+  const handlePreviewPDF = () => {
+    const html = generateReportHtml();
+    setPreviewHtml(html);
+    setIsPreviewOpen(true);
+  };
+
   const generatePDF = async () => {
     setIsGenerating(true);
     try {
-      // Build verification table HTML helper
-      const buildTableRows = (data: VerificationResult[]) => data.map(row => `
-        <tr style="border-bottom: 1px solid #e5e7eb;">
-          <td style="padding: 5px;">${row.material}</td>
-          <td style="padding: 5px;">${row.nabersDefault}</td>
-          <td style="padding: 5px;">${row.nabersRange}</td>
-          <td style="padding: 5px;">${row.databaseValue}</td>
-          <td style="padding: 5px;">${row.unit}</td>
-          <td style="padding: 5px; color: ${row.status === 'pass' ? '#16a34a' : row.status === 'warn' ? '#ca8a04' : '#dc2626'};">
-            ${row.status === 'pass' ? '✓ PASS' : row.status === 'warn' ? '⚠ WARN' : '✗ FAIL'}
-          </td>
-          <td style="padding: 5px;">${row.notes}</td>
-        </tr>
-      `).join('');
-
-      const buildTable = (data: VerificationResult[], title: string) => `
-        <div style="margin-bottom: 20px;">
-          <h3 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">
-            ${title}
-          </h3>
-          <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
-            <thead>
-              <tr style="background-color: #f3f4f6; border-bottom: 1px solid #d1d5db;">
-                <th style="padding: 6px; text-align: left; width: 18%;">Material</th>
-                <th style="padding: 6px; text-align: left; width: 12%;">NABERS Default</th>
-                <th style="padding: 6px; text-align: left; width: 12%;">NABERS Range</th>
-                <th style="padding: 6px; text-align: left; width: 12%;">DB Value</th>
-                <th style="padding: 6px; text-align: left; width: 10%;">Unit</th>
-                <th style="padding: 6px; text-align: left; width: 8%;">Status</th>
-                <th style="padding: 6px; text-align: left; width: 28%;">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${buildTableRows(data)}
-            </tbody>
-          </table>
-        </div>
-      `;
-
-      // Build PDF HTML content
-      const pdfContent = `
-        <div style="padding: 40px; font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #333; background-color: #ffffff;">
-          <!-- Header -->
-          <div style="margin-bottom: 20px; border-bottom: 2px solid #2d5a27; padding-bottom: 15px; text-align: center;">
-            <h1 style="font-size: 20px; font-weight: bold; color: #2d5a27; margin-bottom: 8px;">AI-Verified Materials Database Report</h1>
-            <p style="font-size: 12px; color: #666; margin-bottom: 5px;">CarbonConstruct Materials Database - Full Validation</p>
-            <p style="font-size: 12px; color: #666;">Reference: NABERS v2025.1-6 | Date: ${verificationDate} ${verificationTime}</p>
-            <div style="margin-top: 10px; padding: 8px; background-color: #eff6ff; border-radius: 4px; border: 1px solid #93c5fd;">
-              <p style="font-size: 10px; color: #1e40af; text-align: center;">🤖 VERIFIED BY: Claude Sonnet 4.5 (Anthropic AI Agent)</p>
-              <p style="font-size: 8px; color: #1e40af; text-align: center; margin-top: 4px;">
-                Comprehensive automated validation of ${validationSummary.totalMaterials.toLocaleString()} materials across ${validationSummary.categoriesCount} categories
-              </p>
-            </div>
-          </div>
-
-          <!-- Validation Summary -->
-          <div style="margin-bottom: 20px;">
-            <h2 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Validation Summary</h2>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-              <div style="width: 23%; padding: 10px; border-radius: 4px; text-align: center; background-color: #f0fdf4; border: 1px solid #86efac;">
-                <p style="font-size: 18px; font-weight: bold; color: #16a34a;">${validationSummary.passCount.toLocaleString()}</p>
-                <p style="font-size: 8px; color: #15803d; margin-top: 4px;">Validated</p>
-              </div>
-              <div style="width: 23%; padding: 10px; border-radius: 4px; text-align: center; background-color: #fefce8; border: 1px solid #fde047;">
-                <p style="font-size: 18px; font-weight: bold; color: #ca8a04;">${validationSummary.warnCount}</p>
-                <p style="font-size: 8px; color: #a16207; margin-top: 4px;">Review Required</p>
-              </div>
-              <div style="width: 23%; padding: 10px; border-radius: 4px; text-align: center; background-color: #fef2f2; border: 1px solid #fca5a5;">
-                <p style="font-size: 18px; font-weight: bold; color: #dc2626;">${validationSummary.failCount}</p>
-                <p style="font-size: 8px; color: #b91c1c; margin-top: 4px;">Failed</p>
-              </div>
-              <div style="width: 23%; padding: 10px; border-radius: 4px; text-align: center; background-color: #eff6ff; border: 1px solid #93c5fd;">
-                <p style="font-size: 18px; font-weight: bold; color: #2563eb;">${validationSummary.passRate.toFixed(1)}%</p>
-                <p style="font-size: 8px; color: #1d4ed8; margin-top: 4px;">Pass Rate</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Data Integrity -->
-          <div style="margin-top: 15px; padding: 10px; background-color: #fafafa; border-radius: 4px;">
-            <h3 style="font-size: 11px; font-weight: bold; margin-bottom: 8px; color: #374151;">Data Integrity Validation</h3>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span style="font-size: 9px; color: #6b7280;">Missing ef_total values:</span>
-              <span style="font-size: 9px; font-weight: bold; color: ${validationSummary.missingData.efTotal === 0 ? '#16a34a' : '#dc2626'};">
-                ${validationSummary.missingData.efTotal} ${validationSummary.missingData.efTotal === 0 ? '✓' : '✗'}
-              </span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span style="font-size: 9px; color: #6b7280;">Missing A1-A3 factors:</span>
-              <span style="font-size: 9px; font-weight: bold; color: ${validationSummary.missingData.a1a3 === 0 ? '#16a34a' : '#dc2626'};">
-                ${validationSummary.missingData.a1a3} ${validationSummary.missingData.a1a3 === 0 ? '✓' : '✗'}
-              </span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span style="font-size: 9px; color: #6b7280;">Missing material names:</span>
-              <span style="font-size: 9px; font-weight: bold; color: ${validationSummary.missingData.names === 0 ? '#16a34a' : '#dc2626'};">
-                ${validationSummary.missingData.names} ${validationSummary.missingData.names === 0 ? '✓' : '✗'}
-              </span>
-            </div>
-          </div>
-
-          <!-- Data Sources -->
-          <div style="margin-bottom: 20px; margin-top: 15px;">
-            <h2 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Data Source Distribution</h2>
-            <div style="display: flex; justify-content: space-between;">
-              <div style="width: 23%; padding: 8px; background-color: #f9fafb; border-radius: 4px;">
-                <p style="font-size: 10px; font-weight: bold; color: #16a34a;">${validationSummary.sourceDistribution.epdAustralasia.toLocaleString()}</p>
-                <p style="font-size: 8px; color: #6b7280;">EPD Australasia</p>
-              </div>
-              <div style="width: 23%; padding: 8px; background-color: #f9fafb; border-radius: 4px;">
-                <p style="font-size: 10px; font-weight: bold; color: #2563eb;">${validationSummary.sourceDistribution.icmDatabase.toLocaleString()}</p>
-                <p style="font-size: 8px; color: #6b7280;">ICM Database 2019</p>
-              </div>
-              <div style="width: 23%; padding: 8px; background-color: #f9fafb; border-radius: 4px;">
-                <p style="font-size: 10px; font-weight: bold; color: #7c3aed;">${validationSummary.sourceDistribution.epdInternational.toLocaleString()}</p>
-                <p style="font-size: 8px; color: #6b7280;">EPD International</p>
-              </div>
-              <div style="width: 23%; padding: 8px; background-color: #f9fafb; border-radius: 4px;">
-                <p style="font-size: 10px; font-weight: bold;">${validationSummary.sourceDistribution.other.toLocaleString()}</p>
-                <p style="font-size: 8px; color: #6b7280;">Other Sources</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Material Tables -->
-          ${buildTable(concreteVerification, 'Concrete Materials - NABERS Cross-Reference')}
-          ${buildTable(steelVerification, 'Steel & Metals - NABERS Cross-Reference')}
-          ${buildTable(timberVerification, 'Timber & Engineered Wood - NABERS Cross-Reference')}
-          ${buildTable(otherMaterialsVerification, 'Other Materials - NABERS Cross-Reference')}
-
-          <!-- AI Certification -->
-          <div style="margin-top: 20px; padding: 15px; border: 2px solid #22c55e; border-radius: 4px; text-align: center;">
-            <h3 style="font-size: 14px; font-weight: bold; color: #16a34a; margin-bottom: 8px;">✓ AI Verification Certificate</h3>
-            <p style="font-size: 9px; color: #4b5563;">
-              This materials database has been comprehensively validated by Claude Sonnet 4.5 (Anthropic AI Agent).
-              All ${validationSummary.totalMaterials.toLocaleString()} materials across ${validationSummary.categoriesCount} categories have been analyzed.
-            </p>
-            <p style="font-size: 9px; font-weight: bold; color: #374151; margin-top: 8px;">
-              VALIDATION RESULT: ${validationSummary.passRate.toFixed(1)}% PASS RATE - DATABASE APPROVED FOR PRODUCTION USE
-            </p>
-          </div>
-
-          <!-- Footer -->
-          <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 8px; color: #9ca3af; text-align: center;">
-            <p>CarbonConstruct AI-Verified Materials Database Report | Generated: ${verificationDate} ${verificationTime}</p>
-            <p>Verified by: Claude Sonnet 4.5 (Anthropic) | Reference: NABERS v2025.1-6 | Materials: ${validationSummary.totalMaterials.toLocaleString()}</p>
-          </div>
-        </div>
-      `;
+      const pdfContent = generateReportHtml();
 
       // Create temporary element in DOM
       const tempDiv = document.createElement('div');
@@ -561,6 +574,11 @@ const MaterialVerificationReport = () => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleDownloadFromPreview = async () => {
+    setIsPreviewOpen(false);
+    await generatePDF();
   };
 
   const renderVerificationTable = (data: VerificationResult[], title: string) => (
@@ -676,10 +694,16 @@ const MaterialVerificationReport = () => {
             </span>
           )}
         </div>
-        <Button onClick={generatePDF} disabled={isGenerating || !hasVerified} className="gap-2">
-          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-          {isGenerating ? 'Generating PDF...' : 'Download AI Verification Report (PDF)'}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handlePreviewPDF} disabled={!hasVerified} variant="outline" className="gap-2">
+            <Eye className="h-4 w-4" />
+            Preview Report
+          </Button>
+          <Button onClick={generatePDF} disabled={isGenerating || !hasVerified} className="gap-2">
+            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+            {isGenerating ? 'Generating PDF...' : 'Download PDF'}
+          </Button>
+        </div>
       </div>
 
       {/* Verification Status Banner */}
@@ -1162,6 +1186,33 @@ const MaterialVerificationReport = () => {
           </p>
         </CardContent>
       </Card>
+
+      {/* PDF Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Report Preview
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1 border rounded-lg bg-white">
+            <div 
+              className="p-4"
+              dangerouslySetInnerHTML={{ __html: previewHtml }}
+            />
+          </ScrollArea>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={handleDownloadFromPreview} disabled={isGenerating} className="gap-2">
+              {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+              Download PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
