@@ -195,14 +195,14 @@ const Reports = () => {
     trackUsage({ metricType: 'reports_per_month' });
     
     // Generate and download the PDF
-    const element = document.getElementById('pdf-report-content');
+    const element = document.querySelector('.pdf-report-content') as HTMLElement | null;
     if (element) {
       const html2pdf = (await import('html2pdf.js')).default;
       html2pdf()
         .set({
           margin: 10,
           filename: `${currentProject?.name || 'project'}-carbon-report.pdf`,
-          html2canvas: { scale: 2 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         })
         .from(element)
