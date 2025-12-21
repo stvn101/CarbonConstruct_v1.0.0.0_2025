@@ -230,13 +230,7 @@ const Reports = () => {
       const safeProjectName = toSafeFilename(currentProject?.name || 'project');
       const outputFilename = `${safeProjectName || 'project'}-carbon-report.pdf`;
 
-      const originalInlineStyle = element.getAttribute('style');
       try {
-        element.setAttribute(
-          'style',
-          'position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; background: #ffffff; background-color: #ffffff; visibility: visible; display: block;'
-        );
-
         await html2pdf()
           .set({
             margin: 10,
@@ -248,14 +242,26 @@ const Reports = () => {
               letterRendering: true,
               backgroundColor: '#ffffff',
               logging: false,
+              onclone: (clonedDoc: Document) => {
+                const clonedEl = clonedDoc.getElementById('pdf-report-content') as HTMLElement | null;
+                if (!clonedEl) return;
+                clonedEl.style.position = 'fixed';
+                clonedEl.style.left = '0';
+                clonedEl.style.top = '0';
+                clonedEl.style.zIndex = '9999';
+                clonedEl.style.width = '210mm';
+                clonedEl.style.background = '#ffffff';
+                clonedEl.style.backgroundColor = '#ffffff';
+                clonedEl.style.display = 'block';
+                clonedEl.style.visibility = 'visible';
+              },
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           } as any)
           .from(element)
           .save();
       } finally {
-        if (originalInlineStyle === null) element.removeAttribute('style');
-        else element.setAttribute('style', originalInlineStyle);
+        // no-op (clone manipulation only)
       }
     }
 
