@@ -1,6 +1,7 @@
 /**
  * Supplier Contact Manager Component
  * Allows users to manage EPD program operator and manufacturer contacts
+ * Includes Australian Business Number (ABN) validation with checksum
  */
 
 import React, { useState } from 'react';
@@ -26,7 +27,10 @@ import {
   Search,
   Building,
   Shield,
-  Truck
+  Truck,
+  ExternalLink,
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { useSupplierContacts, SupplierContact, SupplierContactInput, ContactType } from '@/hooks/useSupplierContacts';
 
@@ -46,6 +50,7 @@ interface ContactFormData {
   address: string;
   notes: string;
   epd_numbers: string;
+  abn: string;
 }
 
 const defaultFormData: ContactFormData = {
@@ -58,7 +63,61 @@ const defaultFormData: ContactFormData = {
   address: '',
   notes: '',
   epd_numbers: '',
+  abn: '',
 };
+
+/**
+ * Validates an Australian Business Number (ABN) using the official checksum algorithm.
+ * 
+ * ABN validation algorithm:
+ * 1. Subtract 1 from the first digit
+ * 2. Multiply each digit by its weighting factor (10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19)
+ * 3. Sum all the products
+ * 4. If the sum is divisible by 89, the ABN is valid
+ * 
+ * @param abn - The ABN string to validate (can include spaces)
+ * @returns Object with isValid boolean and formatted ABN string
+ */
+function validateABN(abn: string): { isValid: boolean; formatted: string; error?: string } {
+  // Remove spaces and non-numeric characters
+  const cleanABN = abn.replace(/\s+/g, '').replace(/[^0-9]/g, '');
+  
+  // Must be exactly 11 digits
+  if (cleanABN.length !== 11) {
+    return { 
+      isValid: false, 
+      formatted: abn,
+      error: 'ABN must be exactly 11 digits'
+    };
+  }
+
+  // ABN weighting factors
+  const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+  
+  // Convert to array of digits
+  const digits = cleanABN.split('').map(Number);
+  
+  // Subtract 1 from the first digit (per ABN algorithm)
+  digits[0] = digits[0] - 1;
+  
+  // Calculate weighted sum
+  let sum = 0;
+  for (let i = 0; i < 11; i++) {
+    sum += digits[i] * weights[i];
+  }
+  
+  // Check if divisible by 89
+  const isValid = sum % 89 === 0;
+  
+  // Format ABN with spaces: XX XXX XXX XXX
+  const formatted = `${cleanABN.slice(0, 2)} ${cleanABN.slice(2, 5)} ${cleanABN.slice(5, 8)} ${cleanABN.slice(8, 11)}`;
+  
+  return { 
+    isValid, 
+    formatted,
+    error: isValid ? undefined : 'Invalid ABN checksum - please verify the number'
+  };
+}
 
 export function SupplierContactManager() {
   const { contacts, isLoading, isSaving, addContact, updateContact, deleteContact } = useSupplierContacts();
@@ -67,13 +126,32 @@ export function SupplierContactManager() {
   const [formData, setFormData] = useState<ContactFormData>(defaultFormData);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<ContactType | 'all'>('all');
+  const [abnValidation, setAbnValidation] = useState<{ isValid: boolean; error?: string } | null>(null);
 
   const handleInputChange = (field: keyof ContactFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Validate ABN on change
+    if (field === 'abn') {
+      if (value.trim()) {
+        const validation = validateABN(value);
+        setAbnValidation({ isValid: validation.isValid, error: validation.error });
+      } else {
+        setAbnValidation(null);
+      }
+    }
   };
 
   const handleSubmit = async () => {
     if (!formData.company_name.trim()) return;
+    
+    // Validate ABN if provided
+    if (formData.abn.trim()) {
+      const abnCheck = validateABN(formData.abn);
+      if (!abnCheck.isValid) {
+        return; // Don't submit if ABN is invalid
+      }
+    }
 
     const input: SupplierContactInput = {
       company_name: formData.company_name.trim(),
@@ -87,6 +165,13 @@ export function SupplierContactManager() {
       epd_numbers: formData.epd_numbers.split(',').map(s => s.trim()).filter(Boolean),
     };
 
+    // Add ABN to notes if provided (since ABN field isn't in the database schema yet)
+    if (formData.abn.trim()) {
+      const abnValidation = validateABN(formData.abn);
+      const abnNote = `ABN: ${abnValidation.formatted}`;
+      input.notes = input.notes ? `${abnNote}\n\n${input.notes}` : abnNote;
+    }
+
     if (editingContact) {
       await updateContact(editingContact.id, input);
     } else {
@@ -95,11 +180,22 @@ export function SupplierContactManager() {
 
     setFormData(defaultFormData);
     setEditingContact(null);
+    setAbnValidation(null);
     setIsAddDialogOpen(false);
   };
 
   const handleEdit = (contact: SupplierContact) => {
     setEditingContact(contact);
+    
+    // Extract ABN from notes if present
+    let abn = '';
+    let notes = contact.notes || '';
+    const abnMatch = notes.match(/^ABN:\s*([\d\s]+)/);
+    if (abnMatch) {
+      abn = abnMatch[1].trim();
+      notes = notes.replace(/^ABN:\s*[\d\s]+\n*/, '').trim();
+    }
+    
     setFormData({
       company_name: contact.company_name,
       contact_type: contact.contact_type,
@@ -108,9 +204,18 @@ export function SupplierContactManager() {
       phone: contact.phone || '',
       website: contact.website || '',
       address: contact.address || '',
-      notes: contact.notes || '',
+      notes: notes,
       epd_numbers: contact.epd_numbers?.join(', ') || '',
+      abn: abn,
     });
+    
+    if (abn) {
+      const validation = validateABN(abn);
+      setAbnValidation({ isValid: validation.isValid, error: validation.error });
+    } else {
+      setAbnValidation(null);
+    }
+    
     setIsAddDialogOpen(true);
   };
 
@@ -125,6 +230,7 @@ export function SupplierContactManager() {
       contact.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       contact.contact_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       contact.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       contact.epd_numbers?.some(epd => epd.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesType = filterType === 'all' || contact.contact_type === filterType;
@@ -135,6 +241,10 @@ export function SupplierContactManager() {
   const ContactCard = ({ contact }: { contact: SupplierContact }) => {
     const config = contactTypeConfig[contact.contact_type];
     const Icon = config.icon;
+    
+    // Extract ABN from notes if present
+    const abnMatch = contact.notes?.match(/^ABN:\s*([\d\s]+)/);
+    const displayABN = abnMatch ? abnMatch[1].trim() : null;
 
     return (
       <Card className="hover:shadow-md transition-shadow">
@@ -162,6 +272,21 @@ export function SupplierContactManager() {
           </div>
 
           <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+            {displayABN && (
+              <div className="flex items-center gap-2">
+                <Building2 className="h-3.5 w-3.5" />
+                <span className="font-mono text-xs">ABN: {displayABN}</span>
+                <a 
+                  href={`https://abr.business.gov.au/ABN/View?abn=${displayABN.replace(/\s/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline ml-1"
+                  title="Verify on ABN Lookup"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            )}
             {contact.contact_name && (
               <div className="flex items-center gap-2">
                 <User className="h-3.5 w-3.5" />
@@ -243,6 +368,7 @@ export function SupplierContactManager() {
             if (!open) {
               setFormData(defaultFormData);
               setEditingContact(null);
+              setAbnValidation(null);
             }
           }}>
             <DialogTrigger asChild>
@@ -251,7 +377,7 @@ export function SupplierContactManager() {
                 Add Contact
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {editingContact ? 'Edit Contact' : 'Add Supplier Contact'}
@@ -285,6 +411,53 @@ export function SupplierContactManager() {
                         <SelectItem value="distributor">Distributor</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* ABN Field with validation */}
+                  <div className="col-span-2">
+                    <Label htmlFor="abn" className="flex items-center gap-2">
+                      Australian Business Number (ABN)
+                      {abnValidation && (
+                        abnValidation.isValid ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-destructive" />
+                        )
+                      )}
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="abn"
+                        value={formData.abn}
+                        onChange={(e) => handleInputChange('abn', e.target.value)}
+                        placeholder="XX XXX XXX XXX"
+                        className={abnValidation && !abnValidation.isValid ? 'border-destructive' : ''}
+                      />
+                      {formData.abn && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          className="shrink-0"
+                        >
+                          <a
+                            href={`https://abr.business.gov.au/ABN/View?abn=${formData.abn.replace(/\s/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            Verify
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                    {abnValidation && abnValidation.error && (
+                      <p className="text-xs text-destructive mt-1">{abnValidation.error}</p>
+                    )}
+                    {abnValidation && abnValidation.isValid && (
+                      <p className="text-xs text-green-600 mt-1">Valid ABN format</p>
+                    )}
                   </div>
 
                   <div>
@@ -365,7 +538,10 @@ export function SupplierContactManager() {
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleSubmit} disabled={isSaving || !formData.company_name.trim()}>
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={isSaving || !formData.company_name.trim() || (formData.abn.trim() !== '' && abnValidation !== null && !abnValidation.isValid)}
+                >
                   {isSaving ? 'Saving...' : editingContact ? 'Update Contact' : 'Add Contact'}
                 </Button>
               </DialogFooter>
@@ -380,7 +556,7 @@ export function SupplierContactManager() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search contacts, EPDs..."
+              placeholder="Search contacts, EPDs, ABN..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
