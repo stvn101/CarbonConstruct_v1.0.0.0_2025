@@ -78,13 +78,25 @@ const NABERS_RANGES: Record<string, { min: number; max: number; unit: string }[]
 
 // Source credibility tiers
 const SOURCE_TIERS: Record<string, number> = {
+  // Tier 1: Verified Australian Sources
   'EPD Australasia': 1,
   'NABERS': 1,
   'NABERS EPD': 1,
+  'NABERS 2025': 1,
+  'NGER': 1,
+  'NGER Materials': 1,
+  'NGER Materials Database': 1,
+  // Tier 2: International and Industry Sources  
+  'ICE': 2,
+  'ICE V4': 2,
+  'ICE Database': 2,
+  'Circular Ecology': 2,
   'ICM Database': 2,
   'ICM Database 2019': 2,
+  'AusLCI': 2,
   'EPD International': 2,
   'EC3': 2,
+  'BlueScope': 2,
 };
 
 interface ValidationIssue {

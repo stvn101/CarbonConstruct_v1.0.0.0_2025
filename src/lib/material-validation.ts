@@ -138,13 +138,25 @@ export interface SourceCredibility {
 }
 
 export const SOURCE_TIER_MAP: Record<string, SourceCredibility> = {
+  // Tier 1: Verified Australian Sources
   'EPD Australasia': { tier: 1, label: 'Tier 1: Verified', description: 'EPD Australasia registered, NABERS cross-referenced' },
   'NABERS': { tier: 1, label: 'Tier 1: Verified', description: 'NABERS official database, verified' },
   'NABERS EPD': { tier: 1, label: 'Tier 1: Verified', description: 'NABERS EPD cross-referenced' },
+  'NABERS 2025': { tier: 1, label: 'Tier 1: Verified', description: 'NABERS 2025 Emission Factors' },
+  'NGER': { tier: 1, label: 'Tier 1: Verified', description: 'NGER Materials Database (Australian Government)' },
+  'NGER Materials': { tier: 1, label: 'Tier 1: Verified', description: 'NGER Materials Database v2025.1' },
+  'NGER Materials Database': { tier: 1, label: 'Tier 1: Verified', description: 'NGER Materials Database v2025.1' },
+  // Tier 2: International and Industry Sources
+  'ICE': { tier: 2, label: 'Tier 2: Industry Average', description: 'ICE Database - Circular Ecology' },
+  'ICE V4': { tier: 2, label: 'Tier 2: Industry Average', description: 'ICE V4.1 - Circular Ecology' },
+  'ICE Database': { tier: 2, label: 'Tier 2: Industry Average', description: 'ICE Database - Circular Ecology' },
+  'Circular Ecology': { tier: 2, label: 'Tier 2: Industry Average', description: 'ICE V4.1 - Circular Ecology' },
   'ICM Database': { tier: 2, label: 'Tier 2: Industry Average', description: 'Industry consensus method (ICM) 2019' },
   'ICM Database 2019': { tier: 2, label: 'Tier 2: Industry Average', description: 'Industry consensus method (ICM) 2019' },
+  'AusLCI': { tier: 2, label: 'Tier 2: Industry Average', description: 'Australian LCI database' },
   'EPD International': { tier: 2, label: 'Tier 2: International', description: 'International EPD with grid context needed' },
   'EC3': { tier: 2, label: 'Tier 2: International', description: 'Embodied Carbon in Construction Calculator' },
+  'BlueScope': { tier: 2, label: 'Tier 2: Industry Average', description: 'BlueScope Steel EPD verified' },
 };
 
 export function getSourceTier(dataSource: string | null | undefined): SourceCredibility {
