@@ -1,4 +1,4 @@
-import React, { useState, useId } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -813,43 +813,62 @@ export const PDFReport: React.FC<PDFReportProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const contentId = useId().replace(/:/g, '-') + '-pdf-content';
+  const contentId = 'pdf-report-content';
   const defaultFilename = `carbon-report-${data.project.name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
 
   const handleDownload = async () => {
     setLoading(true);
+
+    let element: HTMLElement | null = null;
+    let originalInlineStyle: string | null = null;
+
     try {
       const html2pdf = (await import('html2pdf.js')).default;
-      const element = document.getElementById(contentId);
-      
+      element = document.getElementById(contentId);
+
       if (!element) {
         console.error('PDF content element not found');
         return;
       }
+
+      // Some browsers/html2canvas combos render empty output when the source node is far off-screen.
+      // Temporarily pin it to the viewport while generating, then restore.
+      originalInlineStyle = element.getAttribute('style');
+      element.setAttribute(
+        'style',
+        `${originalInlineStyle || ''}; position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; background: #ffffff; background-color: #ffffff;`
+      );
+
+      // Allow layout to settle before capture
+      await new Promise((r) => setTimeout(r, 50));
 
       await html2pdf()
         .set({
           margin: 10,
           filename: filename || defaultFilename,
           pagebreak: { mode: ['css', 'legacy'] },
-          html2canvas: { 
+          html2canvas: {
             scale: 2,
             useCORS: true,
             letterRendering: true,
             backgroundColor: '#ffffff',
-            logging: false
+            logging: false,
           },
-          jsPDF: { 
-            unit: 'mm', 
-            format: 'a4', 
-            orientation: 'portrait' 
-          }
+          jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait',
+          },
         } as any)
         .from(element)
         .save();
     } catch (error) {
       console.error('Error generating PDF:', error);
     } finally {
+      if (element) {
+        if (originalInlineStyle === null) element.removeAttribute('style');
+        else element.setAttribute('style', originalInlineStyle);
+      }
       setLoading(false);
     }
   };

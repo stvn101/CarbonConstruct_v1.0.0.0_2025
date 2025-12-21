@@ -186,7 +186,7 @@ const Reports = () => {
 
   const handleDownloadReport = async () => {
     const limitCheck = canPerformAction('reports_per_month');
-    
+
     if (!limitCheck.allowed) {
       setUpgradeModalOpen(true);
       return;
@@ -194,45 +194,69 @@ const Reports = () => {
 
     // Track the usage
     trackUsage({ metricType: 'reports_per_month' });
-    
-    // Generate and download the PDF
+
+    // Generate and download the PDF (use the same hidden PDF content rendered by <PDFReport />)
     const element = document.getElementById('pdf-report-content');
+
     if (element) {
       const html2pdf = (await import('html2pdf.js')).default;
-      html2pdf()
-        .set({
-          margin: 10,
-          filename: `${currentProject?.name || 'project'}-carbon-report.pdf`,
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        })
-        .from(element)
-        .save();
 
-      // Send report generated email
+      const originalInlineStyle = element.getAttribute('style');
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user?.email && reportData) {
-          await supabase.functions.invoke('send-email', {
-            body: {
-              type: 'report_generated',
-              to: user.email,
-              data: {
-                projectName: currentProject?.name || 'Project',
-                totalEmissions: reportData.emissions.total.toFixed(2),
-                scope1: reportData.emissions.scope1.toFixed(2),
-                scope2: reportData.emissions.scope2.toFixed(2),
-                scope3: reportData.emissions.scope3.toFixed(2),
-                complianceStatus: reportData.compliance.nccCompliant ? 'NCC Compliant' : 'Non-Compliant',
-                appUrl: window.location.origin
-              }
-            }
-          });
-        }
-      } catch (emailError) {
-        console.error('Failed to send report email:', emailError);
-        // Don't block report download if email fails
+        element.setAttribute(
+          'style',
+          `${originalInlineStyle || ''}; position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; background: #ffffff; background-color: #ffffff;`
+        );
+        await new Promise((r) => setTimeout(r, 50));
+
+        await html2pdf()
+          .set({
+            margin: 10,
+            filename: `${currentProject?.name || 'project'}-carbon-report.pdf`,
+            pagebreak: { mode: ['css', 'legacy'] },
+            html2canvas: {
+              scale: 2,
+              useCORS: true,
+              letterRendering: true,
+              backgroundColor: '#ffffff',
+              logging: false,
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          } as any)
+          .from(element)
+          .save();
+      } finally {
+        if (originalInlineStyle === null) element.removeAttribute('style');
+        else element.setAttribute('style', originalInlineStyle);
       }
+    }
+
+    // Send report generated email
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user?.email && reportData) {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'report_generated',
+            to: user.email,
+            data: {
+              projectName: currentProject?.name || 'Project',
+              totalEmissions: reportData.emissions.total.toFixed(2),
+              scope1: reportData.emissions.scope1.toFixed(2),
+              scope2: reportData.emissions.scope2.toFixed(2),
+              scope3: reportData.emissions.scope3.toFixed(2),
+              complianceStatus: reportData.compliance.nccCompliant ? 'NCC Compliant' : 'Non-Compliant',
+              appUrl: window.location.origin,
+            },
+          },
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send report email:', emailError);
+      // Don't block report download if email fails
     }
   };
 
