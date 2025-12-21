@@ -23,6 +23,15 @@ const escapeHtml = (str: string): string => {
 };
 
 // Input validation schemas
+// Outlier material schema for email
+const OutlierMaterialSchema = z.object({
+  material_name: z.string().max(300),
+  category: z.string().max(100),
+  ef_total: z.number(),
+  deviation: z.number(),
+  severity: z.string().max(20),
+});
+
 const EmailDataSchema = z.object({
   appUrl: z.string().url().max(500).optional(),
   tierName: z.string().max(50).optional(),
@@ -36,10 +45,19 @@ const EmailDataSchema = z.object({
   scope2: z.string().max(50).optional(),
   scope3: z.string().max(50).optional(),
   complianceStatus: z.string().max(100).optional(),
+  // Outlier alert specific fields
+  totalMaterials: z.number().int().optional(),
+  totalOutliers: z.number().int().optional(),
+  extremeHighCount: z.number().int().optional(),
+  extremeLowCount: z.number().int().optional(),
+  highCount: z.number().int().optional(),
+  lowCount: z.number().int().optional(),
+  criticalOutliers: z.array(OutlierMaterialSchema).max(10).optional(),
+  verificationTimestamp: z.string().max(50).optional(),
 }).passthrough();
 
 const EmailRequestSchema = z.object({
-  type: z.enum(['welcome', 'subscription_updated', 'subscription_cancelled', 'trial_ending', 'report_generated']),
+  type: z.enum(['welcome', 'subscription_updated', 'subscription_cancelled', 'trial_ending', 'report_generated', 'outlier_alert']),
   to: z.string().email().max(255),
   data: EmailDataSchema.optional(),
 });
@@ -228,6 +246,64 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
         `;
         break;
+
+      case 'outlier_alert': {
+        const criticalOutliers = data.criticalOutliers || [];
+        const extremeHighCount = data.extremeHighCount ?? 0;
+        const extremeLowCount = data.extremeLowCount ?? 0;
+        const totalCritical = extremeHighCount + extremeLowCount;
+        
+        subject = `⚠️ Critical Outliers Detected - ${totalCritical} Materials Require Review`;
+        html = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #dc2626;">⚠️ Critical Outliers Detected</h1>
+            <p>A material database verification run on <strong>${escapeHtml(data.verificationTimestamp || new Date().toISOString())}</strong> has detected critical outliers that require your attention.</p>
+            
+            <div style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <h3 style="margin: 0 0 10px 0; color: #dc2626;">Summary</h3>
+              <p><strong>Total Materials Checked:</strong> ${data.totalMaterials ?? 0}</p>
+              <p><strong>Total Outliers Found:</strong> ${data.totalOutliers ?? 0}</p>
+              <p style="color: #dc2626;"><strong>Extreme High (>3σ):</strong> ${extremeHighCount}</p>
+              <p style="color: #dc2626;"><strong>Extreme Low (<-3σ):</strong> ${extremeLowCount}</p>
+              <p><strong>High Outliers (>2σ):</strong> ${data.highCount ?? 0}</p>
+              <p><strong>Low Outliers (<-2σ):</strong> ${data.lowCount ?? 0}</p>
+            </div>
+            
+            ${criticalOutliers.length > 0 ? `
+              <div style="margin: 20px 0;">
+                <h3 style="color: #dc2626;">Critical Outliers (Top ${criticalOutliers.length})</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <thead>
+                    <tr style="background-color: #fef2f2; border-bottom: 2px solid #fecaca;">
+                      <th style="padding: 8px; text-align: left;">Material</th>
+                      <th style="padding: 8px; text-align: left;">Category</th>
+                      <th style="padding: 8px; text-align: right;">EF (kgCO₂e)</th>
+                      <th style="padding: 8px; text-align: right;">Deviation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${criticalOutliers.map((o: { material_name: string; category: string; ef_total: number; deviation: number }) => `
+                      <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <td style="padding: 8px;">${escapeHtml(o.material_name)}</td>
+                        <td style="padding: 8px;">${escapeHtml(o.category)}</td>
+                        <td style="padding: 8px; text-align: right;">${o.ef_total.toFixed(2)}</td>
+                        <td style="padding: 8px; text-align: right; color: ${o.deviation > 0 ? '#dc2626' : '#059669'};">${o.deviation > 0 ? '+' : ''}${o.deviation.toFixed(1)}σ</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            ` : ''}
+            
+            <p style="margin-top: 20px;">These materials have emission factors that deviate significantly from expected ranges. Please review them to ensure data accuracy.</p>
+            
+            <p><a href="${escapeHtml(data.appUrl || '')}/admin/material-verification" style="display: inline-block; padding: 10px 20px; background-color: #dc2626; color: white; text-decoration: none; border-radius: 5px;">Review Outliers Now</a></p>
+            
+            <p style="margin-top: 30px; color: #666;">Best regards,<br>The CarbonConstruct Team</p>
+          </div>
+        `;
+        break;
+      }
 
       default:
         throw new Error(`Unknown email type: ${type}`);

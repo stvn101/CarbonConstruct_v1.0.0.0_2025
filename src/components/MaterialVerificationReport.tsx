@@ -255,6 +255,77 @@ const MaterialVerificationReport = () => {
     }
   };
 
+  const sendOutlierAlertEmail = async (stats: MaterialsDatabaseStats) => {
+    const hasCriticalOutliers = stats.outliers.extremeHigh.length > 0 || stats.outliers.extremeLow.length > 0;
+    if (!hasCriticalOutliers) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        console.log('No user email available for outlier alert');
+        return;
+      }
+
+      // Calculate deviation from expected range for each outlier
+      const calculateDeviation = (outlier: OutlierMaterial): number => {
+        const midpoint = (outlier.expectedRange.max + outlier.expectedRange.min) / 2;
+        const range = outlier.expectedRange.max - outlier.expectedRange.min;
+        if (range === 0) return 0;
+        return ((outlier.efTotal - midpoint) / (range / 2)) * 3; // Approximate z-score
+      };
+
+      // Prepare critical outliers for email (top 5 from each extreme)
+      const criticalOutliers = [
+        ...stats.outliers.extremeHigh.slice(0, 5).map(o => ({
+          material_name: o.name,
+          category: o.category,
+          ef_total: o.efTotal,
+          deviation: calculateDeviation(o),
+          severity: 'extreme_high'
+        })),
+        ...stats.outliers.extremeLow.slice(0, 5).map(o => ({
+          material_name: o.name,
+          category: o.category,
+          ef_total: o.efTotal,
+          deviation: calculateDeviation(o),
+          severity: 'extreme_low'
+        })),
+      ];
+
+      const { error } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'outlier_alert',
+          to: user.email,
+          data: {
+            appUrl: window.location.origin,
+            totalMaterials: stats.totalMaterials,
+            totalOutliers: stats.outliers.totalCount,
+            extremeHighCount: stats.outliers.extremeHigh.length,
+            extremeLowCount: stats.outliers.extremeLow.length,
+            highCount: stats.outliers.high.length,
+            lowCount: stats.outliers.low.length,
+            criticalOutliers,
+            verificationTimestamp: new Date().toLocaleString('en-AU'),
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Alert Email Sent",
+        description: `Outlier alert sent to ${user.email}`,
+      });
+    } catch (error) {
+      console.error('Failed to send outlier alert email:', error);
+      toast({
+        title: "Email Failed",
+        description: "Could not send outlier alert email.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleRunVerification = async () => {
     const result = await refetch();
     setHasVerified(true);
@@ -263,6 +334,8 @@ const MaterialVerificationReport = () => {
     // Save to history if data available
     if (result.data) {
       await saveVerificationHistory(result.data);
+      // Send email alert if critical outliers detected
+      await sendOutlierAlertEmail(result.data);
     }
   };
 
