@@ -847,72 +847,163 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     setLoading(true);
     setRenderingPhase('rendering');
 
-    let element: HTMLElement | null = null;
-    let clone: HTMLElement | null = null;
-
     try {
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
       html2pdfRef.current = html2pdf;
-      element = document.getElementById(contentId);
+      const element = document.getElementById(contentId);
 
       if (!element) {
         console.error('PDF content element not found');
+        toast.error('PDF content not found. Please try again.');
         setRenderingPhase('idle');
+        setLoading(false);
         return;
       }
 
-      // Clone the report node and render the clone in the real viewport.
-      // This avoids React re-applying styles mid-capture and avoids html2canvas "off-screen" blank renders.
-      clone = element.cloneNode(true) as HTMLElement;
-      clone.id = `${contentId}-capture-${Date.now()}`;
-      clone.setAttribute(
-        'style',
-        'position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; max-width: 210mm; background: #ffffff; background-color: #ffffff; padding: 40px; overflow: visible; opacity: 1; visibility: visible; pointer-events: none;'
-      );
-      document.body.appendChild(clone);
+      // Wait for all fonts to load before capture
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
 
-      // Extended wait for browser to fully paint the cloned content (500ms minimum)
+      // Wait for browser to complete any pending renders
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            setTimeout(() => resolve(), 500);
+            setTimeout(() => resolve(), 300);
           });
         });
       });
 
       setRenderingPhase('capturing');
 
-      // Additional wait for capturing phase
-      await new Promise<void>((resolve) => setTimeout(resolve, 300));
+      // Additional stabilization wait
+      await new Promise<void>((resolve) => setTimeout(resolve, 200));
 
       setRenderingPhase('saving');
 
+      const pdfOptions = {
+        margin: 10,
+        filename: filename || defaultFilename,
+        pagebreak: { mode: ['css', 'legacy'] },
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          letterRendering: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          scrollX: 0,
+          scrollY: 0,
+          // CRITICAL: onclone callback forces explicit inline styles on all elements
+          onclone: (_clonedDoc: Document, clonedElement: HTMLElement) => {
+            // Force the root element to have explicit styles
+            clonedElement.style.cssText = `
+              position: static !important;
+              left: auto !important;
+              top: auto !important;
+              opacity: 1 !important;
+              visibility: visible !important;
+              pointer-events: auto !important;
+              z-index: auto !important;
+              background-color: #ffffff !important;
+              color: #333333 !important;
+              padding: 40px !important;
+              width: 210mm !important;
+              max-width: 210mm !important;
+              font-family: Helvetica, Arial, sans-serif !important;
+              line-height: 1.4 !important;
+            `;
+
+            // Force all descendant elements to have explicit computed styles
+            const allElements = clonedElement.querySelectorAll('*');
+            allElements.forEach((el) => {
+              const htmlEl = el as HTMLElement;
+              try {
+                const computed = window.getComputedStyle(htmlEl);
+                
+                // Force critical layout and color properties inline
+                htmlEl.style.backgroundColor = computed.backgroundColor || 'transparent';
+                htmlEl.style.color = computed.color || '#333333';
+                htmlEl.style.fontSize = computed.fontSize || '12px';
+                htmlEl.style.fontWeight = computed.fontWeight || 'normal';
+                htmlEl.style.fontFamily = computed.fontFamily || 'Helvetica, Arial, sans-serif';
+                htmlEl.style.lineHeight = computed.lineHeight || '1.4';
+                
+                // Force layout properties for flex/grid
+                const display = computed.display;
+                if (display === 'flex' || display === 'inline-flex') {
+                  htmlEl.style.display = display;
+                  htmlEl.style.flexDirection = computed.flexDirection;
+                  htmlEl.style.justifyContent = computed.justifyContent;
+                  htmlEl.style.alignItems = computed.alignItems;
+                  htmlEl.style.gap = computed.gap;
+                }
+                if (display === 'grid' || display === 'inline-grid') {
+                  htmlEl.style.display = display;
+                  htmlEl.style.gridTemplateColumns = computed.gridTemplateColumns;
+                  htmlEl.style.gap = computed.gap;
+                }
+                
+                // Force box model properties
+                htmlEl.style.padding = computed.padding;
+                htmlEl.style.margin = computed.margin;
+                htmlEl.style.border = computed.border;
+                htmlEl.style.borderRadius = computed.borderRadius;
+                
+                // Force text alignment
+                htmlEl.style.textAlign = computed.textAlign;
+                
+              } catch (e) {
+                // Ignore errors for elements that don't support getComputedStyle
+              }
+            });
+
+            // Ensure tables have explicit styling
+            const tables = clonedElement.querySelectorAll('table');
+            tables.forEach((table) => {
+              (table as HTMLElement).style.width = '100%';
+              (table as HTMLElement).style.borderCollapse = 'collapse';
+              (table as HTMLElement).style.backgroundColor = '#ffffff';
+            });
+
+            const cells = clonedElement.querySelectorAll('th, td');
+            cells.forEach((cell) => {
+              const htmlCell = cell as HTMLElement;
+              htmlCell.style.border = '1px solid #ddd';
+              htmlCell.style.padding = '8px';
+              htmlCell.style.textAlign = 'left';
+              htmlCell.style.backgroundColor = htmlCell.style.backgroundColor || '#ffffff';
+            });
+
+            const headers = clonedElement.querySelectorAll('th');
+            headers.forEach((header) => {
+              (header as HTMLElement).style.backgroundColor = '#f5f5f5';
+              (header as HTMLElement).style.fontWeight = 'bold';
+            });
+          },
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait',
+        },
+      };
+
+      // Use the explicit workflow for better reliability
       await html2pdf()
-        .set({
-          margin: 10,
-          filename: filename || defaultFilename,
-          pagebreak: { mode: ['css', 'legacy'] },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            letterRendering: true,
-            backgroundColor: '#ffffff',
-            logging: false,
-            windowWidth: clone.scrollWidth,
-            windowHeight: clone.scrollHeight,
-          },
-          jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait',
-          },
-        } as any)
-        .from(clone)
+        .set(pdfOptions)
+        .from(element)
+        .toContainer()
+        .toCanvas()
+        .toPdf()
         .save();
+
+      toast.success('PDF downloaded successfully');
     } catch (error) {
       console.error('Error generating PDF:', error);
+      toast.error('Failed to generate PDF. Please try again.');
     } finally {
-      if (clone?.parentNode) clone.parentNode.removeChild(clone);
       setLoading(false);
       setRenderingPhase('idle');
     }
