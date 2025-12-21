@@ -924,7 +924,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
             scope2: data.emissions.scope2.toFixed(2),
             scope3: data.emissions.scope3.toFixed(2),
             complianceStatus: data.compliance.nccCompliant ? 'NCC Compliant' : 'Non-Compliant',
-            appUrl: window.location.origin,
+            appUrl: 'https://carbonconstruct.com.au',
           },
         },
       });

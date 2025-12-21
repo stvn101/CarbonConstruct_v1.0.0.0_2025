@@ -101,7 +101,7 @@ const Auth = () => {
             type: 'welcome',
             to: email,
             data: {
-              appUrl: window.location.origin
+              appUrl: 'https://carbonconstruct.com.au'
             }
           }
         });

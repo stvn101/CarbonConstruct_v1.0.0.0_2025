@@ -300,7 +300,7 @@ const MaterialVerificationReport = () => {
           type: 'outlier_alert',
           to: user.email,
           data: {
-            appUrl: window.location.origin,
+            appUrl: 'https://carbonconstruct.com.au',
             totalMaterials: stats.totalMaterials,
             totalOutliers: stats.outliers.totalCount,
             extremeHighCount: stats.outliers.extremeHigh.length,
