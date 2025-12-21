@@ -872,12 +872,13 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
       html2pdfRef.current = html2pdf;
 
-      // CRITICAL: Make element visible BEFORE capture (off-screen but renderable)
-      element.style.position = 'absolute';
-      element.style.left = '-9999px';
+      // CRITICAL: Make element visible BEFORE capture (in-viewport, but behind UI)
+      // Some browsers/canvas implementations produce blank renders for far off-screen content.
+      element.style.position = 'fixed';
+      element.style.left = '0';
       element.style.top = '0';
       element.style.opacity = '1';
-      element.style.zIndex = '1';
+      element.style.zIndex = '-1';
       element.style.pointerEvents = 'none';
       element.style.width = '210mm';
 
