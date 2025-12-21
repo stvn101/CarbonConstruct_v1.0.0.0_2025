@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -62,6 +62,14 @@ const DEFAULT_BRANDING: ReportBranding = {
   logoUrl: '/logo-optimized.webp',
 };
 
+const toSafeFilename = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
 const Reports = () => {
   const { currentProject } = useProject();
   const reportData = useReportData();
@@ -70,6 +78,23 @@ const Reports = () => {
   const { currentTier, userSubscription } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate>('technical');
+
+  const html2pdfRef = useRef<any>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    import('html2pdf.js')
+      .then((m) => {
+        if (!cancelled) html2pdfRef.current = m.default;
+      })
+      .catch(() => {
+        // ignore - will lazy load on click
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   
   // Load whole life totals from localStorage
   const wholeLifeTotals = useMemo(() => {
@@ -199,7 +224,11 @@ const Reports = () => {
     const element = document.getElementById('pdf-report-content');
 
     if (element) {
-      const html2pdf = (await import('html2pdf.js')).default;
+      const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
+      html2pdfRef.current = html2pdf;
+
+      const safeProjectName = toSafeFilename(currentProject?.name || 'project');
+      const outputFilename = `${safeProjectName || 'project'}-carbon-report.pdf`;
 
       const originalInlineStyle = element.getAttribute('style');
       try {
@@ -207,12 +236,11 @@ const Reports = () => {
           'style',
           `${originalInlineStyle || ''}; position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; background: #ffffff; background-color: #ffffff;`
         );
-        await new Promise((r) => setTimeout(r, 50));
 
         await html2pdf()
           .set({
             margin: 10,
-            filename: `${currentProject?.name || 'project'}-carbon-report.pdf`,
+            filename: outputFilename,
             pagebreak: { mode: ['css', 'legacy'] },
             html2canvas: {
               scale: 2,
