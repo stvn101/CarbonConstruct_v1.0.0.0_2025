@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { Decimal } from "https://esm.sh/decimal.js@10.4.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,22 @@ const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
+
+/**
+ * Calculate GST from total amount using decimal.js for precision
+ * Australian GST is 10% - GST = Total / 11
+ */
+function calculateGST(totalAmountCents: number): { grossCents: number; gstCents: number; netCents: number } {
+  const gross = new Decimal(totalAmountCents);
+  const gst = gross.dividedBy(11).round(); // GST = Total / 11, rounded to nearest cent
+  const net = gross.minus(gst);
+  
+  return {
+    grossCents: gross.toNumber(),
+    gstCents: gst.toNumber(),
+    netCents: net.toNumber(),
+  };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -68,7 +85,7 @@ serve(async (req) => {
         break;
 
       case "invoice.payment_succeeded":
-        await handlePaymentSucceeded(event.data.object as Stripe.Invoice, supabaseClient);
+        await handlePaymentSucceeded(event.data.object as Stripe.Invoice, supabaseClient, stripe);
         break;
 
       case "invoice.payment_failed":
@@ -266,7 +283,8 @@ async function handleSubscriptionDeleted(
 
 async function handlePaymentSucceeded(
   invoice: Stripe.Invoice,
-  supabaseClient: any
+  supabaseClient: any,
+  stripe: Stripe
 ) {
   logStep("Handling payment succeeded", { invoiceId: invoice.id });
 
@@ -275,6 +293,94 @@ async function handlePaymentSucceeded(
       logStep("Invoice not associated with subscription");
       return;
     }
+
+    // Extract tax information with precision arithmetic
+    const totalAmountCents = invoice.amount_paid || 0;
+    const stripeTaxCents = invoice.tax || 0;
+    const currency = invoice.currency?.toUpperCase() || 'AUD';
+    
+    // Calculate GST using decimal.js for precision
+    // If Stripe provides tax, use it; otherwise calculate Australian GST (10%)
+    let gstData;
+    if (stripeTaxCents > 0) {
+      gstData = {
+        grossCents: totalAmountCents,
+        gstCents: stripeTaxCents,
+        netCents: totalAmountCents - stripeTaxCents,
+      };
+    } else if (currency === 'AUD') {
+      // Calculate Australian GST (Total includes GST, so GST = Total / 11)
+      gstData = calculateGST(totalAmountCents);
+    } else {
+      // No tax for non-AUD currencies without Stripe tax
+      gstData = {
+        grossCents: totalAmountCents,
+        gstCents: 0,
+        netCents: totalAmountCents,
+      };
+    }
+
+    logStep("Tax calculation completed", {
+      invoiceId: invoice.id,
+      currency,
+      grossCents: gstData.grossCents,
+      gstCents: gstData.gstCents,
+      netCents: gstData.netCents,
+      grossAUD: (gstData.grossCents / 100).toFixed(2),
+      gstAUD: (gstData.gstCents / 100).toFixed(2),
+      netAUD: (gstData.netCents / 100).toFixed(2),
+    });
+
+    // Get customer information
+    const customerId = invoice.customer as string;
+    const customer = await stripe.customers.retrieve(customerId);
+    
+    let userId: string | null = null;
+    if (customer && !customer.deleted && customer.email) {
+      const { data: users } = await supabaseClient.auth.admin.listUsers();
+      const user = users?.users?.find((u: any) => u.email === customer.email);
+      userId = user?.id || null;
+    }
+
+    // Prepare tax record for payment_tax_records table
+    // Note: This prepares the data - table must exist via migration
+    const taxRecord = {
+      invoice_id: invoice.id,
+      stripe_invoice_id: invoice.id,
+      stripe_customer_id: customerId,
+      user_id: userId,
+      gross_amount_cents: gstData.grossCents,
+      gst_amount_cents: gstData.gstCents,
+      net_amount_cents: gstData.netCents,
+      currency: currency,
+      invoice_date: invoice.created ? new Date(invoice.created * 1000).toISOString() : new Date().toISOString(),
+      stripe_tax_amount_cents: stripeTaxCents,
+      calculated_gst: stripeTaxCents === 0 && currency === 'AUD',
+    };
+
+    // Log the tax record for audit purposes
+    logStep("GST Record prepared for ATO compliance", {
+      invoiceId: invoice.id,
+      totalIncGST: `$${(gstData.grossCents / 100).toFixed(2)}`,
+      gstComponent: `$${(gstData.gstCents / 100).toFixed(2)}`,
+      netExGST: `$${(gstData.netCents / 100).toFixed(2)}`,
+      userId: userId || 'unknown',
+    });
+
+    // TODO: Insert into payment_tax_records table when migration is applied
+    // Uncomment the following when the table exists:
+    /*
+    const { error: taxError } = await supabaseClient
+      .from('payment_tax_records')
+      .insert(taxRecord);
+    
+    if (taxError) {
+      logStep("Warning: Failed to insert tax record", { error: taxError.message });
+      // Don't throw - subscription update should still proceed
+    } else {
+      logStep("Tax record inserted successfully");
+    }
+    */
 
     // Update subscription status to active
     const { error } = await supabaseClient
