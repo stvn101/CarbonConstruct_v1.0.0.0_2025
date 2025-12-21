@@ -736,7 +736,12 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
             )}
           </div>
           {branding?.logoUrl && (
-            <img src={branding.logoUrl} alt="Logo" className="pdf-logo" crossOrigin="anonymous" />
+            <img
+              src={branding.logoUrl}
+              alt={`${branding?.companyName || 'CarbonConstruct'} logo`}
+              className="pdf-logo"
+              crossOrigin="anonymous"
+            />
           )}
         </div>
         <h1 className="pdf-title">{getReportTitle()}</h1>
