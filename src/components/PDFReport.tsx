@@ -257,7 +257,7 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
               </tr>
             </thead>
             <tbody>
-              {data.breakdown.materials.slice(0, 10).map((m, i) => (
+              {data.breakdown.materials.map((m, i) => (
                 <tr key={i}>
                   <td>{m.name}</td>
                   <td>{m.category}</td>
@@ -663,7 +663,7 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
             </tr>
           </thead>
           <tbody>
-            {epdExpiryAlerts.slice(0, 15).map((alert, idx) => {
+            {epdExpiryAlerts.map((alert, idx) => {
               const statusStyle = getStatusStyle(alert.status);
               return (
                 <tr key={idx}>
@@ -686,13 +686,6 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
             })}
           </tbody>
         </table>
-
-        {epdExpiryAlerts.length > 15 && (
-          <p style={{ fontSize: '9px', color: '#666', marginTop: '8px', fontStyle: 'italic' }}>
-            Showing first 15 of {epdExpiryAlerts.length} alerts. See full procurement export for complete list.
-          </p>
-        )}
-
         <p style={{ fontSize: '9px', color: '#666', marginTop: '12px' }}>
           EPD certifications should be renewed before expiry to maintain compliance with EN 15804+A2 and Green Star requirements.
           Contact your material suppliers or the EPD program operator to obtain updated certifications.
@@ -833,6 +826,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         .set({
           margin: 10,
           filename: filename || defaultFilename,
+          pagebreak: { mode: ['css', 'legacy'] },
           html2canvas: { 
             scale: 2,
             useCORS: true,
@@ -845,7 +839,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
             format: 'a4', 
             orientation: 'portrait' 
           }
-        })
+        } as any)
         .from(element)
         .save();
     } catch (error) {

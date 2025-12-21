@@ -249,7 +249,13 @@
   border-collapse: collapse;
   font-size: 10px;
   margin-top: 10px;
+  page-break-inside: auto;
 }
+
+/* Improve pagination for multi-page PDF tables */
+.pdf-table thead { display: table-header-group; }
+.pdf-table tfoot { display: table-footer-group; }
+.pdf-table tr { page-break-inside: avoid; page-break-after: auto; }
 
 .pdf-table th,
 .pdf-table td {
