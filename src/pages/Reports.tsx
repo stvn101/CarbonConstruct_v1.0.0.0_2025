@@ -220,7 +220,7 @@ const Reports = () => {
     // Track the usage
     trackUsage({ metricType: 'reports_per_month' });
 
-    // Generate and download the PDF (use the same hidden PDF content rendered by <PDFReport />)
+    // Generate and download the PDF (use the same report content rendered by <PDFReport />)
     const element = document.getElementById('pdf-report-content');
 
     if (element) {
@@ -230,21 +230,19 @@ const Reports = () => {
       const safeProjectName = toSafeFilename(currentProject?.name || 'project');
       const outputFilename = `${safeProjectName || 'project'}-carbon-report.pdf`;
 
-      // Make visible for capture
-      const originalOpacity = element.style.opacity;
-      const originalPointerEvents = element.style.pointerEvents;
-      const originalZIndex = element.style.zIndex;
+      let clone: HTMLElement | null = null;
 
       try {
-        element.style.opacity = '1';
-        element.style.pointerEvents = 'auto';
-        element.style.zIndex = '9999';
+        clone = element.cloneNode(true) as HTMLElement;
+        clone.id = `pdf-report-content-capture-${Date.now()}`;
+        clone.setAttribute(
+          'style',
+          'position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; max-width: 210mm; background: #ffffff; background-color: #ffffff; padding: 40px; overflow: visible; opacity: 1; visibility: visible; pointer-events: none;'
+        );
+        document.body.appendChild(clone);
 
-        // Wait for browser to paint
         await new Promise<void>((resolve) => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => resolve());
-          });
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
         });
 
         await html2pdf()
@@ -258,16 +256,15 @@ const Reports = () => {
               letterRendering: true,
               backgroundColor: '#ffffff',
               logging: false,
+              windowWidth: clone.scrollWidth,
+              windowHeight: clone.scrollHeight,
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           } as any)
-          .from(element)
+          .from(clone)
           .save();
       } finally {
-        // Restore hidden state
-        element.style.opacity = originalOpacity || '0';
-        element.style.pointerEvents = originalPointerEvents || 'none';
-        element.style.zIndex = originalZIndex || '-9999';
+        if (clone?.parentNode) clone.parentNode.removeChild(clone);
       }
     }
 
