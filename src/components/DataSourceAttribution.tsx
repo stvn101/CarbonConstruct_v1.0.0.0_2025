@@ -27,7 +27,7 @@ const DATA_SOURCES: Record<DataSourceType, DataSourceConfig> = {
     fullName: "Inventory of Carbon & Energy",
     version: "V4.1 - Oct 2025",
     url: "https://circularecology.com/ice-database.html",
-    logoUrl: "/logos/circular-ecology-logo.svg",
+    logoUrl: "/logos/circular-ecology-logo.png",
     description: "ICE Database by Circular Ecology - the leading UK embodied carbon database",
     expiryDate: "30 June 2026",
     maxUsers: 10000,
