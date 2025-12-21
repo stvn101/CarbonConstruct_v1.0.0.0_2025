@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings as SettingsIcon, Save, Check, Lock, Shield, Cookie, RotateCcw } from "lucide-react";
+import { Settings as SettingsIcon, Save, Check, Lock, Shield, Cookie, RotateCcw, Receipt } from "lucide-react";
 import { UsageDisplay } from "@/components/UsageDisplay";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 import { CookieSettings } from "@/components/CookieSettings";
@@ -10,6 +10,7 @@ import { EPDReminderSettings } from "@/components/calculator/EPDReminderSettings
 import { SupplierContactManager } from "@/components/calculator/SupplierContactManager";
 import { EPDRenewalWorkflowTracker } from "@/components/calculator/EPDRenewalWorkflowTracker";
 import { EPDRegistryChecker } from "@/components/calculator/EPDRegistryChecker";
+import { TaxInvoiceList } from "@/components/AustralianTaxInvoice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -188,6 +189,22 @@ const Settings = () => {
             </CardHeader>
             <CardContent>
               <ManageSubscriptionButton />
+            </CardContent>
+          </Card>
+          
+          {/* Tax Invoices - ATO Compliant */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Receipt className="h-5 w-5" />
+                Tax Invoices
+              </CardTitle>
+              <CardDescription>
+                View and download your ATO-compliant tax invoices with GST breakdown
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TaxInvoiceList />
             </CardContent>
           </Card>
           
