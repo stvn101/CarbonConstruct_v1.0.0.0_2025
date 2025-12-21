@@ -815,6 +815,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
   const [loading, setLoading] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [renderingPhase, setRenderingPhase] = useState<'idle' | 'rendering' | 'capturing' | 'saving'>('idle');
   const html2pdfRef = useRef<any>(null);
 
   useEffect(() => {
@@ -844,6 +845,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
 
   const handleDownload = async () => {
     setLoading(true);
+    setRenderingPhase('rendering');
 
     let element: HTMLElement | null = null;
     let clone: HTMLElement | null = null;
@@ -855,6 +857,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
 
       if (!element) {
         console.error('PDF content element not found');
+        setRenderingPhase('idle');
         return;
       }
 
@@ -868,10 +871,21 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       );
       document.body.appendChild(clone);
 
-      // Wait for browser to paint the cloned content
+      // Extended wait for browser to fully paint the cloned content (500ms minimum)
       await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setTimeout(() => resolve(), 500);
+          });
+        });
       });
+
+      setRenderingPhase('capturing');
+
+      // Additional wait for capturing phase
+      await new Promise<void>((resolve) => setTimeout(resolve, 300));
+
+      setRenderingPhase('saving');
 
       await html2pdf()
         .set({
@@ -900,6 +914,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     } finally {
       if (clone?.parentNode) clone.parentNode.removeChild(clone);
       setLoading(false);
+      setRenderingPhase('idle');
     }
   };
 
@@ -959,7 +974,10 @@ export const PDFReport: React.FC<PDFReportProps> = ({
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Generating...
+              {renderingPhase === 'rendering' && 'Rendering...'}
+              {renderingPhase === 'capturing' && 'Capturing...'}
+              {renderingPhase === 'saving' && 'Saving PDF...'}
+              {renderingPhase === 'idle' && 'Generating...'}
             </>
           ) : (
             <>
