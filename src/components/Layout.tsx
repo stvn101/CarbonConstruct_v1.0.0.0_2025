@@ -6,8 +6,8 @@ import { Footer } from "@/components/Footer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { useLocation } from "react-router-dom";
-import { Play } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Play, LogIn, UserPlus } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,10 +16,14 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Check if on a Tools section page (but NOT on demo page - it has its own Book a Demo)
   const toolsPages = ['/settings', '/pricing', '/impact', '/roadmap', '/help'];
   const isToolsPage = toolsPages.some(page => location.pathname.startsWith(page));
+  
+  // Check if on landing page (root path) and user is not logged in
+  const isLandingPage = location.pathname === '/' && !user;
 
   return (
     <>
@@ -67,6 +71,28 @@ export function Layout({ children }: LayoutProps) {
               >
                 Australian NCC Compliant • Green Star Ready
               </div>
+              {/* Sign In / Sign Up buttons only on landing page */}
+              {isLandingPage && (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => navigate('/auth')}
+                    className="hidden sm:flex items-center gap-1.5"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    Sign In
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => navigate('/auth')}
+                    className="hidden sm:flex items-center gap-1.5 bg-primary hover:bg-primary/90"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Sign Up
+                  </Button>
+                </>
+              )}
               <ThemeToggle />
             </div>
           </header>
