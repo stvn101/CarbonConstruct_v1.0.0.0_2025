@@ -259,15 +259,42 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run npm audit
+      - name: Run npm audit (BLOCKING - Critical vulnerabilities fail build)
+        run: npm audit --audit-level=critical
+
+      - name: Run npm audit (WARNING - High vulnerabilities logged)
         run: npm audit --audit-level=high
         continue-on-error: true
 
-      - name: Check for secrets
+      - name: Check for secrets (BLOCKING - Verified secrets fail build)
         uses: trufflesecurity/trufflehog@main
         with:
           extra_args: --only-verified
-        continue-on-error: true
+
+  codeql:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
 
   bundle-analysis:
     name: Bundle Analysis

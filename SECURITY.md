@@ -121,9 +121,35 @@ CarbonConstruct adheres to the following standards and regulations:
 ### Australian Regulations
 
 - **Privacy Act 1988 (Cth)**: Full compliance with Australian Privacy Principles (APPs)
+- **Notifiable Data Breaches (NDB) Scheme**: Mandatory breach notification procedures
+- **Cyber Security Act 2024**: 72-hour ransomware reporting compliance
 - **Australian Consumer Law**: Consumer protection compliance
+- **Australian Taxation Office (ATO)**: GST compliance with 5-year record retention
 - **National Construction Code (NCC) 2024**: Emission factor compliance
 - **Section J Energy Efficiency**: Supporting calculations compliance
+
+### EU GDPR Compliance (for EU Users)
+
+- **Articles 12-22**: Full data subject rights implementation
+- **Article 25**: Privacy by design and default
+- **Article 32**: Technical and organisational security measures
+- **Article 33**: 72-hour breach notification to supervisory authority
+- **Standard Contractual Clauses**: Cross-border transfer mechanisms
+
+### ACSC Essential Eight Alignment
+
+CarbonConstruct implements the Australian Cyber Security Centre's Essential Eight mitigation strategies:
+
+| Strategy | Implementation | Maturity Level |
+|----------|---------------|----------------|
+| **Application Control** | npm audit gates block unauthorized packages | Level 2 |
+| **Patch Applications** | Automated dependency updates via Dependabot | Level 2 |
+| **Configure MS Office Macros** | N/A - Web application | N/A |
+| **User Application Hardening** | CSP headers, XSS prevention | Level 2 |
+| **Restrict Admin Privileges** | RBAC via has_role(), separate admin policies | Level 2 |
+| **Patch Operating Systems** | Managed by Supabase/Lovable infrastructure | Level 2 |
+| **Multi-Factor Authentication** | Google OAuth with MFA support | Level 2 |
+| **Regular Backups** | Automated Supabase backups, user data export | Level 2 |
 
 ### Industry Standards
 
@@ -132,6 +158,12 @@ CarbonConstruct adheres to the following standards and regulations:
 - **ISO 14064**: GHG accounting standards compliance
 - **Green Building Council of Australia (GBCA)**: Green Star methodology support
 - **NABERS**: Energy rating calculation standards
+
+### Data Sovereignty
+
+- **Primary Data Location**: Sydney, Australia (ap-southeast-2)
+- **Cross-Border Transfers**: SCCs in place for Stripe, Resend
+- **Documentation**: See [DATA_SOVEREIGNTY.md](./DATA_SOVEREIGNTY.md)
 
 ---
 

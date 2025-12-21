@@ -721,6 +721,60 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_tax_records: {
+        Row: {
+          created_at: string
+          currency: string
+          gross_amount_cents: number
+          gst_amount_cents: number
+          id: string
+          invoice_date: string
+          metadata: Json | null
+          net_amount_cents: number
+          payment_status: string
+          stripe_customer_id: string | null
+          stripe_invoice_id: string
+          stripe_payment_intent_id: string | null
+          subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          gross_amount_cents: number
+          gst_amount_cents: number
+          id?: string
+          invoice_date?: string
+          metadata?: Json | null
+          net_amount_cents: number
+          payment_status?: string
+          stripe_customer_id?: string | null
+          stripe_invoice_id: string
+          stripe_payment_intent_id?: string | null
+          subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          gross_amount_cents?: number
+          gst_amount_cents?: number
+          id?: string
+          invoice_date?: string
+          metadata?: Json | null
+          net_amount_cents?: number
+          payment_status?: string
+          stripe_customer_id?: string | null
+          stripe_invoice_id?: string
+          stripe_payment_intent_id?: string | null
+          subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       performance_metrics: {
         Row: {
           created_at: string
@@ -1323,7 +1377,10 @@ export type Database = {
         Row: {
           account_status: string
           analytics_enabled: boolean | null
+          consent_timestamp: string | null
+          consent_version: string | null
           cookie_consent: string | null
+          cookie_preferences: Json | null
           created_at: string | null
           deletion_scheduled_at: string | null
           deletion_token: string | null
@@ -1337,7 +1394,10 @@ export type Database = {
         Insert: {
           account_status?: string
           analytics_enabled?: boolean | null
+          consent_timestamp?: string | null
+          consent_version?: string | null
           cookie_consent?: string | null
+          cookie_preferences?: Json | null
           created_at?: string | null
           deletion_scheduled_at?: string | null
           deletion_token?: string | null
@@ -1351,7 +1411,10 @@ export type Database = {
         Update: {
           account_status?: string
           analytics_enabled?: boolean | null
+          consent_timestamp?: string | null
+          consent_version?: string | null
           cookie_consent?: string | null
+          cookie_preferences?: Json | null
           created_at?: string | null
           deletion_scheduled_at?: string | null
           deletion_token?: string | null
