@@ -1,6 +1,8 @@
 import React, { useState, useId } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileDown, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { FileDown, Loader2, Eye } from 'lucide-react';
 import { ReportData } from './ReportData';
 import { ReportTemplate } from '@/pages/Reports';
 import { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
@@ -803,6 +805,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
   epdExpiryAlerts = []
 }) => {
   const [loading, setLoading] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const contentId = useId().replace(/:/g, '-') + '-pdf-content';
   const defaultFilename = `carbon-report-${data.project.name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
 
@@ -854,19 +857,59 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         ecoComplianceReport={ecoComplianceReport}
         epdExpiryAlerts={epdExpiryAlerts}
       />
-      <Button onClick={handleDownload} disabled={loading} className="w-full">
-        {loading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Generating PDF...
-          </>
-        ) : (
-          <>
-            <FileDown className="mr-2 h-4 w-4" />
-            Download PDF Report
-          </>
-        )}
-      </Button>
+      <div className="flex gap-2">
+        <Button onClick={() => setIsPreviewOpen(true)} variant="outline" className="gap-2">
+          <Eye className="h-4 w-4" />
+          Preview
+        </Button>
+        <Button onClick={handleDownload} disabled={loading} className="gap-2">
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <FileDown className="h-4 w-4" />
+              Download PDF
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* PDF Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Report Preview
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1 border rounded-lg bg-white dark:bg-background">
+            <div className="p-4">
+              <PDFReportContent 
+                data={data} 
+                template={template} 
+                branding={branding} 
+                showWatermark={showWatermark}
+                contentId={`${contentId}-preview`}
+                ecoComplianceReport={ecoComplianceReport}
+                epdExpiryAlerts={epdExpiryAlerts}
+              />
+            </div>
+          </ScrollArea>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={() => { setIsPreviewOpen(false); handleDownload(); }} disabled={loading} className="gap-2">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+              Download PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
