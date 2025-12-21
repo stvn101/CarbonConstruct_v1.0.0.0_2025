@@ -841,9 +841,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     setLoading(true);
 
     let element: HTMLElement | null = null;
-    let originalOpacity = '';
-    let originalPointerEvents = '';
-    let originalZIndex = '';
+    let clone: HTMLElement | null = null;
 
     try {
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
@@ -855,19 +853,19 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         return;
       }
 
-      // Make visible for capture
-      originalOpacity = element.style.opacity;
-      originalPointerEvents = element.style.pointerEvents;
-      originalZIndex = element.style.zIndex;
-      element.style.opacity = '1';
-      element.style.pointerEvents = 'auto';
-      element.style.zIndex = '9999';
+      // Clone the report node and render the clone in the real viewport.
+      // This avoids React re-applying styles mid-capture and avoids html2canvas "off-screen" blank renders.
+      clone = element.cloneNode(true) as HTMLElement;
+      clone.id = `${contentId}-capture-${Date.now()}`;
+      clone.setAttribute(
+        'style',
+        'position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; max-width: 210mm; background: #ffffff; background-color: #ffffff; padding: 40px; overflow: visible; opacity: 1; visibility: visible; pointer-events: none;'
+      );
+      document.body.appendChild(clone);
 
-      // Wait for browser to paint
+      // Wait for browser to paint the cloned content
       await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => resolve());
-        });
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
       });
 
       await html2pdf()
@@ -881,6 +879,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({
             letterRendering: true,
             backgroundColor: '#ffffff',
             logging: false,
+            windowWidth: clone.scrollWidth,
+            windowHeight: clone.scrollHeight,
           },
           jsPDF: {
             unit: 'mm',
@@ -888,17 +888,12 @@ export const PDFReport: React.FC<PDFReportProps> = ({
             orientation: 'portrait',
           },
         } as any)
-        .from(element)
+        .from(clone)
         .save();
     } catch (error) {
       console.error('Error generating PDF:', error);
     } finally {
-      // Restore hidden state
-      if (element) {
-        element.style.opacity = originalOpacity || '0';
-        element.style.pointerEvents = originalPointerEvents || 'none';
-        element.style.zIndex = originalZIndex || '-9999';
-      }
+      if (clone?.parentNode) clone.parentNode.removeChild(clone);
       setLoading(false);
     }
   };
