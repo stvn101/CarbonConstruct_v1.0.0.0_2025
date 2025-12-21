@@ -699,25 +699,22 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
       id={contentId}
       className="pdf-report-content"
       data-theme="light"
-      style={forPreview ? {
+      style={{
+        position: forPreview ? 'static' : 'fixed',
+        left: forPreview ? 'auto' : 0,
+        top: forPreview ? 'auto' : 0,
+        width: forPreview ? '100%' : '210mm',
+        height: forPreview ? 'auto' : 'auto',
+        opacity: forPreview ? 1 : 0,
+        pointerEvents: forPreview ? 'auto' : 'none',
+        zIndex: forPreview ? 'auto' : -9999,
         background: '#ffffff',
         backgroundColor: '#ffffff',
         padding: '40px',
         fontFamily: 'Helvetica, Arial, sans-serif',
         color: '#333333',
         colorScheme: 'light'
-      } : { 
-        position: 'absolute',
-        left: '-9999px',
-        top: 0,
-        width: '210mm',
-        background: '#ffffff',
-        backgroundColor: '#ffffff',
-        padding: '40px',
-        fontFamily: 'Helvetica, Arial, sans-serif',
-        color: '#333333',
-        colorScheme: 'light'
-      }}
+      } as React.CSSProperties}
     >
       {/* Watermark */}
       {showWatermark && (
@@ -844,6 +841,9 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     setLoading(true);
 
     let element: HTMLElement | null = null;
+    let originalOpacity = '';
+    let originalPointerEvents = '';
+    let originalZIndex = '';
 
     try {
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
@@ -854,6 +854,21 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         console.error('PDF content element not found');
         return;
       }
+
+      // Make visible for capture
+      originalOpacity = element.style.opacity;
+      originalPointerEvents = element.style.pointerEvents;
+      originalZIndex = element.style.zIndex;
+      element.style.opacity = '1';
+      element.style.pointerEvents = 'auto';
+      element.style.zIndex = '9999';
+
+      // Wait for browser to paint
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => resolve());
+        });
+      });
 
       await html2pdf()
         .set({
@@ -866,19 +881,6 @@ export const PDFReport: React.FC<PDFReportProps> = ({
             letterRendering: true,
             backgroundColor: '#ffffff',
             logging: false,
-            onclone: (clonedDoc: Document) => {
-              const clonedEl = clonedDoc.getElementById(contentId) as HTMLElement | null;
-              if (!clonedEl) return;
-              clonedEl.style.position = 'fixed';
-              clonedEl.style.left = '0';
-              clonedEl.style.top = '0';
-              clonedEl.style.zIndex = '9999';
-              clonedEl.style.width = '210mm';
-              clonedEl.style.background = '#ffffff';
-              clonedEl.style.backgroundColor = '#ffffff';
-              clonedEl.style.display = 'block';
-              clonedEl.style.visibility = 'visible';
-            },
           },
           jsPDF: {
             unit: 'mm',
@@ -891,6 +893,12 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     } catch (error) {
       console.error('Error generating PDF:', error);
     } finally {
+      // Restore hidden state
+      if (element) {
+        element.style.opacity = originalOpacity || '0';
+        element.style.pointerEvents = originalPointerEvents || 'none';
+        element.style.zIndex = originalZIndex || '-9999';
+      }
       setLoading(false);
     }
   };

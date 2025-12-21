@@ -230,7 +230,23 @@ const Reports = () => {
       const safeProjectName = toSafeFilename(currentProject?.name || 'project');
       const outputFilename = `${safeProjectName || 'project'}-carbon-report.pdf`;
 
+      // Make visible for capture
+      const originalOpacity = element.style.opacity;
+      const originalPointerEvents = element.style.pointerEvents;
+      const originalZIndex = element.style.zIndex;
+
       try {
+        element.style.opacity = '1';
+        element.style.pointerEvents = 'auto';
+        element.style.zIndex = '9999';
+
+        // Wait for browser to paint
+        await new Promise<void>((resolve) => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => resolve());
+          });
+        });
+
         await html2pdf()
           .set({
             margin: 10,
@@ -242,26 +258,16 @@ const Reports = () => {
               letterRendering: true,
               backgroundColor: '#ffffff',
               logging: false,
-              onclone: (clonedDoc: Document) => {
-                const clonedEl = clonedDoc.getElementById('pdf-report-content') as HTMLElement | null;
-                if (!clonedEl) return;
-                clonedEl.style.position = 'fixed';
-                clonedEl.style.left = '0';
-                clonedEl.style.top = '0';
-                clonedEl.style.zIndex = '9999';
-                clonedEl.style.width = '210mm';
-                clonedEl.style.background = '#ffffff';
-                clonedEl.style.backgroundColor = '#ffffff';
-                clonedEl.style.display = 'block';
-                clonedEl.style.visibility = 'visible';
-              },
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           } as any)
           .from(element)
           .save();
       } finally {
-        // no-op (clone manipulation only)
+        // Restore hidden state
+        element.style.opacity = originalOpacity || '0';
+        element.style.pointerEvents = originalPointerEvents || 'none';
+        element.style.zIndex = originalZIndex || '-9999';
       }
     }
 
