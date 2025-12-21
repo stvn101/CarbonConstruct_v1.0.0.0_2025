@@ -78,11 +78,11 @@ const MaterialVerificationReport = () => {
   const verificationTime = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
 
   const validationSummary: ValidationSummary = {
-    totalMaterials: 4046,
-    categoriesCount: 58,
-    sourcesCount: 22,
-    passRate: 99.36,
-    passCount: 4020,
+    totalMaterials: 4620,
+    categoriesCount: 107,
+    sourcesCount: 4,
+    passRate: 99.43,
+    passCount: 4594,
     warnCount: 26,
     failCount: 0,
     missingData: {
@@ -96,49 +96,49 @@ const MaterialVerificationReport = () => {
       hasManufacturer: 3094,
       hasEpdNumber: 3384,
       hasEpdUrl: 3402,
-      hasRegion: 4046,
-      hasYear: 4033,
+      hasRegion: 4620,
+      hasYear: 4620,
     },
     sourceDistribution: {
-      epdAustralasia: 2939,
+      epdAustralasia: 3408,
       icmDatabase: 638,
-      epdInternational: 367,
-      other: 102,
+      epdInternational: 511,
+      other: 63,
     },
     categoryBreakdown: [
       { category: 'Concrete (in-situ)', count: 2047, avgEf: 294.16, minEf: 67.80, maxEf: 1270.00 },
-      { category: 'Asphalt', count: 302, avgEf: 70.27, minEf: 4.40, maxEf: 134.00 },
-      { category: 'Steel', count: 141, avgEf: 2154.81, minEf: 0.13, maxEf: 3860.00 },
+      { category: 'Asphalt', count: 310, avgEf: 68.91, minEf: 0.04, maxEf: 141.00 },
+      { category: 'Steel', count: 192, avgEf: 1583.03, minEf: 0.13, maxEf: 3860.00 },
       { category: 'Masonry', count: 127, avgEf: 169.64, minEf: 0.00, maxEf: 451.85 },
       { category: 'SIP Panels', count: 126, avgEf: 46.56, minEf: 7.16, maxEf: 84.80 },
+      { category: 'Timber', count: 116, avgEf: 178.44, minEf: 0.00, maxEf: 1570.00 },
+      { category: 'Glass', count: 108, avgEf: 5.54, minEf: 0.01, maxEf: 168.00 },
       { category: 'Building Materials', count: 106, avgEf: 144.24, minEf: 0.00, maxEf: 6310.00 },
-      { category: 'Glass', count: 87, avgEf: 6.20, minEf: 0.01, maxEf: 168.00 },
+      { category: 'Flooring', count: 88, avgEf: 19.30, minEf: 0.37, maxEf: 76.00 },
       { category: 'Metals - Steel', count: 86, avgEf: 623.14, minEf: 0.01, maxEf: 19200.00 },
-      { category: 'Flooring', count: 77, avgEf: 21.50, minEf: 0.37, maxEf: 76.00 },
-      { category: 'Insulation only', count: 72, avgEf: 3.65, minEf: 2.43, maxEf: 4.74 },
     ],
     unitDistribution: [
-      { unit: 'm³', count: 2153 },
-      { unit: 'tonne', count: 628 },
-      { unit: 'm²', count: 573 },
-      { unit: 'kg', count: 553 },
+      { unit: 'm³', count: 2249 },
+      { unit: 'kg', count: 993 },
+      { unit: 'tonne', count: 650 },
+      { unit: 'm²', count: 586 },
       { unit: 'piece', count: 47 },
       { unit: 'MJ', count: 27 },
     ],
     outliers: {
       extremeHigh: 7,
       high: 13,
-      normal: 4000,
+      normal: 4574,
       low: 18,
       extremeLow: 8,
     },
     duplicateCount: 1200,
     rangeValidation: {
       concrete: { status: 'WITHIN_EXPECTED', avgEf: 294.16, count: 2047 },
-      steel: { status: 'WITHIN_EXPECTED', avgEf: 2154.81, count: 141 },
+      steel: { status: 'WITHIN_EXPECTED', avgEf: 1583.03, count: 192 },
       aluminium: { status: 'WITHIN_EXPECTED', avgEf: 12195.53, count: 26 },
-      timber: { status: 'WITHIN_EXPECTED', avgEf: 285.67, count: 67 },
-      glass: { status: 'WITHIN_EXPECTED', avgEf: 6.20, count: 87 },
+      timber: { status: 'WITHIN_EXPECTED', avgEf: 178.44, count: 116 },
+      glass: { status: 'WITHIN_EXPECTED', avgEf: 5.54, count: 108 },
       masonry: { status: 'WITHIN_EXPECTED', avgEf: 169.64, count: 127 },
     },
   };
@@ -410,12 +410,12 @@ const MaterialVerificationReport = () => {
       </div>
 
       {/* AI Verification Header */}
-      <Card className="border-2 border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <Card className="border-2 border-blue-500 dark:border-blue-400 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/40 dark:to-indigo-900/40">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="relative">
-              <Bot className="h-16 w-16 text-blue-600" />
-              <Shield className="h-8 w-8 text-green-500 absolute -right-2 -bottom-2" />
+              <Bot className="h-16 w-16 text-blue-600 dark:text-blue-400" />
+              <Shield className="h-8 w-8 text-green-500 dark:text-green-400 absolute -right-2 -bottom-2" />
             </div>
           </div>
           <CardTitle className="text-2xl text-blue-900 dark:text-blue-100">AI-Verified Materials Database Report</CardTitle>
@@ -424,9 +424,9 @@ const MaterialVerificationReport = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-4 mb-4">
+          <div className="bg-white/80 dark:bg-card/80 rounded-lg p-4 mb-4 border dark:border-border">
             <div className="flex items-center gap-2 justify-center mb-2">
-              <Cpu className="h-5 w-5 text-blue-600" />
+              <Cpu className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <span className="font-semibold text-blue-900 dark:text-blue-100">Verification Agent</span>
             </div>
             <p className="text-center text-sm text-muted-foreground">
@@ -473,22 +473,22 @@ const MaterialVerificationReport = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-              <p className="text-3xl font-bold text-green-600">{validationSummary.passCount.toLocaleString()}</p>
-              <p className="text-sm text-green-700">Validated</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
+              <p className="text-3xl font-bold text-green-600 dark:text-green-400">{validationSummary.passCount.toLocaleString()}</p>
+              <p className="text-sm text-green-700 dark:text-green-300">Validated</p>
             </div>
-            <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <p className="text-3xl font-bold text-yellow-600">{validationSummary.warnCount}</p>
-              <p className="text-sm text-yellow-700">Review Required</p>
+            <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{validationSummary.warnCount}</p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">Review Required</p>
             </div>
-            <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-              <p className="text-3xl font-bold text-red-600">{validationSummary.failCount}</p>
-              <p className="text-sm text-red-700">Failed</p>
+            <div className="text-center p-4 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800">
+              <p className="text-3xl font-bold text-red-600 dark:text-red-400">{validationSummary.failCount}</p>
+              <p className="text-sm text-red-700 dark:text-red-300">Failed</p>
             </div>
-            <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-3xl font-bold text-blue-600">{validationSummary.passRate.toFixed(1)}%</p>
-              <p className="text-sm text-blue-700">Pass Rate</p>
+            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{validationSummary.passRate.toFixed(1)}%</p>
+              <p className="text-sm text-blue-700 dark:text-blue-300">Pass Rate</p>
             </div>
           </div>
         </CardContent>
@@ -505,38 +505,38 @@ const MaterialVerificationReport = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="p-3 border rounded-lg text-center">
+            <div className="p-3 border rounded-lg text-center bg-card dark:bg-card">
               <div className="flex items-center justify-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="font-semibold text-green-600">{validationSummary.missingData.efTotal}</span>
+                <span className="font-semibold text-green-600 dark:text-green-400">{validationSummary.missingData.efTotal}</span>
               </div>
               <p className="text-xs text-muted-foreground">Missing ef_total</p>
             </div>
-            <div className="p-3 border rounded-lg text-center">
+            <div className="p-3 border rounded-lg text-center bg-card dark:bg-card">
               <div className="flex items-center justify-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="font-semibold text-green-600">{validationSummary.missingData.a1a3}</span>
+                <span className="font-semibold text-green-600 dark:text-green-400">{validationSummary.missingData.a1a3}</span>
               </div>
               <p className="text-xs text-muted-foreground">Missing A1-A3</p>
             </div>
-            <div className="p-3 border rounded-lg text-center">
+            <div className="p-3 border rounded-lg text-center bg-card dark:bg-card">
               <div className="flex items-center justify-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="font-semibold text-green-600">{validationSummary.missingData.names}</span>
+                <span className="font-semibold text-green-600 dark:text-green-400">{validationSummary.missingData.names}</span>
               </div>
               <p className="text-xs text-muted-foreground">Missing Names</p>
             </div>
-            <div className="p-3 border rounded-lg text-center">
+            <div className="p-3 border rounded-lg text-center bg-card dark:bg-card">
               <div className="flex items-center justify-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="font-semibold text-green-600">{validationSummary.missingData.units}</span>
+                <span className="font-semibold text-green-600 dark:text-green-400">{validationSummary.missingData.units}</span>
               </div>
               <p className="text-xs text-muted-foreground">Missing Units</p>
             </div>
-            <div className="p-3 border rounded-lg text-center">
+            <div className="p-3 border rounded-lg text-center bg-card dark:bg-card">
               <div className="flex items-center justify-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="font-semibold text-green-600">{validationSummary.missingData.categories}</span>
+                <span className="font-semibold text-green-600 dark:text-green-400">{validationSummary.missingData.categories}</span>
               </div>
               <p className="text-xs text-muted-foreground">Missing Categories</p>
             </div>
@@ -552,30 +552,30 @@ const MaterialVerificationReport = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="p-3 border rounded-lg">
+            <div className="p-3 border rounded-lg bg-card dark:bg-card">
               <p className="font-semibold">{validationSummary.dataIntegrity.hasManufacturer.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">With Manufacturer</p>
-              <p className="text-xs text-green-600">{((validationSummary.dataIntegrity.hasManufacturer / validationSummary.totalMaterials) * 100).toFixed(1)}%</p>
+              <p className="text-xs text-green-600 dark:text-green-400">{((validationSummary.dataIntegrity.hasManufacturer / validationSummary.totalMaterials) * 100).toFixed(1)}%</p>
             </div>
-            <div className="p-3 border rounded-lg">
+            <div className="p-3 border rounded-lg bg-card dark:bg-card">
               <p className="font-semibold">{validationSummary.dataIntegrity.hasEpdNumber.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">With EPD Number</p>
-              <p className="text-xs text-green-600">{((validationSummary.dataIntegrity.hasEpdNumber / validationSummary.totalMaterials) * 100).toFixed(1)}%</p>
+              <p className="text-xs text-green-600 dark:text-green-400">{((validationSummary.dataIntegrity.hasEpdNumber / validationSummary.totalMaterials) * 100).toFixed(1)}%</p>
             </div>
-            <div className="p-3 border rounded-lg">
+            <div className="p-3 border rounded-lg bg-card dark:bg-card">
               <p className="font-semibold">{validationSummary.dataIntegrity.hasEpdUrl.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">With EPD URL</p>
-              <p className="text-xs text-green-600">{((validationSummary.dataIntegrity.hasEpdUrl / validationSummary.totalMaterials) * 100).toFixed(1)}%</p>
+              <p className="text-xs text-green-600 dark:text-green-400">{((validationSummary.dataIntegrity.hasEpdUrl / validationSummary.totalMaterials) * 100).toFixed(1)}%</p>
             </div>
-            <div className="p-3 border rounded-lg">
+            <div className="p-3 border rounded-lg bg-card dark:bg-card">
               <p className="font-semibold">{validationSummary.dataIntegrity.hasRegion.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">With Region</p>
-              <p className="text-xs text-green-600">{((validationSummary.dataIntegrity.hasRegion / validationSummary.totalMaterials) * 100).toFixed(1)}%</p>
+              <p className="text-xs text-green-600 dark:text-green-400">{((validationSummary.dataIntegrity.hasRegion / validationSummary.totalMaterials) * 100).toFixed(1)}%</p>
             </div>
-            <div className="p-3 border rounded-lg">
+            <div className="p-3 border rounded-lg bg-card dark:bg-card">
               <p className="font-semibold">{validationSummary.dataIntegrity.hasYear.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">With Year</p>
-              <p className="text-xs text-green-600">{((validationSummary.dataIntegrity.hasYear / validationSummary.totalMaterials) * 100).toFixed(1)}%</p>
+              <p className="text-xs text-green-600 dark:text-green-400">{((validationSummary.dataIntegrity.hasYear / validationSummary.totalMaterials) * 100).toFixed(1)}%</p>
             </div>
           </div>
         </CardContent>
@@ -659,25 +659,25 @@ const MaterialVerificationReport = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-3 border rounded-lg border-green-200 bg-green-50">
-              <p className="font-semibold text-green-700">{validationSummary.sourceDistribution.epdAustralasia.toLocaleString()}</p>
-              <p className="text-sm text-green-600">EPD Australasia</p>
+            <div className="p-3 border rounded-lg border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30">
+              <p className="font-semibold text-green-700 dark:text-green-300">{validationSummary.sourceDistribution.epdAustralasia.toLocaleString()}</p>
+              <p className="text-sm text-green-600 dark:text-green-400">NABERS 2025</p>
               <p className="text-xs text-muted-foreground">NABERS primary source</p>
             </div>
-            <div className="p-3 border rounded-lg border-blue-200 bg-blue-50">
-              <p className="font-semibold text-blue-700">{validationSummary.sourceDistribution.icmDatabase.toLocaleString()}</p>
-              <p className="text-sm text-blue-600">ICM Database 2019</p>
+            <div className="p-3 border rounded-lg border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30">
+              <p className="font-semibold text-blue-700 dark:text-blue-300">{validationSummary.sourceDistribution.icmDatabase.toLocaleString()}</p>
+              <p className="text-sm text-blue-600 dark:text-blue-400">ICM Database 2019</p>
               <p className="text-xs text-muted-foreground">AusLCI hybrid factors</p>
             </div>
-            <div className="p-3 border rounded-lg border-purple-200 bg-purple-50">
-              <p className="font-semibold text-purple-700">{validationSummary.sourceDistribution.epdInternational.toLocaleString()}</p>
-              <p className="text-sm text-purple-600">EPD International</p>
-              <p className="text-xs text-muted-foreground">Global EPD registry</p>
+            <div className="p-3 border rounded-lg border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/30">
+              <p className="font-semibold text-purple-700 dark:text-purple-300">{validationSummary.sourceDistribution.epdInternational.toLocaleString()}</p>
+              <p className="text-sm text-purple-600 dark:text-purple-400">ICE V4.1</p>
+              <p className="text-xs text-muted-foreground">Circular Ecology</p>
             </div>
-            <div className="p-3 border rounded-lg border-gray-200">
+            <div className="p-3 border rounded-lg border-border bg-card dark:bg-card">
               <p className="font-semibold">{validationSummary.sourceDistribution.other.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">Other EPD Sources</p>
-              <p className="text-xs text-muted-foreground">BRE, UL, IBU, etc.</p>
+              <p className="text-sm text-muted-foreground">NGER Database</p>
+              <p className="text-xs text-muted-foreground">Australian Govt</p>
             </div>
           </div>
         </CardContent>
@@ -739,11 +739,11 @@ const MaterialVerificationReport = () => {
       </Card>
 
       {/* AI Certification Statement */}
-      <Card className="border-2 border-green-500">
+      <Card className="border-2 border-green-500 dark:border-green-600">
         <CardContent className="p-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Bot className="h-12 w-12 text-blue-600" />
-            <CheckCircle className="h-12 w-12 text-green-500" />
+            <Bot className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+            <CheckCircle className="h-12 w-12 text-green-500 dark:text-green-400" />
           </div>
           <h3 className="text-xl font-bold mb-2">AI Verification Certificate</h3>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-4">
@@ -751,11 +751,11 @@ const MaterialVerificationReport = () => {
             All {validationSummary.totalMaterials.toLocaleString()} materials across {validationSummary.categoriesCount} categories 
             have been analyzed and verified against NABERS National Material Emission Factors Database v2025.1.
           </p>
-          <div className="bg-green-50 rounded-lg p-4 max-w-xl mx-auto">
-            <p className="font-bold text-green-700 text-lg">
+          <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 max-w-xl mx-auto border border-green-200 dark:border-green-800">
+            <p className="font-bold text-green-700 dark:text-green-300 text-lg">
               VALIDATION RESULT: {validationSummary.passRate.toFixed(1)}% PASS RATE
             </p>
-            <p className="text-green-600 text-sm mt-1">
+            <p className="text-green-600 dark:text-green-400 text-sm mt-1">
               DATABASE APPROVED FOR PRODUCTION USE IN AUSTRALIAN CONSTRUCTION PROJECTS
             </p>
           </div>
