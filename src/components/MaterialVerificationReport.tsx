@@ -495,7 +495,7 @@ const MaterialVerificationReport = () => {
   return (
     <div className="space-y-6 p-6 max-w-6xl mx-auto">
       {/* Hidden PDF Content */}
-      <div id="material-verification-pdf-content" className="hidden pdf-report" style={{ position: 'absolute', left: '-9999px' }}>
+      <div id="material-verification-pdf-content" className="pdf-report" style={{ position: 'absolute', left: '-9999px' }}>
         <div style={{ padding: '40px', fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '10px', color: '#333' }}>
           {/* Header */}
           <div style={{ marginBottom: '20px', borderBottom: '2px solid #2d5a27', paddingBottom: '15px', textAlign: 'center' }}>
