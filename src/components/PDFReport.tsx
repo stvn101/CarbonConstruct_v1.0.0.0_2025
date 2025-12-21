@@ -68,54 +68,99 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
     }
   };
 
+  // Inline style constants for reliable html2canvas capture
+  const pdfStyles = {
+    section: { marginBottom: '24px' } as React.CSSProperties,
+    sectionTitle: { fontSize: '16px', fontWeight: 'bold', color: '#2d5a27', borderBottom: '1px solid #ccc', paddingBottom: '8px', marginBottom: '16px' } as React.CSSProperties,
+    textMuted: { color: '#666', fontSize: '12px', marginBottom: '12px' } as React.CSSProperties,
+    grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' } as React.CSSProperties,
+    metricBox: { padding: '16px', backgroundColor: '#f0fdf4', borderRadius: '4px', textAlign: 'center' as const, border: '1px solid #bbf7d0' } as React.CSSProperties,
+    metricLabel: { display: 'block', fontSize: '11px', color: '#666', marginBottom: '4px' } as React.CSSProperties,
+    metricValue: { display: 'block', fontSize: '18px', fontWeight: 'bold', color: '#2d5a27' } as React.CSSProperties,
+    complianceBox: { padding: '16px', backgroundColor: '#f9fafb', borderRadius: '4px', border: '1px solid #e5e7eb' } as React.CSSProperties,
+    complianceRow: { display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #e5e7eb' } as React.CSSProperties,
+    complianceLabel: { fontWeight: 'bold', fontSize: '12px' } as React.CSSProperties,
+    complianceValue: { fontSize: '12px' } as React.CSSProperties,
+    statusPass: { color: '#16a34a', fontWeight: 'bold' } as React.CSSProperties,
+    statusWarn: { color: '#d97706', fontWeight: 'bold' } as React.CSSProperties,
+    statusFail: { color: '#dc2626', fontWeight: 'bold' } as React.CSSProperties,
+    infoGrid: { display: 'grid', gap: '8px' } as React.CSSProperties,
+    infoRow: { display: 'flex', gap: '8px' } as React.CSSProperties,
+    infoLabel: { fontWeight: 'bold', minWidth: '120px', fontSize: '11px' } as React.CSSProperties,
+    infoValue: { fontSize: '11px' } as React.CSSProperties,
+    emissionCard: { padding: '20px', backgroundColor: '#2d5a27', borderRadius: '8px', textAlign: 'center' as const, color: '#ffffff', marginBottom: '16px' } as React.CSSProperties,
+    emissionTitle: { fontSize: '14px', marginBottom: '8px', color: '#ffffff' } as React.CSSProperties,
+    emissionValue: { fontSize: '28px', fontWeight: 'bold', color: '#ffffff' } as React.CSSProperties,
+    scopeCard: (bg: string, borderColor: string) => ({ padding: '16px', backgroundColor: bg, borderRadius: '4px', textAlign: 'center' as const, border: `1px solid ${borderColor}` }) as React.CSSProperties,
+    scopeTitle: { fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' } as React.CSSProperties,
+    scopeSubtitle: { fontSize: '10px', color: '#666', marginBottom: '8px' } as React.CSSProperties,
+    scopeValue: { fontSize: '18px', fontWeight: 'bold' } as React.CSSProperties,
+    table: { width: '100%', borderCollapse: 'collapse' as const, marginBottom: '16px', fontSize: '10px' } as React.CSSProperties,
+    th: { padding: '8px', border: '1px solid #ccc', backgroundColor: '#f9fafb', fontWeight: 'bold', textAlign: 'left' as const } as React.CSSProperties,
+    td: { padding: '8px', border: '1px solid #ccc' } as React.CSSProperties,
+    declarationBox: { padding: '16px', backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe', marginBottom: '24px' } as React.CSSProperties,
+    declarationTitle: { fontSize: '16px', fontWeight: 'bold', color: '#1e40af', marginBottom: '12px' } as React.CSSProperties,
+    declarationRow: { display: 'flex', gap: '8px', marginBottom: '6px' } as React.CSSProperties,
+    declarationLabel: { fontWeight: 'bold', minWidth: '160px', fontSize: '11px' } as React.CSSProperties,
+    declarationValue: { fontSize: '11px' } as React.CSSProperties,
+    intensityBox: { padding: '16px', backgroundColor: '#f0f9ff', borderRadius: '4px', textAlign: 'center' as const, border: '1px solid #bae6fd' } as React.CSSProperties,
+    intensityTitle: { fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' } as React.CSSProperties,
+    intensityValue: { fontSize: '18px', fontWeight: 'bold', color: '#0369a1' } as React.CSSProperties,
+    intensityUnit: { fontSize: '10px', color: '#666' } as React.CSSProperties,
+    warningBox: { padding: '12px', backgroundColor: '#fffbeb', borderRadius: '4px', border: '1px solid #fde68a' } as React.CSSProperties,
+    stageHeader: { backgroundColor: '#1e40af', color: '#ffffff', fontWeight: 'bold', padding: '8px', fontSize: '11px' } as React.CSSProperties,
+    subtotalRow: { backgroundColor: '#e0f2fe', fontWeight: 'bold' } as React.CSSProperties,
+    totalRow: { backgroundColor: '#1e40af', color: '#ffffff', fontWeight: 'bold' } as React.CSSProperties,
+  };
+
   const renderExecutiveSummary = () => (
     <>
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">Executive Summary</h2>
-        <p className="pdf-text-muted mb-4">
+      <div style={pdfStyles.section}>
+        <h2 style={pdfStyles.sectionTitle}>Executive Summary</h2>
+        <p style={pdfStyles.textMuted}>
           Total emissions for {data.project.name}: {formatNumber(data.emissions.total)} tCO₂e
         </p>
         {data.project.description && (
-          <p className="pdf-text-muted text-sm">{data.project.description}</p>
+          <p style={{ ...pdfStyles.textMuted, fontSize: '11px' }}>{data.project.description}</p>
         )}
       </div>
 
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">Key Metrics</h2>
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="pdf-metric-box">
-            <span className="pdf-metric-label">Scope 1</span>
-            <span className="pdf-metric-value">{formatNumber(data.emissions.scope1)} tCO₂e</span>
+      <div style={pdfStyles.section}>
+        <h2 style={pdfStyles.sectionTitle}>Key Metrics</h2>
+        <div style={pdfStyles.grid3}>
+          <div style={pdfStyles.metricBox}>
+            <span style={pdfStyles.metricLabel}>Scope 1</span>
+            <span style={pdfStyles.metricValue}>{formatNumber(data.emissions.scope1)} tCO₂e</span>
           </div>
-          <div className="pdf-metric-box">
-            <span className="pdf-metric-label">Scope 2</span>
-            <span className="pdf-metric-value">{formatNumber(data.emissions.scope2)} tCO₂e</span>
+          <div style={pdfStyles.metricBox}>
+            <span style={pdfStyles.metricLabel}>Scope 2</span>
+            <span style={pdfStyles.metricValue}>{formatNumber(data.emissions.scope2)} tCO₂e</span>
           </div>
-          <div className="pdf-metric-box">
-            <span className="pdf-metric-label">Scope 3</span>
-            <span className="pdf-metric-value">{formatNumber(data.emissions.scope3)} tCO₂e</span>
+          <div style={pdfStyles.metricBox}>
+            <span style={pdfStyles.metricLabel}>Scope 3</span>
+            <span style={pdfStyles.metricValue}>{formatNumber(data.emissions.scope3)} tCO₂e</span>
           </div>
         </div>
       </div>
 
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">Compliance Overview</h2>
-        <div className="pdf-compliance-box">
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">NCC Compliance:</span>
-            <span className={data.compliance.nccCompliant ? 'pdf-status-pass' : 'pdf-status-warn'}>
+      <div style={pdfStyles.section}>
+        <h2 style={pdfStyles.sectionTitle}>Compliance Overview</h2>
+        <div style={pdfStyles.complianceBox}>
+          <div style={pdfStyles.complianceRow}>
+            <span style={pdfStyles.complianceLabel}>NCC Compliance:</span>
+            <span style={data.compliance.nccCompliant ? pdfStyles.statusPass : pdfStyles.statusWarn}>
               {data.compliance.nccCompliant ? '✓ Compliant' : '⚠ Partial'}
             </span>
           </div>
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Green Star Eligible:</span>
-            <span className={data.compliance.greenStarEligible ? 'pdf-status-pass' : 'pdf-status-warn'}>
+          <div style={pdfStyles.complianceRow}>
+            <span style={pdfStyles.complianceLabel}>Green Star Eligible:</span>
+            <span style={data.compliance.greenStarEligible ? pdfStyles.statusPass : pdfStyles.statusWarn}>
               {data.compliance.greenStarEligible ? '✓ Eligible' : '⚠ Review Required'}
             </span>
           </div>
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">NABERS Ready:</span>
-            <span className={data.compliance.nabersReady ? 'pdf-status-pass' : 'pdf-status-warn'}>
+          <div style={{ ...pdfStyles.complianceRow, borderBottom: 'none' }}>
+            <span style={pdfStyles.complianceLabel}>NABERS Ready:</span>
+            <span style={data.compliance.nabersReady ? pdfStyles.statusPass : pdfStyles.statusWarn}>
               {data.compliance.nabersReady ? '✓ Ready' : '⚠ Additional Data Required'}
             </span>
           </div>
@@ -126,69 +171,69 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
 
   const renderComplianceFocused = () => (
     <>
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">Compliance Assessment</h2>
-        <p className="pdf-text-muted mb-4">
+      <div style={pdfStyles.section}>
+        <h2 style={pdfStyles.sectionTitle}>Compliance Assessment</h2>
+        <p style={pdfStyles.textMuted}>
           Detailed compliance assessment for {data.project.name} against Australian standards
         </p>
       </div>
 
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">NCC Compliance (National Construction Code)</h2>
-        <div className="pdf-compliance-box">
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Status:</span>
-            <span className={data.compliance.nccCompliant ? 'pdf-status-pass' : 'pdf-status-fail'}>
+      <div style={pdfStyles.section}>
+        <h2 style={pdfStyles.sectionTitle}>NCC Compliance (National Construction Code)</h2>
+        <div style={pdfStyles.complianceBox}>
+          <div style={pdfStyles.complianceRow}>
+            <span style={pdfStyles.complianceLabel}>Status:</span>
+            <span style={data.compliance.nccCompliant ? pdfStyles.statusPass : pdfStyles.statusFail}>
               {data.compliance.nccCompliant ? '✓ COMPLIANT' : '✗ REVIEW REQUIRED'}
             </span>
           </div>
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Total Emissions:</span>
-            <span className="pdf-compliance-value">{formatNumber(data.emissions.total)} tCO₂e</span>
+          <div style={pdfStyles.complianceRow}>
+            <span style={pdfStyles.complianceLabel}>Total Emissions:</span>
+            <span style={pdfStyles.complianceValue}>{formatNumber(data.emissions.total)} tCO₂e</span>
           </div>
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Scope 1 (Direct):</span>
-            <span className="pdf-compliance-value">{formatNumber(data.emissions.scope1)} tCO₂e</span>
+          <div style={pdfStyles.complianceRow}>
+            <span style={pdfStyles.complianceLabel}>Scope 1 (Direct):</span>
+            <span style={pdfStyles.complianceValue}>{formatNumber(data.emissions.scope1)} tCO₂e</span>
           </div>
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Scope 2 (Energy):</span>
-            <span className="pdf-compliance-value">{formatNumber(data.emissions.scope2)} tCO₂e</span>
+          <div style={pdfStyles.complianceRow}>
+            <span style={pdfStyles.complianceLabel}>Scope 2 (Energy):</span>
+            <span style={pdfStyles.complianceValue}>{formatNumber(data.emissions.scope2)} tCO₂e</span>
           </div>
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Scope 3 (Indirect):</span>
-            <span className="pdf-compliance-value">{formatNumber(data.emissions.scope3)} tCO₂e</span>
+          <div style={{ ...pdfStyles.complianceRow, borderBottom: 'none' }}>
+            <span style={pdfStyles.complianceLabel}>Scope 3 (Indirect):</span>
+            <span style={pdfStyles.complianceValue}>{formatNumber(data.emissions.scope3)} tCO₂e</span>
           </div>
         </div>
       </div>
 
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">GBCA Green Star Assessment</h2>
-        <div className="pdf-compliance-box">
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Eligibility:</span>
-            <span className={data.compliance.greenStarEligible ? 'pdf-status-pass' : 'pdf-status-fail'}>
+      <div style={pdfStyles.section}>
+        <h2 style={pdfStyles.sectionTitle}>GBCA Green Star Assessment</h2>
+        <div style={pdfStyles.complianceBox}>
+          <div style={pdfStyles.complianceRow}>
+            <span style={pdfStyles.complianceLabel}>Eligibility:</span>
+            <span style={data.compliance.greenStarEligible ? pdfStyles.statusPass : pdfStyles.statusFail}>
               {data.compliance.greenStarEligible ? '✓ ELIGIBLE' : '✗ NOT ELIGIBLE'}
             </span>
           </div>
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Total Emissions:</span>
-            <span className="pdf-compliance-value">{formatNumber(data.emissions.total)} tCO₂e</span>
+          <div style={{ ...pdfStyles.complianceRow, borderBottom: 'none' }}>
+            <span style={pdfStyles.complianceLabel}>Total Emissions:</span>
+            <span style={pdfStyles.complianceValue}>{formatNumber(data.emissions.total)} tCO₂e</span>
           </div>
         </div>
       </div>
 
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">NABERS Energy Assessment</h2>
-        <div className="pdf-compliance-box">
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Readiness:</span>
-            <span className={data.compliance.nabersReady ? 'pdf-status-pass' : 'pdf-status-fail'}>
+      <div style={pdfStyles.section}>
+        <h2 style={pdfStyles.sectionTitle}>NABERS Energy Assessment</h2>
+        <div style={pdfStyles.complianceBox}>
+          <div style={pdfStyles.complianceRow}>
+            <span style={pdfStyles.complianceLabel}>Readiness:</span>
+            <span style={data.compliance.nabersReady ? pdfStyles.statusPass : pdfStyles.statusFail}>
               {data.compliance.nabersReady ? '✓ READY' : '✗ ADDITIONAL DATA REQUIRED'}
             </span>
           </div>
-          <div className="pdf-compliance-row">
-            <span className="pdf-compliance-label">Scope 2 Emissions:</span>
-            <span className="pdf-compliance-value">{formatNumber(data.emissions.scope2)} tCO₂e</span>
+          <div style={{ ...pdfStyles.complianceRow, borderBottom: 'none' }}>
+            <span style={pdfStyles.complianceLabel}>Scope 2 Emissions:</span>
+            <span style={pdfStyles.complianceValue}>{formatNumber(data.emissions.scope2)} tCO₂e</span>
           </div>
         </div>
       </div>
@@ -197,74 +242,74 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
 
   const renderTechnicalReport = () => (
     <>
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">Project Information</h2>
-        <div className="pdf-info-grid">
-          <div className="pdf-info-row">
-            <span className="pdf-info-label">Project Name:</span>
-            <span className="pdf-info-value">{data.project.name}</span>
+      <div style={pdfStyles.section}>
+        <h2 style={pdfStyles.sectionTitle}>Project Information</h2>
+        <div style={pdfStyles.infoGrid}>
+          <div style={pdfStyles.infoRow}>
+            <span style={pdfStyles.infoLabel}>Project Name:</span>
+            <span style={pdfStyles.infoValue}>{data.project.name}</span>
           </div>
           {data.project.project_type && (
-            <div className="pdf-info-row">
-              <span className="pdf-info-label">Project Type:</span>
-              <span className="pdf-info-value">{data.project.project_type}</span>
+            <div style={pdfStyles.infoRow}>
+              <span style={pdfStyles.infoLabel}>Project Type:</span>
+              <span style={pdfStyles.infoValue}>{data.project.project_type}</span>
             </div>
           )}
           {data.project.location && (
-            <div className="pdf-info-row">
-              <span className="pdf-info-label">Location:</span>
-              <span className="pdf-info-value">{data.project.location}</span>
+            <div style={pdfStyles.infoRow}>
+              <span style={pdfStyles.infoLabel}>Location:</span>
+              <span style={pdfStyles.infoValue}>{data.project.location}</span>
             </div>
           )}
         </div>
       </div>
 
-      <div className="pdf-section">
-        <h2 className="pdf-section-title">Emission Summary</h2>
-        <div className="pdf-emission-card">
-          <h3 className="pdf-emission-title">Total Carbon Footprint</h3>
-          <p className="pdf-emission-value">{formatNumber(data.emissions.total)} tCO₂e</p>
+      <div style={pdfStyles.section}>
+        <h2 style={pdfStyles.sectionTitle}>Emission Summary</h2>
+        <div style={pdfStyles.emissionCard}>
+          <h3 style={pdfStyles.emissionTitle}>Total Carbon Footprint</h3>
+          <p style={pdfStyles.emissionValue}>{formatNumber(data.emissions.total)} tCO₂e</p>
         </div>
         
-        <div className="grid grid-cols-3 gap-4 mt-4">
-          <div className="pdf-scope-card pdf-scope-1">
-            <h4 className="pdf-scope-title">Scope 1</h4>
-            <p className="pdf-scope-subtitle">Direct Emissions</p>
-            <p className="pdf-scope-value">{formatNumber(data.emissions.scope1)} tCO₂e</p>
+        <div style={{ ...pdfStyles.grid3, marginTop: '16px' }}>
+          <div style={pdfStyles.scopeCard('#f0fdf4', '#bbf7d0')}>
+            <h4 style={pdfStyles.scopeTitle}>Scope 1</h4>
+            <p style={pdfStyles.scopeSubtitle}>Direct Emissions</p>
+            <p style={{ ...pdfStyles.scopeValue, color: '#16a34a' }}>{formatNumber(data.emissions.scope1)} tCO₂e</p>
           </div>
-          <div className="pdf-scope-card pdf-scope-2">
-            <h4 className="pdf-scope-title">Scope 2</h4>
-            <p className="pdf-scope-subtitle">Electricity</p>
-            <p className="pdf-scope-value">{formatNumber(data.emissions.scope2)} tCO₂e</p>
+          <div style={pdfStyles.scopeCard('#eff6ff', '#bfdbfe')}>
+            <h4 style={pdfStyles.scopeTitle}>Scope 2</h4>
+            <p style={pdfStyles.scopeSubtitle}>Electricity</p>
+            <p style={{ ...pdfStyles.scopeValue, color: '#2563eb' }}>{formatNumber(data.emissions.scope2)} tCO₂e</p>
           </div>
-          <div className="pdf-scope-card pdf-scope-3">
-            <h4 className="pdf-scope-title">Scope 3</h4>
-            <p className="pdf-scope-subtitle">Materials & Transport</p>
-            <p className="pdf-scope-value">{formatNumber(data.emissions.scope3)} tCO₂e</p>
+          <div style={pdfStyles.scopeCard('#fef3c7', '#fde68a')}>
+            <h4 style={pdfStyles.scopeTitle}>Scope 3</h4>
+            <p style={pdfStyles.scopeSubtitle}>Materials & Transport</p>
+            <p style={{ ...pdfStyles.scopeValue, color: '#d97706' }}>{formatNumber(data.emissions.scope3)} tCO₂e</p>
           </div>
         </div>
       </div>
 
       {/* Materials Breakdown */}
       {Array.isArray(data.breakdown.materials) && data.breakdown.materials.length > 0 && (
-        <div className="pdf-section">
-          <h2 className="pdf-section-title">Materials Breakdown</h2>
-          <table className="pdf-table">
+        <div style={pdfStyles.section}>
+          <h2 style={pdfStyles.sectionTitle}>Materials Breakdown</h2>
+          <table style={pdfStyles.table}>
             <thead>
               <tr>
-                <th>Material</th>
-                <th>Category</th>
-                <th>Quantity</th>
-                <th>Emissions (tCO₂e)</th>
+                <th style={pdfStyles.th}>Material</th>
+                <th style={pdfStyles.th}>Category</th>
+                <th style={pdfStyles.th}>Quantity</th>
+                <th style={pdfStyles.th}>Emissions (tCO₂e)</th>
               </tr>
             </thead>
             <tbody>
               {data.breakdown.materials.map((m, i) => (
                 <tr key={i}>
-                  <td>{m.name}</td>
-                  <td>{m.category}</td>
-                  <td>{m.quantity} {m.unit}</td>
-                  <td>{formatNumber(m.totalEmissions)}</td>
+                  <td style={pdfStyles.td}>{m.name}</td>
+                  <td style={pdfStyles.td}>{m.category}</td>
+                  <td style={pdfStyles.td}>{m.quantity} {m.unit}</td>
+                  <td style={pdfStyles.td}>{formatNumber(m.totalEmissions)}</td>
                 </tr>
               ))}
             </tbody>
@@ -304,166 +349,166 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
     
     return (
       <>
-        <div className="pdf-declaration-box">
-          <h2 className="pdf-declaration-title">Declaration of Conformity</h2>
-          <div className="pdf-declaration-grid">
-            <div className="pdf-declaration-row">
-              <span className="pdf-declaration-label">Standard:</span>
-              <span className="pdf-declaration-value">EN 15978:2011</span>
+        <div style={pdfStyles.declarationBox}>
+          <h2 style={pdfStyles.declarationTitle}>Declaration of Conformity</h2>
+          <div style={{ display: 'grid', gap: '8px' }}>
+            <div style={pdfStyles.declarationRow}>
+              <span style={pdfStyles.declarationLabel}>Standard:</span>
+              <span style={pdfStyles.declarationValue}>EN 15978:2011</span>
             </div>
-            <div className="pdf-declaration-row">
-              <span className="pdf-declaration-label">Scope:</span>
-              <span className="pdf-declaration-value">Whole Life Carbon Assessment</span>
+            <div style={pdfStyles.declarationRow}>
+              <span style={pdfStyles.declarationLabel}>Scope:</span>
+              <span style={pdfStyles.declarationValue}>Whole Life Carbon Assessment</span>
             </div>
-            <div className="pdf-declaration-row">
-              <span className="pdf-declaration-label">Building Type:</span>
-              <span className="pdf-declaration-value">{data.project.project_type || 'Commercial'}</span>
+            <div style={pdfStyles.declarationRow}>
+              <span style={pdfStyles.declarationLabel}>Building Type:</span>
+              <span style={pdfStyles.declarationValue}>{data.project.project_type || 'Commercial'}</span>
             </div>
-            <div className="pdf-declaration-row">
-              <span className="pdf-declaration-label">Reference Study Period:</span>
-              <span className="pdf-declaration-value">60 years</span>
+            <div style={pdfStyles.declarationRow}>
+              <span style={pdfStyles.declarationLabel}>Reference Study Period:</span>
+              <span style={pdfStyles.declarationValue}>60 years</span>
             </div>
-            <div className="pdf-declaration-row">
-              <span className="pdf-declaration-label">Functional Unit:</span>
-              <span className="pdf-declaration-value">1 m² GIA per year</span>
+            <div style={pdfStyles.declarationRow}>
+              <span style={pdfStyles.declarationLabel}>Functional Unit:</span>
+              <span style={pdfStyles.declarationValue}>1 m² GIA per year</span>
             </div>
           </div>
         </div>
 
-        <div className="pdf-section">
-          <h2 className="pdf-section-title">Lifecycle Stage Summary</h2>
-          <table className="pdf-table pdf-lifecycle-table">
+        <div style={pdfStyles.section}>
+          <h2 style={pdfStyles.sectionTitle}>Lifecycle Stage Summary</h2>
+          <table style={pdfStyles.table}>
             <thead>
-              <tr className="bg-blue-800 text-white">
-                <th>Stage</th>
-                <th>Description</th>
-                <th>Emissions (kgCO₂e)</th>
-                <th>% of Total</th>
+              <tr style={{ backgroundColor: '#1e40af', color: '#ffffff' }}>
+                <th style={{ ...pdfStyles.th, backgroundColor: '#1e40af', color: '#ffffff' }}>Stage</th>
+                <th style={{ ...pdfStyles.th, backgroundColor: '#1e40af', color: '#ffffff' }}>Description</th>
+                <th style={{ ...pdfStyles.th, backgroundColor: '#1e40af', color: '#ffffff' }}>Emissions (kgCO₂e)</th>
+                <th style={{ ...pdfStyles.th, backgroundColor: '#1e40af', color: '#ffffff' }}>% of Total</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="pdf-stage-header">
-                <td colSpan={4}>Product Stage (A1-A3)</td>
+              <tr>
+                <td colSpan={4} style={{ ...pdfStyles.td, ...pdfStyles.stageHeader }}>Product Stage (A1-A3)</td>
               </tr>
               <tr>
-                <td>A1-A3</td>
-                <td>Raw materials, transport, manufacturing</td>
-                <td>{formatNumber(a1a3)}</td>
-                <td>{calcPercent(a1a3)}%</td>
-              </tr>
-              <tr className="pdf-stage-header">
-                <td colSpan={4}>Construction Stage (A4-A5)</td>
+                <td style={pdfStyles.td}>A1-A3</td>
+                <td style={pdfStyles.td}>Raw materials, transport, manufacturing</td>
+                <td style={pdfStyles.td}>{formatNumber(a1a3)}</td>
+                <td style={pdfStyles.td}>{calcPercent(a1a3)}%</td>
               </tr>
               <tr>
-                <td>A4</td>
-                <td>Transport to site</td>
-                <td>{formatNumber(a4)}</td>
-                <td>{calcPercent(a4)}%</td>
+                <td colSpan={4} style={{ ...pdfStyles.td, ...pdfStyles.stageHeader }}>Construction Stage (A4-A5)</td>
               </tr>
               <tr>
-                <td>A5</td>
-                <td>Construction installation</td>
-                <td>{formatNumber(a5)}</td>
-                <td>{calcPercent(a5)}%</td>
+                <td style={pdfStyles.td}>A4</td>
+                <td style={pdfStyles.td}>Transport to site</td>
+                <td style={pdfStyles.td}>{formatNumber(a4)}</td>
+                <td style={pdfStyles.td}>{calcPercent(a4)}%</td>
               </tr>
-              <tr className="pdf-subtotal-row">
-                <td colSpan={2}><strong>Subtotal Upfront (A1-A5)</strong></td>
-                <td><strong>{formatNumber(totalUpfront)}</strong></td>
-                <td><strong>{calcPercent(totalUpfront)}%</strong></td>
+              <tr>
+                <td style={pdfStyles.td}>A5</td>
+                <td style={pdfStyles.td}>Construction installation</td>
+                <td style={pdfStyles.td}>{formatNumber(a5)}</td>
+                <td style={pdfStyles.td}>{calcPercent(a5)}%</td>
+              </tr>
+              <tr style={pdfStyles.subtotalRow}>
+                <td colSpan={2} style={{ ...pdfStyles.td, fontWeight: 'bold' }}>Subtotal Upfront (A1-A5)</td>
+                <td style={{ ...pdfStyles.td, fontWeight: 'bold' }}>{formatNumber(totalUpfront)}</td>
+                <td style={{ ...pdfStyles.td, fontWeight: 'bold' }}>{calcPercent(totalUpfront)}%</td>
               </tr>
               
               {hasWholeLife && (
                 <>
-                  <tr className="pdf-stage-header">
-                    <td colSpan={4}>Use Stage (B1-B7)</td>
+                  <tr>
+                    <td colSpan={4} style={{ ...pdfStyles.td, ...pdfStyles.stageHeader }}>Use Stage (B1-B7)</td>
                   </tr>
                   <tr>
-                    <td>B1-B5</td>
-                    <td>Embodied (maintenance, replacement, refurbishment)</td>
-                    <td>{formatNumber(b1b5)}</td>
-                    <td>{calcPercent(b1b5)}%</td>
+                    <td style={pdfStyles.td}>B1-B5</td>
+                    <td style={pdfStyles.td}>Embodied (maintenance, replacement, refurbishment)</td>
+                    <td style={pdfStyles.td}>{formatNumber(b1b5)}</td>
+                    <td style={pdfStyles.td}>{calcPercent(b1b5)}%</td>
                   </tr>
                   <tr>
-                    <td>B6</td>
-                    <td>Operational energy</td>
-                    <td>{formatNumber(b6)}</td>
-                    <td>{calcPercent(b6)}%</td>
+                    <td style={pdfStyles.td}>B6</td>
+                    <td style={pdfStyles.td}>Operational energy</td>
+                    <td style={pdfStyles.td}>{formatNumber(b6)}</td>
+                    <td style={pdfStyles.td}>{calcPercent(b6)}%</td>
                   </tr>
                   <tr>
-                    <td>B7</td>
-                    <td>Operational water</td>
-                    <td>{formatNumber(b7)}</td>
-                    <td>{calcPercent(b7)}%</td>
+                    <td style={pdfStyles.td}>B7</td>
+                    <td style={pdfStyles.td}>Operational water</td>
+                    <td style={pdfStyles.td}>{formatNumber(b7)}</td>
+                    <td style={pdfStyles.td}>{calcPercent(b7)}%</td>
                   </tr>
                   
-                  <tr className="pdf-stage-header">
-                    <td colSpan={4}>End of Life Stage (C1-C4)</td>
+                  <tr>
+                    <td colSpan={4} style={{ ...pdfStyles.td, ...pdfStyles.stageHeader }}>End of Life Stage (C1-C4)</td>
                   </tr>
                   <tr>
-                    <td>C1-C4</td>
-                    <td>Deconstruction, transport, waste processing, disposal</td>
-                    <td>{formatNumber(c1c4)}</td>
-                    <td>{calcPercent(c1c4)}%</td>
+                    <td style={pdfStyles.td}>C1-C4</td>
+                    <td style={pdfStyles.td}>Deconstruction, transport, waste processing, disposal</td>
+                    <td style={pdfStyles.td}>{formatNumber(c1c4)}</td>
+                    <td style={pdfStyles.td}>{calcPercent(c1c4)}%</td>
                   </tr>
                   
-                  <tr className="pdf-stage-header">
-                    <td colSpan={4}>Module D (Beyond Building Lifecycle)</td>
+                  <tr>
+                    <td colSpan={4} style={{ ...pdfStyles.td, ...pdfStyles.stageHeader }}>Module D (Beyond Building Lifecycle)</td>
                   </tr>
                   <tr>
-                    <td>D</td>
-                    <td>Recycling, reuse, energy recovery credits</td>
-                    <td style={{ color: moduleD < 0 ? '#16a34a' : undefined }}>{formatNumber(moduleD)}</td>
-                    <td>-</td>
+                    <td style={pdfStyles.td}>D</td>
+                    <td style={pdfStyles.td}>Recycling, reuse, energy recovery credits</td>
+                    <td style={{ ...pdfStyles.td, color: moduleD < 0 ? '#16a34a' : undefined }}>{formatNumber(moduleD)}</td>
+                    <td style={pdfStyles.td}>-</td>
                   </tr>
                 </>
               )}
               
-              <tr className="pdf-total-row">
-                <td colSpan={2}><strong>TOTAL WHOLE LIFE (A-C)</strong></td>
-                <td><strong>{formatNumber(totalWholeLife)}</strong></td>
-                <td><strong>100%</strong></td>
+              <tr style={pdfStyles.totalRow}>
+                <td colSpan={2} style={{ ...pdfStyles.td, fontWeight: 'bold', backgroundColor: '#1e40af', color: '#ffffff' }}>TOTAL WHOLE LIFE (A-C)</td>
+                <td style={{ ...pdfStyles.td, fontWeight: 'bold', backgroundColor: '#1e40af', color: '#ffffff' }}>{formatNumber(totalWholeLife)}</td>
+                <td style={{ ...pdfStyles.td, fontWeight: 'bold', backgroundColor: '#1e40af', color: '#ffffff' }}>100%</td>
               </tr>
               {hasWholeLife && moduleD !== 0 && (
-                <tr className="pdf-total-row" style={{ backgroundColor: '#f0fdf4' }}>
-                  <td colSpan={2}><strong>NET WITH BENEFITS (A-D)</strong></td>
-                  <td><strong>{formatNumber(totalWithBenefits)}</strong></td>
-                  <td>-</td>
+                <tr style={{ backgroundColor: '#f0fdf4' }}>
+                  <td colSpan={2} style={{ ...pdfStyles.td, fontWeight: 'bold' }}>NET WITH BENEFITS (A-D)</td>
+                  <td style={{ ...pdfStyles.td, fontWeight: 'bold' }}>{formatNumber(totalWithBenefits)}</td>
+                  <td style={pdfStyles.td}>-</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
 
-        <div className="pdf-section">
-          <h2 className="pdf-section-title">Carbon Intensity</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="pdf-intensity-box">
-              <h3 className="pdf-intensity-title">Upfront Carbon (A1-A5)</h3>
-              <p className="pdf-intensity-value">{formatNumber(totalUpfront)} kgCO₂e</p>
+        <div style={pdfStyles.section}>
+          <h2 style={pdfStyles.sectionTitle}>Carbon Intensity</h2>
+          <div style={pdfStyles.grid3}>
+            <div style={pdfStyles.intensityBox}>
+              <h3 style={pdfStyles.intensityTitle}>Upfront Carbon (A1-A5)</h3>
+              <p style={pdfStyles.intensityValue}>{formatNumber(totalUpfront)} kgCO₂e</p>
               {hasWholeLife && wl.intensity_upfront && (
-                <p className="pdf-intensity-unit">{formatNumber(wl.intensity_upfront)} kgCO₂e/m²</p>
+                <p style={pdfStyles.intensityUnit}>{formatNumber(wl.intensity_upfront)} kgCO₂e/m²</p>
               )}
             </div>
-            <div className="pdf-intensity-box">
-              <h3 className="pdf-intensity-title">Whole Life (A-C)</h3>
-              <p className="pdf-intensity-value">{formatNumber(totalWholeLife)} kgCO₂e</p>
+            <div style={pdfStyles.intensityBox}>
+              <h3 style={pdfStyles.intensityTitle}>Whole Life (A-C)</h3>
+              <p style={pdfStyles.intensityValue}>{formatNumber(totalWholeLife)} kgCO₂e</p>
               {hasWholeLife && wl.intensity_whole_life && (
-                <p className="pdf-intensity-unit">{formatNumber(wl.intensity_whole_life)} kgCO₂e/m²</p>
+                <p style={pdfStyles.intensityUnit}>{formatNumber(wl.intensity_whole_life)} kgCO₂e/m²</p>
               )}
             </div>
-            <div className="pdf-intensity-box">
-              <h3 className="pdf-intensity-title">Net with Benefits (A-D)</h3>
-              <p className="pdf-intensity-value">{formatNumber(totalWithBenefits)} kgCO₂e</p>
+            <div style={pdfStyles.intensityBox}>
+              <h3 style={pdfStyles.intensityTitle}>Net with Benefits (A-D)</h3>
+              <p style={pdfStyles.intensityValue}>{formatNumber(totalWithBenefits)} kgCO₂e</p>
               {hasWholeLife && wl.intensity_with_benefits && (
-                <p className="pdf-intensity-unit">{formatNumber(wl.intensity_with_benefits)} kgCO₂e/m²</p>
+                <p style={pdfStyles.intensityUnit}>{formatNumber(wl.intensity_with_benefits)} kgCO₂e/m²</p>
               )}
             </div>
           </div>
         </div>
         
         {!hasWholeLife && (
-          <div className="pdf-warning-box">
-            <p className="text-sm">
+          <div style={pdfStyles.warningBox}>
+            <p style={{ fontSize: '11px' }}>
               ⚠️ This report shows only upfront carbon (A1-A5). Complete the Use Phase (B1-B7), 
               End of Life (C1-C4), and Module D calculators for a comprehensive whole life assessment.
             </p>
@@ -720,32 +765,41 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
     >
       {/* Watermark */}
       {showWatermark && (
-        <div className="pdf-watermark">
+        <div style={{ 
+          position: 'absolute', 
+          top: '50%', 
+          left: '50%', 
+          transform: 'translate(-50%, -50%) rotate(-45deg)', 
+          fontSize: '80px', 
+          color: 'rgba(0,0,0,0.05)', 
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none'
+        }}>
           Generated by CarbonConstruct
         </div>
       )}
 
       {/* Header */}
-      <div className="pdf-header">
-        <div className="pdf-header-row">
+      <div style={{ marginBottom: '32px', paddingBottom: '16px', borderBottom: '2px solid #2d5a27' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <p className="pdf-company-name">{branding?.companyName || 'CarbonConstruct'}</p>
+            <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#2d5a27', margin: 0 }}>{branding?.companyName || 'CarbonConstruct'}</p>
             {branding?.preparedBy && (
-              <p className="pdf-prepared-by">Prepared by: {branding.preparedBy}</p>
+              <p style={{ fontSize: '11px', color: '#666', margin: '4px 0 0 0' }}>Prepared by: {branding.preparedBy}</p>
             )}
           </div>
           {branding?.logoUrl && (
             <img
               src={branding.logoUrl}
               alt={`${branding?.companyName || 'CarbonConstruct'} logo`}
-              className="pdf-logo"
+              style={{ maxHeight: '60px', maxWidth: '150px' }}
               crossOrigin="anonymous"
             />
           )}
         </div>
-        <h1 className="pdf-title">{getReportTitle()}</h1>
-        <p className="pdf-subtitle">{data.project.name}</p>
-        <p className="pdf-subtitle">Generated: {new Date(data.metadata.generatedAt).toLocaleDateString()}</p>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1a1a1a', margin: '0 0 8px 0' }}>{getReportTitle()}</h1>
+        <p style={{ fontSize: '14px', color: '#666', margin: '4px 0' }}>{data.project.name}</p>
+        <p style={{ fontSize: '12px', color: '#888', margin: '4px 0' }}>Generated: {new Date(data.metadata.generatedAt).toLocaleDateString()}</p>
       </div>
 
       {/* Template Content */}
@@ -761,21 +815,21 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
       {epdExpiryAlerts && epdExpiryAlerts.length > 0 && renderEPDExpiryAlerts()}
 
       {/* Data Source Attribution */}
-      <div className="pdf-attribution" style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+      <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
         <ICEAttributionFooter className="print:block" />
       </div>
 
       {/* Footer */}
-      <div className="pdf-footer">
-        <p>This report was generated using Australian NCC 2024 emission factors and methodologies.</p>
-        <p>For questions about this assessment, contact: {branding?.contactEmail || 'support@carbonconstruct.com.au'}</p>
-        <p className="mt-2">© {new Date().getFullYear()} {branding?.companyName || 'CarbonConstruct'}</p>
+      <div style={{ marginTop: '32px', paddingTop: '16px', borderTop: '1px solid #ccc', textAlign: 'center', fontSize: '10px', color: '#666' }}>
+        <p style={{ margin: '4px 0' }}>This report was generated using Australian NCC 2024 emission factors and methodologies.</p>
+        <p style={{ margin: '4px 0' }}>For questions about this assessment, contact: {branding?.contactEmail || 'support@carbonconstruct.com.au'}</p>
+        <p style={{ margin: '8px 0 0 0' }}>© {new Date().getFullYear()} {branding?.companyName || 'CarbonConstruct'}</p>
       </div>
 
       {/* Disclaimer */}
-      <div className="pdf-disclaimer">
-        <p className="pdf-disclaimer-title">DISCLAIMER & TERMS OF USE</p>
-        <p className="pdf-disclaimer-text">
+      <div style={{ marginTop: '24px', padding: '12px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '4px' }}>
+        <p style={{ fontSize: '10px', fontWeight: 'bold', marginBottom: '8px', color: '#333' }}>DISCLAIMER & TERMS OF USE</p>
+        <p style={{ fontSize: '8px', color: '#666', lineHeight: '1.4', margin: 0 }}>
           This carbon assessment report is generated by CarbonConstruct Pty Ltd (ABN pending) using Australian emission factors 
           from NCC 2024, NABERS, and industry EPD sources. All calculations are estimates based on user-provided data and 
           standard emission factors. CarbonConstruct does not guarantee the accuracy, completeness, or reliability of results. 
