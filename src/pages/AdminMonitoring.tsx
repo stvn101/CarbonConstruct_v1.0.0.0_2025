@@ -21,6 +21,7 @@ import { BluescopeEPDImporter } from "@/components/BluescopeEPDImporter";
 import { BulkEPDUploader } from "@/components/BulkEPDUploader";
 import { ABTestDashboard } from "@/components/ABTestDashboard";
 import { AdminSidebar } from "@/components/AdminSidebar";
+import { ProductionAlertingPanel } from "@/components/ProductionAlertingPanel";
 interface ErrorLog {
   id: string;
   error_type: string;
@@ -791,11 +792,20 @@ export default function AdminMonitoring() {
             <Target className="h-4 w-4" />
             A/B Tests
           </TabsTrigger>
+          <TabsTrigger value="alerting" className="gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Alerting
+          </TabsTrigger>
         </TabsList>
 
         {/* A/B Testing Tab */}
         <TabsContent value="ab-testing">
           <ABTestDashboard />
+        </TabsContent>
+
+        {/* Production Alerting Tab */}
+        <TabsContent value="alerting">
+          <ProductionAlertingPanel />
         </TabsContent>
 
         {/* EPD Upload Tab */}
