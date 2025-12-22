@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu, Loader2, RefreshCw, CheckCheck, History, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import html2pdf from "html2pdf.js";
+import DOMPurify from "dompurify";
 import { useMaterialsDatabaseStats, MaterialsDatabaseStats, OutlierMaterial, CategoryStats } from "@/hooks/useMaterialsDatabaseStats";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -1197,9 +1198,10 @@ const MaterialVerificationReport = () => {
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="flex-1 border rounded-lg bg-white">
+            {/* XSS Protection: Sanitize HTML before rendering to prevent injection attacks */}
             <div 
               className="p-4"
-              dangerouslySetInnerHTML={{ __html: previewHtml }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewHtml) }}
             />
           </ScrollArea>
           <DialogFooter className="mt-4">
