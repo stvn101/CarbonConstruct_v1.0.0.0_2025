@@ -937,12 +937,36 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     const element = document.getElementById(contentId);
 
     if (!element) {
-      console.error('PDF content element not found');
+      console.error('❌ PDF content element not found');
       toast.error('PDF content not found. Please try again.');
       setRenderingPhase('idle');
       setLoading(false);
       return;
     }
+
+    // 🔍 DEBUG: Log initial state
+    console.log('🔍 PDF Debug - Initial State:', {
+      contentId,
+      offsetWidth: element.offsetWidth,
+      offsetHeight: element.offsetHeight,
+      scrollWidth: element.scrollWidth,
+      scrollHeight: element.scrollHeight,
+      innerHTML_length: element.innerHTML.length,
+      childElementCount: element.childElementCount,
+    });
+
+    // 🎨 DEBUG: Log computed styles
+    const initialComputed = window.getComputedStyle(element);
+    console.log('🎨 PDF Debug - Computed Styles:', {
+      display: initialComputed.display,
+      visibility: initialComputed.visibility,
+      opacity: initialComputed.opacity,
+      position: initialComputed.position,
+      zIndex: initialComputed.zIndex,
+      backgroundColor: initialComputed.backgroundColor,
+      width: initialComputed.width,
+      height: initialComputed.height,
+    });
 
     // Store original styles to restore after capture
     const originalStyles = {
@@ -953,34 +977,67 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       zIndex: element.style.zIndex,
       pointerEvents: element.style.pointerEvents,
       width: element.style.width,
+      visibility: element.style.visibility,
+      display: element.style.display,
     };
 
     try {
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
       html2pdfRef.current = html2pdf;
 
-      // CRITICAL: Make element visible BEFORE capture (in-viewport, but behind UI)
-      // Some browsers/canvas implementations produce blank renders for far off-screen content.
+      // CRITICAL FIX: Make element FULLY visible for capture
+      // zIndex must be HIGH (not -1) so html2canvas can see it
       element.style.position = 'fixed';
       element.style.left = '0';
       element.style.top = '0';
       element.style.opacity = '1';
-      element.style.zIndex = '-1';
+      element.style.visibility = 'visible';
+      element.style.display = 'block';
+      element.style.zIndex = '9999'; // FIXED: Was -1, now on top
       element.style.pointerEvents = 'none';
       element.style.width = '210mm';
 
-      // Wait for browser to repaint with visible element
+      console.log('🔧 PDF Debug - After Style Changes:', {
+        zIndex: element.style.zIndex,
+        opacity: element.style.opacity,
+        visibility: element.style.visibility,
+        display: element.style.display,
+        position: element.style.position,
+      });
+
+      // Wait for browser to repaint with visible element (DOUBLED wait time)
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            setTimeout(() => resolve(), 150);
+            setTimeout(() => resolve(), 300); // FIXED: Was 150ms, now 300ms
           });
         });
       });
 
+      // 📏 DEBUG: Check dimensions after making visible
+      console.log('📏 PDF Debug - After Making Visible:', {
+        offsetWidth: element.offsetWidth,
+        offsetHeight: element.offsetHeight,
+        scrollWidth: element.scrollWidth,
+        scrollHeight: element.scrollHeight,
+        clientWidth: element.clientWidth,
+        clientHeight: element.clientHeight,
+      });
+
+      // VALIDATION: Fail early if dimensions are zero
+      if (element.offsetWidth === 0 || element.offsetHeight === 0) {
+        console.error('❌ PDF Element has zero dimensions!', {
+          offsetWidth: element.offsetWidth,
+          offsetHeight: element.offsetHeight,
+        });
+        toast.error('PDF content has no dimensions. Cannot generate PDF.');
+        throw new Error('PDF element has zero dimensions');
+      }
+
       // Wait for all fonts to load before capture
       if (document.fonts && document.fonts.ready) {
         await document.fonts.ready;
+        console.log('✅ PDF Debug - Fonts loaded');
       }
 
       setRenderingPhase('capturing');
@@ -989,6 +1046,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       await new Promise<void>((resolve) => setTimeout(resolve, 200));
 
       setRenderingPhase('saving');
+
+      console.log('⚙️ PDF Debug - Starting html2canvas capture...');
 
       const pdfOptions = {
         margin: 10,
@@ -1001,15 +1060,19 @@ export const PDFReport: React.FC<PDFReportProps> = ({
           allowTaint: true,
           letterRendering: true,
           backgroundColor: '#ffffff',
-          logging: false,
+          logging: true, // FIXED: Was false, now true for debugging
           scrollX: 0,
           scrollY: 0,
           // onclone callback forces explicit inline styles on all elements
           onclone: (_clonedDoc: Document, clonedElement: HTMLElement) => {
+            console.log('🔄 PDF Debug - onclone callback triggered');
+            
             // Force light theme on document to prevent dark mode inheritance
             _clonedDoc.body.style.backgroundColor = '#ffffff';
             _clonedDoc.body.style.color = '#333333';
             _clonedDoc.documentElement.style.colorScheme = 'light';
+            _clonedDoc.documentElement.classList.remove('dark');
+            _clonedDoc.body.classList.remove('dark');
             
             // Force the root element to have explicit styles
             clonedElement.style.cssText = `
@@ -1031,14 +1094,24 @@ export const PDFReport: React.FC<PDFReportProps> = ({
 
             // Force all descendant elements to have explicit computed styles
             const allElements = clonedElement.querySelectorAll('*');
+            console.log(`📝 PDF Debug - Processing ${allElements.length} elements in clone`);
+            
             allElements.forEach((el) => {
               const htmlEl = el as HTMLElement;
               try {
                 const computed = window.getComputedStyle(htmlEl);
                 
                 // Force critical layout and color properties inline
-                htmlEl.style.backgroundColor = computed.backgroundColor || 'transparent';
-                htmlEl.style.color = computed.color || '#333333';
+                // Fix dark mode colors - replace dark backgrounds with white
+                const bgColor = computed.backgroundColor;
+                const textColor = computed.color;
+                
+                // Check if background is dark (rgb values low)
+                const isDarkBg = bgColor.includes('rgb') && 
+                  bgColor.match(/\d+/g)?.slice(0, 3).every(v => parseInt(v) < 50);
+                
+                htmlEl.style.backgroundColor = isDarkBg ? '#ffffff' : (bgColor || 'transparent');
+                htmlEl.style.color = isDarkBg ? '#333333' : (textColor || '#333333');
                 htmlEl.style.fontSize = computed.fontSize || '12px';
                 htmlEl.style.fontWeight = computed.fontWeight || 'normal';
                 htmlEl.style.fontFamily = computed.fontFamily || 'Helvetica, Arial, sans-serif';
@@ -1087,14 +1160,18 @@ export const PDFReport: React.FC<PDFReportProps> = ({
               htmlCell.style.border = '1px solid #ddd';
               htmlCell.style.padding = '8px';
               htmlCell.style.textAlign = 'left';
-              htmlCell.style.backgroundColor = htmlCell.style.backgroundColor || '#ffffff';
+              htmlCell.style.backgroundColor = '#ffffff';
+              htmlCell.style.color = '#333333';
             });
 
             const headers = clonedElement.querySelectorAll('th');
             headers.forEach((header) => {
               (header as HTMLElement).style.backgroundColor = '#f5f5f5';
               (header as HTMLElement).style.fontWeight = 'bold';
+              (header as HTMLElement).style.color = '#333333';
             });
+            
+            console.log('✅ PDF Debug - Clone styling complete');
           },
         },
         jsPDF: {
@@ -1104,6 +1181,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         },
       };
 
+      console.log('📄 PDF Debug - Calling html2pdf workflow...');
+      
       // Use the explicit workflow for better reliability
       await html2pdf()
         .set(pdfOptions)
@@ -1112,6 +1191,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         .toCanvas()
         .toPdf()
         .save();
+      
+      console.log('✅ PDF Debug - PDF generated successfully!');
 
       toast.success('PDF downloaded successfully');
     } catch (error) {
@@ -1126,6 +1207,10 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       element.style.zIndex = originalStyles.zIndex;
       element.style.pointerEvents = originalStyles.pointerEvents;
       element.style.width = originalStyles.width;
+      element.style.visibility = originalStyles.visibility;
+      element.style.display = originalStyles.display;
+      
+      console.log('🔄 PDF Debug - Styles restored');
       
       setLoading(false);
       setRenderingPhase('idle');
