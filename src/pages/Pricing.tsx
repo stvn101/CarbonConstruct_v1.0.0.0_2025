@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { SEOHead } from '@/components/SEOHead';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import DOMPurify from 'dompurify';
 
 // TypeScript declaration for Stripe pricing table custom element
 declare global {
@@ -438,16 +439,17 @@ const Pricing = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* XSS Protection: Sanitize static Stripe embed for defense-in-depth */}
           <div 
             className="w-full" 
             dangerouslySetInnerHTML={{
-              __html: `
+              __html: DOMPurify.sanitize(`
                 <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
                 <stripe-pricing-table 
                   pricing-table-id="prctbl_1SULtHP7JT8gu0Wn7fABNU0I"
                   publishable-key="pk_live_51RKejrP7JT8gu0WngS6oEMcUaQdgGb5XaYcEy5e2kq6Dx75lgaizFV1Fk2lmpgE7nGav6F0fDlMhSYcgecftwpu800mMRyCFJz">
                 </stripe-pricing-table>
-              `
+              `, { ADD_TAGS: ['script', 'stripe-pricing-table'], ADD_ATTR: ['pricing-table-id', 'publishable-key', 'async', 'src'] })
             }}
           />
         </CardContent>
