@@ -7,7 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Play, LogIn, UserPlus } from "lucide-react";
+import { Play, LogIn, UserPlus, Mail } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -65,8 +65,17 @@ export function Layout({ children }: LayoutProps) {
             )}
             <div className="flex-1" />
             <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/contact')}
+                className="hidden sm:flex items-center gap-1.5"
+              >
+                <Mail className="h-4 w-4" />
+                Contact
+              </Button>
               <div
-                className="text-xs md:text-sm text-muted-foreground hidden sm:block"
+                className="text-xs md:text-sm text-muted-foreground hidden lg:block"
                 aria-label="Compliance information"
               >
                 Australian NCC Compliant • Green Star Ready
