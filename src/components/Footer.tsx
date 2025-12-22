@@ -182,10 +182,10 @@ export const Footer = () => {
             {/* ABN Display */}
             <div className="pt-2 border-t border-border/50">
               <p className="text-xs text-muted-foreground">
-                <span className="font-medium">CarbonConstruct Tech ABN:</span> 67 652 069 139
+                <span className="font-medium">United Facade Pty Ltd ABN:</span> 67 652 069 139
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                <span className="font-medium">United Facade Pty Ltd ABN:</span> 57 679 602 498
+                Trading as CarbonConstruct Tech
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Australian-owned & operated
