@@ -184,9 +184,14 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-8 pt-6 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-            <p>
-              © {currentYear} CarbonConstruct. All rights reserved.
-            </p>
+            <div className="text-center md:text-left">
+              <p>
+                © {currentYear} CarbonConstruct. All rights reserved.
+              </p>
+              <p className="text-xs mt-1">
+                A company of <span className="font-medium">United Facade Pty Ltd</span>
+              </p>
+            </div>
             <div className="flex flex-wrap gap-x-6 gap-y-2">
               <Link to="/privacy" className="hover:text-primary transition-colors">
                 Privacy Policy
