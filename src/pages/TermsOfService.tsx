@@ -29,7 +29,7 @@ export default function TermsOfService() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
                 <p className="text-muted-foreground mb-4">
-                  These Terms of Service ("Terms") constitute a legally binding agreement between you ("User", "you", or "your") and CarbonConstruct ("we", "us", or "our") regarding your access to and use of the CarbonConstruct platform, website, and related services (collectively, the "Service").
+                  These Terms of Service ("Terms") constitute a legally binding agreement between you ("User", "you", or "your") and CarbonConstruct Tech, a company of United Facade Pty Ltd (ABN 67 652 069 139) ("we", "us", or "our") regarding your access to and use of the CarbonConstruct platform, website, and related services (collectively, the "Service").
                 </p>
                 <p className="text-muted-foreground">
                   These Terms are governed by the laws of Australia, and any disputes will be subject to the exclusive jurisdiction of the courts of New South Wales, Australia.
@@ -183,7 +183,7 @@ export default function TermsOfService() {
                 
                 <h3 className="text-xl font-semibold mb-3">8.1 Our Rights</h3>
                 <p className="text-muted-foreground mb-4">
-                  CarbonConstruct and all related content, features, functionality, source code, databases, and software are owned by us and are protected by Australian and international copyright, trademark, and other intellectual property laws.
+                  CarbonConstruct and all related content, features, functionality, source code, databases, and software are owned by CarbonConstruct Tech (a company of United Facade Pty Ltd) and are protected by Australian and international copyright, trademark, and other intellectual property laws.
                 </p>
 
                 <h3 className="text-xl font-semibold mb-3">8.2 Your Rights</h3>
@@ -226,7 +226,7 @@ export default function TermsOfService() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">10. Limitation of Liability</h2>
                 <p className="text-muted-foreground mb-4">
-                  To the maximum extent permitted by Australian law, CarbonConstruct and its officers, directors, employees, and agents shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, use, or goodwill, arising out of or related to your use of the Service.
+                  To the maximum extent permitted by Australian law, CarbonConstruct Tech (a company of United Facade Pty Ltd) and its officers, directors, employees, and agents shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, use, or goodwill, arising out of or related to your use of the Service.
                 </p>
                 <p className="text-muted-foreground mb-4">
                   Our total liability for any claim related to the Service is limited to the amount you paid us in the 12 months preceding the claim, or AUD $100, whichever is greater.
@@ -240,7 +240,7 @@ export default function TermsOfService() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">11. Indemnification</h2>
                 <p className="text-muted-foreground mb-4">
-                  You agree to indemnify, defend, and hold harmless CarbonConstruct and its affiliates from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from:
+                  You agree to indemnify, defend, and hold harmless CarbonConstruct Tech (a company of United Facade Pty Ltd) and its affiliates from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from:
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                   <li>Your use of the Service</li>
@@ -328,9 +328,11 @@ export default function TermsOfService() {
                   For questions about these Terms of Service:
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                  <p className="text-sm"><strong>Legal Entity:</strong> CarbonConstruct Tech (a company of United Facade Pty Ltd)</p>
+                  <p className="text-sm"><strong>ABN:</strong> 67 652 069 139</p>
                   <p className="text-sm"><strong>Email:</strong> legal@carbonconstruct.com.au</p>
                   <p className="text-sm"><strong>Phone:</strong> 0459 148 862</p>
-                  <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Legal Department, Lawnton, Queensland, Australia</p>
+                  <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Tech Legal Department, Lawnton, Queensland, Australia</p>
                 </div>
               </section>
 
