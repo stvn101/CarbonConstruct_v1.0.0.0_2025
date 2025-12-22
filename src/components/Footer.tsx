@@ -186,7 +186,7 @@ export const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
             <div className="text-center md:text-left">
               <p>
-                © {currentYear} CarbonConstruct. All rights reserved.
+                © {currentYear} CarbonConstruct Tech. All rights reserved.
               </p>
               <p className="text-xs mt-1">
                 A company of <span className="font-medium">United Facade Pty Ltd</span>
