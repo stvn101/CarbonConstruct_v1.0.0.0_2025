@@ -42,7 +42,7 @@ export default function PrivacyPolicy() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
                 <p className="text-muted-foreground mb-4">
-                  This Privacy Policy explains how CarbonConstruct ("we", "us", or "our") collects, uses, discloses, and protects your personal information when you use our carbon emissions calculation platform and related services (the "Service").
+                  This Privacy Policy explains how CarbonConstruct Tech, a company of United Facade Pty Ltd (ABN 67 652 069 139) ("we", "us", or "our") collects, uses, discloses, and protects your personal information when you use our carbon emissions calculation platform and related services (the "Service").
                 </p>
                 <p className="text-muted-foreground">
                   By using CarbonConstruct, you consent to the collection and use of your information as described in this Privacy Policy. If you do not agree with this policy, please do not use our Service.
@@ -369,9 +369,11 @@ export default function PrivacyPolicy() {
                   If you have questions or concerns about this Privacy Policy or our privacy practices:
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                  <p className="text-sm"><strong>Legal Entity:</strong> CarbonConstruct Tech (a company of United Facade Pty Ltd)</p>
+                  <p className="text-sm"><strong>ABN:</strong> 67 652 069 139</p>
                   <p className="text-sm"><strong>Privacy Officer Email:</strong> privacy@carbonconstruct.com.au</p>
                   <p className="text-sm"><strong>Phone:</strong> 0459 148 862</p>
-                  <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Privacy Officer, Lawnton, Queensland, Australia</p>
+                  <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Tech Privacy Officer, Lawnton, Queensland, Australia</p>
                 </div>
                 <p className="text-muted-foreground mt-4 text-sm">
                   You may also lodge a complaint with the Office of the Australian Information Commissioner (OAIC) at <a href="https://www.oaic.gov.au" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">www.oaic.gov.au</a> or by calling 1300 363 992.
@@ -382,7 +384,7 @@ export default function PrivacyPolicy() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">17. Compliance and Standards</h2>
                 <p className="text-muted-foreground mb-3">
-                  CarbonConstruct is committed to compliance with:
+                  CarbonConstruct Tech is committed to compliance with:
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                   <li>Privacy Act 1988 (Cth) and Australian Privacy Principles</li>
