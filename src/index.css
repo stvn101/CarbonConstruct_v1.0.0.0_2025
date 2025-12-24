@@ -559,51 +559,76 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Vega Gray Dark Mode */
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
+    /* =====================================================
+       ECO-GLASS FUTURISM - Dark Mode (Primary Theme)
+       Neon green glassmorphism with deep forest background
+       ===================================================== */
+    
+    /* Bright Neon Green Primary */
+    --primary: 142 90% 55%;
+    --primary-foreground: 145 35% 8%;
+    --primary-hover: 142 85% 50%;
 
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
+    /* Deep Forest Background */
+    --background: 145 35% 8%;
+    --foreground: 145 10% 95%;
 
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    /* Translucent Dark Glass Cards */
+    --card: 145 30% 10%;
+    --card-foreground: 145 10% 95%;
 
-    /* Primary: Keep emerald green */
-    --primary: 156 55% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 156 60% 40%;
+    /* Glass Popover */
+    --popover: 145 30% 10%;
+    --popover-foreground: 145 10% 95%;
 
-    /* Secondary: Lighter in dark mode */
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
+    /* Secondary: Subtle green-tinted glass */
+    --secondary: 145 20% 15%;
+    --secondary-foreground: 145 15% 90%;
 
-    /* Accent: Slightly lighter green */
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    /* Accent: Neon green tint */
+    --accent: 145 25% 18%;
+    --accent-foreground: 145 10% 95%;
 
-    /* Muted: Dark gray */
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
+    /* Muted: Soft green-gray */
+    --muted: 145 15% 12%;
+    --muted-foreground: 145 10% 70%;
 
-    /* Interface Elements - Dark */
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 156 55% 45%;
+    /* Interface Elements - Frost borders */
+    --border: 145 10% 95% / 0.1;
+    --input: 145 10% 95% / 0.1;
+    --ring: 142 90% 55%;
 
-    /* Status Colors - Brighter in dark mode */
-    --destructive: 0 62.8% 50.6%;
+    /* Status Colors - Neon bright */
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Sidebar Dark Mode */
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 156 55% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 14.9%;
-    --sidebar-ring: 156 55% 45%;
+    /* Enhanced Chart Colors for Neon Theme */
+    --chart-1: 142 90% 55%;
+    --chart-2: 150 80% 50%;
+    --chart-3: 160 70% 45%;
+    --chart-4: 170 60% 40%;
+    --chart-5: 180 50% 35%;
+
+    /* Sidebar - Deep forest with neon accents */
+    --sidebar-background: 145 35% 6%;
+    --sidebar-foreground: 145 10% 95%;
+    --sidebar-primary: 142 90% 55%;
+    --sidebar-primary-foreground: 145 35% 8%;
+    --sidebar-accent: 145 25% 15%;
+    --sidebar-accent-foreground: 145 10% 95%;
+    --sidebar-border: 145 10% 95% / 0.1;
+    --sidebar-ring: 142 90% 55%;
+
+    /* Neon Glow Shadows */
+    --shadow-glow: 0 0 30px hsl(142 90% 55% / 0.3);
+    --shadow-neon: 0 0 20px hsl(142 90% 55% / 0.4), 0 0 40px hsl(142 90% 55% / 0.2);
+  }
+}
+
+/* Heading Typography - Space Grotesk */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
   }
 }
 
@@ -824,36 +849,67 @@ All colors MUST be HSL.
 }
 
 /* =====================================================
-   DARK MODE GLASSMORPHISM
-   Adjusted opacities and glow colors for dark theme
+   ECO-GLASS FUTURISM - Dark Mode Glassmorphism
+   Neon green glow effects and translucent surfaces
    ===================================================== */
 
 .dark .glass {
-  background: rgba(30, 35, 45, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 35, 25, 0.7);
+  border: 1px solid rgba(57, 255, 20, 0.1);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.05);
 }
 
 .dark .glass-glow-hover:hover {
-  box-shadow: 0 8px 32px rgba(100, 200, 120, 0.25),
-              0 0 0 1px rgba(100, 200, 120, 0.15);
+  box-shadow: 0 8px 32px rgba(57, 255, 20, 0.25),
+              0 0 0 1px rgba(57, 255, 20, 0.2);
 }
 
 .dark .carbon-surface {
-  background: linear-gradient(135deg, hsl(220 25% 10%), hsl(220 20% 14%));
+  background: linear-gradient(135deg, hsl(145 35% 6%), hsl(145 30% 10%));
 }
 
 .dark .shadow-glass-hover {
-  box-shadow: 0 8px 32px rgba(100, 200, 120, 0.2),
-              0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px rgba(57, 255, 20, 0.15),
+              0 0 0 1px rgba(57, 255, 20, 0.1);
 }
 
 .dark .glow-ring {
-  animation: glow-pulse-dark 2s ease-in-out infinite;
+  animation: glow-pulse-neon 2s ease-in-out infinite;
 }
 
-@keyframes glow-pulse-dark {
-  0%, 100% { box-shadow: 0 0 20px hsl(156 60% 40% / 0.4); }
-  50% { box-shadow: 0 0 45px hsl(156 60% 45% / 0.6); }
+@keyframes glow-pulse-neon {
+  0%, 100% { box-shadow: 0 0 20px hsl(142 90% 55% / 0.4); }
+  50% { box-shadow: 0 0 50px hsl(142 90% 55% / 0.7); }
+}
+
+/* Neon text glow effect */
+.neon-text {
+  text-shadow: 0 0 10px hsl(142 90% 55% / 0.5),
+               0 0 20px hsl(142 90% 55% / 0.3),
+               0 0 40px hsl(142 90% 55% / 0.2);
+}
+
+/* Neon border glow */
+.neon-border {
+  border: 1px solid hsl(142 90% 55% / 0.5);
+  box-shadow: 0 0 10px hsl(142 90% 55% / 0.3),
+              inset 0 0 10px hsl(142 90% 55% / 0.1);
+}
+
+/* Live indicator pulse */
+@keyframes live-pulse {
+  0%, 100% { 
+    opacity: 1;
+    box-shadow: 0 0 10px hsl(142 90% 55%);
+  }
+  50% { 
+    opacity: 0.5;
+    box-shadow: 0 0 20px hsl(142 90% 55%);
+  }
+}
+
+.live-indicator {
+  animation: live-pulse 1.5s ease-in-out infinite;
 }
 
 /* =====================================================
