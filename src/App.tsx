@@ -48,6 +48,7 @@ const Demo = lazy(() => import("./pages/Demo"));
 const DesignSystem = lazy(() => import("./pages/DesignSystem"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
+const EcoGlassDashboard = lazy(() => import("./pages/EcoGlassDashboard"));
 
 // Campaign landing pages
 const LandingBuilders = lazy(() => import("./pages/LandingBuilders"));
@@ -178,6 +179,7 @@ const FullApp = () => (
                     <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
                     <Route path="/demo" element={<Demo />} />
                     <Route path="/design-system" element={<DesignSystem />} />
+                    <Route path="/eco-dashboard" element={<EcoGlassDashboard />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
                     {/* Campaign landing pages */}
