@@ -73,9 +73,14 @@ const Index = () => {
                   CarbonConstruct
                 </h1>
               </div>
-              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-                Professional carbon emissions calculator for Australian construction projects.
-                NCC Section J compliant with Green Star and NABERS integration.
+              <p className="text-lg md:text-xl font-semibold text-foreground max-w-3xl mx-auto px-4">
+                Carbon compliance built by a builder who knows how projects actually get built.
+              </p>
+              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4">
+                Full life cycle assessment for Australian construction. NCC Section J compliant. Green Star and NABERS ready. 4,000+ verified materials integrated directly into quoting and procurement—not bolted on as an afterthought.
+              </p>
+              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4">
+                Calculate your project. Track Scope 3 downstream. Meet compliance requirements without consultant fees.
               </p>
             </div>
 
@@ -147,7 +152,7 @@ const Index = () => {
               <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
                 <Button onClick={() => navigate("/auth")} size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-semibold glow-ring">
                   <CheckCircle className="mr-2 h-5 w-5" />
-                  Start Free Forever
+                  Start Free Assessment
                 </Button>
                 <Button onClick={() => navigate("/auth")} variant="outline" size="lg" className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 hover-scale w-full sm:w-auto">
                   Start 14-Day Pro Trial
