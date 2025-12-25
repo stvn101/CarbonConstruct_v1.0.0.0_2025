@@ -1,4 +1,4 @@
-import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, DollarSign, Leaf, Map, Play, Upload } from "lucide-react";
+import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, DollarSign, Leaf, Map, Play, Upload, Sparkles } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -39,6 +39,11 @@ const otherItems = [{
   url: "/demo",
   icon: Play,
   color: "text-purple-400"
+}, {
+  title: "Eco-Glass Dashboard",
+  url: "/eco-dashboard",
+  icon: Sparkles,
+  color: "text-emerald-400"
 }, {
   title: "Our Impact",
   url: "/impact",
