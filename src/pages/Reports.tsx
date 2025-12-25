@@ -25,6 +25,7 @@ import { SkeletonPage } from '@/components/SkeletonPage';
 import { ComplianceCard } from '@/components/ComplianceCard';
 import { EPDRenewalReminders } from '@/components/calculator/EPDRenewalReminders';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import type { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
 import { 
   FileBarChart, 
@@ -220,52 +221,67 @@ const Reports = () => {
     // Track the usage
     trackUsage({ metricType: 'reports_per_month' });
 
-    // Generate and download the PDF (use the same report content rendered by <PDFReport />)
+    // Generate and download the PDF (direct capture, no cloning)
     const element = document.getElementById('pdf-report-content');
 
-    if (element) {
+    if (!element) {
+      console.error('PDF content element not found');
+      toast.error('PDF content not found. Please try again.');
+      return;
+    }
+
+    try {
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
       html2pdfRef.current = html2pdf;
 
       const safeProjectName = toSafeFilename(currentProject?.name || 'project');
       const outputFilename = `${safeProjectName || 'project'}-carbon-report.pdf`;
 
-      let clone: HTMLElement | null = null;
-
-      try {
-        clone = element.cloneNode(true) as HTMLElement;
-        clone.id = `pdf-report-content-capture-${Date.now()}`;
-        clone.setAttribute(
-          'style',
-          'position: fixed; left: 0; top: 0; z-index: 9999; width: 210mm; max-width: 210mm; background: #ffffff; background-color: #ffffff; padding: 40px; overflow: visible; opacity: 1; visibility: visible; pointer-events: none;'
-        );
-        document.body.appendChild(clone);
-
-        await new Promise<void>((resolve) => {
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-        });
-
-        await html2pdf()
-          .set({
-            margin: 10,
-            filename: outputFilename,
-            pagebreak: { mode: ['css', 'legacy'] },
-            html2canvas: {
-              scale: 2,
-              useCORS: true,
-              letterRendering: true,
-              backgroundColor: '#ffffff',
-              logging: false,
-              windowWidth: clone.scrollWidth,
-              windowHeight: clone.scrollHeight,
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          } as any)
-          .from(clone)
-          .save();
-      } finally {
-        if (clone?.parentNode) clone.parentNode.removeChild(clone);
+      // Wait for fonts to load
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
       }
+
+      // Direct capture using the same approach as PDFReport component
+      await html2pdf()
+        .set({
+          margin: 10,
+          filename: outputFilename,
+          pagebreak: { mode: ['css', 'legacy'] },
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            letterRendering: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+            scrollX: 0,
+            scrollY: 0,
+            // Minimal onclone: Only fix dark mode inheritance
+            onclone: (_clonedDoc: Document, clonedElement: HTMLElement) => {
+              // Prevent dark mode from affecting the PDF
+              _clonedDoc.body.style.backgroundColor = '#ffffff';
+              _clonedDoc.body.style.color = '#333333';
+              _clonedDoc.documentElement.style.colorScheme = 'light';
+              _clonedDoc.documentElement.classList.remove('dark');
+              _clonedDoc.body.classList.remove('dark');
+
+              // Ensure root element has correct position for capture
+              clonedElement.style.position = 'static';
+              clonedElement.style.left = 'auto';
+            },
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        })
+        .from(element)
+        .save();
+
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Failed to generate PDF. Please try again.');
+      return; // Don't send email if PDF generation failed
     }
 
     // Send report generated email

@@ -747,15 +747,11 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
       className="pdf-report-content"
       data-theme="light"
       style={{
-        // Always-rendered approach: Keep off-screen but fully styled and visible to html2canvas
+        // Original simple approach that worked: off-screen but fully laid out
         position: forPreview ? 'static' : 'absolute',
-        left: forPreview ? 'auto' : '-100vw', // Off-screen left, not display:none
+        left: forPreview ? 'auto' : '-9999px',
         top: forPreview ? 'auto' : '0',
         width: forPreview ? '100%' : '210mm',
-        height: forPreview ? 'auto' : 'auto',
-        opacity: 1, // CRITICAL: Always 1 so html2canvas can capture without visibility tricks
-        pointerEvents: forPreview ? 'auto' : 'none',
-        overflow: 'visible', // Ensure content isn't clipped
         backgroundColor: '#ffffff',
         padding: '40px',
         fontFamily: 'Helvetica, Arial, sans-serif',
@@ -944,11 +940,29 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       return;
     }
 
+    // Store original styles to restore after capture
+    const originalPosition = element.style.position;
+    const originalLeft = element.style.left;
+    const originalTop = element.style.top;
+    const originalZIndex = element.style.zIndex;
+    const originalPointerEvents = element.style.pointerEvents;
+
     try {
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
       html2pdfRef.current = html2pdf;
 
-      // Simple dimension validation
+      // Temporarily position element on-screen for html2canvas to capture properly
+      // User won't see it because loading indicator is showing
+      element.style.position = 'fixed';
+      element.style.left = '0';
+      element.style.top = '0';
+      element.style.zIndex = '9999';
+      element.style.pointerEvents = 'none';
+
+      // Wait a moment for browser to layout the element
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+      // Dimension validation
       if (element.offsetWidth === 0 || element.offsetHeight === 0) {
         console.error(`PDF element with id '${contentId}' has zero dimensions`);
         toast.error('PDF content has no dimensions. Cannot generate PDF.');
@@ -1010,6 +1024,13 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       console.error('Error generating PDF:', error);
       toast.error('Failed to generate PDF. Please try again.');
     } finally {
+      // Restore original position
+      element.style.position = originalPosition;
+      element.style.left = originalLeft;
+      element.style.top = originalTop;
+      element.style.zIndex = originalZIndex;
+      element.style.pointerEvents = originalPointerEvents;
+
       setLoading(false);
       setRenderingPhase('idle');
     }
