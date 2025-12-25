@@ -941,11 +941,13 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     }
 
     // Store original styles to restore after capture
-    const originalPosition = element.style.position;
-    const originalLeft = element.style.left;
-    const originalTop = element.style.top;
-    const originalZIndex = element.style.zIndex;
-    const originalPointerEvents = element.style.pointerEvents;
+    const originalStyles = {
+      position: element.style.position,
+      left: element.style.left,
+      top: element.style.top,
+      zIndex: element.style.zIndex,
+      pointerEvents: element.style.pointerEvents,
+    };
 
     try {
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
@@ -1025,11 +1027,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       toast.error('Failed to generate PDF. Please try again.');
     } finally {
       // Restore original position
-      element.style.position = originalPosition;
-      element.style.left = originalLeft;
-      element.style.top = originalTop;
-      element.style.zIndex = originalZIndex;
-      element.style.pointerEvents = originalPointerEvents;
+      Object.assign(element.style, originalStyles);
 
       setLoading(false);
       setRenderingPhase('idle');
