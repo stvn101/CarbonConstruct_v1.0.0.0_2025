@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Check, Zap, Building2, Crown, ArrowRight, Leaf, ExternalLink, Sparkles, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,19 +9,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { SEOHead } from '@/components/SEOHead';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import DOMPurify from 'dompurify';
-
-// TypeScript declaration for Stripe pricing table custom element
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'stripe-pricing-table': {
-        'pricing-table-id': string;
-        'publishable-key': string;
-      };
-    }
-  }
-}
 
 // Static pricing tiers with new Stripe price IDs (14-day trial enabled)
 const PRICING_TIERS = [
@@ -114,6 +101,7 @@ const Pricing = () => {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [discountCode, setDiscountCode] = useState<string | null>(null);
   const [showDiscountBanner, setShowDiscountBanner] = useState(true);
+  const stripePricingRef = useRef<HTMLDivElement>(null);
 
   // Check for discount code in sessionStorage
   useEffect(() => {
@@ -123,7 +111,7 @@ const Pricing = () => {
     }
   }, []);
 
-  // Load Stripe pricing table script safely
+  // Load Stripe pricing table script and create element
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://js.stripe.com/v3/pricing-table.js';
@@ -133,6 +121,23 @@ const Pricing = () => {
     const existingScript = document.querySelector('script[src="https://js.stripe.com/v3/pricing-table.js"]');
     if (!existingScript) {
       document.head.appendChild(script);
+    }
+
+    // Create the stripe-pricing-table element after script loads
+    const createPricingTable = () => {
+      if (stripePricingRef.current && !stripePricingRef.current.querySelector('stripe-pricing-table')) {
+        const pricingTable = document.createElement('stripe-pricing-table');
+        pricingTable.setAttribute('pricing-table-id', 'prctbl_1SULtHP7JT8gu0Wn7fABNU0I');
+        pricingTable.setAttribute('publishable-key', 'pk_live_51RKejrP7JT8gu0WngS6oEMcUaQdgGb5XaYcEy5e2kq6Dx75lgaizFV1Fk2lmpgE7nGav6F0fDlMhSYcgecftwpu800mMRyCFJz');
+        stripePricingRef.current.appendChild(pricingTable);
+      }
+    };
+
+    // If script is already loaded, create immediately
+    if (existingScript) {
+      createPricingTable();
+    } else {
+      script.onload = createPricingTable;
     }
 
     return () => {
@@ -439,19 +444,8 @@ const Pricing = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* XSS Protection: Sanitize static Stripe embed for defense-in-depth */}
-          <div 
-            className="w-full" 
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(`
-                <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
-                <stripe-pricing-table 
-                  pricing-table-id="prctbl_1SULtHP7JT8gu0Wn7fABNU0I"
-                  publishable-key="pk_live_51RKejrP7JT8gu0WngS6oEMcUaQdgGb5XaYcEy5e2kq6Dx75lgaizFV1Fk2lmpgE7nGav6F0fDlMhSYcgecftwpu800mMRyCFJz">
-                </stripe-pricing-table>
-              `, { ADD_TAGS: ['script', 'stripe-pricing-table'], ADD_ATTR: ['pricing-table-id', 'publishable-key', 'async', 'src'] })
-            }}
-          />
+          {/* Stripe Pricing Table - rendered via ref (script loaded via useEffect) */}
+          <div ref={stripePricingRef} className="w-full min-h-[400px]" />
         </CardContent>
       </Card>
 
