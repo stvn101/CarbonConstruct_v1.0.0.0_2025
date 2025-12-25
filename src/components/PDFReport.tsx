@@ -756,7 +756,6 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
         opacity: 1, // CRITICAL: Always 1 so html2canvas can capture without visibility tricks
         pointerEvents: forPreview ? 'auto' : 'none',
         overflow: 'visible', // Ensure content isn't clipped
-        background: '#ffffff',
         backgroundColor: '#ffffff',
         padding: '40px',
         fontFamily: 'Helvetica, Arial, sans-serif',
@@ -938,7 +937,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     const element = document.getElementById(contentId);
 
     if (!element) {
-      console.error('PDF content element not found');
+      console.error(`PDF content element with id '${contentId}' not found`);
       toast.error('PDF content not found. Please try again.');
       setRenderingPhase('idle');
       setLoading(false);
@@ -951,7 +950,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
 
       // Simple dimension validation
       if (element.offsetWidth === 0 || element.offsetHeight === 0) {
-        console.error('PDF element has zero dimensions');
+        console.error(`PDF element with id '${contentId}' has zero dimensions`);
         toast.error('PDF content has no dimensions. Cannot generate PDF.');
         throw new Error('PDF element has zero dimensions');
       }
