@@ -254,6 +254,14 @@ const Reports = () => {
       element.style.zIndex = '9999';
       element.style.pointerEvents = 'none';
 
+      // Debug logging
+      console.log('🔍 PDF Debug - Before capture:');
+      console.log('  Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
+      console.log('  Element position:', element.style.position, element.style.left, element.style.top);
+      console.log('  Element innerHTML length:', element.innerHTML.length);
+      console.log('  Element has tables:', element.querySelectorAll('table').length);
+      console.log('  Element computed style left:', window.getComputedStyle(element).left);
+
       // Wait a moment for browser to layout the element
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
