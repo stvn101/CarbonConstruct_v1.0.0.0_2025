@@ -902,22 +902,6 @@ export const PDFReport: React.FC<PDFReportProps> = ({
   const [emailSending, setEmailSending] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [renderingPhase, setRenderingPhase] = useState<'idle' | 'rendering' | 'capturing' | 'saving'>('idle');
-  const html2pdfRef = useRef<any>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    import('html2pdf.js')
-      .then((m) => {
-        if (!cancelled) html2pdfRef.current = m.default;
-      })
-      .catch(() => {
-        // ignore - will lazy load on click
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const contentId = 'pdf-report-content';
   const safeProjectName = (data.project.name || 'project')
@@ -944,75 +928,88 @@ export const PDFReport: React.FC<PDFReportProps> = ({
     }
 
     try {
-      const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
-      html2pdfRef.current = html2pdf;
+      // Load libraries async (no document.write!)
+      const [html2canvas, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf')
+      ]);
 
-      // Temporarily make visible for capture (element is already at 0,0)
+      // Temporarily make visible for capture
       element.style.opacity = '1';
       element.style.zIndex = '9999';
 
-      // Wait for browser to paint the visible element
+      // Wait for browser to paint
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
       // Dimension validation
       if (element.offsetWidth === 0 || element.offsetHeight === 0) {
-        console.error(`PDF element with id '${contentId}' has zero dimensions`);
+        console.error(`PDF element has zero dimensions`);
         toast.error('PDF content has no dimensions. Cannot generate PDF.');
         throw new Error('PDF element has zero dimensions');
       }
 
-      // Wait for fonts to load (improves text rendering)
+      // Wait for fonts
       if (document.fonts?.ready) {
         await document.fonts.ready;
       }
 
       setRenderingPhase('capturing');
 
-      const pdfOptions = {
-        margin: 10,
-        filename: filename || defaultFilename,
-        pagebreak: { mode: ['css', 'legacy'] },
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          letterRendering: true,
-          backgroundColor: '#ffffff',
-          logging: true,  // Enable debug logging
-          scrollX: 0,
-          scrollY: 0,
-          // Minimal onclone: Only fix dark mode inheritance
-          onclone: (_clonedDoc: Document, clonedElement: HTMLElement) => {
-            // Prevent dark mode from affecting the PDF
-            _clonedDoc.body.style.backgroundColor = '#ffffff';
-            _clonedDoc.body.style.color = '#333333';
-            _clonedDoc.documentElement.style.colorScheme = 'light';
-            _clonedDoc.documentElement.classList.remove('dark');
-            _clonedDoc.body.classList.remove('dark');
+      // Capture element to canvas using html2canvas
+      const canvas = await html2canvas.default(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        letterRendering: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        onclone: (clonedDoc: Document, clonedElement: HTMLElement) => {
+          // Fix dark mode
+          clonedDoc.body.style.backgroundColor = '#ffffff';
+          clonedDoc.body.style.color = '#333333';
+          clonedDoc.documentElement.style.colorScheme = 'light';
+          clonedDoc.documentElement.classList.remove('dark');
+          clonedDoc.body.classList.remove('dark');
 
-            // CRITICAL: Ensure root element is fully visible for capture
-            clonedElement.style.position = 'static';
-            clonedElement.style.left = 'auto';
-            clonedElement.style.opacity = '1';
-            clonedElement.style.visibility = 'visible';
-            clonedElement.style.display = 'block';
-          },
+          // Ensure visible
+          clonedElement.style.opacity = '1';
+          clonedElement.style.visibility = 'visible';
         },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait',
-        },
-      };
+      });
 
       setRenderingPhase('saving');
 
-      // Generate and save PDF
-      await html2pdf()
-        .set(pdfOptions)
-        .from(element)
-        .save();
+      // Convert canvas to PDF using jsPDF
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      // Calculate dimensions to fit A4
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if needed
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Save the PDF
+      pdf.save(filename || defaultFilename);
 
       toast.success('PDF downloaded successfully');
     } catch (error) {
