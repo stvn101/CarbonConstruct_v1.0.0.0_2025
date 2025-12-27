@@ -89,17 +89,20 @@ export interface UnifiedCalculationData {
 export const useUnifiedCalculations = () => {
   const [data, setData] = useState<UnifiedCalculationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [validationResult, setValidationResult] = useState<UnitValidationResult | null>(null);
   const { currentProject } = useProject();
 
   const fetchUnifiedCalculations = async () => {
     if (!currentProject?.id) {
+      setError(null);
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
+      setError(null);
 
       const { data: calcData, error } = await supabase
         .from('unified_calculations')
@@ -345,6 +348,7 @@ export const useUnifiedCalculations = () => {
       }
     } catch (error) {
       logger.error('UnifiedCalculations:fetchCalculations', error);
+      setError(error instanceof Error ? error : new Error('Failed to load calculations.'));
       setData(null);
     } finally {
       setLoading(false);
@@ -358,6 +362,7 @@ export const useUnifiedCalculations = () => {
   return {
     data,
     loading,
+    error,
     validationResult,
     refetch: fetchUnifiedCalculations
   };
