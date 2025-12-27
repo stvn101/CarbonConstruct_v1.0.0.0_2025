@@ -73,7 +73,7 @@ const toSafeFilename = (value: string) =>
 
 const Reports = () => {
   const { currentProject } = useProject();
-  const reportData = useReportData();
+  const { data: reportData, loading, error, refetch } = useReportData();
   const { totals } = useEmissionTotals();
   const { canPerformAction, trackUsage, currentUsage } = useUsageTracking();
   const { currentTier, userSubscription } = useSubscription();
@@ -359,8 +359,58 @@ const Reports = () => {
     );
   }
 
-  if (!reportData) {
+  if (loading) {
     return <SkeletonPage variant="dashboard" />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="w-full max-w-2xl border-destructive/50">
+          <CardHeader className="text-center">
+            <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
+            <CardTitle>Unable to Load Reports</CardTitle>
+            <CardDescription>
+              We hit a snag while fetching your report data. Please try again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button onClick={() => void refetch()} className="mt-4">
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const hasCalculationData = reportData
+    ? reportData.emissions.total > 0 ||
+      reportData.breakdown.materials.length > 0 ||
+      reportData.breakdown.fuelInputs.length > 0 ||
+      reportData.breakdown.electricityInputs.length > 0 ||
+      reportData.breakdown.transportInputs.length > 0
+    : false;
+
+  if (!reportData || !hasCalculationData) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="w-full max-w-2xl">
+          <CardHeader className="text-center">
+            <FileBarChart className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <CardTitle>No Calculations Yet</CardTitle>
+            <CardDescription>
+              Add calculations in the calculator to generate report-ready insights.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button onClick={() => window.location.href = '/calculator'} className="mt-4">
+              Go to Calculator
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   // Validate report data before rendering

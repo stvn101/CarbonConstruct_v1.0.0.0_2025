@@ -41,6 +41,13 @@ export interface ValidationResult {
   warnings: string[];
 }
 
+export interface ReportDataState {
+  data: ReportData | null;
+  loading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+}
+
 export const calculateDataCompleteness = (data: ReportData): number => {
   let filledFields = 0;
   let totalFields = 0;
@@ -108,16 +115,26 @@ export const validateReportData = (data: ReportData): ValidationResult => {
   };
 };
 
-export const useReportData = (): ReportData | null => {
+export const useReportData = (): ReportDataState => {
   const { currentProject } = useProject();
-  const { data, loading } = useUnifiedCalculations();
+  const { data, loading, error, refetch } = useUnifiedCalculations();
 
   if (!currentProject || loading) {
-    return null;
+    return {
+      data: null,
+      loading,
+      error,
+      refetch
+    };
   }
 
   if (!data) {
-    return null;
+    return {
+      data: null,
+      loading,
+      error,
+      refetch
+    };
   }
 
   // All database values are stored in kgCO2e, convert to tCO2e for display
@@ -134,6 +151,7 @@ export const useReportData = (): ReportData | null => {
   const wholeLifeTotals = loadStoredWholeLifeTotals();
 
   return {
+    data: {
     project: {
       name: currentProject.name,
       description: currentProject.description,
@@ -163,6 +181,10 @@ export const useReportData = (): ReportData | null => {
       dataQuality: 'Mixed (Calculated from Australian emission factors and EPD data)',
     },
     wholeLife: wholeLifeTotals,
+    },
+    loading,
+    error,
+    refetch
   };
 };
 

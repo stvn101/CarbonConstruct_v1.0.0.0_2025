@@ -23,10 +23,10 @@ const DEFAULT_BRANDING: ReportBranding = {
 };
 
 export function CalculatorReportSection({ currentProject }: CalculatorReportSectionProps) {
-  const reportData = useReportData();
+  const { data: reportData, loading, error } = useReportData();
   
   // Don't render if no project or no report data
-  if (!currentProject || !reportData) {
+  if (!currentProject || loading || error || !reportData) {
     return null;
   }
 
