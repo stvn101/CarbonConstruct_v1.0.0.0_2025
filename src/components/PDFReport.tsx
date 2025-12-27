@@ -991,9 +991,12 @@ export const PDFReport: React.FC<PDFReportProps> = ({
             _clonedDoc.documentElement.classList.remove('dark');
             _clonedDoc.body.classList.remove('dark');
 
-            // Ensure root element has correct position for capture
+            // CRITICAL: Ensure root element is fully visible for capture
             clonedElement.style.position = 'static';
             clonedElement.style.left = 'auto';
+            clonedElement.style.opacity = '1';
+            clonedElement.style.visibility = 'visible';
+            clonedElement.style.display = 'block';
           },
         },
         jsPDF: {
