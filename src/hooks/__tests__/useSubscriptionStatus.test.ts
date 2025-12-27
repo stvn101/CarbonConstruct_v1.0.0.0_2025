@@ -63,6 +63,7 @@ describe('useSubscriptionStatus', () => {
 
       expect(result.current.subscribed).toBe(false);
       expect(result.current.tier_name).toBe('Free');
+      expect(result.current.is_admin).toBe(false);
     });
 
     it('should start in loading state', () => {

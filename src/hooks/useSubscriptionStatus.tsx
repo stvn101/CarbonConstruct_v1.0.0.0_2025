@@ -13,6 +13,7 @@ export interface SubscriptionStatus {
   subscription_end: string | null;
   trial_end: string | null;
   is_trialing: boolean;
+  is_admin: boolean;
 }
 
 export const useSubscriptionStatus = () => {
@@ -25,6 +26,7 @@ export const useSubscriptionStatus = () => {
     subscription_end: null,
     trial_end: null,
     is_trialing: false,
+    is_admin: false,
   });
   const [loading, setLoading] = useState(true);
 
@@ -81,6 +83,7 @@ export const useSubscriptionStatus = () => {
         subscription_end: null,
         trial_end: null,
         is_trialing: false,
+        is_admin: false,
       });
       setLoading(false);
       return;
@@ -135,6 +138,7 @@ export const useSubscriptionStatus = () => {
         setStatus({
           ...data,
           is_trialing: isTrialing,
+          is_admin: data.is_admin || false,
         });
       }
     } catch (error) {
