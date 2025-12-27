@@ -230,12 +230,40 @@ const Reports = () => {
       return;
     }
 
+    // Store original styles to restore after capture
+    const originalStyles = {
+      position: element.style.position,
+      left: element.style.left,
+      top: element.style.top,
+      zIndex: element.style.zIndex,
+      pointerEvents: element.style.pointerEvents,
+    };
+
     try {
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
       html2pdfRef.current = html2pdf;
 
       const safeProjectName = toSafeFilename(currentProject?.name || 'project');
       const outputFilename = `${safeProjectName || 'project'}-carbon-report.pdf`;
+
+      // Temporarily position element on-screen for html2canvas to capture properly
+      // User won't see it because loading indicator is showing
+      element.style.position = 'fixed';
+      element.style.left = '0';
+      element.style.top = '0';
+      element.style.zIndex = '9999';
+      element.style.pointerEvents = 'none';
+
+      // Debug logging
+      console.log('🔍 PDF Debug - Before capture:');
+      console.log('  Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
+      console.log('  Element position:', element.style.position, element.style.left, element.style.top);
+      console.log('  Element innerHTML length:', element.innerHTML.length);
+      console.log('  Element has tables:', element.querySelectorAll('table').length);
+      console.log('  Element computed style left:', window.getComputedStyle(element).left);
+
+      // Wait a moment for browser to layout the element
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
       // Dimension validation
       if (element.offsetWidth === 0 || element.offsetHeight === 0) {
@@ -289,6 +317,9 @@ const Reports = () => {
       console.error('Error generating PDF:', error);
       toast.error('Failed to generate PDF. Please try again.');
       return; // Don't send email if PDF generation failed
+    } finally {
+      // Restore original position
+      Object.assign(element.style, originalStyles);
     }
 
     // Send report generated email

@@ -747,11 +747,14 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
       className="pdf-report-content"
       data-theme="light"
       style={{
-        // Original simple approach that worked: off-screen but fully laid out
-        position: forPreview ? 'static' : 'absolute',
-        left: forPreview ? 'auto' : '-100vw',
+        // Keep in viewport but invisible - html2canvas needs visible elements
+        position: forPreview ? 'static' : 'fixed',
+        left: forPreview ? 'auto' : '0',
         top: forPreview ? 'auto' : '0',
         width: forPreview ? '100%' : '210mm',
+        opacity: forPreview ? 1 : 0,
+        pointerEvents: forPreview ? 'auto' : 'none',
+        zIndex: forPreview ? 'auto' : '-9999',
         backgroundColor: '#ffffff',
         padding: '40px',
         fontFamily: 'Helvetica, Arial, sans-serif',
@@ -944,6 +947,13 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
       html2pdfRef.current = html2pdf;
 
+      // Temporarily make visible for capture (element is already at 0,0)
+      element.style.opacity = '1';
+      element.style.zIndex = '9999';
+
+      // Wait for browser to paint the visible element
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
       // Dimension validation
       if (element.offsetWidth === 0 || element.offsetHeight === 0) {
         console.error(`PDF element with id '${contentId}' has zero dimensions`);
@@ -1006,6 +1016,12 @@ export const PDFReport: React.FC<PDFReportProps> = ({
       console.error('Error generating PDF:', error);
       toast.error('Failed to generate PDF. Please try again.');
     } finally {
+      // Restore invisible state
+      if (element) {
+        element.style.opacity = '0';
+        element.style.zIndex = '-9999';
+      }
+
       setLoading(false);
       setRenderingPhase('idle');
     }
