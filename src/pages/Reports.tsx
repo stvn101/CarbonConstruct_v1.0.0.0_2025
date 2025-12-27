@@ -13,6 +13,7 @@ import { useReportData, validateReportData, calculateDataCompleteness } from '@/
 import { useProject } from '@/contexts/ProjectContext';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { useComplianceCheck } from '@/hooks/useComplianceCheck';
 import { useEmissionTotals } from '@/hooks/useEmissionTotals';
 import { loadStoredWholeLifeTotals } from '@/hooks/useWholeLifeCarbonCalculations';
@@ -77,6 +78,7 @@ const Reports = () => {
   const { totals } = useEmissionTotals();
   const { canPerformAction, trackUsage, currentUsage } = useUsageTracking();
   const { currentTier, userSubscription } = useSubscription();
+  const { is_admin: isAdmin } = useSubscriptionStatus();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate>('technical');
 
@@ -184,8 +186,8 @@ const Reports = () => {
     // Yearly subscriptions have period > 30 days
     (new Date(userSubscription.current_period_end).getTime() - new Date().getTime()) > 30 * 24 * 60 * 60 * 1000;
   
-  // Business/Enterprise also get custom branding
-  const canCustomBrand = isProYearly || currentTier?.name === 'Business' || currentTier?.name === 'Enterprise';
+  // Business/Enterprise also get custom branding, admins always get access
+  const canCustomBrand = isAdmin || isProYearly || currentTier?.name === 'Business' || currentTier?.name === 'Enterprise';
   
   const [branding, setBranding] = useState<ReportBranding>(() => {
     if (!canCustomBrand) return DEFAULT_BRANDING;
