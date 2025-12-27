@@ -69,6 +69,28 @@ serve(async (req) => {
     
     logStep("User authenticated", { userId: user.id.substring(0, 8) + '...' });
 
+    // Admin/owner emails get permanent Pro access (no payment required)
+    const ADMIN_EMAILS = [
+      'contact@carbonconstruct.net',
+      'contact@carbonconstruct.com.au',
+    ];
+    
+    if (ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+      logStep("Admin user detected - granting Pro access", { email: user.email });
+      return new Response(JSON.stringify({
+        subscribed: true,
+        tier_name: 'Pro',
+        product_id: 'admin_override',
+        price_id: 'admin_override',
+        subscription_end: null, // No expiry for admins
+        trial_end: null,
+        is_admin: true,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" });
     
     // Find customer by email
