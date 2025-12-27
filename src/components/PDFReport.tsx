@@ -749,7 +749,7 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
       style={{
         // Original simple approach that worked: off-screen but fully laid out
         position: forPreview ? 'static' : 'absolute',
-        left: forPreview ? 'auto' : '-9999px',
+        left: forPreview ? 'auto' : '-100vw',
         top: forPreview ? 'auto' : '0',
         width: forPreview ? '100%' : '210mm',
         backgroundColor: '#ffffff',
