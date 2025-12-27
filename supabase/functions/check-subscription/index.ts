@@ -30,14 +30,42 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader) {
+      logStep("No authorization header - returning free tier");
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        tier_name: 'Free'
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    if (userError || !userData.user) {
+      logStep("Auth error or no user - returning free tier", { error: userError?.message });
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        tier_name: 'Free'
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+    
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
+    if (!user?.email) {
+      logStep("No email available - returning free tier");
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        tier_name: 'Free'
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
     
     logStep("User authenticated", { userId: user.id.substring(0, 8) + '...' });
 
