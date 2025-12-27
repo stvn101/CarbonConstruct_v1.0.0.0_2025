@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -960,7 +960,6 @@ export const PDFReport: React.FC<PDFReportProps> = ({
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        letterRendering: true,
         backgroundColor: '#ffffff',
         logging: false,
         scrollX: 0,
