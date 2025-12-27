@@ -979,7 +979,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({
           allowTaint: true,
           letterRendering: true,
           backgroundColor: '#ffffff',
-          logging: false,
+          logging: true,  // Enable debug logging
           scrollX: 0,
           scrollY: 0,
           // Minimal onclone: Only fix dark mode inheritance
