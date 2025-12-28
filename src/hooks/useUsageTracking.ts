@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { toast } from '@/hooks/use-toast';
 import { logger } from '@/lib/logger';
 import { RETRY } from '@/lib/constants';
@@ -15,6 +16,7 @@ interface UsageLimits {
 export const useUsageTracking = () => {
   const { user } = useAuth();
   const { currentTier } = useSubscription();
+  const { is_admin: isAdmin } = useSubscriptionStatus();
   const queryClient = useQueryClient();
 
   // Get current usage metrics
@@ -69,8 +71,13 @@ export const useUsageTracking = () => {
     },
   });
 
-  // Check if user can perform action
+  // Check if user can perform action (admin always allowed)
   const canPerformAction = (actionType: keyof UsageLimits): { allowed: boolean; reason?: string } => {
+    // Admin bypass - always allow all actions
+    if (isAdmin) {
+      return { allowed: true };
+    }
+    
     if (!currentTier || !currentUsage) {
       return { allowed: false, reason: 'Loading...' };
     }

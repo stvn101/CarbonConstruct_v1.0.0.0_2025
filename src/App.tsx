@@ -9,6 +9,7 @@ import { ProjectProvider } from "@/contexts/ProjectContext";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { cn } from "@/lib/utils";
+import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 
 // ============================================
 // MAINTENANCE MODE FLAG - Set to false to go live
@@ -169,14 +170,15 @@ const FullApp = () => (
                     <Route path="/cookies" element={<CookiePolicy />} />
                     <Route path="/roadmap" element={<Roadmap />} />
                     <Route path="/accessibility" element={<AccessibilityStatement />} />
-                    <Route path="/admin" element={<AdminMonitoring />} />
-                    <Route path="/admin/monitoring" element={<AdminMonitoring />} />
-                    <Route path="/admin/campaigns" element={<AdminCampaigns />} />
-                    <Route path="/admin/email-campaigns" element={<AdminEmailCampaigns />} />
-                    <Route path="/admin/ice-import" element={<AdminICEImport />} />
-                    <Route path="/admin/material-verification" element={<MaterialVerification />} />
-                    <Route path="/admin/eco-compliance" element={<EcoComplianceDashboard />} />
-                    <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
+                    {/* Admin routes - Protected by AdminRouteGuard */}
+                    <Route path="/admin" element={<AdminRouteGuard><AdminMonitoring /></AdminRouteGuard>} />
+                    <Route path="/admin/monitoring" element={<AdminRouteGuard><AdminMonitoring /></AdminRouteGuard>} />
+                    <Route path="/admin/campaigns" element={<AdminRouteGuard><AdminCampaigns /></AdminRouteGuard>} />
+                    <Route path="/admin/email-campaigns" element={<AdminRouteGuard><AdminEmailCampaigns /></AdminRouteGuard>} />
+                    <Route path="/admin/ice-import" element={<AdminRouteGuard><AdminICEImport /></AdminRouteGuard>} />
+                    <Route path="/admin/material-verification" element={<AdminRouteGuard><MaterialVerification /></AdminRouteGuard>} />
+                    <Route path="/admin/eco-compliance" element={<AdminRouteGuard><EcoComplianceDashboard /></AdminRouteGuard>} />
+                    <Route path="/materials/status" element={<AdminRouteGuard><MaterialDatabaseStatus /></AdminRouteGuard>} />
                     <Route path="/demo" element={<Demo />} />
                     <Route path="/design-system" element={<DesignSystem />} />
                     <Route path="/eco-dashboard" element={<EcoGlassDashboard />} />
