@@ -8,6 +8,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 
 export interface EPDMaterial {
   id: string;
@@ -104,9 +105,12 @@ export function useEPDMaterials() {
   const [selectedDataSource, setSelectedDataSource] = useState<string>('all');
   const [hideExpiredEPDs, setHideExpiredEPDs] = useState<boolean>(false);
 
-  // Get subscription tier to determine database access
+  // Get subscription tier and admin status to determine database access
   const { currentTier } = useSubscription();
-  const hasFullDatabaseAccess = currentTier?.limits?.full_database !== false;
+  const { is_admin: isAdmin } = useSubscriptionStatus();
+  
+  // Admin always has full database access, otherwise check tier limits
+  const hasFullDatabaseAccess = isAdmin || currentTier?.limits?.full_database !== false;
 
   // Use TanStack Query for caching - materials rarely change
   const { 

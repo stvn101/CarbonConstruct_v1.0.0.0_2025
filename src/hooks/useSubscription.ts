@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 
 export interface SubscriptionTier {
   id: string;
@@ -32,6 +33,7 @@ export interface UserSubscription {
 export const useSubscription = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { is_admin: isAdmin } = useSubscriptionStatus();
 
   // Fetch all available tiers
   const { data: tiers, isLoading: tiersLoading } = useQuery({
@@ -111,17 +113,26 @@ export const useSubscription = () => {
     },
   });
 
-  // Get current tier (defaults to Free if no subscription)
-  const currentTier = userSubscription?.subscription_tiers || 
-    tiers?.find(t => t.name === 'Free');
+  // Get Pro tier for admin override
+  const proTier = tiers?.find(t => t.name === 'Pro');
+  
+  // Get current tier (admin gets Pro, otherwise defaults to Free if no subscription)
+  const currentTier = isAdmin && proTier 
+    ? proTier 
+    : (userSubscription?.subscription_tiers || tiers?.find(t => t.name === 'Free'));
 
-  // Check if user is on trial
-  const isOnTrial = userSubscription?.trial_end 
-    ? new Date(userSubscription.trial_end) > new Date()
-    : false;
+  // Check if user is on trial (admins are never on trial - they have full access)
+  const isOnTrial = isAdmin 
+    ? false 
+    : (userSubscription?.trial_end 
+        ? new Date(userSubscription.trial_end) > new Date()
+        : false);
 
-  // Check if user can perform action
+  // Check if user can perform action (admins can always perform any action)
   const canPerformAction = (actionType: string): boolean => {
+    // Admin bypass - always allow
+    if (isAdmin) return true;
+    
     if (!currentTier) return false;
     
     const limit = currentTier.limits[actionType];
