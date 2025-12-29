@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, Zap, Building2, Crown, ArrowRight, Leaf, ExternalLink, Sparkles, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -101,7 +101,6 @@ const Pricing = () => {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [discountCode, setDiscountCode] = useState<string | null>(null);
   const [showDiscountBanner, setShowDiscountBanner] = useState(true);
-  const stripePricingRef = useRef<HTMLDivElement>(null);
 
   // Check for discount code in sessionStorage
   useEffect(() => {
@@ -109,40 +108,6 @@ const Pricing = () => {
     if (storedCode) {
       setDiscountCode(storedCode);
     }
-  }, []);
-
-  // Load Stripe pricing table script and create element
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3/pricing-table.js';
-    script.async = true;
-
-    // Only append if not already loaded
-    const existingScript = document.querySelector('script[src="https://js.stripe.com/v3/pricing-table.js"]');
-    if (!existingScript) {
-      document.head.appendChild(script);
-    }
-
-    // Create the stripe-pricing-table element after script loads
-    const createPricingTable = () => {
-      if (stripePricingRef.current && !stripePricingRef.current.querySelector('stripe-pricing-table')) {
-        const pricingTable = document.createElement('stripe-pricing-table');
-        pricingTable.setAttribute('pricing-table-id', 'prctbl_1SULtHP7JT8gu0Wn7fABNU0I');
-        pricingTable.setAttribute('publishable-key', 'pk_live_51RKejrP7JT8gu0WngS6oEMcUaQdgGb5XaYcEy5e2kq6Dx75lgaizFV1Fk2lmpgE7nGav6F0fDlMhSYcgecftwpu800mMRyCFJz');
-        stripePricingRef.current.appendChild(pricingTable);
-      }
-    };
-
-    // If script is already loaded, create immediately
-    if (existingScript) {
-      createPricingTable();
-    } else {
-      script.onload = createPricingTable;
-    }
-
-    return () => {
-      // Cleanup if needed (optional - Stripe script can stay loaded)
-    };
   }, []);
 
   const handleGetStarted = (tierName: string) => {
@@ -435,19 +400,6 @@ const Pricing = () => {
         </CardContent>
       </Card>
 
-      {/* Stripe Pricing Table Embed */}
-      <Card variant="glass" className="mb-12 carbon-surface">
-        <CardHeader>
-          <CardTitle className="text-3xl text-center">Or Choose Your Plan with Stripe</CardTitle>
-          <CardDescription className="text-center max-w-2xl mx-auto">
-            Select your subscription directly through our secure Stripe checkout
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Stripe Pricing Table - rendered via ref (script loaded via useEffect) */}
-          <div ref={stripePricingRef} className="w-full min-h-[400px]" />
-        </CardContent>
-      </Card>
 
       {/* FAQ Section */}
       <Card variant="glass" className="max-w-3xl mx-auto carbon-surface">

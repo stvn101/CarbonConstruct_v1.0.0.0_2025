@@ -69,10 +69,10 @@ serve(async (req) => {
     
     logStep("User authenticated", { userId: user.id.substring(0, 8) + '...' });
 
-    // Admin/owner emails get permanent Pro access (no payment required)
+    // CRITICAL SECURITY: Only this single admin email gets admin access
+    // Do NOT add additional emails without explicit security review
     const ADMIN_EMAILS = [
       'contact@carbonconstruct.net',
-      'contact@carbonconstruct.com.au',
     ];
     
     if (ADMIN_EMAILS.includes(user.email.toLowerCase())) {
