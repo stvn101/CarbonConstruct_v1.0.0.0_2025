@@ -12,12 +12,12 @@ const corsHeaders = {
 // Validation schemas (matching client-side schemas)
 const MaterialSchema = z.object({
   id: z.string(),
-  category: z.string().min(1).max(50),
-  typeId: z.string().min(1).max(50),
-  name: z.string().min(1, "Material name is required").max(100, "Material name too long"),
-  unit: z.string().min(1).max(20),
+  category: z.string().min(1).max(100),
+  typeId: z.string().min(1).max(100),
+  name: z.string().min(1, "Material name is required").max(300, "Material name too long"),
+  unit: z.string().min(1).max(50),
   factor: z.number().nonnegative("Emission factor cannot be negative").max(100000, "Emission factor too high"),
-  source: z.string().max(100),
+  source: z.string().max(200),
   quantity: z.number().nonnegative("Quantity cannot be negative").max(1000000, "Quantity too large"),
   isCustom: z.boolean()
 });
