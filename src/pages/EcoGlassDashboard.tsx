@@ -6,8 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { ArrowUpRight, Eye, Leaf, Loader2, Wind, Zap } from "lucide-react";
+import { ArrowUpRight, Eye, Loader2, Wind, Zap, Briefcase } from "lucide-react";
 import type { VisualizationSpec } from "vega-embed";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
+import { useProject } from "@/contexts/ProjectContext";
+import logoOptimized from "@/assets/carbonconstruct-logo-optimized.webp";
 
 // Simulated carbon data
 interface CarbonData {
@@ -50,6 +54,9 @@ const generateMockData = (): CarbonData => ({
 export default function EcoGlassDashboard() {
   const [data, setData] = useState<CarbonData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { is_admin: isAdmin } = useSubscriptionStatus();
+  const { projects, refreshProjects } = useProject();
 
   useEffect(() => {
     // Initial load
@@ -128,8 +135,12 @@ export default function EcoGlassDashboard() {
       {/* Header */}
       <header className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-primary/20 neon-border">
-            <Leaf className="h-8 w-8 text-primary neon-text" />
+          <div className="p-2 rounded-xl bg-primary/20 neon-border">
+            <img 
+              src={logoOptimized} 
+              alt="CarbonConstruct Logo" 
+              className="h-10 w-10 object-contain" 
+            />
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-heading font-bold text-foreground">
@@ -146,14 +157,24 @@ export default function EcoGlassDashboard() {
         </div>
 
         <div className="flex gap-3">
-          <Button asChild variant="outline" className="border-primary/30 hover:bg-primary/10">
-            <Link to="/auth">Sign In</Link>
-          </Button>
-          <Button asChild className="bg-primary hover:bg-primary/90">
-            <Link to="/pricing">
-              Connect SaaS <ArrowUpRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          {user ? (
+            <Button asChild className="bg-primary hover:bg-primary/90">
+              <Link to="/calculator">
+                Go to Calculator <ArrowUpRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          ) : (
+            <>
+              <Button asChild variant="outline" className="border-primary/30 hover:bg-primary/10">
+                <Link to="/auth">Sign In</Link>
+              </Button>
+              <Button asChild className="bg-primary hover:bg-primary/90">
+                <Link to="/pricing">
+                  View Pricing <ArrowUpRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
@@ -163,7 +184,7 @@ export default function EcoGlassDashboard() {
         <Card className="glass dark:glass neon-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Leaf className="h-4 w-4 text-primary" /> Total CO2e Saved
+              <img src={logoOptimized} alt="" className="h-4 w-4" /> Total CO2e Saved
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -227,6 +248,78 @@ export default function EcoGlassDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Admin Live Jobs Section - Only visible to admin */}
+      {isAdmin && projects.length > 0 && (
+        <Card className="glass dark:glass neon-border mb-6">
+          <CardHeader>
+            <CardTitle className="font-heading flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-primary" />
+                Live Jobs (Anonymised)
+                <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30 ml-2">
+                  ADMIN
+                </Badge>
+              </div>
+              <span className="flex items-center gap-2 text-xs font-normal">
+                <span className="h-2 w-2 rounded-full bg-primary live-indicator" />
+                {projects.length} Active
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {projects.slice(0, 4).map((project) => {
+                // Generate anonymised job ID from project ID
+                const anonId = project.id.substring(0, 4).toUpperCase();
+                const timeAgo = new Date(project.updated_at).getTime();
+                const now = Date.now();
+                const diffMins = Math.floor((now - timeAgo) / 60000);
+                const timeDisplay = diffMins < 60 
+                  ? `${diffMins}m ago` 
+                  : diffMins < 1440 
+                    ? `${Math.floor(diffMins / 60)}h ago`
+                    : `${Math.floor(diffMins / 1440)}d ago`;
+                
+                return (
+                  <Card key={project.id} className="glass border-border/50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold text-foreground">
+                          Job ***{anonId}
+                        </span>
+                        <Badge 
+                          variant="outline" 
+                          className={project.status === 'active' 
+                            ? 'bg-primary/20 text-primary border-primary/30' 
+                            : 'bg-muted text-muted-foreground'
+                          }
+                        >
+                          {project.status}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {project.location || 'AU'} · {project.project_type}
+                      </p>
+                      <p className="text-xs text-primary mt-1">
+                        Updated {timeDisplay}
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full mt-4 text-primary hover:text-primary/80"
+              onClick={() => refreshProjects()}
+            >
+              Refresh Jobs
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Live Activity Feed */}
       <Card className="glass dark:glass neon-border">
