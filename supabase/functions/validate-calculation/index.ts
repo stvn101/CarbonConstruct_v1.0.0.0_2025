@@ -170,7 +170,13 @@ const ProjectDetailsSchema = z.object({
   location: z.enum(['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT']),
   period: z.string().max(100).optional(),
   auditor: z.string().max(100).optional(),
-  buildingSqm: z.number().nonnegative().max(10000000).optional()
+  buildingSqm: z.union([
+    z.string().transform((val) => val === '' ? undefined : Number(val)),
+    z.number()
+  ]).optional().refine(
+    (val) => val === undefined || (typeof val === 'number' && !isNaN(val) && val >= 0 && val <= 10000000),
+    { message: "Building size must be a non-negative number up to 10,000,000" }
+  )
 });
 
 const CalculationDataSchema = z.object({
