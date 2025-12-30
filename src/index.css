@@ -806,16 +806,37 @@ All colors MUST be HSL.
   animation: gradient-shift 4s ease infinite;
 }
 
-/* Glass card with glow border on hover - emerald green shadow */
+/* Glass card with visible neon border and dramatic hover glow */
 .glass-glow-hover {
   transition: all 0.3s ease;
+  border: 1px solid hsl(142 70% 45% / 0.3);
+  box-shadow: 0 0 12px hsl(142 70% 45% / 0.1);
 }
 
 .glass-glow-hover:hover {
-  box-shadow: 0 8px 32px hsl(142 70% 45% / 0.35),
-              0 0 0 1px hsl(142 70% 45% / 0.25),
-              0 0 20px hsl(142 70% 45% / 0.15);
-  transform: translateY(-2px);
+  border-color: hsl(142 70% 50% / 0.5);
+  box-shadow: 0 8px 40px hsl(142 70% 45% / 0.45),
+              0 0 0 2px hsl(142 70% 50% / 0.4),
+              0 0 50px hsl(142 70% 45% / 0.25);
+  transform: translateY(-3px);
+}
+
+/* Featured card with animated glow pulse */
+.glass-glow-featured {
+  border: 1px solid hsl(142 70% 50% / 0.4);
+  box-shadow: 0 0 20px hsl(142 70% 45% / 0.2);
+  animation: featured-glow-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes featured-glow-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px hsl(142 70% 45% / 0.2),
+                0 0 0 1px hsl(142 70% 50% / 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 35px hsl(142 70% 45% / 0.35),
+                0 0 0 2px hsl(142 70% 50% / 0.5);
+  }
 }
 
 /* Feature card gradients - unique per feature type */
@@ -856,14 +877,37 @@ All colors MUST be HSL.
 
 .dark .glass {
   background: rgba(20, 35, 25, 0.7);
-  border: 1px solid rgba(57, 255, 20, 0.1);
-  box-shadow: 0 0 20px rgba(57, 255, 20, 0.05);
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.08);
+}
+
+.dark .glass-glow-hover {
+  border: 1px solid rgba(57, 255, 20, 0.3);
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.15);
 }
 
 .dark .glass-glow-hover:hover {
-  box-shadow: 0 8px 32px hsl(142 90% 55% / 0.35),
-              0 0 0 1px hsl(142 90% 55% / 0.3),
-              0 0 25px hsl(142 90% 55% / 0.2);
+  border-color: rgba(57, 255, 20, 0.6);
+  box-shadow: 0 8px 50px rgba(57, 255, 20, 0.4),
+              0 0 0 2px rgba(57, 255, 20, 0.5),
+              0 0 60px rgba(57, 255, 20, 0.25);
+}
+
+.dark .glass-glow-featured {
+  border: 1px solid rgba(57, 255, 20, 0.4);
+  box-shadow: 0 0 25px rgba(57, 255, 20, 0.2);
+  animation: dark-featured-glow-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes dark-featured-glow-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 25px rgba(57, 255, 20, 0.2),
+                0 0 0 1px rgba(57, 255, 20, 0.35);
+  }
+  50% { 
+    box-shadow: 0 0 45px rgba(57, 255, 20, 0.4),
+                0 0 0 2px rgba(57, 255, 20, 0.6);
+  }
 }
 
 .dark .carbon-surface {

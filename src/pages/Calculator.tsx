@@ -1542,7 +1542,7 @@ export default function Calculator() {
           {/* Left Column - Inputs */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Project Config */}
-            <div className="glass rounded-lg p-3 md:p-5 relative glass-glow-hover">
+            <div className="glass rounded-lg p-3 md:p-5 relative glass-glow-hover neon-border">
               <h3 className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 md:mb-4">Project Details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 <Input 
@@ -1679,7 +1679,7 @@ export default function Calculator() {
                 </Card>
 
                 {/* Energy Section */}
-                <Card className="p-4 md:p-6">
+                <Card className="p-4 md:p-6 glass-glow-hover neon-border">
                   <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">Energy (Scope 1 & 2)</h3>
                   <div className="bg-muted p-2 md:p-3 rounded border mb-3 md:mb-4">
                     <FactorRow 
@@ -1705,7 +1705,7 @@ export default function Calculator() {
                 </Card>
 
                 {/* Materials Section */}
-                <Card variant="glass" className="p-4 md:p-6 glass-glow-hover">
+                <Card variant="glass" className="p-4 md:p-6 glass-glow-featured neon-border">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 md:mb-4">
                     <h3 className="font-bold text-base md:text-lg text-foreground">Materials (Upfront A1-A3)</h3>
                     <div className="flex items-center gap-2">
@@ -2366,7 +2366,7 @@ export default function Calculator() {
                 <TransportCalculator onTotalChange={setA4TransportEmissions} />
 
                 {/* Employee Commute Section */}
-                <Card className="p-4 md:p-6">
+                <Card className="p-4 md:p-6 glass-glow-hover neon-border">
                   <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">Employee Commute (Scope 3)</h3>
                   <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Enter total km travelled by employees per commute type
@@ -2392,7 +2392,7 @@ export default function Calculator() {
                 </Card>
 
                 {/* Waste Section */}
-                <Card className="p-4 md:p-6">
+                <Card className="p-4 md:p-6 glass-glow-hover neon-border">
                   <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">Construction Waste (Scope 3)</h3>
                   <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Enter waste quantities in kg or tonnes. Negative factors (e.g., recycled metals) reduce emissions.
@@ -2678,7 +2678,7 @@ export default function Calculator() {
             )}
 
             {activeTab === 'report' && (
-              <Card variant="glass" className="p-4 md:p-8 text-center glass-glow-hover">
+              <Card variant="glass" className="p-4 md:p-8 text-center glass-glow-featured neon-border">
                 <div className="inline-block p-3 md:p-4 bg-emerald-50 rounded-full text-emerald-600 mb-4">
                   <CloudUpload className="h-8 w-8 md:h-12 md:w-12" />
                 </div>
@@ -2719,7 +2719,7 @@ export default function Calculator() {
 
           {/* Right Column - Stats Panel */}
           <div className="lg:col-span-1">
-            <Card className="p-4 md:p-6 lg:sticky lg:top-20 bg-slate-800 text-white shadow-lg z-40" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
+            <Card className="p-4 md:p-6 lg:sticky lg:top-20 bg-slate-800 text-white shadow-lg z-40 neon-border" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
               <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Footprint</h3>
               <div className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-emerald-400">
                 {(calculations.total / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>
