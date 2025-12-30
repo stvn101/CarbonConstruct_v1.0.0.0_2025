@@ -77,7 +77,7 @@ export function BuilderDashboard({ className }: BuilderDashboardProps) {
       {/* Top Row: Compliance Status + Project Emissions */}
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         {/* Compliance Status Card */}
-        <Card variant="glass" className="border-border/30">
+        <Card variant="glass" className="border-border/30 neon-border glass-glow-hover">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold">Compliance Status</CardTitle>
           </CardHeader>
@@ -164,7 +164,7 @@ export function BuilderDashboard({ className }: BuilderDashboardProps) {
         </Card>
 
         {/* Project Emissions Card */}
-        <Card variant="glass" className={`border-border/30 ${isOverTarget ? 'border-destructive/50' : 'border-emerald-500/50'}`}>
+        <Card variant="glass" className={`border-border/30 neon-border glass-glow-hover ${isOverTarget ? 'border-destructive/50' : 'border-emerald-500/50'}`}>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold">Project Emissions</CardTitle>
             <CardDescription>
@@ -228,7 +228,7 @@ export function BuilderDashboard({ className }: BuilderDashboardProps) {
       </div>
 
       {/* High-Impact Components Table */}
-      <Card variant="glass" className="border-border/30 mb-6">
+      <Card variant="glass" className="border-border/30 neon-border glass-glow-hover mb-6">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold">High-Impact Components</CardTitle>
           <CardDescription>Top contributors to project emissions</CardDescription>
@@ -282,7 +282,7 @@ export function BuilderDashboard({ className }: BuilderDashboardProps) {
       </Card>
 
       {/* Recent Actions */}
-      <Card variant="glass" className="border-border/30">
+      <Card variant="glass" className="border-border/30 neon-border glass-glow-hover">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold">Recent Actions</CardTitle>
           <CardDescription>Latest optimization decisions</CardDescription>

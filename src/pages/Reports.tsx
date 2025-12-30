@@ -528,7 +528,7 @@ const Reports = () => {
       </div>
       
       {/* Report Actions Bar */}
-      <Card variant="glass" className="p-4">
+      <Card variant="glass" className="p-4 neon-border glass-glow-hover">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-2">
             <FileBarChart className="h-5 w-5 text-primary" />
@@ -764,7 +764,7 @@ const Reports = () => {
         <TabsContent value="overview" className="space-y-6">
           {/* Executive Summary */}
           <ReportErrorBoundary fallbackTitle="Executive Summary Error">
-            <Card className="border-primary/20">
+            <Card className="border-primary/20 neon-border glass-glow-hover">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
@@ -834,7 +834,7 @@ const Reports = () => {
 
           {/* Project Details */}
           <ReportErrorBoundary fallbackTitle="Project Details Error" inline>
-            <Card>
+            <Card className="neon-border glass-glow-hover">
             <CardHeader>
               <CardTitle>Project Information</CardTitle>
             </CardHeader>
@@ -873,7 +873,7 @@ const Reports = () => {
         {/* NEW: Lifecycle Stages Tab (EN 15978) */}
         <TabsContent value="lifecycle" className="space-y-6">
           <ReportErrorBoundary fallbackTitle="Lifecycle Stages Error">
-            <Card>
+            <Card className="neon-border glass-glow-hover">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
