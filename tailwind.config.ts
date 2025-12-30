@@ -106,7 +106,8 @@ export default {
         'carbon': 'var(--shadow-carbon)',
         'elevated': 'var(--shadow-elevated)',
         'glow': 'var(--shadow-glow)',
-        'glass-hover': '0 8px 32px -8px hsl(156 55% 35% / 0.2)',
+        'glass-hover': '0 8px 40px hsl(142 70% 45% / 0.45), 0 0 0 2px hsl(142 70% 50% / 0.4), 0 0 50px hsl(142 70% 45% / 0.25)',
+        'neon-glow': '0 0 20px hsl(142 70% 45% / 0.3), 0 0 40px hsl(142 70% 45% / 0.15)',
       },
       transitionTimingFunction: {
         'bounce-soft': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
