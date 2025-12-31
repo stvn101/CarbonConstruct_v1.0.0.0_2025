@@ -952,15 +952,35 @@ All colors MUST be HSL.
 /* When cards have dark backgrounds, ensure text is highly readable */
 #methodology-content .neon-border .text-muted-foreground,
 #methodology-content .glass-dark .text-muted-foreground,
-#methodology-content [class*="Card"] .text-muted-foreground {
-  color: hsl(0 0% 85%) !important; /* Light gray for dark backgrounds */
+#methodology-content [class*="Card"] .text-muted-foreground,
+#methodology-content .text-muted-foreground {
+  color: hsl(0 0% 95%) !important; /* Near-white for maximum readability */
 }
 
-/* Ensure card content text is white/light for readability */
+/* Ensure ALL card content text is white for readability in PDF */
 #methodology-content .neon-border p,
 #methodology-content .neon-border li,
-#methodology-content .neon-border span:not(.text-primary):not([class*="Badge"]) {
-  color: hsl(0 0% 90%) !important;
+#methodology-content .neon-border td,
+#methodology-content .neon-border span:not(.text-primary):not([class*="Badge"]),
+#methodology-content [class*="CardContent"] p,
+#methodology-content [class*="CardContent"] li,
+#methodology-content [class*="CardContent"] td {
+  color: hsl(0 0% 95%) !important;
+}
+
+/* Card headers and titles - bright white */
+#methodology-content [class*="CardTitle"],
+#methodology-content [class*="CardHeader"] h3,
+#methodology-content [class*="CardHeader"] h4 {
+  color: hsl(0 0% 100%) !important;
+}
+
+/* Table text within cards */
+#methodology-content .neon-border table th,
+#methodology-content .neon-border table td,
+#methodology-content [class*="Card"] table th,
+#methodology-content [class*="Card"] table td {
+  color: hsl(0 0% 95%) !important;
 }
 
 /* Live indicator pulse */
