@@ -88,7 +88,7 @@ const milestones: Milestone[] = [
   {
     title: "Compliance & Certification",
     description: "Australian building standards integration",
-    status: "completed",
+    status: "planned",
     quarter: "Q1 2026",
     features: [
       "NCC Section J compliance automation",
