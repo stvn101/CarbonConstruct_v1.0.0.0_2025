@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Cookie, X, Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { Cookie, Settings, ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -143,17 +143,17 @@ export function CookieConsent() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2 shrink-0 w-full md:w-auto">
+            <div className="grid grid-cols-2 md:flex items-center gap-2 shrink-0 w-full md:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowPreferences(!showPreferences)}
-                className="flex-1 md:flex-none"
+                className="col-span-2 md:col-span-1"
                 aria-expanded={showPreferences}
                 aria-controls="cookie-preferences"
               >
                 <Settings className="h-4 w-4 mr-1" />
-                Manage
+                <span className="text-xs md:text-sm">Manage</span>
                 {showPreferences ? (
                   <ChevronUp className="h-4 w-4 ml-1" />
                 ) : (
@@ -164,25 +164,16 @@ export function CookieConsent() {
                 variant="outline"
                 size="sm"
                 onClick={handleDeclineAll}
-                className="flex-1 md:flex-none"
+                className="text-xs md:text-sm"
               >
                 Decline All
               </Button>
               <Button
                 size="sm"
                 onClick={handleAcceptAll}
-                className="flex-1 md:flex-none"
+                className="text-xs md:text-sm"
               >
                 Accept All
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleDeclineAll}
-                className="h-8 w-8 shrink-0 md:hidden"
-                aria-label="Close cookie banner"
-              >
-                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
