@@ -64,7 +64,7 @@ const milestones: Milestone[] = [
   {
     title: "AI-Powered Features",
     description: "Intelligent automation and insights",
-    status: "planned",
+    status: "completed",
     quarter: "Q4 2025",
     features: [
       "AI-powered BOQ import and parsing",
@@ -76,7 +76,7 @@ const milestones: Milestone[] = [
   {
     title: "Advanced Analytics",
     description: "Deep insights and benchmarking",
-    status: "planned",
+    status: "completed",
     quarter: "Q4 2025",
     features: [
       "Project comparison and benchmarking",
@@ -88,7 +88,7 @@ const milestones: Milestone[] = [
   {
     title: "Compliance & Certification",
     description: "Australian building standards integration",
-    status: "planned",
+    status: "completed",
     quarter: "Q1 2026",
     features: [
       "NCC Section J compliance automation",
