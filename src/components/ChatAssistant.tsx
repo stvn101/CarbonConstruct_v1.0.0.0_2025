@@ -155,7 +155,7 @@ export const ChatAssistant = () => {
 
   return (
     <Card 
-      className={`fixed flex flex-col border-primary/30 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)] ${
+      className={`fixed flex flex-col bg-background/80 backdrop-blur-xl border border-primary/30 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)] ${
         isMobile 
           ? "left-2 right-2 bottom-2 h-[85vh]" 
           : "bottom-6 right-6 w-96 h-[600px]"

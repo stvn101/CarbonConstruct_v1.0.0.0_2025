@@ -12,6 +12,10 @@ const Methodology = () => {
   const [lastUpdated] = useState("1 January 2025");
 
   const handleDownloadPDF = async () => {
+    // Add PDF exporting class to enable PDF-specific CSS overrides
+    document.documentElement.classList.add('pdf-exporting');
+    
+    try {
     const html2pdf = (await import('html2pdf.js')).default;
     const { jsPDF } = await import('jspdf');
     
@@ -213,6 +217,10 @@ const Methodology = () => {
       link.download = `CarbonConstruct-Methodology-${new Date().toISOString().split('T')[0]}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
+    }
+    } finally {
+      // Always remove PDF exporting class, even if export fails
+      document.documentElement.classList.remove('pdf-exporting');
     }
   };
 
