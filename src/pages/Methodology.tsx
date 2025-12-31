@@ -13,17 +13,166 @@ const Methodology = () => {
 
   const handleDownloadPDF = async () => {
     const html2pdf = (await import('html2pdf.js')).default;
+    const { jsPDF } = await import('jspdf');
+    
+    // Create cover page
+    const coverDoc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    const pageWidth = coverDoc.internal.pageSize.getWidth();
+    const pageHeight = coverDoc.internal.pageSize.getHeight();
+    
+    // Cover page styling
+    coverDoc.setFillColor(10, 10, 10);
+    coverDoc.rect(0, 0, pageWidth, pageHeight, 'F');
+    
+    // Title
+    coverDoc.setTextColor(34, 197, 94); // Primary green
+    coverDoc.setFontSize(32);
+    coverDoc.setFont('helvetica', 'bold');
+    coverDoc.text('CarbonConstruct', pageWidth / 2, 60, { align: 'center' });
+    
+    coverDoc.setTextColor(255, 255, 255);
+    coverDoc.setFontSize(24);
+    coverDoc.text('Methodology &', pageWidth / 2, 90, { align: 'center' });
+    coverDoc.text('Compliance Framework', pageWidth / 2, 102, { align: 'center' });
+    
+    // Version and date
+    coverDoc.setFontSize(14);
+    coverDoc.setFont('helvetica', 'normal');
+    coverDoc.setTextColor(180, 180, 180);
+    coverDoc.text(`Version 1.0`, pageWidth / 2, 130, { align: 'center' });
+    coverDoc.text(`Published: ${lastUpdated}`, pageWidth / 2, 140, { align: 'center' });
+    
+    // Badges
+    coverDoc.setFontSize(11);
+    coverDoc.setTextColor(34, 197, 94);
+    const badges = ['EN 15978:2011 Compliant', 'Green Star Ready', 'NCC 2024 Aligned', '4,620 Verified Materials'];
+    badges.forEach((badge, i) => {
+      coverDoc.text(`✓ ${badge}`, pageWidth / 2, 170 + (i * 10), { align: 'center' });
+    });
+    
+    // Footer
+    coverDoc.setFontSize(10);
+    coverDoc.setTextColor(120, 120, 120);
+    coverDoc.text('United Facade Pty Ltd | ABN 67 652 069 139', pageWidth / 2, pageHeight - 40, { align: 'center' });
+    coverDoc.text('carbonconstruct.com.au/methodology', pageWidth / 2, pageHeight - 30, { align: 'center' });
+    
+    // Table of Contents page
+    coverDoc.addPage();
+    coverDoc.setFillColor(255, 255, 255);
+    coverDoc.rect(0, 0, pageWidth, pageHeight, 'F');
+    
+    coverDoc.setTextColor(0, 0, 0);
+    coverDoc.setFontSize(24);
+    coverDoc.setFont('helvetica', 'bold');
+    coverDoc.text('Table of Contents', 20, 30);
+    
+    coverDoc.setFontSize(12);
+    coverDoc.setFont('helvetica', 'normal');
+    
+    const tocItems = [
+      { title: '1. Standards Compliance', page: 3 },
+      { title: '2. Data Sources & Traceability', page: 4 },
+      { title: '3. Calculation Methodology', page: 6 },
+      { title: '4. Calculation Transparency & Traceability', page: 8 },
+      { title: '5. Australian Scheme Alignment', page: 9 },
+      { title: '6. Data Residency & Security', page: 10 },
+      { title: '7. Methodology Limitations', page: 11 },
+      { title: '8. Independent Verification Pathway', page: 12 },
+      { title: '9. Documentation & Technical Support', page: 13 },
+    ];
+    
+    tocItems.forEach((item, i) => {
+      const y = 50 + (i * 12);
+      coverDoc.setTextColor(0, 0, 0);
+      coverDoc.text(item.title, 20, y);
+      
+      // Dotted line
+      const titleWidth = coverDoc.getTextWidth(item.title);
+      const pageNumWidth = coverDoc.getTextWidth(item.page.toString());
+      const dotsStart = 20 + titleWidth + 5;
+      const dotsEnd = pageWidth - 25 - pageNumWidth;
+      
+      coverDoc.setTextColor(180, 180, 180);
+      let dotX = dotsStart;
+      while (dotX < dotsEnd) {
+        coverDoc.text('.', dotX, y);
+        dotX += 3;
+      }
+      
+      coverDoc.setTextColor(0, 0, 0);
+      coverDoc.text(item.page.toString(), pageWidth - 20, y, { align: 'right' });
+    });
+    
+    // Footer on TOC page
+    coverDoc.setFontSize(9);
+    coverDoc.setTextColor(120, 120, 120);
+    coverDoc.text('CarbonConstruct Methodology & Compliance Framework', 20, pageHeight - 15);
+    coverDoc.text('Page 2', pageWidth - 20, pageHeight - 15, { align: 'right' });
+    
+    // Save cover pages
+    const coverBlob = coverDoc.output('blob');
+    
+    // Generate main content PDF
     const element = document.getElementById('methodology-content');
     if (element) {
       const opt = {
-        margin: [15, 15, 15, 15] as [number, number, number, number],
+        margin: [20, 15, 25, 15] as [number, number, number, number],
         filename: `CarbonConstruct-Methodology-${new Date().toISOString().split('T')[0]}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
-      html2pdf().set(opt).from(element).save();
+      
+      // Generate content PDF
+      const contentPdf = await html2pdf().set(opt).from(element).toPdf().get('pdf');
+      
+      // Add page numbers and footer to content pages
+      const totalPages = contentPdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        contentPdf.setPage(i);
+        contentPdf.setFontSize(9);
+        contentPdf.setTextColor(120, 120, 120);
+        contentPdf.text('CarbonConstruct Methodology & Compliance Framework', 15, pageHeight - 10);
+        contentPdf.text(`Page ${i + 2}`, pageWidth - 15, pageHeight - 10, { align: 'right' });
+        contentPdf.text('carbonconstruct.com.au/methodology', pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
+      
+      // Merge PDFs using jsPDF
+      const { PDFDocument } = await import('pdf-lib');
+      
+      const coverArrayBuffer = await coverBlob.arrayBuffer();
+      const contentArrayBuffer = await contentPdf.output('arraybuffer');
+      
+      const mergedPdf = await PDFDocument.create();
+      const coverPdfDoc = await PDFDocument.load(coverArrayBuffer);
+      const contentPdfDoc = await PDFDocument.load(contentArrayBuffer);
+      
+      const coverPages = await mergedPdf.copyPages(coverPdfDoc, coverPdfDoc.getPageIndices());
+      coverPages.forEach((page: Awaited<ReturnType<typeof mergedPdf.copyPages>>[number]) => mergedPdf.addPage(page));
+      
+      const contentPages = await mergedPdf.copyPages(contentPdfDoc, contentPdfDoc.getPageIndices());
+      contentPages.forEach((page: Awaited<ReturnType<typeof mergedPdf.copyPages>>[number]) => mergedPdf.addPage(page));
+      
+      const mergedPdfBytes = await mergedPdf.save();
+      
+      // Download merged PDF - convert Uint8Array to ArrayBuffer properly
+      const arrayBuffer = mergedPdfBytes.buffer.slice(
+        mergedPdfBytes.byteOffset,
+        mergedPdfBytes.byteOffset + mergedPdfBytes.byteLength
+      ) as ArrayBuffer;
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `CarbonConstruct-Methodology-${new Date().toISOString().split('T')[0]}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
     }
   };
 
@@ -43,11 +192,20 @@ const Methodology = () => {
   return (
     <>
       <SEOHead
-        title="Methodology & Compliance Framework | CarbonConstruct"
+        title="Methodology & Compliance Framework"
         description="Technical documentation of CarbonConstruct's EN 15978-compliant carbon calculation methodology, Australian-verified materials database, and Green Star alignment for commercial construction projects."
+        canonicalPath="/methodology"
+        ogType="article"
+        techArticle={{
+          name: "CarbonConstruct Methodology & Compliance Framework",
+          datePublished: "2025-01-01",
+          dateModified: "2025-01-01",
+          author: "United Facade Pty Ltd",
+          publisher: "CarbonConstruct Tech",
+          about: "Life cycle assessment methodology for Australian construction",
+          keywords: "EN 15978, embodied carbon, LCA, Green Star, NABERS, NCC Section J, EPD, carbon calculator, construction"
+        }}
       />
-      
-      {/* Schema.org structured data injected via useEffect in SEOHead */}
       
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-7xl">

@@ -1,5 +1,15 @@
 import { useEffect } from 'react';
 
+interface TechArticleSchema {
+  name: string;
+  datePublished: string;
+  dateModified?: string;
+  author: string;
+  publisher: string;
+  about: string;
+  keywords?: string;
+}
+
 interface SEOHeadProps {
   title?: string;
   description?: string;
@@ -7,6 +17,7 @@ interface SEOHeadProps {
   ogImage?: string;
   ogType?: 'website' | 'article';
   noIndex?: boolean;
+  techArticle?: TechArticleSchema;
 }
 
 const BASE_URL = 'https://carbonconstruct.com.au';
@@ -20,6 +31,7 @@ export function SEOHead({
   ogImage = DEFAULT_IMAGE,
   ogType = 'website',
   noIndex = false,
+  techArticle,
 }: SEOHeadProps) {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - Australian Carbon Emissions Calculator`;
   const canonicalUrl = `${BASE_URL}${canonicalPath}`;
@@ -79,27 +91,57 @@ export function SEOHead({
     // Canonical URL
     setLinkTag('canonical', canonicalUrl);
 
-    // Structured data for organization
-    const structuredData = {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: SITE_NAME,
-      applicationCategory: 'BusinessApplication',
-      operatingSystem: 'Web',
-      description: description,
-      url: BASE_URL,
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'AUD',
-        description: 'Free tier available'
-      },
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: '4.8',
-        ratingCount: '50'
-      }
-    };
+    // Structured data - TechArticle or default SoftwareApplication
+    let structuredData;
+    
+    if (techArticle) {
+      structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'TechArticle',
+        name: techArticle.name,
+        headline: techArticle.name,
+        datePublished: techArticle.datePublished,
+        dateModified: techArticle.dateModified || techArticle.datePublished,
+        author: {
+          '@type': 'Organization',
+          name: techArticle.author
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: techArticle.publisher,
+          url: BASE_URL
+        },
+        about: techArticle.about,
+        keywords: techArticle.keywords,
+        mainEntityOfPage: {
+          '@type': 'WebPage',
+          '@id': canonicalUrl
+        },
+        url: canonicalUrl,
+        description: description
+      };
+    } else {
+      structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: SITE_NAME,
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Web',
+        description: description,
+        url: BASE_URL,
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'AUD',
+          description: 'Free tier available'
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.8',
+          ratingCount: '50'
+        }
+      };
+    }
 
     let scriptElement = document.querySelector('script[type="application/ld+json"]');
     if (!scriptElement) {
@@ -109,7 +151,7 @@ export function SEOHead({
     }
     scriptElement.textContent = JSON.stringify(structuredData);
 
-  }, [fullTitle, description, canonicalUrl, ogImage, ogType, noIndex]);
+  }, [fullTitle, description, canonicalUrl, ogImage, ogType, noIndex, techArticle]);
 
   return null;
 }
