@@ -1152,9 +1152,20 @@ All colors MUST be HSL.
     padding: 0 !important;
   }
   
-  /* Page breaks for sections */
+  /* Force page breaks for PDF sections - each section starts on new page */
+  .pdf-section-start {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+  
+  /* First section should not have page break before it */
+  .pdf-section-start:first-of-type {
+    page-break-before: auto !important;
+    break-before: auto !important;
+  }
+  
+  /* Page breaks for general sections */
   section[id] {
-    page-break-before: auto;
     page-break-inside: avoid;
     break-inside: avoid;
   }
