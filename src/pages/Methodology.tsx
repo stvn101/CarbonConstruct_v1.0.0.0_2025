@@ -75,15 +75,15 @@ const Methodology = () => {
     coverDoc.setFont('helvetica', 'normal');
     
     const tocItems = [
-      { title: '1. Standards Compliance', page: 3 },
-      { title: '2. Data Sources & Traceability', page: 4 },
-      { title: '3. Calculation Methodology', page: 5 },
-      { title: '4. Calculation Transparency & Traceability', page: 6 },
-      { title: '5. Australian Scheme Alignment', page: 7 },
-      { title: '6. Data Residency & Security', page: 8 },
-      { title: '7. Methodology Limitations', page: 9 },
-      { title: '8. Independent Verification Pathway', page: 10 },
-      { title: '9. Documentation & Technical Support', page: 11 },
+      { title: '1. Standards Compliance', page: 4 },
+      { title: '2. Data Sources & Traceability', page: 5 },
+      { title: '3. Calculation Methodology', page: 7 },
+      { title: '4. Calculation Transparency & Traceability', page: 9 },
+      { title: '5. Australian Scheme Alignment', page: 10 },
+      { title: '6. Data Residency & Security', page: 11 },
+      { title: '7. Methodology Limitations', page: 12 },
+      { title: '8. Independent Verification Pathway', page: 13 },
+      { title: '9. Documentation & Technical Support', page: 14 },
     ];
     
     tocItems.forEach((item, i) => {
