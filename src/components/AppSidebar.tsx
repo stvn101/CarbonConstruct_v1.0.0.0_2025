@@ -1,4 +1,4 @@
-import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, DollarSign, Leaf, Map, Play, Upload, Sparkles } from "lucide-react";
+import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, DollarSign, Leaf, Map, Play, Upload, Sparkles, Database } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -34,6 +34,11 @@ const otherItems = [{
   url: "/pricing",
   icon: DollarSign,
   color: "text-amber-400"
+}, {
+  title: "Materials Database",
+  url: "/materials/status",
+  icon: Database,
+  color: "text-emerald-400"
 }, {
   title: "AI BOQ Demo",
   url: "/demo",
