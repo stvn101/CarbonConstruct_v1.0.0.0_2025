@@ -491,9 +491,9 @@ All colors MUST be HSL.
     --accent: 142 70% 45%;
     --accent-foreground: 0 0% 100%;
 
-    /* Muted: Vega Gray */
+    /* Muted: Vega Gray - Darker foreground for WCAG AA contrast */
     --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
+    --muted-foreground: 0 0% 32%;
 
     /* Scope Colors for Data Visualization - Maximum Vibrancy */
     --scope-1: 15 90% 58%;        /* Bright coral-red for direct emissions */
