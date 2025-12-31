@@ -236,12 +236,12 @@ const Pricing = () => {
             <Card 
               key={tier.name}
               variant="glass"
-              className={`relative flex flex-col h-full glass-glow-hover transition-all duration-300 ${
+              className={`relative flex flex-col h-full glass-glow-hover neon-border transition-all duration-300 ${
                 isPopular 
                   ? 'border-primary border-2 shadow-xl scale-[1.02] z-10' 
                   : isForeverFree 
                     ? 'border-emerald-500/50 border-2' 
-                    : 'border-border/30'
+                    : ''
               } hover:-translate-y-1`}
             >
               {/* Badges */}

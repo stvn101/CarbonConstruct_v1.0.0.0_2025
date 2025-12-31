@@ -993,7 +993,7 @@ const Reports = () => {
         <TabsContent value="breakdown" className="space-y-6">
           {/* Category Breakdown Chart */}
           <ReportErrorBoundary fallbackTitle="Breakdown Chart Error">
-            <Card>
+            <Card className="neon-border glass-glow-hover">
             <CardHeader>
               <CardTitle>Emissions by Category</CardTitle>
               <CardDescription>
@@ -1021,7 +1021,7 @@ const Reports = () => {
             <p className="text-xs text-muted-foreground text-center mb-4">All emission values displayed in tonnes CO₂ equivalent (tCO₂e)</p>
             <div className="grid gap-6 md:grid-cols-2">
             {/* Materials Section */}
-            <Card>
+            <Card className="neon-border glass-glow-hover">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-scope-3" />
@@ -1046,7 +1046,7 @@ const Reports = () => {
             </Card>
 
             {/* Fuel Inputs */}
-            <Card>
+            <Card className="neon-border glass-glow-hover">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Factory className="h-5 w-5 text-scope-1" />
@@ -1073,7 +1073,7 @@ const Reports = () => {
             </Card>
 
             {/* Electricity Inputs */}
-            <Card>
+            <Card className="neon-border glass-glow-hover">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="h-5 w-5 text-scope-2" />
@@ -1100,7 +1100,7 @@ const Reports = () => {
             </Card>
 
             {/* Transport Inputs */}
-            <Card>
+            <Card className="neon-border glass-glow-hover">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Truck className="h-5 w-5 text-scope-3" />
@@ -1133,7 +1133,7 @@ const Reports = () => {
         <TabsContent value="compliance" className="space-y-6">
           {/* Compliance Summary Header */}
           <ReportErrorBoundary fallbackTitle="Compliance Summary Error">
-            <Card className="border-primary/20">
+            <Card className="neon-border glass-glow-hover border-primary/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Award className="h-5 w-5" />
@@ -1244,7 +1244,7 @@ const Reports = () => {
 
           {/* Detailed Compliance Breakdown */}
           <ReportErrorBoundary fallbackTitle="Compliance Details Error" inline>
-            <Card>
+            <Card className="neon-border glass-glow-hover">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
@@ -1495,7 +1495,7 @@ const Reports = () => {
           <ReportErrorBoundary fallbackTitle="Export Options Error">
             <div className="grid gap-6 md:grid-cols-2">
             {/* PDF Export */}
-            <Card>
+            <Card className="neon-border glass-glow-hover">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileBarChart className="h-5 w-5" />
@@ -1537,7 +1537,7 @@ const Reports = () => {
             </Card>
 
             {/* Data Export */}
-            <Card>
+            <Card className="neon-border glass-glow-hover">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Download className="h-5 w-5" />
@@ -1560,7 +1560,7 @@ const Reports = () => {
           </div>
 
           {/* Export Information */}
-          <Card>
+          <Card className="neon-border glass-glow-hover">
             <CardHeader>
               <CardTitle>Export Information</CardTitle>
             </CardHeader>

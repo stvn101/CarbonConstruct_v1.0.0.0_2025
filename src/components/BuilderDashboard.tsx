@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEmissionTotals } from "@/hooks/useEmissionTotals";
+import { useUnifiedCalculations } from "@/hooks/useUnifiedCalculations";
 import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 import { 
   CheckCircle, 
   XCircle, 
@@ -17,7 +19,8 @@ import {
   Construction,
   ArrowRight,
   FileText,
-  Clock
+  Clock,
+  Package
 } from "lucide-react";
 
 interface BuilderDashboardProps {
@@ -25,25 +28,106 @@ interface BuilderDashboardProps {
   className?: string;
 }
 
-// Mock data for high-impact components (would come from real calculation data)
-const HIGH_IMPACT_COMPONENTS = [
-  { name: "Structural Steel", icon: Construction, emissions: 185.3, percentage: 34.8 },
-  { name: "Concrete Slab", icon: Layers, emissions: 142.7, percentage: 26.8 },
-  { name: "Glazing Systems", icon: Square, emissions: 78.4, percentage: 14.7 },
-  { name: "Internal Partitions", icon: Building2, emissions: 52.1, percentage: 9.8 },
-  { name: "Finishing Materials", icon: PaintBucket, emissions: 73.6, percentage: 13.8 },
-];
-
-// Mock recent actions
-const RECENT_ACTIONS = [
-  { action: "Steel specification updated", impact: "reduced by 12.3 tCO₂e", time: "2 hours ago" },
-  { action: "Concrete mix optimized", impact: "reduced by 8.7 tCO₂e", time: "1 day ago" },
-  { action: "Section J report generated", impact: null, time: "3 days ago" },
-];
+// Category icons mapping
+const CATEGORY_ICONS: Record<string, typeof Construction> = {
+  steel: Construction,
+  concrete: Layers,
+  glass: Square,
+  timber: Building2,
+  masonry: PaintBucket,
+  default: Package,
+};
 
 export function BuilderDashboard({ className }: BuilderDashboardProps) {
   const navigate = useNavigate();
-  const { totals, loading } = useEmissionTotals();
+  const { totals, loading: totalsLoading } = useEmissionTotals();
+  const { data: calculationData, loading: calcLoading } = useUnifiedCalculations();
+
+  // Derive high-impact components from real materials data
+  const highImpactComponents = useMemo(() => {
+    if (!calculationData?.materials || calculationData.materials.length === 0) {
+      return [];
+    }
+
+    // Calculate total emissions from materials
+    const totalMaterialEmissions = calculationData.materials.reduce(
+      (sum, m) => sum + (m.totalEmissions || 0), 
+      0
+    );
+
+    // Sort by emissions descending and take top 5
+    return calculationData.materials
+      .map(m => ({
+        name: m.name,
+        category: m.category?.toLowerCase() || 'default',
+        emissions: m.totalEmissions || 0,
+        percentage: totalMaterialEmissions > 0 
+          ? ((m.totalEmissions || 0) / totalMaterialEmissions) * 100 
+          : 0
+      }))
+      .sort((a, b) => b.emissions - a.emissions)
+      .slice(0, 5);
+  }, [calculationData?.materials]);
+
+  // Derive recent actions from calculation data timestamps
+  const recentActions = useMemo(() => {
+    const actions: Array<{ action: string; impact: string | null; time: string }> = [];
+    
+    if (calculationData?.updatedAt) {
+      const updatedDate = new Date(calculationData.updatedAt);
+      const now = new Date();
+      const diffMs = now.getTime() - updatedDate.getTime();
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      let timeAgo = '';
+      if (diffDays > 0) {
+        timeAgo = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      } else if (diffHours > 0) {
+        timeAgo = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      } else {
+        timeAgo = 'Just now';
+      }
+
+      actions.push({
+        action: 'Calculation updated',
+        impact: calculationData.materials?.length 
+          ? `${calculationData.materials.length} materials tracked` 
+          : null,
+        time: timeAgo
+      });
+    }
+
+    // Add material count if available
+    if (calculationData?.materials && calculationData.materials.length > 0) {
+      const topMaterial = calculationData.materials
+        .sort((a, b) => (b.totalEmissions || 0) - (a.totalEmissions || 0))[0];
+      
+      if (topMaterial) {
+        actions.push({
+          action: `Top emitter: ${topMaterial.name}`,
+          impact: `${(topMaterial.totalEmissions || 0).toFixed(1)} tCO₂e`,
+          time: 'Current'
+        });
+      }
+    }
+
+    // Add fuel/electricity summary if available
+    if (calculationData?.fuelInputs && calculationData.fuelInputs.length > 0) {
+      const totalFuelEmissions = calculationData.fuelInputs.reduce(
+        (sum, f) => sum + (f.totalEmissions || 0), 0
+      );
+      actions.push({
+        action: 'Fuel emissions tracked',
+        impact: `${totalFuelEmissions.toFixed(1)} tCO₂e`,
+        time: 'Current'
+      });
+    }
+
+    return actions.slice(0, 3);
+  }, [calculationData]);
+
+  const loading = totalsLoading || calcLoading;
 
   // Calculate total emissions
   const totalEmissions = totals.scope1 + totals.scope2 + totals.scope3;
@@ -234,50 +318,65 @@ export function BuilderDashboard({ className }: BuilderDashboardProps) {
           <CardDescription>Top contributors to project emissions</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Component</TableHead>
-                <TableHead className="text-right">Emissions (tCO₂e)</TableHead>
-                <TableHead className="text-right">Share</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {HIGH_IMPACT_COMPONENTS.map((component) => {
-                const Icon = component.icon;
-                const needsOptimization = component.percentage > 25;
-                return (
-                  <TableRow key={component.name}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{component.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {component.emissions.toFixed(1)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={needsOptimization ? "destructive" : "secondary"} className="text-xs">
-                        {component.percentage}%
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        size="sm" 
-                        variant={needsOptimization ? "default" : "ghost"}
-                        className="text-xs h-7"
-                        onClick={() => navigate("/calculator")}
-                      >
-                        {needsOptimization ? "Optimize" : "Review"}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          {highImpactComponents.length === 0 ? (
+            <div className="text-center py-6 text-muted-foreground">
+              <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No materials added yet</p>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="mt-3"
+                onClick={() => navigate("/calculator")}
+              >
+                Add Materials
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Component</TableHead>
+                  <TableHead className="text-right">Emissions (tCO₂e)</TableHead>
+                  <TableHead className="text-right">Share</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {highImpactComponents.map((component) => {
+                  const Icon = CATEGORY_ICONS[component.category] || CATEGORY_ICONS.default;
+                  const needsOptimization = component.percentage > 25;
+                  return (
+                    <TableRow key={component.name}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium truncate max-w-[200px]">{component.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {component.emissions.toFixed(1)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={needsOptimization ? "destructive" : "secondary"} className="text-xs">
+                          {component.percentage.toFixed(1)}%
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          size="sm" 
+                          variant={needsOptimization ? "default" : "ghost"}
+                          className="text-xs h-7"
+                          onClick={() => navigate("/calculator")}
+                        >
+                          {needsOptimization ? "Optimize" : "Review"}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -285,35 +384,43 @@ export function BuilderDashboard({ className }: BuilderDashboardProps) {
       <Card variant="glass" className="border-border/30 neon-border glass-glow-hover">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold">Recent Actions</CardTitle>
-          <CardDescription>Latest optimization decisions</CardDescription>
+          <CardDescription>Latest project activity</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {RECENT_ACTIONS.map((action, index) => (
-              <div 
-                key={index} 
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
-              >
-                <div className="flex items-center gap-3">
-                  {action.impact ? (
-                    <TrendingDown className="h-4 w-4 text-emerald-500" />
-                  ) : (
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                  )}
-                  <div>
-                    <p className="font-medium text-sm">{action.action}</p>
-                    {action.impact && (
-                      <p className="text-xs text-emerald-500">{action.impact}</p>
+          {recentActions.length === 0 ? (
+            <div className="text-center py-6 text-muted-foreground">
+              <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No activity yet</p>
+              <p className="text-xs mt-1">Start by adding materials to your project</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentActions.map((action, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
+                >
+                  <div className="flex items-center gap-3">
+                    {action.impact ? (
+                      <TrendingDown className="h-4 w-4 text-emerald-500" />
+                    ) : (
+                      <FileText className="h-4 w-4 text-muted-foreground" />
                     )}
+                    <div>
+                      <p className="font-medium text-sm">{action.action}</p>
+                      {action.impact && (
+                        <p className="text-xs text-emerald-500">{action.impact}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    {action.time}
                   </div>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  {action.time}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
