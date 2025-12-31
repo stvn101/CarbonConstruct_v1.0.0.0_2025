@@ -163,29 +163,37 @@ const Methodology = () => {
       const tocPage = mergedPdf.getPage(1); // Index 1 = TOC page (after cover)
       const { height: tocHeight, width: tocWidth } = tocPage.getSize();
       
-      // Add internal links for each TOC item
+      // Import PDFName for proper annotation key
+      const { PDFName } = await import('pdf-lib');
+      
+      // Build array of REGISTERED link annotation references
+      const linkAnnotations: ReturnType<typeof mergedPdf.context.register>[] = [];
+      
       tocItems.forEach((item, i) => {
         // Convert mm to points (1mm = 2.835pt) and flip Y coordinate (PDF uses bottom-left origin)
         const yPosition = tocHeight - ((50 + (i * 12)) * 2.835);
         const targetPageIndex = item.page - 1; // 0-indexed for the merged PDF
         
-        // Create link annotation rectangle (x1, y1, x2, y2 in points)
-        const linkAnnotation = mergedPdf.context.obj({
-          Type: 'Annot',
-          Subtype: 'Link',
-          Rect: [56.7, yPosition - 8, tocWidth - 56.7, yPosition + 12], // 20mm margins = 56.7pt
-          Border: [0, 0, 0], // No visible border
-          Dest: [mergedPdf.getPage(targetPageIndex).ref, 'XYZ', null, null, null],
-        });
-        
-        // Get existing annotations or create new array
-        const existingAnnots = tocPage.node.lookup('Annots' as any);
-        if (existingAnnots) {
-          (existingAnnots as any).push(linkAnnotation);
-        } else {
-          tocPage.node.set('Annots' as any, mergedPdf.context.obj([linkAnnotation]));
+        // Ensure target page exists before creating link
+        if (targetPageIndex >= 0 && targetPageIndex < mergedPdf.getPageCount()) {
+          // Create and REGISTER the link annotation (fixes sizeInBytes error)
+          const linkAnnotation = mergedPdf.context.register(
+            mergedPdf.context.obj({
+              Type: 'Annot',
+              Subtype: 'Link',
+              Rect: [56.7, yPosition - 8, tocWidth - 56.7, yPosition + 12], // 20mm margins = 56.7pt
+              Border: [0, 0, 0], // No visible border
+              Dest: [mergedPdf.getPage(targetPageIndex).ref, 'XYZ', null, null, null],
+            })
+          );
+          linkAnnotations.push(linkAnnotation);
         }
       });
+      
+      // Set annotations array on TOC page using proper PDFName
+      if (linkAnnotations.length > 0) {
+        tocPage.node.set(PDFName.of('Annots'), mergedPdf.context.obj(linkAnnotations));
+      }
       
       const mergedPdfBytes = await mergedPdf.save();
       
