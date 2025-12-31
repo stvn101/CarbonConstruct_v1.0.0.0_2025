@@ -66,7 +66,7 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const isActive = (path: string) => path === "/" ? currentPath === path : currentPath.startsWith(path);
   return <Sidebar collapsible="icon" className="transition-all duration-500 ease-in-out">
-      <SidebarContent className="bg-sidebar border-r border-sidebar-border transition-all duration-500 ease-in-out">
+      <SidebarContent className="bg-sidebar border-r border-primary/30 transition-all duration-500 ease-in-out">
         {/* Brand Header */}
         <div className="p-4 border-b border-sidebar-border/50 bg-sidebar-accent/30 overflow-visible">
           <TooltipProvider>

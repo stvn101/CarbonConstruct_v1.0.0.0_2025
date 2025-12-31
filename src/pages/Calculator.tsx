@@ -250,8 +250,10 @@ export default function Calculator() {
   } = useEcoCompliance();
   
   // Feature access checks based on subscription tier
-  const canAccessEN15978 = currentTier?.limits?.en15978_calculators ?? false;
-  const canAccessMaterialComparer = currentTier?.limits?.material_comparer ?? false;
+  // Admin users always have full access regardless of tier limits
+  const { is_admin: isAdmin } = useSubscriptionStatus();
+  const canAccessEN15978 = isAdmin || (currentTier?.limits?.en15978_calculators ?? false);
+  const canAccessMaterialComparer = isAdmin || (currentTier?.limits?.material_comparer ?? false);
   
   // Fetch materials from EPD database (Supabase materials_epd table)
   const { 
@@ -2460,7 +2462,7 @@ export default function Calculator() {
                 </Card>
 
                 {/* A5 On-Site Construction Section */}
-                <Card className="p-4 md:p-6">
+                <Card className="p-4 md:p-6 glass-glow-hover neon-border">
                   <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 text-foreground">On-Site Construction (A5)</h3>
                   <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Site equipment, generators, and installation activities
