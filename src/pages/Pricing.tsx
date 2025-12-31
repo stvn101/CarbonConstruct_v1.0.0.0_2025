@@ -397,6 +397,11 @@ const Pricing = () => {
           <p className="text-xs text-muted-foreground text-center mt-4">
             All emission factors sourced from NABERS 2025 EPD List and ICE Database 2019
           </p>
+          <div className="flex justify-center gap-4 mt-4 text-xs">
+            <a href="/methodology" className="text-primary hover:underline">View Methodology</a>
+            <span className="text-muted-foreground">•</span>
+            <a href="/materials/status" className="text-primary hover:underline">Database Status</a>
+          </div>
         </CardContent>
       </Card>
 
