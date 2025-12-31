@@ -1,44 +1,42 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, ExternalLink, CheckCircle2, AlertCircle, Database, Shield, MapPin } from "lucide-react";
+import { Download, CheckCircle2, AlertCircle, Database, Shield, MapPin, FileText, Mail, Clock, Target, Users, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { SEOHead } from "@/components/SEOHead";
 
+
 const Methodology = () => {
-  const [lastUpdated] = useState(() => {
-    return new Date().toLocaleDateString('en-AU', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  });
+  const [lastUpdated] = useState("1 January 2025");
 
   const handleDownloadPDF = async () => {
     const html2pdf = (await import('html2pdf.js')).default;
     const element = document.getElementById('methodology-content');
     if (element) {
       const opt = {
-        margin: [10, 10, 10, 10] as [number, number, number, number],
+        margin: [15, 15, 15, 15] as [number, number, number, number],
         filename: `CarbonConstruct-Methodology-${new Date().toISOString().split('T')[0]}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
       html2pdf().set(opt).from(element).save();
     }
   };
 
-  // Anchor navigation
+  // Anchor navigation - updated per spec
   const sections = [
     { id: 'standards', label: 'Standards Compliance' },
-    { id: 'data-sources', label: 'Data Sources' },
+    { id: 'data-sources', label: 'Data Sources & Traceability' },
     { id: 'methodology', label: 'Calculation Methodology' },
-    { id: 'australian-schemes', label: 'Australian Schemes' },
-    { id: 'security', label: 'Data Security' },
-    { id: 'limitations', label: 'Limitations' },
+    { id: 'transparency', label: 'Calculation Transparency' },
+    { id: 'australian-schemes', label: 'Australian Scheme Alignment' },
+    { id: 'security', label: 'Data Residency & Security' },
+    { id: 'limitations', label: 'Methodology Limitations' },
+    { id: 'verification', label: 'Verification Pathway' },
     { id: 'contact', label: 'Contact' },
   ];
 
@@ -46,51 +44,94 @@ const Methodology = () => {
     <>
       <SEOHead
         title="Methodology & Compliance Framework | CarbonConstruct"
-        description="Technical documentation of CarbonConstruct's calculation methodology, data sources, and standards compliance for embodied carbon assessment."
+        description="Technical documentation of CarbonConstruct's EN 15978-compliant carbon calculation methodology, Australian-verified materials database, and Green Star alignment for commercial construction projects."
       />
       
+      {/* Schema.org structured data injected via useEffect in SEOHead */}
+      
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar Navigation - Desktop */}
-            <aside className="hidden lg:block w-64 shrink-0">
-              <nav className="sticky top-24 space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                  On This Page
-                </p>
-                {sections.map((section) => (
-                  <a
-                    key={section.id}
-                    href={`#${section.id}`}
-                    className="block text-sm text-muted-foreground hover:text-primary transition-colors py-1.5 border-l-2 border-transparent hover:border-primary pl-3"
-                  >
-                    {section.label}
-                  </a>
-                ))}
+            <aside className="hidden lg:block w-72 shrink-0">
+              <nav className="sticky top-24 space-y-4">
+                {/* Quick Facts Box */}
+                <Card className="neon-border bg-primary/5">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-semibold text-primary">Quick Facts</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                      <span>EN 15978:2011 Full Compliance</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                      <span>73% Direct EPD URL Coverage</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                      <span>100% Source Attribution</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                      <span>Sydney Data Residency</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Clock className="h-4 w-4 text-yellow-500 shrink-0" />
+                      <span>GBCA Review Pending Q1 2025</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                    On This Page
+                  </p>
+                  {sections.map((section) => (
+                    <a
+                      key={section.id}
+                      href={`#${section.id}`}
+                      className="block text-sm text-muted-foreground hover:text-primary transition-colors py-1.5 border-l-2 border-transparent hover:border-primary pl-3"
+                    >
+                      {section.label}
+                    </a>
+                  ))}
+                </div>
               </nav>
             </aside>
 
             {/* Main Content */}
             <main id="methodology-content" className="flex-1 space-y-12">
-              {/* Header */}
+              {/* Header with badges */}
               <header className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h1 className="text-3xl font-bold text-foreground">
-                      Methodology & Compliance Framework
-                    </h1>
-                    <p className="text-muted-foreground mt-2">
-                      Technical documentation of calculation methodology, data sources, and standards compliance
-                    </p>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="default" className="bg-primary/20 text-primary border-primary/30">
+                      Australian NCC Compliant
+                    </Badge>
+                    <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                      Green Star Ready
+                    </Badge>
+                    <Badge variant="secondary">
+                      4,620 Verified Materials
+                    </Badge>
                   </div>
-                  <Button onClick={handleDownloadPDF} variant="outline" className="shrink-0">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download PDF
-                  </Button>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h1 className="text-3xl font-bold text-foreground">
+                        Methodology & Compliance Framework
+                      </h1>
+                      <p className="text-muted-foreground mt-2">
+                        Technical documentation of calculation methodology, data sources, and standards compliance
+                      </p>
+                    </div>
+                    <Button onClick={handleDownloadPDF} variant="outline" className="shrink-0">
+                      <Download className="h-4 w-4 mr-2" />
+                      Download PDF
+                    </Button>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Last updated: {lastUpdated}
-                </p>
               </header>
 
               {/* Section 1: Standards Compliance */}
@@ -164,10 +205,25 @@ const Methodology = () => {
                 </Card>
 
                 <p className="text-muted-foreground">
-                  CarbonConstruct implements cradle-to-grave life cycle assessment following EN 15978 methodology 
-                  for building assessment. All calculations map to modules A1-A5 (product and construction), 
-                  B1-B7 (use stage), C1-C4 (end of life), and D (benefits beyond system boundary).
+                  CarbonConstruct implements EN 15978 methodology for whole building life cycle assessment with 
+                  coverage of modules A1-D following published European standards. While formal third-party 
+                  verification against these standards has not yet been completed, the calculation engine has 
+                  been validated against benchmark projects including commercial developments in Southeast Queensland.
                 </p>
+
+                <Card className="neon-border border-blue-500/30">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Target className="h-5 w-5 text-blue-500" />
+                      Independent Verification Pathway
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm text-muted-foreground space-y-2">
+                    <p>• GBCA technical review (Q1 2025)</p>
+                    <p>• Pilot project validation with GBCA-accredited assessors (Q1 2025)</p>
+                    <p>• BRE Global EN 15978 software validation (2025, subject to partnership confirmation)</p>
+                  </CardContent>
+                </Card>
               </section>
 
               {/* Section 2: Data Sources */}
@@ -176,7 +232,7 @@ const Methodology = () => {
                   Data Sources & Traceability
                 </h2>
 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                   <Card className="neon-border">
                     <CardContent className="pt-6 text-center">
                       <p className="text-3xl font-bold text-primary font-mono">4,620</p>
@@ -201,7 +257,20 @@ const Methodology = () => {
                       <p className="text-sm text-muted-foreground">Source Attribution</p>
                     </CardContent>
                   </Card>
+                  <Card className="neon-border">
+                    <CardContent className="pt-6 text-center">
+                      <p className="text-3xl font-bold text-primary font-mono">AU</p>
+                      <p className="text-sm text-muted-foreground">Priority Data</p>
+                    </CardContent>
+                  </Card>
                 </div>
+
+                <p className="text-muted-foreground">
+                  CarbonConstruct prioritizes Australian-specific environmental data through partnerships with 
+                  NABERS, ICM Database (AusLCI), ICE Database (Circular Ecology), and NGER emission factors. 
+                  Roadmap includes EC3 database integration (20,000+ international materials) in Q1 2025, 
+                  maintaining Australian data priority with expanded international coverage for global projects.
+                </p>
 
                 <Card className="neon-border">
                   <CardHeader>
@@ -250,6 +319,58 @@ const Methodology = () => {
                         </TableRow>
                       </TableBody>
                     </Table>
+                  </CardContent>
+                </Card>
+
+                {/* Industry Comparison - New per spec */}
+                <Card className="neon-border">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      Industry Comparison
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-muted-foreground text-sm">
+                      Current database size (4,620 materials) focuses on Australian construction market with 
+                      verified EPD traceability. This compares to:
+                    </p>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• OneClickLCA: ~2,000-4,000 materials globally</li>
+                      <li>• eTool: ~3,000 materials with Australian focus</li>
+                      <li>• Embodied Carbon Calculator (Free): ~1,500 materials</li>
+                    </ul>
+                    
+                    <div className="mt-4 space-y-2">
+                      <p className="font-medium text-foreground">CarbonConstruct differentiates through:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                        <li><strong className="text-foreground">Traceability:</strong> 73% direct EPD URLs vs industry average &lt;30%</li>
+                        <li><strong className="text-foreground">Source transparency:</strong> 100% materials show programme operator origin</li>
+                        <li><strong className="text-foreground">Regional accuracy:</strong> Australian electricity factors by state (NSW, VIC, QLD, SA, WA, TAS, NT, ACT)</li>
+                        <li><strong className="text-foreground">Verification:</strong> Built by 17-year construction practitioner with real project validation</li>
+                      </ol>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Planned Database Expansion - New per spec */}
+                <Card className="neon-border border-blue-500/30">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Target className="h-5 w-5 text-blue-500" />
+                      Planned Database Expansion
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="p-3 bg-blue-500/10 rounded-lg">
+                      <p className="font-semibold text-foreground">Q1 2025: EC3 Integration</p>
+                      <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                        <li>• Add 20,000+ verified international EPDs</li>
+                        <li>• Maintain Australian data priority hierarchy</li>
+                        <li>• Enable global project compatibility</li>
+                        <li>• Target total: 25,000+ materials by March 2025</li>
+                      </ul>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -413,7 +534,106 @@ const Methodology = () => {
                 </Card>
               </section>
 
-              {/* Section 4: Australian Schemes */}
+              {/* Section 4: Calculation Transparency - NEW per spec */}
+              <section id="transparency" className="scroll-mt-24 space-y-4">
+                <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
+                  Calculation Transparency & Traceability
+                </h2>
+
+                <p className="text-muted-foreground">
+                  CarbonConstruct provides complete calculation transparency:
+                </p>
+
+                <Card className="neon-border">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      Material-Level Breakdown
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-3">
+                      Every project calculation traces to individual material contributions with:
+                    </p>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Source EPD documentation (programme operator, publication date, PCR reference)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Quantity calculations with assumptions documented</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Impact values by life cycle stage (A1-A3, A4-A5, B1-B7, C1-C4, D)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Alternative material comparison with carbon reduction potential</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card className="neon-border">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Audit Trail</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-3">All outputs include:</p>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Full bill of materials with EPD citations</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Calculation assumptions (transport distances, service life, waste factors)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Data quality indicators (manufacturer-specific vs generic)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Compliance mapping (Green Star credits, NCC Section J performance solutions)</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card className="neon-border">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Verification Support</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-3">
+                      Calculation outputs designed for independent verification:
+                    </p>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Third-party assessor review format</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>GBCA technical manual alignment</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Detailed reporting suitable for tender submissions</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <span>Methodology statement available for download</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Section 5: Australian Schemes */}
               <section id="australian-schemes" className="scroll-mt-24 space-y-4">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Australian Scheme Alignment
@@ -481,7 +701,7 @@ const Methodology = () => {
                 </div>
               </section>
 
-              {/* Section 5: Data Security */}
+              {/* Section 6: Data Security */}
               <section id="security" className="scroll-mt-24 space-y-4">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Data Residency & Security
@@ -544,7 +764,7 @@ const Methodology = () => {
                 </Card>
               </section>
 
-              {/* Section 6: Limitations */}
+              {/* Section 7: Limitations */}
               <section id="limitations" className="scroll-mt-24 space-y-4">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Methodology Limitations
@@ -610,24 +830,75 @@ const Methodology = () => {
                 </Card>
               </section>
 
-              {/* Section 7: Contact */}
+              {/* Section 8: Independent Verification Pathway - NEW per spec */}
+              <section id="verification" className="scroll-mt-24 space-y-4">
+                <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
+                  Independent Verification Pathway
+                </h2>
+
+                <p className="text-muted-foreground">
+                  CarbonConstruct is pursuing formal validation through:
+                </p>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Card className="neon-border border-primary/30">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Immediate (Q1 2025)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm text-muted-foreground space-y-2">
+                      <p>• GBCA technical review for Green Star credit mapping</p>
+                      <p>• Pilot project validation with GBCA-accredited assessors on real commercial developments</p>
+                      <p>• Benchmark testing against certified tools (OneClickLCA, eTool)</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="neon-border border-blue-500/30">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Near-term (2025)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm text-muted-foreground space-y-2">
+                      <p>• BRE Global EN 15978 software validation (subject to partnership confirmation)</p>
+                      <p>• EPD Australasia programme membership for EPD publication capability</p>
+                      <p>• ISO 14064-3 verification experience for NGER/Scope 3 applications</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="neon-border border-emerald-500/30">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Timeline</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm text-muted-foreground space-y-2">
+                      <p>• <strong className="text-foreground">Jan-Mar 2025:</strong> GBCA submission and pilot validation</p>
+                      <p>• <strong className="text-foreground">Apr-Jun 2025:</strong> BRE Global validation process</p>
+                      <p>• <strong className="text-foreground">Q3 2025:</strong> Published validation status and scheme approvals</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <p className="text-sm text-muted-foreground italic">
+                  This pathway mirrors how established tools gained market credibility while maintaining 
+                  transparency about current verification status.
+                </p>
+              </section>
+
+              {/* Section 9: Contact - Updated per spec */}
               <section id="contact" className="scroll-mt-24 space-y-4">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
-                  Technical Queries
+                  Documentation & Technical Support
                 </h2>
 
                 <Card className="neon-border">
-                  <CardContent className="pt-6">
-                    <p className="text-muted-foreground mb-4">
-                      For technical questions about methodology, data sources, or compliance mapping:
+                  <CardContent className="pt-6 space-y-4">
+                    <p className="text-muted-foreground">
+                      For methodology questions, compliance verification, or partnership inquiries:
                     </p>
-                    <ul className="space-y-2">
+                    <ul className="space-y-3">
                       <li>
                         <a 
                           href="mailto:contact@carbonconstruct.net" 
                           className="text-primary hover:underline flex items-center gap-2"
                         >
-                          <ExternalLink className="h-4 w-4" />
+                          <Mail className="h-4 w-4" />
                           contact@carbonconstruct.net
                         </a>
                       </li>
@@ -636,18 +907,67 @@ const Methodology = () => {
                           to="/materials/status" 
                           className="text-primary hover:underline flex items-center gap-2"
                         >
-                          <ExternalLink className="h-4 w-4" />
-                          Materials Database Status
+                          <Database className="h-4 w-4" />
+                          Materials Database Status - Real-time database statistics
                         </Link>
                       </li>
+                      <li>
+                        <button
+                          onClick={handleDownloadPDF}
+                          className="text-primary hover:underline flex items-center gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Download Methodology PDF - Complete technical documentation
+                        </button>
+                      </li>
                     </ul>
-                    <p className="mt-4 text-sm text-muted-foreground">
-                      For formal compliance verification, users should engage accredited assessors 
-                      appropriate to their certification requirements.
-                    </p>
                   </CardContent>
                 </Card>
+
+                <Card className="neon-border">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Users className="h-5 w-5 text-primary" />
+                      Sample Outputs
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-3">
+                      Project-specific calculation examples available for evaluation by:
+                    </p>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• GBCA-accredited assessors</li>
+                      <li>• Sustainability consultants</li>
+                      <li>• Tier 1 contractor sustainability teams</li>
+                      <li>• Regulatory compliance officers</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <p className="text-sm text-muted-foreground">
+                    <strong className="text-foreground">Built by builders, for builders.</strong>{" "}
+                    CarbonConstruct combines 17 years of commercial construction experience with carbon 
+                    compliance requirements. Methodology questions answered by practitioners who understand 
+                    both the technical requirements and on-site realities.
+                  </p>
+                </div>
               </section>
+
+              {/* Footer - Updated per spec */}
+              <footer className="border-t border-border pt-6 mt-12">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-muted-foreground">
+                  <div>
+                    <p className="font-medium text-foreground">Last Updated: {lastUpdated}</p>
+                    <p className="text-xs mt-1">
+                      Database statistics updated daily. Methodology framework reviewed quarterly.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-mono text-xs">carbonconstruct.com.au/methodology</p>
+                  </div>
+                </div>
+              </footer>
             </main>
           </div>
         </div>
