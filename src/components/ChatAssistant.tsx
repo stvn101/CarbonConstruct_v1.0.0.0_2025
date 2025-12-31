@@ -142,7 +142,7 @@ export const ChatAssistant = () => {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className={`fixed rounded-full shadow-lg ${
+        className={`fixed rounded-full shadow-[0_0_20px_-3px_hsl(var(--primary)/0.5)] border border-primary/30 ${
           isMobile ? "bottom-4 right-4 h-12 w-12" : "bottom-6 right-6 h-14 w-14"
         }`}
         size="icon"
@@ -155,7 +155,7 @@ export const ChatAssistant = () => {
 
   return (
     <Card 
-      className={`fixed flex flex-col shadow-2xl ${
+      className={`fixed flex flex-col border-primary/30 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)] ${
         isMobile 
           ? "left-2 right-2 bottom-2 h-[85vh]" 
           : "bottom-6 right-6 w-96 h-[600px]"
@@ -163,7 +163,7 @@ export const ChatAssistant = () => {
       role="dialog" 
       aria-label="AI Assistant"
     >
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-4 border-b border-primary/20">
         <div className="flex items-center gap-2">
           <MessageCircle className="h-5 w-5" aria-hidden="true" />
           <h3 className="font-semibold">AI Assistant</h3>
@@ -206,7 +206,7 @@ export const ChatAssistant = () => {
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t border-primary/20">
         <div className="flex gap-2">
           <Input
             value={input}
