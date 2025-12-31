@@ -77,13 +77,13 @@ const Methodology = () => {
     const tocItems = [
       { title: '1. Standards Compliance', page: 3 },
       { title: '2. Data Sources & Traceability', page: 4 },
-      { title: '3. Calculation Methodology', page: 6 },
-      { title: '4. Calculation Transparency & Traceability', page: 8 },
-      { title: '5. Australian Scheme Alignment', page: 9 },
-      { title: '6. Data Residency & Security', page: 10 },
-      { title: '7. Methodology Limitations', page: 11 },
-      { title: '8. Independent Verification Pathway', page: 12 },
-      { title: '9. Documentation & Technical Support', page: 13 },
+      { title: '3. Calculation Methodology', page: 5 },
+      { title: '4. Calculation Transparency & Traceability', page: 6 },
+      { title: '5. Australian Scheme Alignment', page: 7 },
+      { title: '6. Data Residency & Security', page: 8 },
+      { title: '7. Methodology Limitations', page: 9 },
+      { title: '8. Independent Verification Pathway', page: 10 },
+      { title: '9. Documentation & Technical Support', page: 11 },
     ];
     
     tocItems.forEach((item, i) => {
@@ -335,7 +335,7 @@ const Methodology = () => {
               </header>
 
               {/* Section 1: Standards Compliance */}
-              <section id="standards" className="scroll-mt-24 space-y-4">
+              <section id="standards" className="scroll-mt-24 space-y-4 pdf-section-start">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Standards Compliance
                 </h2>
@@ -427,7 +427,7 @@ const Methodology = () => {
               </section>
 
               {/* Section 2: Data Sources */}
-              <section id="data-sources" className="scroll-mt-24 space-y-4">
+              <section id="data-sources" className="scroll-mt-24 space-y-4 pdf-section-start">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Data Sources & Traceability
                 </h2>
@@ -606,7 +606,7 @@ const Methodology = () => {
               </section>
 
               {/* Section 3: Calculation Methodology */}
-              <section id="methodology" className="scroll-mt-24 space-y-4">
+              <section id="methodology" className="scroll-mt-24 space-y-4 pdf-section-start">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Calculation Methodology
                 </h2>
@@ -735,7 +735,7 @@ const Methodology = () => {
               </section>
 
               {/* Section 4: Calculation Transparency - NEW per spec */}
-              <section id="transparency" className="scroll-mt-24 space-y-4">
+              <section id="transparency" className="scroll-mt-24 space-y-4 pdf-section-start">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Calculation Transparency & Traceability
                 </h2>
@@ -834,7 +834,7 @@ const Methodology = () => {
               </section>
 
               {/* Section 5: Australian Schemes */}
-              <section id="australian-schemes" className="scroll-mt-24 space-y-4">
+              <section id="australian-schemes" className="scroll-mt-24 space-y-4 pdf-section-start">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Australian Scheme Alignment
                 </h2>
@@ -902,7 +902,7 @@ const Methodology = () => {
               </section>
 
               {/* Section 6: Data Security */}
-              <section id="security" className="scroll-mt-24 space-y-4">
+              <section id="security" className="scroll-mt-24 space-y-4 pdf-section-start">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Data Residency & Security
                 </h2>
@@ -965,7 +965,7 @@ const Methodology = () => {
               </section>
 
               {/* Section 7: Limitations */}
-              <section id="limitations" className="scroll-mt-24 space-y-4">
+              <section id="limitations" className="scroll-mt-24 space-y-4 pdf-section-start">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Methodology Limitations
                 </h2>
@@ -1031,7 +1031,7 @@ const Methodology = () => {
               </section>
 
               {/* Section 8: Independent Verification Pathway - NEW per spec */}
-              <section id="verification" className="scroll-mt-24 space-y-4">
+              <section id="verification" className="scroll-mt-24 space-y-4 pdf-section-start">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Independent Verification Pathway
                 </h2>
@@ -1082,7 +1082,7 @@ const Methodology = () => {
               </section>
 
               {/* Section 9: Contact - Updated per spec */}
-              <section id="contact" className="scroll-mt-24 space-y-4">
+              <section id="contact" className="scroll-mt-24 space-y-4 pdf-section-start">
                 <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
                   Documentation & Technical Support
                 </h2>
