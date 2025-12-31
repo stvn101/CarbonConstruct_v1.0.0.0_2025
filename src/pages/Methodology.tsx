@@ -136,11 +136,15 @@ const Methodology = () => {
       const totalPages = contentPdf.internal.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         contentPdf.setPage(i);
-        contentPdf.setFontSize(9);
-        contentPdf.setTextColor(120, 120, 120);
-        contentPdf.text('CarbonConstruct Methodology & Compliance Framework', 15, pageHeight - 10);
+        contentPdf.setFontSize(8);
+        contentPdf.setTextColor(100, 100, 100);
+        // Left-aligned title (shortened to avoid overlap)
+        contentPdf.text('CarbonConstruct Methodology', 15, pageHeight - 10);
+        // Right-aligned page number
         contentPdf.text(`Page ${i + 2}`, pageWidth - 15, pageHeight - 10, { align: 'right' });
-        contentPdf.text('carbonconstruct.com.au/methodology', pageWidth / 2, pageHeight - 10, { align: 'center' });
+        // Center URL on separate line above
+        contentPdf.setFontSize(7);
+        contentPdf.text('carbonconstruct.com.au/methodology', pageWidth / 2, pageHeight - 15, { align: 'center' });
       }
       
       // Merge PDFs using jsPDF

@@ -948,6 +948,21 @@ All colors MUST be HSL.
               inset 0 0 10px hsl(142 90% 55% / 0.1);
 }
 
+/* PDF Export: Improved text contrast for dark cards */
+/* When cards have dark backgrounds, ensure text is highly readable */
+#methodology-content .neon-border .text-muted-foreground,
+#methodology-content .glass-dark .text-muted-foreground,
+#methodology-content [class*="Card"] .text-muted-foreground {
+  color: hsl(0 0% 85%) !important; /* Light gray for dark backgrounds */
+}
+
+/* Ensure card content text is white/light for readability */
+#methodology-content .neon-border p,
+#methodology-content .neon-border li,
+#methodology-content .neon-border span:not(.text-primary):not([class*="Badge"]) {
+  color: hsl(0 0% 90%) !important;
+}
+
 /* Live indicator pulse */
 @keyframes live-pulse {
   0%, 100% { 
