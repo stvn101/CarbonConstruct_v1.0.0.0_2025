@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getSourceTier } from "@/lib/material-validation";
 
 export interface DataSourceStats {
   name: string;
@@ -160,10 +159,26 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
     .from("materials_epd")
     .select("*", { count: "exact", head: true });
 
-  // Fetch all materials for validation analysis
-  const { data: allMaterials } = await supabase
-    .from("materials_epd")
-    .select("id, material_name, data_source, material_category, unit, epd_number, manufacturer, epd_url, state, ef_total, created_at");
+  // Fetch ALL materials with pagination to bypass Supabase 1000 row limit
+  const pageSize = 1000;
+  let allMaterials: any[] = [];
+  let page = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await supabase
+      .from("materials_epd")
+      .select("id, material_name, data_source, material_category, unit, epd_number, manufacturer, epd_url, state, ef_total, created_at")
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+    
+    if (error || !data || data.length === 0) {
+      hasMore = false;
+    } else {
+      allMaterials = [...allMaterials, ...data];
+      hasMore = data.length === pageSize;
+      page++;
+    }
+  }
 
   // Calculate source tier distribution and data source stats
   let tier1Count = 0, tier2Count = 0, tier3Count = 0;
@@ -181,11 +196,23 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
   // Category stats aggregation
   const categoryData = new Map<string, { values: number[]; count: number }>();
   
-  allMaterials?.forEach(m => {
-    const tier = getSourceTier(m.data_source);
-    if (tier.tier === 1) { tier1Count++; verifiedCount++; }
-    else if (tier.tier === 2) { tier2Count++; industryAvgCount++; }
-    else { tier3Count++; needsReviewCount++; }
+  allMaterials.forEach(m => {
+    // Tier classification based on exact data source matching
+    // Tier 1: NABERS (Australian government verified EPDs)
+    // Tier 2: ICE + ICM (verified international/industry databases)
+    // Tier 3: NGER + Other (supplementary sources)
+    const source = m.data_source || '';
+    
+    if (source === 'NABERS 2025 Emission Factors') {
+      tier1Count++;
+      verifiedCount++;
+    } else if (source === 'ICE V4.1 - Circular Ecology' || source === 'ICM Database 2019 (AusLCI)') {
+      tier2Count++;
+      industryAvgCount++;
+    } else {
+      tier3Count++;
+      needsReviewCount++;
+    }
     
     // Aggregate EF values by category
     const category = m.material_category || 'Unknown';
@@ -197,29 +224,28 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
     catStats.values.push(efTotal);
     catStats.count++;
     
-    // Count by data source
-    const source = (m.data_source || '').toLowerCase();
-    if (source.includes('ice') || source.includes('circular ecology')) {
+    // Count by data source - use exact matching for known sources
+    if (source === 'ICE V4.1 - Circular Ecology') {
       iceCount++;
       if (!iceLastImported || (m.created_at && m.created_at > iceLastImported)) {
         iceLastImported = m.created_at;
       }
-    } else if (source.includes('nabers')) {
+    } else if (source === 'NABERS 2025 Emission Factors') {
       nabersCount++;
       if (!nabersLastImported || (m.created_at && m.created_at > nabersLastImported)) {
         nabersLastImported = m.created_at;
       }
-    } else if (source.includes('bluescope')) {
+    } else if (source.toLowerCase().includes('bluescope')) {
       bluescopeCount++;
       if (!bluescopeLastImported || (m.created_at && m.created_at > bluescopeLastImported)) {
         bluescopeLastImported = m.created_at;
       }
-    } else if (source.includes('icm') || source.includes('auslci')) {
+    } else if (source === 'ICM Database 2019 (AusLCI)') {
       icmCount++;
       if (!icmLastImported || (m.created_at && m.created_at > icmLastImported)) {
         icmLastImported = m.created_at;
       }
-    } else if (source.includes('nger')) {
+    } else if (source === 'NGER Materials Database v2025.1') {
       ngerCount++;
       if (!ngerLastImported || (m.created_at && m.created_at > ngerLastImported)) {
         ngerLastImported = m.created_at;
