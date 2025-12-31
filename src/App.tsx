@@ -179,7 +179,7 @@ const FullApp = () => (
                     <Route path="/admin/ice-import" element={<AdminRouteGuard><AdminICEImport /></AdminRouteGuard>} />
                     <Route path="/admin/material-verification" element={<AdminRouteGuard><MaterialVerification /></AdminRouteGuard>} />
                     <Route path="/admin/eco-compliance" element={<AdminRouteGuard><EcoComplianceDashboard /></AdminRouteGuard>} />
-                    <Route path="/materials/status" element={<AdminRouteGuard><MaterialDatabaseStatus /></AdminRouteGuard>} />
+                    <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
                     <Route path="/demo" element={<Demo />} />
                     <Route path="/design-system" element={<DesignSystem />} />
                     <Route path="/eco-dashboard" element={<EcoGlassDashboard />} />
