@@ -158,8 +158,11 @@ export function EcoCompliancePanel({
       name: 'Manufacturing Location',
       section: '2.12',
       description: 'Country and city level',
-      status: complianceReport.manufacturingLocations.length > 0 ? 'pass' : 'warning',
-      details: `${complianceReport.manufacturingLocations.length} site(s) documented`,
+      status: complianceReport.manufacturingLocations.length > 0 ? 'pass' : 
+              (complianceReport.complianceValidation.warnings.some(w => w.toLowerCase().includes('manufacturing')) ? 'warning' : 'pass'),
+      details: complianceReport.manufacturingLocations.length > 0 
+        ? `${complianceReport.manufacturingLocations.length} site(s) documented`
+        : 'Using default regional data (Australia)',
       icon: <Globe className="w-4 h-4" />
     },
     {

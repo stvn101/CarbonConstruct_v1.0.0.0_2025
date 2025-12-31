@@ -122,7 +122,7 @@ export function TransportCalculator({ onTotalChange }: TransportCalculatorProps)
   const selectedMode = getTransportMode(quickCalc.modeId);
 
   return (
-    <Card className="p-4 md:p-5">
+    <Card className="p-4 md:p-5 glass-glow-hover neon-border">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Truck className="h-5 w-5 text-blue-600" />
