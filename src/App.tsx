@@ -50,6 +50,7 @@ const DesignSystem = lazy(() => import("./pages/DesignSystem"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const EcoGlassDashboard = lazy(() => import("./pages/EcoGlassDashboard"));
+const Methodology = lazy(() => import("./pages/Methodology"));
 
 // Campaign landing pages
 const LandingBuilders = lazy(() => import("./pages/LandingBuilders"));
@@ -184,6 +185,7 @@ const FullApp = () => (
                     <Route path="/eco-dashboard" element={<EcoGlassDashboard />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
+                    <Route path="/methodology" element={<Methodology />} />
                     {/* Campaign landing pages */}
                     <Route path="/lp/builders" element={<LandingBuilders />} />
                     <Route path="/lp/architects" element={<LandingArchitects />} />
