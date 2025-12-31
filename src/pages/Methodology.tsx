@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, CheckCircle2, AlertCircle, Database, Shield, MapPin, FileText, Mail, Clock, Target, Users, BarChart3 } from "lucide-react";
+import { Download, Printer, CheckCircle2, AlertCircle, Database, Shield, MapPin, FileText, Mail, Clock, Target, Users, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -159,6 +159,34 @@ const Methodology = () => {
       const contentPages = await mergedPdf.copyPages(contentPdfDoc, contentPdfDoc.getPageIndices());
       contentPages.forEach((page: Awaited<ReturnType<typeof mergedPdf.copyPages>>[number]) => mergedPdf.addPage(page));
       
+      // Add clickable link annotations to TOC page
+      const tocPage = mergedPdf.getPage(1); // Index 1 = TOC page (after cover)
+      const { height: tocHeight, width: tocWidth } = tocPage.getSize();
+      
+      // Add internal links for each TOC item
+      tocItems.forEach((item, i) => {
+        // Convert mm to points (1mm = 2.835pt) and flip Y coordinate (PDF uses bottom-left origin)
+        const yPosition = tocHeight - ((50 + (i * 12)) * 2.835);
+        const targetPageIndex = item.page - 1; // 0-indexed for the merged PDF
+        
+        // Create link annotation rectangle (x1, y1, x2, y2 in points)
+        const linkAnnotation = mergedPdf.context.obj({
+          Type: 'Annot',
+          Subtype: 'Link',
+          Rect: [56.7, yPosition - 8, tocWidth - 56.7, yPosition + 12], // 20mm margins = 56.7pt
+          Border: [0, 0, 0], // No visible border
+          Dest: [mergedPdf.getPage(targetPageIndex).ref, 'XYZ', null, null, null],
+        });
+        
+        // Get existing annotations or create new array
+        const existingAnnots = tocPage.node.lookup('Annots' as any);
+        if (existingAnnots) {
+          (existingAnnots as any).push(linkAnnotation);
+        } else {
+          tocPage.node.set('Annots' as any, mergedPdf.context.obj([linkAnnotation]));
+        }
+      });
+      
       const mergedPdfBytes = await mergedPdf.save();
       
       // Download merged PDF - convert Uint8Array to ArrayBuffer properly
@@ -284,10 +312,24 @@ const Methodology = () => {
                         Technical documentation of calculation methodology, data sources, and standards compliance
                       </p>
                     </div>
-                    <Button onClick={handleDownloadPDF} variant="outline" className="shrink-0">
-                      <Download className="h-4 w-4 mr-2" />
-                      Download PDF
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => window.print()} 
+                        variant="outline" 
+                        className="shrink-0 no-print"
+                      >
+                        <Printer className="h-4 w-4 mr-2" />
+                        Print
+                      </Button>
+                      <Button 
+                        onClick={handleDownloadPDF} 
+                        variant="outline" 
+                        className="shrink-0 no-print"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download PDF
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </header>
