@@ -11,7 +11,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { FeatureTeaser } from "@/components/FeatureTeaser";
 import { QuickCarbonCalculator } from "@/components/QuickCarbonCalculator";
 import { FeatureCarousel } from "@/components/FeatureCarousel";
-import { CheckCircle, Shield, Leaf, Check, X, HardHat, Award, Calendar, Crown, Clock, Linkedin, User, Building2 } from "lucide-react";
+import { CheckCircle, Shield, Leaf, Check, X, HardHat, Award, Calendar, Crown, Clock, Linkedin, User, Building2, FileText, Database, ExternalLink } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { FloatingParticles } from "@/components/FloatingParticles";
@@ -539,6 +539,56 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Trust & Transparency Section */}
+            <div className="max-w-4xl mx-auto animate-fade-in [animation-delay:0.75s]">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Trust & Transparency</h2>
+                <p className="text-muted-foreground">Full documentation of our methodology, data sources, and compliance standards</p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <Card 
+                  variant="glass" 
+                  className="cursor-pointer glass-glow-hover border-primary/20 transition-all duration-300 hover:-translate-y-1"
+                  onClick={() => navigate("/methodology")}
+                >
+                  <CardContent className="p-6 flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <FileText className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
+                        Methodology & Compliance
+                        <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        EN 15978 compliance, calculation methodology, data quality standards, and Australian scheme alignment.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card 
+                  variant="glass" 
+                  className="cursor-pointer glass-glow-hover border-emerald-500/20 transition-all duration-300 hover:-translate-y-1"
+                  onClick={() => navigate("/materials/status")}
+                >
+                  <CardContent className="p-6 flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                      <Database className="h-6 w-6 text-emerald-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
+                        Materials Database Status
+                        <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        4,600+ verified materials. Real-time validation statistics, source breakdown, and data quality metrics.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
 
             {/* Trust Indicators */}
             <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-muted-foreground animate-fade-in [animation-delay:0.8s]">
