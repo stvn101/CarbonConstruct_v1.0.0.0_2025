@@ -9,7 +9,7 @@ import { SEOHead } from "@/components/SEOHead";
 
 
 const Methodology = () => {
-  const [lastUpdated] = useState("1 January 2025");
+  const [lastUpdated] = useState("1 January 2026");
 
   const handleDownloadPDF = async () => {
     // Add PDF exporting class to enable PDF-specific CSS overrides
@@ -246,8 +246,8 @@ const Methodology = () => {
         ogType="article"
         techArticle={{
           name: "CarbonConstruct Methodology & Compliance Framework",
-          datePublished: "2025-01-01",
-          dateModified: "2025-01-01",
+          datePublished: "2026-01-01",
+          dateModified: "2026-01-01",
           author: "United Facade Pty Ltd",
           publisher: "CarbonConstruct Tech",
           about: "Life cycle assessment methodology for Australian construction",
@@ -285,7 +285,7 @@ const Methodology = () => {
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Clock className="h-4 w-4 text-yellow-500 shrink-0" />
-                      <span>GBCA Review Pending Q1 2025</span>
+                      <span>GBCA Review Pending Q1 2026</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -1063,7 +1063,7 @@ const Methodology = () => {
                 <div className="grid gap-4 md:grid-cols-3">
                   <Card className="neon-border border-primary/30">
                     <CardHeader>
-                      <CardTitle className="text-lg">Immediate (Q1 2025)</CardTitle>
+                      <CardTitle className="text-lg">Immediate (Q1 2026)</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground space-y-2">
                       <p>• GBCA technical review for Green Star credit mapping</p>
@@ -1074,7 +1074,7 @@ const Methodology = () => {
 
                   <Card className="neon-border border-blue-500/30">
                     <CardHeader>
-                      <CardTitle className="text-lg">Near-term (2025)</CardTitle>
+                      <CardTitle className="text-lg">Near-term (2026)</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground space-y-2">
                       <p>• BRE Global EN 15978 software validation (subject to partnership confirmation)</p>
@@ -1088,9 +1088,9 @@ const Methodology = () => {
                       <CardTitle className="text-lg">Timeline</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground space-y-2">
-                      <p>• <strong className="text-foreground">Jan-Mar 2025:</strong> GBCA submission and pilot validation</p>
-                      <p>• <strong className="text-foreground">Apr-Jun 2025:</strong> BRE Global validation process</p>
-                      <p>• <strong className="text-foreground">Q3 2025:</strong> Published validation status and scheme approvals</p>
+                      <p>• <strong className="text-foreground">Jan-Mar 2026:</strong> GBCA submission and pilot validation</p>
+                      <p>• <strong className="text-foreground">Apr-Jun 2026:</strong> BRE Global validation process</p>
+                      <p>• <strong className="text-foreground">Q3 2026:</strong> Published validation status and scheme approvals</p>
                     </CardContent>
                   </Card>
                 </div>
