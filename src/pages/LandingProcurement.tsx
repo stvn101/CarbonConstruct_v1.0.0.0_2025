@@ -617,7 +617,7 @@ export default function LandingProcurement() {
               
               <div className="text-center mt-8">
                 <p className="text-sm text-muted-foreground mb-4">
-                  BOQ import launching Q1 2025. Join the waitlist for early access.
+                  BOQ import launching Q1 2026. Join the waitlist for early access.
                 </p>
                 <Link to="/auth" onClick={() => handleCTAClick('boq-waitlist')}>
                   <Button variant="outline" size="sm">
@@ -966,7 +966,7 @@ export default function LandingProcurement() {
               
               <div className="text-center mt-6">
                 <p className="text-sm text-muted-foreground">
-                  This is a preview of the BOQ import feature launching Q1 2025.
+                  This is a preview of the BOQ import feature launching Q1 2026.
                 </p>
               </div>
             </div>

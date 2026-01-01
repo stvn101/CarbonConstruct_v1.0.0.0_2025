@@ -439,9 +439,9 @@ const Methodology = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="text-sm text-muted-foreground space-y-2">
-                    <p>• GBCA technical review (Q1 2025)</p>
-                    <p>• Pilot project validation with GBCA-accredited assessors (Q1 2025)</p>
-                    <p>• BRE Global EN 15978 software validation (2025, subject to partnership confirmation)</p>
+                    <p>• GBCA technical review (Q1 2026)</p>
+                    <p>• Pilot project validation with GBCA-accredited assessors (Q1 2026)</p>
+                    <p>• BRE Global EN 15978 software validation (2026, subject to partnership confirmation)</p>
                   </CardContent>
                 </Card>
               </section>
@@ -488,7 +488,7 @@ const Methodology = () => {
                 <p className="text-muted-foreground">
                   CarbonConstruct prioritizes Australian-specific environmental data through partnerships with 
                   NABERS, ICM Database (AusLCI), ICE Database (Circular Ecology), and NGER emission factors. 
-                  Roadmap includes EC3 database integration (20,000+ international materials) in Q1 2025, 
+                  Roadmap includes EC3 database integration (20,000+ international materials) in Q1 2026, 
                   maintaining Australian data priority with expanded international coverage for global projects.
                 </p>
 
@@ -583,12 +583,12 @@ const Methodology = () => {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="p-3 bg-blue-500/10 rounded-lg">
-                      <p className="font-semibold text-foreground">Q1 2025: EC3 Integration</p>
+                      <p className="font-semibold text-foreground">Q1 2026: EC3 Integration</p>
                       <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                         <li>• Add 20,000+ verified international EPDs</li>
                         <li>• Maintain Australian data priority hierarchy</li>
                         <li>• Enable global project compatibility</li>
-                        <li>• Target total: 25,000+ materials by March 2025</li>
+                        <li>• Target total: 25,000+ materials by March 2026</li>
                       </ul>
                     </div>
                   </CardContent>

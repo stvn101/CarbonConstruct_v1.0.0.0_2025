@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import html2pdf from 'html2pdf.js';
 
-const auditDate = '27 November 2025';
+const auditDate = '1 January 2026';
 
 const remediationActions = [
   { id: 'SEC-001', severity: 'Error', issue: 'Stripe IDs exposed via RLS', remediation: 'Created user_subscriptions_safe view', status: 'Fixed' },
