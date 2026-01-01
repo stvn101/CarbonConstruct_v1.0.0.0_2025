@@ -444,7 +444,7 @@ export default function LandingMBASA() {
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <img src="/logo-32.webp" alt="CarbonConstruct" className="h-6 w-6" />
-                <span className="text-sm text-muted-foreground">© 2025 CarbonConstruct. Australian owned and operated.</span>
+                <span className="text-sm text-muted-foreground">© 2026 CarbonConstruct. Australian owned and operated.</span>
               </div>
               <div className="flex items-center gap-6 text-sm text-muted-foreground">
                 <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy</Link>

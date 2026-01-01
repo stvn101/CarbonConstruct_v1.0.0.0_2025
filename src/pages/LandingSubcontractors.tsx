@@ -211,7 +211,7 @@ const LandingSubcontractors = () => {
       description: "Large entities must report Scope 3 emissions—80-90% of construction carbon."
     },
     {
-      date: "2025",
+      date: "2026",
       title: "Threshold Drops",
       description: "More builders captured. Compliance pressure intensifies down supply chain."
     },
