@@ -1,7 +1,7 @@
 # CarbonConstruct Security Incident Response Plan
 
 **Document Version:** 1.0  
-**Last Updated:** December 2025  
+**Last Updated:** December 2026  
 **Classification:** INTERNAL - CONFIDENTIAL
 
 ---
@@ -397,6 +397,6 @@ CarbonConstruct Security Team
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | Dec 2025 | Security Team | Initial release |
+| 1.0 | Dec 2026 | Security Team | Initial release |
 
-**Next Review Date:** June 2026
+**Next Review Date:** June 2027

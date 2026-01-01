@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - December 2025
+## [1.0.0] - December 2026
 
 ### CarbonConstruct v1.0 Production Remediation
 
@@ -158,7 +158,7 @@ This release represents comprehensive security, compliance, and accessibility ha
 
 ### Security
 
-#### Fixed python-jose Algorithm Confusion Vulnerability (December 12, 2025)
+#### Fixed python-jose Algorithm Confusion Vulnerability (December 12, 2026)
 
 **CVE-2024-33663**: Migrated from vulnerable `python-jose` to secure `PyJWT` library to address critical algorithm confusion vulnerability with OpenSSH ECDSA keys.
 
@@ -180,7 +180,7 @@ This release represents comprehensive security, compliance, and accessibility ha
 
 ### Changed
 
-#### Stripe Climate Contribution Rate Update (December 11, 2025)
+#### Stripe Climate Contribution Rate Update (December 11, 2026)
 
 The documented Stripe Climate contribution rate has been corrected from 1% to **0.5%** across all user-facing materials.
 
