@@ -36,7 +36,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    // Service role client for rate limiting (requires elevated permissions)
+    // Service role client for rate limiting and database queries
     const supabaseServiceClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -75,7 +75,6 @@ serve(async (req) => {
       const resetInSeconds = Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000);
       console.warn(`[parse-boq] Rate limit exceeded. Reset in ${resetInSeconds}s`);
       
-      // Log security event for rate limit violation
       logSecurityEvent({
         event_type: 'rate_limit_exceeded',
         user_id: user.id,
@@ -141,80 +140,95 @@ serve(async (req) => {
       );
     }
 
-    // Basic content validation - check for some BOQ-like indicators
-    const hasNumbers = /\d/.test(trimmedText);
-    const hasUnits = /\b(m[²³]?|tonnes?|kg|litres?|L|sqm|m2|m3)\b/i.test(trimmedText);
+    console.log(`[parse-boq] Validated text input (${trimmedText.length} chars)`);
+
+    // Query the actual materials_epd database for reference materials
+    console.log(`[parse-boq] Fetching materials from database...`);
     
-    if (!hasNumbers || !hasUnits) {
-      console.warn(`[parse-boq] Text may not be a valid BOQ document`);
+    const { data: dbMaterials, error: dbError } = await supabaseServiceClient
+      .from('materials_epd')
+      .select('id, material_name, material_category, subcategory, unit, ef_total, data_source, epd_number, manufacturer')
+      .order('material_category')
+      .limit(500); // Get top 500 materials for matching reference
+
+    if (dbError) {
+      console.error(`[parse-boq] Database query failed:`, dbError.message);
+      // Continue with fallback - don't fail entirely
     }
 
-    console.log(`[parse-boq] Validated text input (${trimmedText.length} chars)`);
+    // Build material schema from actual database
+    let materialSchema = '';
+    
+    if (dbMaterials && dbMaterials.length > 0) {
+      console.log(`[parse-boq] Retrieved ${dbMaterials.length} materials from database`);
+      
+      // Group by category for better AI reference
+      const byCategory: Record<string, typeof dbMaterials> = {};
+      for (const mat of dbMaterials) {
+        const cat = mat.material_category || 'Other';
+        if (!byCategory[cat]) byCategory[cat] = [];
+        byCategory[cat].push(mat);
+      }
+
+      materialSchema = `
+Available materials from the NMEF v2025.1 database (${dbMaterials.length} materials):
+
+`;
+      for (const [category, items] of Object.entries(byCategory)) {
+        materialSchema += `\n### ${category.toUpperCase()}\n`;
+        // Show up to 15 materials per category to keep prompt manageable
+        const sampleItems = items.slice(0, 15);
+        for (const item of sampleItems) {
+          materialSchema += `- ${item.material_name} (id: ${item.id}, unit: ${item.unit}, factor: ${item.ef_total} kgCO2e/${item.unit}${item.manufacturer ? `, mfr: ${item.manufacturer}` : ''})\n`;
+        }
+        if (items.length > 15) {
+          materialSchema += `  ... and ${items.length - 15} more ${category} materials\n`;
+        }
+      }
+    } else {
+      // Fallback to hardcoded schema if database query fails
+      console.warn(`[parse-boq] Using fallback material schema`);
+      materialSchema = `
+Available material categories (estimate factors if no exact match):
+
+CONCRETE (unit: m³): 200-400 kgCO2e/m³ depending on grade
+STEEL (unit: Tonnes): 1200-3000 kgCO2e/t depending on type
+MASONRY (unit: m² or kg): 5-15 kgCO2e/m² for plasterboard
+FLOORING (unit: m²): 10-20 kgCO2e/m² for carpet/vinyl
+TIMBER (unit: m³): 200-500 kgCO2e/m³ depending on type
+INSULATION (unit: m²): 2-10 kgCO2e/m² depending on type
+`;
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Material database schema for AI reference
-    const materialSchema = `
-    Available material categories and items:
-    
-    CONCRETE (unit: m³):
-    - Concrete 20 MPa (id: c_20, factor: 201 kgCO2e/m³)
-    - Concrete 25 MPa (id: c_25, factor: 222 kgCO2e/m³)
-    - Concrete 32 MPa (id: c_32, factor: 249 kgCO2e/m³)
-    - Concrete 40 MPa (id: c_40, factor: 305 kgCO2e/m³)
-    - Concrete 50 MPa (id: c_50, factor: 354 kgCO2e/m³)
-    
-    STEEL (unit: Tonnes):
-    - Steel Framing Cold Rolled (id: s_struc_cold, factor: 3013 kgCO2e/t)
-    - Reinforcing Steel Rebar (id: s_rebar, factor: 1380 kgCO2e/t)
-    - Structural Steel Hot Rolled (id: s_struc_hot, factor: 1250 kgCO2e/t)
-    - Aluminium Extruded (id: al_ext, factor: 12741 kgCO2e/t)
-    
-    MASONRY (unit: m²):
-    - Plasterboard 10mm (id: m_plaster_10, factor: 5.9 kgCO2e/m²)
-    - Plasterboard 13mm (id: m_plaster_13, factor: 7.2 kgCO2e/m²)
-    - AAC Panel Hebel (id: m_aac_panel, factor: 0.45 kgCO2e/kg, unit: kg)
-    - Flat Glass (id: m_glass, factor: 1.66 kgCO2e/kg, unit: kg)
-    - Fibre Cement Sheet (id: m_fc_sheet, factor: 7.2 kgCO2e/m²)
-    
-    FLOORING (unit: m²):
-    - Carpet Tiles Nylon (id: f_carpet_tile, factor: 13.2 kgCO2e/m²)
-    - Vinyl Flooring (id: f_vinyl, factor: 15.9 kgCO2e/m²)
-    - Engineered Timber Flooring (id: f_timber_eng, factor: 9.5 kgCO2e/m²)
-    - Ceramic Tiles (id: f_ceramic, factor: 11.0 kgCO2e/m²)
-    
-    DOORS_WINDOWS (unit: m²):
-    - Door Solid Timber (id: d_solid_timber, factor: 28 kgCO2e/m²)
-    - Window/Door Alum Frame Glazed (id: d_alum_glass, factor: 65 kgCO2e/m²)
-    
-    TIMBER (unit: m³):
-    - Sawn Softwood Pine (id: t_soft, factor: 233 kgCO2e/m³)
-    - Sawn Hardwood (id: t_hard, factor: 320 kgCO2e/m³)
-    - LVL Timber (id: t_lvl, factor: 430 kgCO2e/m³)
-    `;
-
     const systemPrompt = `You are an expert construction quantity surveyor analyzing Bill of Quantities (BOQ) documents for Australian construction projects.
 
 Your task is to extract material items from construction documents and match them to the provided material database.
 
-For each material item you identify:
-1. Match it to the closest item in the material database by ID
-2. If no exact match exists, create a custom item with isCustom: true and estimate a conservative emission factor based on Australian standards (NMEF v2025.1)
-3. Extract the quantity and ensure units are consistent
+IMPORTANT MATCHING RULES:
+1. ALWAYS try to match to an existing database material by ID first
+2. Use the exact "id" (UUID) from the database when matching
+3. Match based on material type, not brand names (e.g., "Gyprock" = plasterboard)
+4. If quantity includes dimensions, calculate the total (e.g., "10m x 5m" = 50m²)
+5. Convert units if needed (e.g., mm² to m², tonnes to kg)
+6. Only set isCustom: true if there's genuinely no similar material in the database
 
 Return a JSON array of materials ONLY. No explanations, no markdown, just the JSON array.
 
 Each item must have:
-- category: string (concrete, steel, masonry, flooring, doors_windows, timber, or "custom")
-- typeId: string (the id from the database, or "custom")
-- name: string
+- category: string (use the material_category from the database match)
+- typeId: string (the UUID id from the database, or "custom" if no match)
+- name: string (the material name as it appears in the BOQ)
 - quantity: number (always a positive number)
-- unit: string (m³, Tonnes, m², kg, etc.)
-- factor: number (emission factor in kgCO2e per unit)
-- isCustom: boolean (true if not in database)
+- unit: string (m³, Tonnes, m², kg, etc. - match database unit)
+- factor: number (ef_total from database, or conservative estimate)
+- isCustom: boolean (false if matched to database, true if not)
+- source: string (data_source from database, or "estimated")
+- epdNumber: string | null (epd_number from database if available)
 
 ${materialSchema}`;
 
@@ -230,9 +244,9 @@ ${materialSchema}`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Extract all materials from this BOQ document:\n\n${trimmedText}` }
+          { role: "user", content: `Extract all materials from this BOQ document and match them to the database:\n\n${trimmedText}` }
         ],
-        temperature: 0.3,
+        temperature: 0.2, // Lower temperature for more consistent matching
       }),
     });
 
@@ -271,10 +285,36 @@ ${materialSchema}`;
       throw new Error("Invalid response format from AI");
     }
 
-    console.log(`[parse-boq] Successfully parsed ${materials.length} materials`);
+    // Post-process: validate material IDs against database
+    const validatedMaterials = materials.map((mat: Record<string, unknown>) => {
+      // If typeId looks like a UUID, verify it exists in database
+      if (mat.typeId && typeof mat.typeId === 'string' && mat.typeId.length === 36 && mat.typeId.includes('-')) {
+        const dbMatch = dbMaterials?.find(m => m.id === mat.typeId);
+        if (dbMatch) {
+          // Ensure we use exact database values
+          return {
+            ...mat,
+            factor: dbMatch.ef_total,
+            unit: dbMatch.unit,
+            source: dbMatch.data_source,
+            epdNumber: dbMatch.epd_number,
+            isCustom: false
+          };
+        }
+      }
+      // Mark as custom if ID not found
+      return {
+        ...mat,
+        isCustom: true,
+        source: mat.source || 'estimated'
+      };
+    });
+
+    const matchedCount = validatedMaterials.filter((m: Record<string, unknown>) => !m.isCustom).length;
+    console.log(`[parse-boq] Successfully parsed ${validatedMaterials.length} materials (${matchedCount} matched to database)`);
 
     return new Response(
-      JSON.stringify({ materials }), 
+      JSON.stringify({ materials: validatedMaterials }), 
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
