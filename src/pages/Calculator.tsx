@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as XLSX from 'xlsx';
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -1134,6 +1135,27 @@ export default function Calculator() {
         toast({ 
           title: "✅ PDF text extracted", 
           description: `Extracted ${text.length.toLocaleString()} characters. Processing...`,
+          duration: 2000
+        });
+      } else if (file.name.toLowerCase().match(/\.xlsx?$/)) {
+        // Parse Excel file using xlsx library
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        
+        // Extract text from all sheets
+        const textParts: string[] = [];
+        for (const sheetName of workbook.SheetNames) {
+          const sheet = workbook.Sheets[sheetName];
+          const csv = XLSX.utils.sheet_to_csv(sheet);
+          if (csv.trim()) {
+            textParts.push(`Sheet: ${sheetName}\n${csv}`);
+          }
+        }
+        text = textParts.join('\n\n');
+        
+        toast({ 
+          title: "📊 Excel file parsed", 
+          description: `Extracted ${text.length.toLocaleString()} characters from ${workbook.SheetNames.length} sheet(s)`,
           duration: 2000
         });
       } else {
