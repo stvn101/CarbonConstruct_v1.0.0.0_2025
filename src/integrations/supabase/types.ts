@@ -436,6 +436,48 @@ export type Database = {
         }
         Relationships: []
       }
+      import_metadata: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          import_type: string
+          mode: string | null
+          performed_by: string | null
+          records_deleted: number | null
+          records_imported: number | null
+          started_at: string
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_type: string
+          mode?: string | null
+          performed_by?: string | null
+          records_deleted?: number | null
+          records_imported?: number | null
+          started_at?: string
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_type?: string
+          mode?: string | null
+          performed_by?: string | null
+          records_deleted?: number | null
+          records_imported?: number | null
+          started_at?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
       material_verification_history: {
         Row: {
           categories_count: number

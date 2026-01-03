@@ -225,6 +225,13 @@ export default function AdminMonitoring() {
     };
   } | null>(null);
   
+  // Last import info
+  const [lastImportInfo, setLastImportInfo] = useState<{
+    completedAt: string;
+    recordsImported: number;
+    mode: string;
+  } | null>(null);
+  
   // Filters
   const [errorSearch, setErrorSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
@@ -270,6 +277,7 @@ export default function AdminMonitoring() {
       loadAnalyticsEvents(),
       loadHealthStatus(),
       loadEpdMaterialsCount(),
+      loadLastImportInfo(),
     ]);
     setLoading(false);
   };
@@ -279,6 +287,27 @@ export default function AdminMonitoring() {
       .from("materials_epd")
       .select("*", { count: 'exact', head: true });
     setEpdMaterialsCount(count || 0);
+  };
+  
+  const loadLastImportInfo = async () => {
+    const { data } = await supabase
+      .from("import_metadata")
+      .select("completed_at, records_imported, mode")
+      .eq("import_type", "unified_materials")
+      .eq("status", "completed")
+      .order("completed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (data && data.completed_at && data.records_imported !== null && data.mode) {
+      setLastImportInfo({
+        completedAt: data.completed_at,
+        recordsImported: data.records_imported,
+        mode: data.mode
+      });
+    } else {
+      setLastImportInfo(null);
+    }
   };
   
   const handleNabersFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -494,6 +523,8 @@ export default function AdminMonitoring() {
           dataQuality
         });
         toast.success(`Successfully imported ${data.progress.imported} materials`);
+        // Refresh last import info
+        await loadLastImportInfo();
       } else if (data?.error) {
         setUnifiedImportResult({
           success: false,
@@ -930,7 +961,7 @@ export default function AdminMonitoring() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Current State */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Current EPD Materials</CardTitle>
@@ -940,6 +971,31 @@ export default function AdminMonitoring() {
                     <p className="text-xs text-muted-foreground">records in materials_epd</p>
                   </CardContent>
                 </Card>
+                
+                {/* Last Import Card */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Last Import
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {lastImportInfo ? (
+                      <>
+                        <p className="text-lg font-medium">
+                          {format(new Date(lastImportInfo.completedAt), "dd MMM yyyy, HH:mm")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {lastImportInfo.recordsImported.toLocaleString()} records ({lastImportInfo.mode} mode)
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">No import history</p>
+                    )}
+                  </CardContent>
+                </Card>
+                
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Import Mode</CardTitle>

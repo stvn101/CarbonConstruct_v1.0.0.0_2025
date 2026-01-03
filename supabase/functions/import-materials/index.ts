@@ -26,6 +26,9 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let metadataId: string | null = null;
+  let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
   try {
     // Initialize Supabase client for auth check
     const supabaseClient = createClient(
@@ -62,6 +65,36 @@ Deno.serve(async (req) => {
 
     console.log(`Import started by admin user: ${user.id}`);
 
+    // Use service role key for all database operations (initialize early for metadata)
+    supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Parse options from request body (parse early to get mode for metadata)
+    const options: ImportOptions = await req.json().catch(() => ({}));
+    const tableName = options.tableName || 'unified_materials';
+    const batchSize = options.batchSize || 100;
+    const mode = options.mode || 'replace';
+
+    // Create import metadata record
+    const { data: metadataRecord, error: metadataError } = await supabaseAdmin
+      .from('import_metadata')
+      .insert({
+        import_type: 'unified_materials',
+        started_at: new Date().toISOString(),
+        mode: mode,
+        status: 'running',
+        performed_by: user.id
+      })
+      .select('id')
+      .single();
+
+    if (!metadataError && metadataRecord) {
+      metadataId = metadataRecord.id;
+      console.log(`Created import metadata record: ${metadataId}`);
+    }
+
     // Get external Supabase credentials
     const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
     const externalKey = Deno.env.get('EXTERNAL_SUPABASE_KEY');
@@ -73,19 +106,7 @@ Deno.serve(async (req) => {
     // Connect to external Supabase
     const externalSupabase = createClient(externalUrl, externalKey);
 
-    // Parse options from request body
-    const options: ImportOptions = await req.json().catch(() => ({}));
-    const tableName = options.tableName || 'unified_materials';
-    const batchSize = options.batchSize || 100;
-    const mode = options.mode || 'replace'; // Default to replace for clean import
-
     console.log(`Import mode: ${mode}, table: ${tableName}, batchSize: ${batchSize}`);
-
-    // Use service role key for all database operations
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
 
     // Initialize progress
     const progress: ImportProgress = {
@@ -386,6 +407,20 @@ Deno.serve(async (req) => {
       console.log(`Previous records deleted: ${progress.deletedExisting}`);
     }
 
+    // Update import metadata with completion status
+    if (metadataId && supabaseAdmin) {
+      await supabaseAdmin
+        .from('import_metadata')
+        .update({
+          completed_at: new Date().toISOString(),
+          records_imported: progress.imported,
+          records_deleted: progress.deletedExisting,
+          status: progress.status,
+        })
+        .eq('id', metadataId);
+      console.log(`Updated import metadata: ${metadataId}`);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -406,6 +441,19 @@ Deno.serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error in import-materials function:', errorMessage);
+
+    // Update import metadata with failure status
+    if (metadataId && supabaseAdmin) {
+      await supabaseAdmin
+        .from('import_metadata')
+        .update({
+          completed_at: new Date().toISOString(),
+          status: 'failed',
+          error_message: errorMessage,
+        })
+        .eq('id', metadataId);
+    }
+
     return new Response(
       JSON.stringify({
         error: errorMessage,
