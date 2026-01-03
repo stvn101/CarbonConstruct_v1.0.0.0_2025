@@ -47,6 +47,33 @@ interface RecommendationResponse {
   };
 }
 
+// Terms that indicate end-of-life/disposal materials - not valid construction alternatives
+const EXCLUDED_TERMS = ['disposal', 'recycling', 'waste', 'landfill', 'sorting plant', 'incineration', 'end of life', 'eol', 'demolition waste'];
+
+// Calculate functional relevance between current material and alternative
+function getFunctionalRelevanceScore(
+  currentName: string,
+  altName: string,
+  currentSub: string | null,
+  altSub: string | null
+): number {
+  let score = 0.5; // Base score
+  
+  // Subcategory match is a strong signal
+  if (currentSub && altSub && currentSub.toLowerCase() === altSub.toLowerCase()) {
+    score = 1.0;
+  }
+  
+  // Name similarity (simple keyword matching)
+  const currentWords = currentName.toLowerCase().split(/[\s,()_-]+/);
+  const altWords = altName.toLowerCase().split(/[\s,()_-]+/);
+  const significantWords = currentWords.filter(w => w.length > 3);
+  const commonWords = significantWords.filter(w => altWords.includes(w));
+  score += (commonWords.length * 0.15);
+  
+  return Math.min(score, 1.0);
+}
+
 export function useMaterialRecommendations(currentMaterial: Material | null) {
   return useQuery({
     queryKey: ['material-recommendations', currentMaterial?.id],
@@ -56,18 +83,25 @@ export function useMaterialRecommendations(currentMaterial: Material | null) {
       }
 
       try {
-        // Query materials in the same category with lower carbon footprint
+        // Query materials in the same category WITH same unit and lower carbon footprint
         const { data: alternatives, error } = await supabase
           .from('materials_epd')
           .select('*')
           .eq('material_category', currentMaterial.material_category)
+          .eq('unit', currentMaterial.unit) // Must match unit for functional equivalence
           .lt('ef_total', currentMaterial.ef_total)
           .order('ef_total', { ascending: true })
-          .limit(10); // Get top 10 to apply AI scoring
+          .limit(50); // Get more to filter further
 
         if (error) throw error;
 
-        if (!alternatives || alternatives.length === 0) {
+        // Filter out disposal/end-of-life materials - these are never valid alternatives
+        const relevantAlternatives = (alternatives || []).filter(alt => {
+          const nameLower = alt.material_name.toLowerCase();
+          return !EXCLUDED_TERMS.some(term => nameLower.includes(term));
+        });
+
+        if (relevantAlternatives.length === 0) {
           return {
             recommendations: [],
             reasoning: {
@@ -79,20 +113,29 @@ export function useMaterialRecommendations(currentMaterial: Material | null) {
           };
         }
 
-        // Apply AI scoring algorithm
-        const scoredAlternatives = alternatives.map(alt => {
+        // Apply AI scoring algorithm with functional relevance
+        const scoredAlternatives = relevantAlternatives.map(alt => {
           const altEfTotal = alt.ef_total ?? 0;
           const carbonSavings = currentMaterial.ef_total - altEfTotal;
           const carbonSavingsPercent = (carbonSavings / currentMaterial.ef_total) * 100;
 
-          // AI Scoring Algorithm (weighted factors)
-          const carbonScore = Math.min(carbonSavingsPercent / 50, 1) * 40; // 40% weight, cap at 50% savings
-          const dataQualityScore = getDataQualityScore(alt.data_quality_tier ?? 'tier_3') * 20; // 20% weight
-          const ecoComplianceScore = alt.eco_platform_compliant ? 20 : 0; // 20% weight
+          // Functional relevance score - prioritize materials that serve similar purpose
+          const functionalScore = getFunctionalRelevanceScore(
+            currentMaterial.material_name,
+            alt.material_name,
+            null, // Current material doesn't have subcategory in interface
+            alt.subcategory
+          ) * 20; // 20% weight
+
+          // AI Scoring Algorithm (weighted factors - adjusted for functional relevance)
+          const carbonScore = Math.min(carbonSavingsPercent / 50, 1) * 30; // 30% weight (reduced from 40%)
+          const dataQualityScore = getDataQualityScore(alt.data_quality_tier ?? 'tier_3') * 15; // 15% weight
+          const ecoComplianceScore = alt.eco_platform_compliant ? 15 : 0; // 15% weight
           const regionalScore = getRegionalScore(alt.state) * 10; // 10% weight (Australian preference)
           const manufacturerScore = alt.manufacturer ? 10 : 5; // 10% weight (verified manufacturer)
 
           const aiScore =
+            functionalScore +
             carbonScore +
             dataQualityScore +
             ecoComplianceScore +

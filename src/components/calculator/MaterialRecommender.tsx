@@ -163,15 +163,15 @@ export const MaterialRecommender = memo(({
               label="Best Alternative"
               value={`${data.reasoning.best_alternative_carbon.toFixed(2)}`}
               unit={`kgCO₂e/${currentMaterial.unit}`}
-              icon={<TrendingDown className="h-4 w-4 text-green-600" />}
-              className="border-green-200 bg-green-50"
+              icon={<TrendingDown className="h-4 w-4 text-green-600 dark:text-green-400" />}
+              className="border-green-500/30 bg-green-500/10 dark:bg-green-900/30"
             />
             <SummaryCard
               label="Max Savings"
               value={`${data.reasoning.max_savings_percent.toFixed(1)}%`}
               unit="carbon reduction"
-              icon={<Award className="h-4 w-4 text-yellow-600" />}
-              className="border-yellow-200 bg-yellow-50"
+              icon={<Award className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />}
+              className="border-yellow-500/30 bg-yellow-500/10 dark:bg-yellow-900/30"
             />
           </div>
 
@@ -236,7 +236,7 @@ const SummaryCard = memo(({ label, value, unit, icon, className }: SummaryCardPr
       {icon}
       <span>{label}</span>
     </div>
-    <p className="text-2xl font-bold">{value}</p>
+    <p className="text-2xl font-bold text-foreground">{value}</p>
     <p className="text-xs text-muted-foreground mt-1">{unit}</p>
   </div>
 ));
