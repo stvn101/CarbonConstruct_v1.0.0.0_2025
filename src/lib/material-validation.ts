@@ -157,6 +157,9 @@ export const SOURCE_TIER_MAP: Record<string, SourceCredibility> = {
   'EPD International': { tier: 2, label: 'Tier 2: International', description: 'International EPD with grid context needed' },
   'EC3': { tier: 2, label: 'Tier 2: International', description: 'Embodied Carbon in Construction Calculator' },
   'BlueScope': { tier: 2, label: 'Tier 2: Industry Average', description: 'BlueScope Steel EPD verified' },
+  'EPiC': { tier: 2, label: 'Tier 2: National LCI', description: 'EPiC Database 2024 - University of Melbourne' },
+  'EPiC Database': { tier: 2, label: 'Tier 2: National LCI', description: 'EPiC Database 2024 - University of Melbourne hybrid LCA' },
+  'EPiC Database 2024': { tier: 2, label: 'Tier 2: National LCI', description: 'EPiC Database 2024 - Crawford, Stephan & Prideaux' },
 };
 
 export function getSourceTier(dataSource: string | null | undefined): SourceCredibility {

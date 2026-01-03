@@ -69,6 +69,7 @@ export interface MaterialsDatabaseStats {
     bluescope: DataSourceStats;
     icm: DataSourceStats;
     nger: DataSourceStats;
+    epic: DataSourceStats;
     other: DataSourceStats;
   };
   outliers: {
@@ -185,12 +186,13 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
   let verifiedCount = 0, documentedCount = 0, industryAvgCount = 0, needsReviewCount = 0;
   
   // Data source counters
-  let iceCount = 0, nabersCount = 0, bluescopeCount = 0, icmCount = 0, ngerCount = 0, otherCount = 0;
+  let iceCount = 0, nabersCount = 0, bluescopeCount = 0, icmCount = 0, ngerCount = 0, epicCount = 0, otherCount = 0;
   let iceLastImported: string | null = null;
   let nabersLastImported: string | null = null;
   let bluescopeLastImported: string | null = null;
   let icmLastImported: string | null = null;
   let ngerLastImported: string | null = null;
+  let epicLastImported: string | null = null;
   let otherLastImported: string | null = null;
   
   // Category stats aggregation
@@ -249,6 +251,11 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
       ngerCount++;
       if (!ngerLastImported || (m.created_at && m.created_at > ngerLastImported)) {
         ngerLastImported = m.created_at;
+      }
+    } else if (source === 'EPiC Database 2024') {
+      epicCount++;
+      if (!epicLastImported || (m.created_at && m.created_at > epicLastImported)) {
+        epicLastImported = m.created_at;
       }
     } else {
       otherCount++;
@@ -410,6 +417,12 @@ async function fetchMaterialsStats(): Promise<MaterialsDatabaseStats> {
         count: ngerCount,
         percentage: totalMaterials ? Math.round((ngerCount / totalMaterials) * 1000) / 10 : 0,
         lastImported: ngerLastImported
+      },
+      epic: {
+        name: 'EPiC Database',
+        count: epicCount,
+        percentage: totalMaterials ? Math.round((epicCount / totalMaterials) * 1000) / 10 : 0,
+        lastImported: epicLastImported
       },
       other: {
         name: 'Other Sources',

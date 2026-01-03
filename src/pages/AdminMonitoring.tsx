@@ -201,6 +201,18 @@ export default function AdminMonitoring() {
     error?: string;
     sample?: any[];
   } | null>(null);
+  const [epicImportLoading, setEpicImportLoading] = useState(false);
+  const [epicImportResult, setEpicImportResult] = useState<{
+    success: boolean;
+    total?: number;
+    inserted?: number;
+    failed?: number;
+    skipped?: number;
+    duplicates?: number;
+    categories?: Record<string, number>;
+    error?: string;
+    sample?: any[];
+  } | null>(null);
   const [epdMaterialsCount, setEpdMaterialsCount] = useState(0);
   
   // Unified materials import states
@@ -1664,6 +1676,244 @@ export default function AdminMonitoring() {
                   <li>✓ 60+ operational factors (fuels, electricity, water, waste)</li>
                   <li>✓ State-level electricity grid factors</li>
                   <li>✓ NGA 2024 & NGER Determination compliant</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* EPiC Database 2024 Import */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-purple-600" />
+                EPiC Database 2024 Import (~350+ materials)
+              </CardTitle>
+              <CardDescription>
+                Import Australian-specific lifecycle data from University of Melbourne's Environmental Performance in Construction database
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Data Source</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm font-medium">EPiC Database 2024</p>
+                    <p className="text-xs text-muted-foreground">Crawford, Stephan & Prideaux - University of Melbourne</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Data Coverage</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="text-sm space-y-1">
+                      <li>✓ Hybrid LCA methodology</li>
+                      <li>✓ Australian-specific supply chains</li>
+                      <li>✓ Concrete, Glass, Metals, Timber, Plastics</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* File Upload Section */}
+              <div className="border-2 border-dashed border-purple-600/30 rounded-lg p-6 text-center">
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={async (event: React.ChangeEvent<HTMLInputElement>) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    
+                    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+                      toast.error('Please upload an Excel file (.xlsx or .xls)');
+                      return;
+                    }
+                    
+                    setEpicImportLoading(true);
+                    setEpicImportResult(null);
+                    
+                    try {
+                      // Read file as base64
+                      const reader = new FileReader();
+                      const fileData = await new Promise<string>((resolve, reject) => {
+                        reader.onload = () => {
+                          const base64 = (reader.result as string).split(',')[1];
+                          resolve(base64);
+                        };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                      });
+                      
+                      toast.info('Processing EPiC Database XLSX file...');
+                      
+                      const { data, error } = await supabase.functions.invoke("import-epic-materials", {
+                        body: { action: 'import', fileData }
+                      });
+                      
+                      if (error) throw error;
+                      
+                      setEpicImportResult(data);
+                      
+                      if (data?.success) {
+                        toast.success(`Imported ${data.inserted || 0} materials from EPiC Database`);
+                      } else if (data?.error) {
+                        toast.error(data.error);
+                      }
+                      
+                      // Refresh count
+                      await loadEpdMaterialsCount();
+                    } catch (err: any) {
+                      console.error("EPiC Import error:", err);
+                      toast.error(err.message || "Import failed");
+                      setEpicImportResult({ success: false, error: err.message });
+                    } finally {
+                      setEpicImportLoading(false);
+                      // Reset file input
+                      event.target.value = '';
+                    }
+                  }}
+                  disabled={epicImportLoading}
+                  className="hidden"
+                  id="epic-file-upload"
+                />
+                <label 
+                  htmlFor="epic-file-upload" 
+                  className={`cursor-pointer ${epicImportLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    {epicImportLoading ? (
+                      <>
+                        <RefreshCw className="h-8 w-8 text-purple-600 animate-spin" />
+                        <p className="text-sm font-medium">Processing EPiC Database...</p>
+                        <p className="text-xs text-muted-foreground">This may take a moment</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-purple-600" />
+                        <p className="text-sm font-medium">Upload EPiC Database XLSX File</p>
+                        <p className="text-xs text-muted-foreground">
+                          epic-database-2024.xlsx (or use file from /demo folder)
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </label>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-4 flex-wrap">
+                <Button 
+                  variant="outline" 
+                  onClick={async () => {
+                    if (!confirm('Are you sure you want to delete all EPiC Database materials? This cannot be undone.')) {
+                      return;
+                    }
+                    
+                    setEpicImportLoading(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("import-epic-materials", {
+                        body: { action: 'clear' }
+                      });
+                      
+                      if (error) throw error;
+                      
+                      if (data?.success) {
+                        toast.success(`Cleared ${data.deleted} EPiC Database materials`);
+                        setEpicImportResult(null);
+                      } else if (data?.error) {
+                        toast.error(data.error);
+                      }
+                      
+                      await loadEpdMaterialsCount();
+                    } catch (err: any) {
+                      console.error("Clear EPiC error:", err);
+                      toast.error(err.message || "Clear failed");
+                    } finally {
+                      setEpicImportLoading(false);
+                    }
+                  }}
+                  disabled={epicImportLoading}
+                  className="gap-2 border-purple-600/50 text-purple-600 hover:bg-purple-600/10"
+                >
+                  Clear EPiC Materials Only
+                </Button>
+              </div>
+              
+              {/* Import Result */}
+              {epicImportResult && (
+                <Card className={epicImportResult.success ? 'border-green-500/50' : 'border-destructive/50'}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      {epicImportResult.success ? (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-destructive" />
+                      )}
+                      EPiC Import Result
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {epicImportResult.success ? (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-4 gap-4 text-center">
+                          <div>
+                            <p className="text-2xl font-bold text-green-600">{epicImportResult.inserted?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Imported</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-destructive">{epicImportResult.failed?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Failed</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-muted-foreground">{epicImportResult.skipped?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Skipped</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-purple-600">{epicImportResult.duplicates?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Duplicates</p>
+                          </div>
+                        </div>
+                        {epicImportResult.categories && Object.keys(epicImportResult.categories).length > 0 && (
+                          <div className="mt-4">
+                            <p className="text-xs font-medium mb-2">Categories:</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              {Object.entries(epicImportResult.categories).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([cat, count]) => (
+                                <div key={cat} className="p-2 rounded bg-muted text-center">
+                                  <p className="font-bold">{count}</p>
+                                  <p className="text-xs text-muted-foreground truncate" title={cat}>{cat}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {epicImportResult.sample && epicImportResult.sample.length > 0 && (
+                          <div className="mt-4">
+                            <p className="text-xs font-medium mb-2">Sample Records:</p>
+                            <div className="bg-muted rounded p-2 text-xs overflow-x-auto">
+                              <pre>{JSON.stringify(epicImportResult.sample, null, 2)}</pre>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-destructive">{epicImportResult.error}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+              
+              <div className="bg-purple-600/5 p-4 rounded-lg border border-purple-600/20">
+                <h4 className="font-medium mb-2 text-purple-600">EPiC Database Features:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>✓ 350+ Australian building material records</li>
+                  <li>✓ Hybrid LCA methodology (comprehensive coverage)</li>
+                  <li>✓ Australian manufacturing and supply chain data</li>
+                  <li>✓ Peer-reviewed academic research</li>
+                  <li>✓ Creative Commons licensed (CC BY-NC-ND)</li>
+                  <li>✓ DOI links to source research papers</li>
                 </ul>
               </div>
             </CardContent>
