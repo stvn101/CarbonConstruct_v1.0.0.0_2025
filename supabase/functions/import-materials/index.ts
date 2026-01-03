@@ -9,7 +9,16 @@ interface ImportProgress {
   total: number;
   imported: number;
   failed: number;
+  skippedDuplicates: number;
+  skippedInvalid: number;
+  deletedExisting: number;
   status: string;
+}
+
+interface ImportOptions {
+  tableName?: string;
+  batchSize?: number;
+  mode?: 'replace' | 'merge';
 }
 
 Deno.serve(async (req) => {
@@ -64,12 +73,55 @@ Deno.serve(async (req) => {
     // Connect to external Supabase
     const externalSupabase = createClient(externalUrl, externalKey);
 
-    // Default to unified_materials - the actual external table name
-    const { tableName = 'unified_materials', batchSize = 100 } = await req.json();
+    // Parse options from request body
+    const options: ImportOptions = await req.json().catch(() => ({}));
+    const tableName = options.tableName || 'unified_materials';
+    const batchSize = options.batchSize || 100;
+    const mode = options.mode || 'replace'; // Default to replace for clean import
 
-    console.log(`Importing from external table: ${tableName}`);
+    console.log(`Import mode: ${mode}, table: ${tableName}, batchSize: ${batchSize}`);
 
-    // First, get a sample row to understand the schema
+    // Use service role key for all database operations
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Initialize progress
+    const progress: ImportProgress = {
+      total: 0,
+      imported: 0,
+      failed: 0,
+      skippedDuplicates: 0,
+      skippedInvalid: 0,
+      deletedExisting: 0,
+      status: 'initializing',
+    };
+
+    // If REPLACE mode, delete all existing materials first
+    if (mode === 'replace') {
+      console.log('REPLACE mode: Deleting all existing materials_epd records...');
+      
+      // Get count before deletion
+      const { count: existingCount } = await supabaseAdmin
+        .from('materials_epd')
+        .select('*', { count: 'exact', head: true });
+      
+      const { error: deleteError } = await supabaseAdmin
+        .from('materials_epd')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records
+      
+      if (deleteError) {
+        console.error('Error deleting existing records:', deleteError);
+        throw new Error(`Failed to clear existing data: ${deleteError.message}`);
+      }
+      
+      progress.deletedExisting = existingCount || 0;
+      console.log(`Deleted ${progress.deletedExisting} existing records`);
+    }
+
+    // Get sample row to verify schema
     const { data: sampleData, error: sampleError } = await externalSupabase
       .from(tableName)
       .select('*')
@@ -86,7 +138,7 @@ Deno.serve(async (req) => {
 
     const sampleRow = sampleData[0];
     const externalColumns = Object.keys(sampleRow);
-    console.log(`External table has ${externalColumns.length} columns:`, externalColumns);
+    console.log(`External table columns (${externalColumns.length}):`, externalColumns.join(', '));
 
     // Get total count
     const { count: totalCount, error: countError } = await externalSupabase
@@ -98,31 +150,18 @@ Deno.serve(async (req) => {
       throw new Error(`Could not count records: ${countError.message}`);
     }
 
-    console.log(`Total records to import: ${totalCount}`);
+    progress.total = totalCount || 0;
+    progress.status = 'importing';
+    console.log(`Total records to import: ${progress.total}`);
 
-    // Use service role key for inserting into our database
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    // Import data in batches with deduplication
-    const progress: ImportProgress = {
-      total: totalCount || 0,
-      imported: 0,
-      failed: 0,
-      status: 'importing',
-    };
+    const errors: Array<{ row: number; error: string; material?: string }> = [];
+    
+    // Track seen materials to prevent duplicates
+    const seenMaterials = new Set<string>();
 
     let offset = 0;
-    const errors: Array<{ row: number; error: string }> = [];
-    
-    // Track seen materials to prevent duplicates (key: name+category+unit)
-    const seenMaterials = new Set<string>();
-    let skippedDuplicates = 0;
-
     while (offset < (totalCount || 0)) {
-      console.log(`Fetching batch at offset ${offset}`);
+      console.log(`Processing batch at offset ${offset}/${progress.total}`);
 
       const { data: batchData, error: batchError } = await externalSupabase
         .from(tableName)
@@ -137,91 +176,181 @@ Deno.serve(async (req) => {
       }
 
       if (batchData && batchData.length > 0) {
-        // Map the data to our schema with deduplication
         const mappedData: any[] = [];
         
         for (const row of batchData) {
-          // Parse emission factors - handle both string and number types
-          const parseNumber = (val: any): number | null => {
-            if (val === null || val === undefined || val === '') return null;
-            const num = typeof val === 'string' ? parseFloat(val) : val;
-            return isNaN(num) ? null : num;
-          };
+          try {
+            // Parse numeric values with robust handling
+            const parseNumber = (val: any): number | null => {
+              if (val === null || val === undefined || val === '' || val === 'null') return null;
+              const num = typeof val === 'string' ? parseFloat(val) : val;
+              return isNaN(num) ? null : num;
+            };
 
-          const a1a3 = parseNumber(row.a1a3_factor);
-          const a4 = parseNumber(row.a4_factor);
-          const a5 = parseNumber(row.a5_factor);
-          
-          // Calculate total from LCA stages A1-A3 + A4 + A5
-          let total = null;
-          if (a1a3 !== null) {
-            total = a1a3 + (a4 || 0) + (a5 || 0);
-          }
+            const parseDate = (val: any): string | null => {
+              if (!val || val === 'null') return null;
+              try {
+                const date = new Date(val);
+                if (isNaN(date.getTime())) return null;
+                return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+              } catch {
+                return null;
+              }
+            };
 
-          // Skip if no valid emission data
-          if (total === null || total <= 0) {
-            continue;
-          }
+            // Map all LCA lifecycle stages (EN 15804 compliant)
+            const efA1a3 = parseNumber(row.a1a3_factor) ?? parseNumber(row.ef_a1a3);
+            const efA4 = parseNumber(row.a4_factor) ?? parseNumber(row.ef_a4);
+            const efA5 = parseNumber(row.a5_factor) ?? parseNumber(row.ef_a5);
+            const efB1b5 = parseNumber(row.b1b5_factor) ?? parseNumber(row.ef_b1b5);
+            const efC1c4 = parseNumber(row.c1c4_factor) ?? parseNumber(row.ef_c1c4);
+            const efD = parseNumber(row.d_factor) ?? parseNumber(row.ef_d);
 
-          // Determine correct unit based on category/material type
-          let unit = row.unit || 'kg';
-          const name = (row.name || '').toLowerCase();
-          const category = (row.category || '').toLowerCase();
-          
-          // Fix common unit issues based on material type
-          if (unit === 'm³' || unit === 'm3') {
-            if (category.includes('steel') || category.includes('metal') || category.includes('alumin') ||
-                name.includes('steel') || name.includes('rebar') || name.includes('reinforc')) {
-              unit = 'kg';
-            } else if (category.includes('glass') || category.includes('glazing') || category.includes('window')) {
-              unit = 'm²';
+            // Map scope factors
+            const scope1 = parseNumber(row.scope1_factor);
+            const scope2 = parseNumber(row.scope2_factor);
+            const scope3 = parseNumber(row.scope3_factor);
+
+            // Calculate total: A1-A3 + A4 + A5 + B1-B5 + C1-C4 (excluding D which is credits)
+            // Primary calculation uses A1-A3 as the minimum
+            let efTotal = parseNumber(row.ef_total) ?? parseNumber(row.embodied_carbon_total);
+            
+            if (efTotal === null && efA1a3 !== null) {
+              efTotal = efA1a3 + (efA4 || 0) + (efA5 || 0) + (efB1b5 || 0) + (efC1c4 || 0);
             }
-          }
 
-          const materialName = row.name || row.material_name || 'Unknown';
-          const materialCategory = row.category || row.material_category || 'Uncategorized';
-          
-          // Create unique key for deduplication
-          const dedupeKey = `${materialName}|${materialCategory}|${unit}|${total.toFixed(2)}`;
-          
-          if (seenMaterials.has(dedupeKey)) {
-            skippedDuplicates++;
-            continue;
-          }
-          seenMaterials.add(dedupeKey);
+            // Skip if no valid emission data
+            if (efTotal === null || efTotal <= 0) {
+              progress.skippedInvalid++;
+              continue;
+            }
 
-          mappedData.push({
-            material_name: materialName,
-            material_category: materialCategory,
-            unit: unit,
-            embodied_carbon_a1a3: a1a3,
-            embodied_carbon_a4: a4,
-            embodied_carbon_a5: a5,
-            embodied_carbon_total: total,
-            data_source: row.source || row.data_source || 'External Import',
-            region: row.region || 'Australia',
-            year: row.publish_date ? new Date(row.publish_date).getFullYear() : null,
-          });
+            // Extract material identifiers
+            const materialName = row.name || row.material_name || 'Unknown Material';
+            const materialCategory = row.category || row.material_category || 'Uncategorized';
+            const subcategory = row.subcategory || null;
+
+            // Standardize unit based on material type
+            let unit = row.unit || 'kg';
+            const nameLower = materialName.toLowerCase();
+            const categoryLower = materialCategory.toLowerCase();
+            
+            // Fix common unit mismatches
+            if (unit === 'm³' || unit === 'm3') {
+              if (categoryLower.includes('steel') || categoryLower.includes('metal') || 
+                  categoryLower.includes('alumin') || nameLower.includes('steel') || 
+                  nameLower.includes('rebar') || nameLower.includes('reinforc')) {
+                unit = 'kg';
+              } else if (categoryLower.includes('glass') || categoryLower.includes('glazing') || 
+                         categoryLower.includes('window')) {
+                unit = 'm²';
+              }
+            }
+            
+            // Create unique key for deduplication
+            const dedupeKey = `${materialName.toLowerCase()}|${materialCategory.toLowerCase()}|${unit}|${efTotal.toFixed(4)}`;
+            
+            if (seenMaterials.has(dedupeKey)) {
+              progress.skippedDuplicates++;
+              continue;
+            }
+            seenMaterials.add(dedupeKey);
+
+            // Build complete mapped record with all columns
+            mappedData.push({
+              // Core identification
+              material_name: materialName,
+              material_category: materialCategory,
+              subcategory: subcategory,
+              unit: unit,
+              
+              // LCA lifecycle stages (EN 15804)
+              ef_a1a3: efA1a3,
+              ef_a4: efA4,
+              ef_a5: efA5,
+              ef_b1b5: efB1b5,
+              ef_c1c4: efC1c4,
+              ef_d: efD,
+              ef_total: efTotal,
+              
+              // Scope factors
+              scope1_factor: scope1,
+              scope2_factor: scope2,
+              scope3_factor: scope3,
+              
+              // Data source and provenance
+              data_source: row.source || row.data_source || 'unified_materials',
+              region: row.region || 'Australia',
+              state: row.state || null,
+              manufacturer: row.manufacturer || null,
+              plant_location: row.plant_location || null,
+              
+              // EPD metadata
+              epd_number: row.epd_number || row.ec3_id || null,
+              epd_url: row.epd_url || null,
+              epd_type: row.epd_type || null,
+              program_operator: row.program_operator || null,
+              
+              // Dates
+              publish_date: parseDate(row.publish_date),
+              expiry_date: parseDate(row.expiry_date),
+              year: row.publish_date ? new Date(row.publish_date).getFullYear() : 
+                    (parseNumber(row.year) || parseNumber(row.reference_year) || null),
+              reference_year: parseNumber(row.reference_year),
+              
+              // Data quality
+              data_quality_tier: row.data_quality_tier || row.reliability || 'industry_average',
+              data_quality_rating: row.data_quality_rating || row.reliability || null,
+              uncertainty_percent: parseNumber(row.uncertainty_percent) || 20,
+              
+              // Carbon details
+              recycled_content: parseNumber(row.recycled_content),
+              carbon_sequestration: parseNumber(row.carbon_sequestration),
+              biogenic_carbon_kg_c: parseNumber(row.biogenic_carbon_kg_c),
+              biogenic_carbon_percentage: parseNumber(row.biogenic_carbon_percentage),
+              
+              // GWP breakdown
+              gwp_fossil_a1a3: parseNumber(row.gwp_fossil_a1a3),
+              gwp_biogenic_a1a3: parseNumber(row.gwp_biogenic_a1a3),
+              gwp_luluc_a1a3: parseNumber(row.gwp_luluc_a1a3),
+              
+              // Methodology
+              allocation_method: row.allocation_method || null,
+              characterisation_factor_version: row.characterisation_factor_version || 'JRC-EF-3.1',
+              ecoinvent_methodology: row.ecoinvent_methodology || null,
+              
+              // Manufacturing info
+              manufacturing_country: row.manufacturing_country || null,
+              manufacturing_city: row.manufacturing_city || null,
+              number_of_sites: parseNumber(row.number_of_sites),
+              
+              // Co-product handling
+              is_co_product: row.is_co_product === true || row.is_co_product === 'true',
+              co_product_type: row.co_product_type || null,
+              uses_mass_balance: row.uses_mass_balance === true || row.uses_mass_balance === 'true',
+              
+              // Compliance
+              eco_platform_compliant: row.eco_platform_compliant !== false,
+              average_specific: row.average_specific || null,
+              validity: row.validity || null,
+              
+              // LCA practitioners
+              lca_practitioner: row.lca_practitioner || null,
+              lca_verifier: row.lca_verifier || null,
+              
+              // Notes - include ec3_category if present
+              notes: row.notes || (row.ec3_category ? `EC3 Category: ${row.ec3_category}` : null),
+            });
+          } catch (parseError) {
+            console.warn(`Error parsing row:`, parseError);
+            progress.skippedInvalid++;
+          }
         }
 
         if (mappedData.length > 0) {
-          // Insert batch into materials_epd table (primary materials table)
-          const epdMappedData = mappedData.map(row => ({
-            material_name: row.material_name,
-            material_category: row.material_category,
-            unit: row.unit,
-            ef_a1a3: row.embodied_carbon_a1a3,
-            ef_a4: row.embodied_carbon_a4,
-            ef_a5: row.embodied_carbon_a5,
-            ef_total: row.embodied_carbon_total,
-            data_source: row.data_source,
-            region: row.region,
-            year: row.year,
-          }));
-
           const { error: insertError } = await supabaseAdmin
             .from('materials_epd')
-            .insert(epdMappedData);
+            .insert(mappedData);
 
           if (insertError) {
             console.error(`Error inserting batch at offset ${offset}:`, insertError);
@@ -229,40 +358,58 @@ Deno.serve(async (req) => {
             errors.push({
               row: offset,
               error: insertError.message,
+              material: mappedData[0]?.material_name || 'unknown',
             });
           } else {
             progress.imported += mappedData.length;
-            console.log(`Imported ${progress.imported} records (skipped ${skippedDuplicates} duplicates)`);
           }
         }
       }
 
       offset += batchSize;
+      
+      // Log progress every 10 batches
+      if ((offset / batchSize) % 10 === 0) {
+        console.log(`Progress: ${progress.imported} imported, ${progress.skippedDuplicates} duplicates skipped, ${progress.skippedInvalid} invalid skipped`);
+      }
     }
-    
-    console.log(`Final: Imported ${progress.imported}, skipped ${skippedDuplicates} duplicates`);
 
     progress.status = progress.failed > 0 ? 'completed_with_errors' : 'completed';
 
-    console.log('Import completed:', progress);
+    console.log('=== Import Complete ===');
+    console.log(`Total from source: ${progress.total}`);
+    console.log(`Imported: ${progress.imported}`);
+    console.log(`Duplicates skipped: ${progress.skippedDuplicates}`);
+    console.log(`Invalid skipped: ${progress.skippedInvalid}`);
+    console.log(`Failed: ${progress.failed}`);
+    if (mode === 'replace') {
+      console.log(`Previous records deleted: ${progress.deletedExisting}`);
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
+        mode,
         progress,
         externalColumns,
-        sampleRow,
-        errors: errors.length > 0 ? errors.slice(0, 10) : undefined, // Return first 10 errors
+        sampleRow: { 
+          ...sampleRow, 
+          // Truncate long values in sample for readability
+          notes: sampleRow.notes ? `${String(sampleRow.notes).substring(0, 100)}...` : null 
+        },
+        errors: errors.length > 0 ? errors.slice(0, 10) : undefined,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   } catch (error) {
-    console.error('Error in import-materials function:', error instanceof Error ? error.message : 'Unknown error');
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error in import-materials function:', errorMessage);
     return new Response(
       JSON.stringify({
-        error: 'An error occurred while importing materials. Please try again.',
+        error: errorMessage,
+        details: 'An error occurred while importing materials. Check edge function logs for details.',
       }),
       {
         status: 500,
