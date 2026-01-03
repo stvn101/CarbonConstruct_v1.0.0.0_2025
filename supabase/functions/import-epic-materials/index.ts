@@ -144,50 +144,70 @@ serve(async (req) => {
     const rawData = XLSX.utils.sheet_to_json(dataSheet, { header: 1, defval: null });
     console.log(`Total rows: ${rawData.length}`);
 
-    // Find header row (look for "Material" or "Category" in first 20 rows)
-    let headerRowIndex = -1;
-    let headers: string[] = [];
+    // EPiC Database has split headers:
+    // Row 1 contains: "Functional unit", "Embodied Energy (MJ)", "Embodied Water (L)", "Embodied Greenhouse Gas Emissions (kgCO2e)"
+    // Row 12 contains: "Category", "Type", "Material", blank cells, "More information"
+    // We need to search across ALL header rows to build complete column mapping
     
-    for (let i = 0; i < Math.min(20, rawData.length); i++) {
-      const row = rawData[i] as any[];
-      if (!row) continue;
-      
-      const rowStr = row.map(c => String(c || "").toLowerCase()).join(" ");
-      if (rowStr.includes("material") && (rowStr.includes("category") || rowStr.includes("ghg") || rowStr.includes("embodied"))) {
-        headerRowIndex = i;
-        headers = row.map(c => String(c || "").trim());
-        console.log(`Found header row at index ${i}: ${headers.slice(0, 8).join(", ")}`);
-        break;
-      }
-    }
-
-    if (headerRowIndex === -1) {
-      // Default to first row as header
-      headerRowIndex = 0;
-      headers = (rawData[0] as any[]).map(c => String(c || "").trim());
-    }
-
-    // Find column indices
-    const findColumn = (names: string[]): number => {
-      for (const name of names) {
-        const idx = headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
-        if (idx !== -1) return idx;
+    // Function to find column index across all first 15 rows
+    const findColumnInAllRows = (searchTerms: string[]): number => {
+      for (let rowIdx = 0; rowIdx < Math.min(15, rawData.length); rowIdx++) {
+        const row = rawData[rowIdx] as any[];
+        if (!row) continue;
+        for (let colIdx = 0; colIdx < row.length; colIdx++) {
+          const cellValue = String(row[colIdx] || "").toLowerCase();
+          for (const term of searchTerms) {
+            if (cellValue.includes(term.toLowerCase())) {
+              console.log(`Found "${term}" at row ${rowIdx}, col ${colIdx}: "${row[colIdx]}"`);
+              return colIdx;
+            }
+          }
+        }
       }
       return -1;
     };
 
-    const categoryCol = findColumn(["Category"]);
-    const typeCol = findColumn(["Type", "Subcategory"]);
-    const materialCol = findColumn(["Material", "Name", "Material Name"]);
-    const unitCol = findColumn(["Functional unit", "Unit", "FU"]);
-    const ghgCol = findColumn(["Embodied GHG", "GHG", "kgCO2e", "Carbon"]);
-    const infoCol = findColumn(["More information", "Link", "URL", "DOI"]);
+    // Find label row (contains "Category", "Type", "Material") for data start position
+    let labelRowIndex = -1;
+    for (let i = 0; i < Math.min(20, rawData.length); i++) {
+      const row = rawData[i] as any[];
+      if (!row) continue;
+      const rowStr = row.map(c => String(c || "").toLowerCase()).join(" ");
+      if (rowStr.includes("category") && rowStr.includes("type") && rowStr.includes("material")) {
+        labelRowIndex = i;
+        console.log(`Found label row at index ${i}`);
+        break;
+      }
+    }
+
+    // Find columns by searching across all header rows
+    let categoryCol = findColumnInAllRows(["category"]);
+    let typeCol = findColumnInAllRows(["type"]);
+    let materialCol = findColumnInAllRows(["material"]);
+    let unitCol = findColumnInAllRows(["functional unit"]);
+    let ghgCol = findColumnInAllRows([
+      "embodied greenhouse gas",
+      "embodied ghg",
+      "greenhouse gas emissions",
+      "kgco2e",
+      "kgco₂e"
+    ]);
+    let infoCol = findColumnInAllRows(["more information", "doi", "link", "url"]);
+
+    // EPiC-specific fallback mapping based on known structure:
+    // Col 0: Category, Col 1: Type, Col 2: Material, Col 3: Unit, Col 4: Energy, Col 5: Water, Col 6: GHG, Col 7: Info
+    if (categoryCol === -1) categoryCol = 0;
+    if (typeCol === -1) typeCol = 1;
+    if (materialCol === -1) materialCol = 2;
+    if (unitCol === -1) unitCol = 3;
+    if (ghgCol === -1) ghgCol = 6;
+    if (infoCol === -1) infoCol = 7;
 
     console.log(`Column mapping: Category=${categoryCol}, Type=${typeCol}, Material=${materialCol}, Unit=${unitCol}, GHG=${ghgCol}, Info=${infoCol}`);
 
-    if (materialCol === -1 || ghgCol === -1) {
-      throw new Error("Cannot find required columns (Material, GHG) in the spreadsheet");
-    }
+    // Determine data start row (after the label row, or default to row 13 for EPiC)
+    const headerRowIndex = labelRowIndex !== -1 ? labelRowIndex : 11; // EPiC label row is typically row 12 (0-indexed: 11)
+    console.log(`Starting data parse from row ${headerRowIndex + 1}`)
 
     // Parse materials
     const materials: EPiCMaterial[] = [];
