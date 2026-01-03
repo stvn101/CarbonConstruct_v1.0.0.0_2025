@@ -82,6 +82,7 @@ interface ComplianceResult {
       a1a5: { compliant: boolean; value: number; threshold: number };
       b1b7: { compliant: boolean; value: number; threshold: number };
       c1c4: { compliant: boolean; value: number; threshold: number };
+      moduleD: { compliant: boolean; value: number };
       wholeLife: { compliant: boolean; value: number; threshold: number };
     };
     requirements: ComplianceRequirement[];
@@ -304,6 +305,11 @@ export const useComplianceCheck = (
       : 0;
     const en15978WholeLife = wholeLifeTotals?.total_whole_life || totals.total;
 
+    // Module D credits (negative values = benefits)
+    const en15978ModuleD = wholeLifeTotals 
+      ? (wholeLifeTotals.d_recycling + wholeLifeTotals.d_reuse + wholeLifeTotals.d_energy_recovery)
+      : 0;
+
     const en15978Stages = {
       a1a5: {
         compliant: (en15978Upfront / projectSize) < benchmark.upfront,
@@ -319,6 +325,10 @@ export const useComplianceCheck = (
         compliant: (en15978EndOfLife / projectSize) < benchmark.wholeLife * 0.1, // End of life ~10%
         value: Math.round(en15978EndOfLife / projectSize),
         threshold: Math.round(benchmark.wholeLife * 0.1),
+      },
+      moduleD: {
+        compliant: en15978ModuleD < 0 || wholeLifeTotals !== null, // Module D is compliant if reported (even if 0)
+        value: Math.round(en15978ModuleD / projectSize),
       },
       wholeLife: {
         compliant: (en15978WholeLife / projectSize) < benchmark.wholeLife,
