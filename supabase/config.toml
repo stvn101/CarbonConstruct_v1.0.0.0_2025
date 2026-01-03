@@ -25,7 +25,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.inspect-external-schema]
-verify_jwt = true
+verify_jwt = false
 
 [functions.import-materials]
 verify_jwt = true
