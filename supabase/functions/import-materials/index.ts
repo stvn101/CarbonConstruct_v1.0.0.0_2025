@@ -220,6 +220,7 @@ Deno.serve(async (req) => {
             };
 
             // Map all LCA lifecycle stages (EN 15804 compliant)
+            // Support both standard column names and external unified_materials schema
             const efA1a3 = parseNumber(row.a1a3_factor) ?? parseNumber(row.ef_a1a3);
             const efA4 = parseNumber(row.a4_factor) ?? parseNumber(row.ef_a4);
             const efA5 = parseNumber(row.a5_factor) ?? parseNumber(row.ef_a5);
@@ -232,9 +233,11 @@ Deno.serve(async (req) => {
             const scope2 = parseNumber(row.scope2_factor);
             const scope3 = parseNumber(row.scope3_factor);
 
-            // Calculate total: A1-A3 + A4 + A5 + B1-B5 + C1-C4 (excluding D which is credits)
-            // Primary calculation uses A1-A3 as the minimum
-            let efTotal = parseNumber(row.ef_total) ?? parseNumber(row.embodied_carbon_total);
+            // Calculate total: Handle multiple possible column names
+            // External unified_materials uses 'embodied_carbon' for per-unit factor
+            let efTotal = parseNumber(row.ef_total) ?? 
+                          parseNumber(row.embodied_carbon_total) ?? 
+                          parseNumber(row.embodied_carbon);
             
             if (efTotal === null && efA1a3 !== null) {
               efTotal = efA1a3 + (efA4 || 0) + (efA5 || 0) + (efB1b5 || 0) + (efC1c4 || 0);
@@ -246,10 +249,11 @@ Deno.serve(async (req) => {
               continue;
             }
 
-            // Extract material identifiers
-            const materialName = row.name || row.material_name || 'Unknown Material';
-            const materialCategory = row.category || row.material_category || 'Uncategorized';
-            const subcategory = row.subcategory || null;
+            // Extract material identifiers - support external unified_materials schema
+            // External uses: material_type, material_subtype, supplier
+            const materialName = row.name || row.material_name || row.material_type || 'Unknown Material';
+            const materialCategory = row.category || row.material_category || row.material_type || 'Uncategorized';
+            const subcategory = row.subcategory || row.material_subtype || null;
 
             // Standardize unit based on material type
             let unit = row.unit || 'kg';
@@ -299,11 +303,11 @@ Deno.serve(async (req) => {
               scope2_factor: scope2,
               scope3_factor: scope3,
               
-              // Data source and provenance
+              // Data source and provenance - map supplier from external schema
               data_source: row.source || row.data_source || 'unified_materials',
               region: row.region || 'Australia',
               state: row.state || null,
-              manufacturer: row.manufacturer || null,
+              manufacturer: row.manufacturer || row.supplier || null,
               plant_location: row.plant_location || null,
               
               // EPD metadata
