@@ -545,6 +545,52 @@ export default function AdminMonitoring() {
       setUnifiedImportLoading(false);
     }
   };
+  
+  // Quick restore function - restores ICE + NGER data (no file uploads needed)
+  const [quickRestoreLoading, setQuickRestoreLoading] = useState(false);
+  const quickRestoreMaterials = async () => {
+    setQuickRestoreLoading(true);
+    let iceImported = 0;
+    let ngerImported = 0;
+    
+    try {
+      toast.info('Quick Restore: Importing ICE + NGER data...');
+      
+      // Step 1: Import ICE materials from JSON
+      const iceResponse = await fetch("/demo/ice-materials-v4.1.json");
+      if (iceResponse.ok) {
+        const materials = await iceResponse.json();
+        const { data: iceData, error: iceError } = await supabase.functions.invoke("import-ice-materials", {
+          body: { materials }
+        });
+        if (!iceError && iceData?.imported) {
+          iceImported = iceData.imported;
+        }
+      }
+      
+      // Step 2: Import NGER materials (embedded data)
+      const { data: ngerData, error: ngerError } = await supabase.functions.invoke("import-nger-data", {
+        body: { action: 'import-materials' }
+      });
+      if (!ngerError && ngerData?.inserted) {
+        ngerImported = ngerData.inserted;
+      }
+      
+      // Step 3: Import NGER operational factors
+      await supabase.functions.invoke("import-nger-data", {
+        body: { action: 'import-operational' }
+      });
+      
+      await loadEpdMaterialsCount();
+      toast.success(`Quick Restore complete! ICE: ${iceImported}, NGER: ${ngerImported}`);
+      
+    } catch (err: any) {
+      console.error("Quick restore error:", err);
+      toast.error(err.message || "Quick restore failed");
+    } finally {
+      setQuickRestoreLoading(false);
+    }
+  };
 
   const verifyImportDataQuality = async () => {
     // Get counts for data quality metrics
@@ -948,6 +994,48 @@ export default function AdminMonitoring() {
 
         {/* Data Import Tab */}
         <TabsContent value="data" className="space-y-4">
+          {/* EMERGENCY: Quick Restore - Top Priority */}
+          {epdMaterialsCount < 1000 && (
+            <Card className="border-2 border-destructive/50 bg-destructive/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                  Materials Database Empty - Quick Restore Available
+                </CardTitle>
+                <CardDescription>
+                  Restore ICE (511) + NGER (63) materials instantly. For NABERS (3,408), upload the XLSX file below.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex gap-4">
+                <Button 
+                  onClick={quickRestoreMaterials} 
+                  disabled={quickRestoreLoading}
+                  variant="destructive"
+                  size="lg"
+                  className="gap-2"
+                >
+                  {quickRestoreLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Restoring...
+                    </>
+                  ) : (
+                    <>
+                      <Database className="h-4 w-4" />
+                      Quick Restore (ICE + NGER)
+                    </>
+                  )}
+                </Button>
+                <Link to="/admin/ice-import">
+                  <Button variant="outline" className="gap-2">
+                    <ArrowRight className="h-4 w-4" />
+                    Go to ICE Import Page
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+          
           {/* Unified Materials Import - Primary */}
           <Card className="border-primary/50">
             <CardHeader>
