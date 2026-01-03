@@ -499,7 +499,8 @@ export function BulkEPDUploader() {
     return result;
   };
 
-  const extractTextFromPDF = async (file: File): Promise<string> => {
+  const extractTextFromPDF = async (file: File, retryCount = 0): Promise<string> => {
+    const MAX_RETRIES = 3;
     const formData = new FormData();
     formData.append('file', file);
 
@@ -515,6 +516,21 @@ export function BulkEPDUploader() {
 
     if (!response.ok) {
       const error = await response.json();
+      
+      // Handle rate limit with retry + exponential backoff
+      if (response.status === 429 && retryCount < MAX_RETRIES) {
+        const waitTime = Math.pow(2, retryCount + 1) * 1000; // 2s, 4s, 8s
+        console.log(`[BulkEPDUploader] Rate limited, retrying in ${waitTime/1000}s (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+        toast.info(`Rate limited, retrying in ${waitTime/1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        return extractTextFromPDF(file, retryCount + 1);
+      }
+      
+      // Handle file too large
+      if (response.status === 413) {
+        throw new Error(`PDF too large (max 5MB for AI extraction). Try a smaller file.`);
+      }
+      
       throw new Error(error.error || 'Failed to extract text');
     }
 
@@ -644,31 +660,31 @@ export function BulkEPDUploader() {
     }));
     setProcessedFiles(initialFiles);
 
-    // Process files in batches of 3 for parallel processing
-    const BATCH_SIZE = 3;
+    // Separate PDFs and spreadsheets - process PDFs sequentially, spreadsheets in batches
+    const pdfFiles = files.filter(f => !isSpreadsheetFile(f));
+    const spreadsheetFiles = files.filter(f => isSpreadsheetFile(f));
+    
     const results: ProcessedFile[] = [];
+    let globalIndex = 0;
 
-    for (let i = 0; i < files.length; i += BATCH_SIZE) {
-      const batch = files.slice(i, i + BATCH_SIZE);
-      setCurrentFile(i);
+    // Process PDFs sequentially with delay to avoid rate limits
+    if (pdfFiles.length > 0) {
+      toast.info(`Processing ${pdfFiles.length} PDF file(s) sequentially...`);
       
-      // Update status to extracting for this batch
-      setProcessedFiles(prev => prev.map((f, idx) => 
-        idx >= i && idx < i + BATCH_SIZE ? { ...f, status: 'extracting' } : f
-      ));
-
-      toast.info(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(files.length/BATCH_SIZE)}...`);
-
-      // Process batch in parallel
-      const batchResults = await Promise.all(
-        batch.map((file, batchIdx) => processSingleFile(file, i + batchIdx, session))
-      );
-
-      // Update results
-      batchResults.forEach((result, batchIdx) => {
-        const globalIdx = i + batchIdx;
+      for (let i = 0; i < pdfFiles.length; i++) {
+        const file = pdfFiles[i];
+        const fileIndex = files.indexOf(file);
+        setCurrentFile(fileIndex);
+        
+        // Update status to extracting
         setProcessedFiles(prev => prev.map((f, idx) => 
-          idx === globalIdx ? result : f
+          idx === fileIndex ? { ...f, status: 'extracting' } : f
+        ));
+
+        const result = await processSingleFile(file, fileIndex, session);
+        
+        setProcessedFiles(prev => prev.map((f, idx) => 
+          idx === fileIndex ? result : f
         ));
         
         if (result.status === 'extracted') {
@@ -676,13 +692,53 @@ export function BulkEPDUploader() {
         } else if (result.status === 'error') {
           toast.error(`${result.fileName}: ${result.error}`);
         }
-      });
+        
+        results.push(result);
+        globalIndex++;
 
-      results.push(...batchResults);
+        // 3-second delay between PDFs to avoid rate limits
+        if (i < pdfFiles.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+    }
 
-      // Small delay between batches to avoid rate limiting
-      if (i + BATCH_SIZE < files.length) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+    // Process spreadsheets in batches of 3 (they're local parsing, no rate limit)
+    if (spreadsheetFiles.length > 0) {
+      const BATCH_SIZE = 3;
+      toast.info(`Processing ${spreadsheetFiles.length} spreadsheet file(s)...`);
+      
+      for (let i = 0; i < spreadsheetFiles.length; i += BATCH_SIZE) {
+        const batch = spreadsheetFiles.slice(i, i + BATCH_SIZE);
+        
+        // Update status to extracting for this batch
+        batch.forEach(file => {
+          const fileIndex = files.indexOf(file);
+          setProcessedFiles(prev => prev.map((f, idx) => 
+            idx === fileIndex ? { ...f, status: 'extracting' } : f
+          ));
+        });
+
+        // Process batch in parallel
+        const batchResults = await Promise.all(
+          batch.map(file => processSingleFile(file, files.indexOf(file), session))
+        );
+
+        // Update results
+        batchResults.forEach((result) => {
+          const fileIndex = files.findIndex(f => f.name === result.fileName);
+          setProcessedFiles(prev => prev.map((f, idx) => 
+            idx === fileIndex ? result : f
+          ));
+          
+          if (result.status === 'extracted') {
+            toast.success(`${result.fileName}: ${result.products.length} products extracted`);
+          } else if (result.status === 'error') {
+            toast.error(`${result.fileName}: ${result.error}`);
+          }
+        });
+
+        results.push(...batchResults);
       }
     }
 

@@ -7,6 +7,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Max file size for AI extraction (5MB) to prevent CPU timeouts
+const MAX_AI_FILE_SIZE = 5 * 1024 * 1024;
+
+/**
+ * Convert ArrayBuffer to base64 using chunked processing to avoid stack overflow
+ */
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const uint8Array = new Uint8Array(buffer);
+  const CHUNK_SIZE = 0x8000; // 32KB chunks
+  let binary = '';
+  
+  for (let i = 0; i < uint8Array.length; i += CHUNK_SIZE) {
+    const chunk = uint8Array.subarray(i, Math.min(i + CHUNK_SIZE, uint8Array.length));
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+  
+  return btoa(binary);
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -38,24 +57,34 @@ serve(async (req) => {
       );
     }
 
-    // Check rate limit (20 PDF extractions per hour per user)
+    // Check if user is admin (gets higher rate limit)
+    const { data: isAdmin } = await supabase.rpc('has_role', { 
+      _user_id: user.id, 
+      _role: 'admin' 
+    });
+    
+    // Admin users get 100 extractions/hour, regular users get 20
+    const maxRequests = isAdmin ? 100 : 20;
+    
+    // Check rate limit
     const rateLimitResult = await checkRateLimit(supabase, user.id, 'extract-pdf-text', {
       windowMinutes: 60,
-      maxRequests: 20
+      maxRequests
     });
 
     if (!rateLimitResult.allowed) {
-      console.log(`[extract-pdf-text] Rate limit exceeded for user ${user.id}`);
+      console.log(`[extract-pdf-text] Rate limit exceeded for user ${user.id} (limit: ${maxRequests})`);
       return new Response(
         JSON.stringify({ 
-          error: 'Rate limit exceeded. Please try again later.',
-          resetAt: rateLimitResult.resetAt.toISOString()
+          error: `Rate limit exceeded (${maxRequests}/hour). Please try again later.`,
+          resetAt: rateLimitResult.resetAt.toISOString(),
+          remaining: rateLimitResult.remaining
         }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`[extract-pdf-text] User ${user.id}: Processing PDF`);
+    console.log(`[extract-pdf-text] User ${user.id}: Processing PDF (remaining: ${rateLimitResult.remaining}/${maxRequests})`);
 
     // Get the PDF file from form data
     const formData = await req.formData();
@@ -75,7 +104,7 @@ serve(async (req) => {
       );
     }
 
-    // Check file size (max 20MB)
+    // Check file size (max 20MB for upload)
     const maxSize = 20 * 1024 * 1024;
     if (file.size > maxSize) {
       return new Response(
@@ -96,6 +125,17 @@ serve(async (req) => {
     // If basic extraction failed or returned minimal text, use AI extraction
     if (!text || text.trim().length < 100) {
       console.log(`[extract-pdf-text] Basic extraction insufficient (${text?.length || 0} chars), using AI extraction`);
+      
+      // Check file size limit for AI extraction (5MB) to prevent CPU timeouts
+      if (arrayBuffer.byteLength > MAX_AI_FILE_SIZE) {
+        console.log(`[extract-pdf-text] File too large for AI extraction: ${arrayBuffer.byteLength} bytes`);
+        return new Response(
+          JSON.stringify({ 
+            error: `PDF too large for AI extraction (${(arrayBuffer.byteLength / 1024 / 1024).toFixed(1)}MB). Maximum is 5MB. Please use a smaller file or a text-based PDF.` 
+          }),
+          { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       
       try {
         text = await extractTextWithAI(arrayBuffer);
@@ -140,9 +180,8 @@ async function extractTextWithAI(arrayBuffer: ArrayBuffer): Promise<string> {
     throw new Error('LOVABLE_API_KEY not configured');
   }
 
-  // Convert to base64
-  const uint8Array = new Uint8Array(arrayBuffer);
-  const base64 = btoa(String.fromCharCode(...uint8Array));
+  // Convert to base64 using chunked processing (fixes stack overflow on large files)
+  const base64 = arrayBufferToBase64(arrayBuffer);
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
