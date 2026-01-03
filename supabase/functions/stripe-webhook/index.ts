@@ -38,7 +38,7 @@ serve(async (req) => {
     logStep("Webhook received");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-      apiVersion: "2024-12-18.acacia" 
+      apiVersion: "2025-08-27.basil" 
     });
 
     // Verify webhook signature
@@ -73,40 +73,53 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Handle different event types
-    switch (event.type) {
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
-        await handleSubscriptionUpdate(event.data.object as Stripe.Subscription, supabaseClient);
-        break;
+    // Handle different event types - wrap each in try-catch to ensure 200 response
+    // Key principle: ALWAYS return 200 to Stripe, even if internal processing fails
+    // This prevents Stripe from retrying and marking endpoint as failed
+    try {
+      switch (event.type) {
+        case "customer.subscription.created":
+        case "customer.subscription.updated":
+          await handleSubscriptionUpdate(event.data.object as Stripe.Subscription, supabaseClient);
+          break;
 
-      case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription, supabaseClient);
-        break;
+        case "customer.subscription.deleted":
+          await handleSubscriptionDeleted(event.data.object as Stripe.Subscription, supabaseClient);
+          break;
 
-      case "invoice.payment_succeeded":
-        await handlePaymentSucceeded(event.data.object as Stripe.Invoice, supabaseClient, stripe);
-        break;
+        case "invoice.payment_succeeded":
+          await handlePaymentSucceeded(event.data.object as Stripe.Invoice, supabaseClient, stripe);
+          break;
 
-      case "invoice.payment_failed":
-        await handlePaymentFailed(event.data.object as Stripe.Invoice, supabaseClient);
-        break;
+        case "invoice.payment_failed":
+          await handlePaymentFailed(event.data.object as Stripe.Invoice, supabaseClient);
+          break;
 
-      case "customer.subscription.trial_will_end":
-        await handleTrialWillEnd(event.data.object as Stripe.Subscription, supabaseClient);
-        break;
+        case "customer.subscription.trial_will_end":
+          await handleTrialWillEnd(event.data.object as Stripe.Subscription, supabaseClient);
+          break;
 
-      default:
-        logStep("Unhandled event type", { type: event.type });
+        default:
+          logStep("Unhandled event type (acknowledged)", { type: event.type });
+      }
+    } catch (handlerError) {
+      // Log the error but DON'T throw - always return 200 to Stripe
+      const handlerErrorMessage = handlerError instanceof Error ? handlerError.message : String(handlerError);
+      logStep("Handler error (non-fatal, returning 200 to Stripe)", { 
+        eventType: event.type,
+        error: handlerErrorMessage 
+      });
     }
 
+    logStep("Webhook processed successfully", { type: event.type });
     return new Response(JSON.stringify({ received: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
+    // Only reach here for signature verification failures or pre-handler errors
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
+    logStep("CRITICAL ERROR (returning 500)", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -124,7 +137,7 @@ async function handleSubscriptionUpdate(
     // Get customer email
     const customerId = subscription.customer as string;
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-      apiVersion: "2024-12-18.acacia" 
+      apiVersion: "2025-08-27.basil" 
     });
     const customer = await stripe.customers.retrieve(customerId);
     
@@ -243,7 +256,7 @@ async function handleSubscriptionDeleted(
     // Get customer email before deletion
     const customerId = subscription.customer as string;
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-      apiVersion: "2024-12-18.acacia" 
+      apiVersion: "2025-08-27.basil" 
     });
     const customer = await stripe.customers.retrieve(customerId);
     const customerEmail = customer && !customer.deleted ? customer.email : null;
@@ -471,7 +484,7 @@ async function handleTrialWillEnd(
     // Get customer email for notification
     const customerId = subscription.customer as string;
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-      apiVersion: "2024-12-18.acacia" 
+      apiVersion: "2025-08-27.basil" 
     });
     const customer = await stripe.customers.retrieve(customerId);
     
