@@ -283,10 +283,10 @@ export const BOQMaterialReview = memo(({
                               />
                             </TableCell>
                             <TableCell className="font-medium max-w-[200px] truncate" title={material.material_name}>
-                              {material.material_name}
+                              {material.material_name || 'Unnamed material'}
                             </TableCell>
-                            <TableCell>{material.quantity.toLocaleString()}</TableCell>
-                            <TableCell>{material.unit}</TableCell>
+                            <TableCell>{typeof material.quantity === 'number' ? material.quantity.toLocaleString() : (material.quantity ?? '-')}</TableCell>
+                            <TableCell>{material.unit || '-'}</TableCell>
                             <TableCell>
                               <Badge variant="outline">{material.category}</Badge>
                             </TableCell>
@@ -304,7 +304,7 @@ export const BOQMaterialReview = memo(({
                               )}
                             </TableCell>
                             <TableCell className="text-right font-mono">
-                              {material.ef_total !== undefined ? (
+                              {typeof material.ef_total === 'number' ? (
                                 material.ef_total.toFixed(2)
                               ) : (
                                 <span className="text-muted-foreground">-</span>
