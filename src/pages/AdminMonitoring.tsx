@@ -10,7 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck, Bug, Zap, ShieldAlert, Leaf, Target } from "lucide-react";
+import { AlertTriangle, Activity, BarChart3, RefreshCw, Search, Shield, CheckCircle, XCircle, Clock, Database, Upload, FileText, FileCheck, Bug, Zap, ShieldAlert, Leaf, Target, ArrowRight, AlertCircle } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -165,16 +167,8 @@ export default function AdminMonitoring() {
   const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>([]);
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
   
-  // Import states
-  const [importLoading, setImportLoading] = useState(false);
   const [epdImportLoading, setEpdImportLoading] = useState(false);
   const [nabersImportLoading, setNabersImportLoading] = useState(false);
-  const [importProgress, setImportProgress] = useState<{
-    total: number;
-    imported: number;
-    failed: number;
-    status: string;
-  } | null>(null);
   const [nabersImportResult, setNabersImportResult] = useState<{
     success: boolean;
     total?: number;
@@ -207,8 +201,29 @@ export default function AdminMonitoring() {
     error?: string;
     sample?: any[];
   } | null>(null);
-  const [materialsCount, setMaterialsCount] = useState(0);
   const [epdMaterialsCount, setEpdMaterialsCount] = useState(0);
+  
+  // Unified materials import states
+  const [unifiedImportMode, setUnifiedImportMode] = useState<'replace' | 'merge'>('replace');
+  const [unifiedImportLoading, setUnifiedImportLoading] = useState(false);
+  const [unifiedImportResult, setUnifiedImportResult] = useState<{
+    success: boolean;
+    previousCount?: number;
+    newCount?: number;
+    imported?: number;
+    skippedDuplicates?: number;
+    skippedInvalid?: number;
+    failed?: number;
+    deletedExisting?: number;
+    error?: string;
+    sources?: Record<string, number>;
+    dataQuality?: {
+      withEpdUrl: number;
+      withManufacturer: number;
+      withExpiryDate: number;
+      totalCount: number;
+    };
+  } | null>(null);
   
   // Filters
   const [errorSearch, setErrorSearch] = useState("");
@@ -254,15 +269,9 @@ export default function AdminMonitoring() {
       loadPerformanceMetrics(),
       loadAnalyticsEvents(),
       loadHealthStatus(),
-      loadMaterialsCount(),
       loadEpdMaterialsCount(),
     ]);
     setLoading(false);
-  };
-  
-  const loadMaterialsCount = async () => {
-    // Legacy count - lca_materials table is deprecated
-    setMaterialsCount(0);
   };
   
   const loadEpdMaterialsCount = async () => {
@@ -436,32 +445,120 @@ export default function AdminMonitoring() {
     }
   };
   
-  const triggerMaterialsImport = async () => {
-    setImportLoading(true);
-    setImportProgress(null);
+  const triggerUnifiedMaterialsImport = async () => {
+    setUnifiedImportLoading(true);
+    setUnifiedImportResult(null);
+    
+    const previousCount = epdMaterialsCount;
     
     try {
+      toast.info(unifiedImportMode === 'replace' 
+        ? 'Replacing all materials... This may take 2-5 minutes.' 
+        : 'Merging materials... This may take 2-5 minutes.');
+      
       const { data, error } = await supabase.functions.invoke("import-materials", {
-        body: { tableName: "unified_materials", batchSize: 100 }
+        body: { 
+          tableName: "unified_materials", 
+          batchSize: 100,
+          mode: unifiedImportMode
+        }
       });
       
       if (error) throw error;
       
+      // Refresh count after import
+      await loadEpdMaterialsCount();
+      
+      // Get new count
+      const { count: newCount } = await supabase
+        .from("materials_epd")
+        .select("*", { count: 'exact', head: true });
+      
+      // Verify data quality
+      const dataQuality = await verifyImportDataQuality();
+      
+      // Get source breakdown
+      const sources = await getSourceBreakdown();
+      
       if (data?.progress) {
-        setImportProgress(data.progress);
-        toast.success(`Imported ${data.progress.imported} materials`);
+        setUnifiedImportResult({
+          success: true,
+          previousCount,
+          newCount: newCount || 0,
+          imported: data.progress.imported,
+          skippedDuplicates: data.progress.skippedDuplicates || 0,
+          skippedInvalid: data.progress.skippedInvalid || 0,
+          failed: data.progress.failed,
+          deletedExisting: data.progress.deletedExisting || 0,
+          sources,
+          dataQuality
+        });
+        toast.success(`Successfully imported ${data.progress.imported} materials`);
       } else if (data?.error) {
+        setUnifiedImportResult({
+          success: false,
+          previousCount,
+          error: data.error
+        });
         toast.error(data.error);
       }
-      
-      // Refresh EPD materials count (primary table)
-      await loadEpdMaterialsCount();
     } catch (err: any) {
-      console.error("Import error:", err);
+      console.error("Unified import error:", err);
+      setUnifiedImportResult({
+        success: false,
+        previousCount,
+        error: err.message || "Import failed"
+      });
       toast.error(err.message || "Import failed");
     } finally {
-      setImportLoading(false);
+      setUnifiedImportLoading(false);
     }
+  };
+
+  const verifyImportDataQuality = async () => {
+    // Get counts for data quality metrics
+    const { count: withEpdUrl } = await supabase
+      .from("materials_epd")
+      .select("*", { count: 'exact', head: true })
+      .not('epd_url', 'is', null);
+    
+    const { count: withManufacturer } = await supabase
+      .from("materials_epd")
+      .select("*", { count: 'exact', head: true })
+      .not('manufacturer', 'is', null);
+    
+    const { count: withExpiryDate } = await supabase
+      .from("materials_epd")
+      .select("*", { count: 'exact', head: true })
+      .not('expiry_date', 'is', null);
+    
+    const { count: totalCount } = await supabase
+      .from("materials_epd")
+      .select("*", { count: 'exact', head: true });
+    
+    return {
+      withEpdUrl: withEpdUrl || 0,
+      withManufacturer: withManufacturer || 0,
+      withExpiryDate: withExpiryDate || 0,
+      totalCount: totalCount || 0
+    };
+  };
+
+  const getSourceBreakdown = async () => {
+    // Fetch all data_source values and count them
+    const { data } = await supabase
+      .from("materials_epd")
+      .select("data_source");
+    
+    if (!data) return {};
+    
+    const sources: Record<string, number> = {};
+    data.forEach(row => {
+      const source = row.data_source || 'Unknown';
+      sources[source] = (sources[source] || 0) + 1;
+    });
+    
+    return sources;
   };
 
   const loadErrorLogs = async () => {
@@ -820,65 +917,73 @@ export default function AdminMonitoring() {
 
         {/* Data Import Tab */}
         <TabsContent value="data" className="space-y-4">
-          <Card>
+          {/* Unified Materials Import - Primary */}
+          <Card className="border-primary/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Materials Database Import
+                <Database className="h-5 w-5 text-primary" />
+                Import from unified_materials (External DB)
               </CardTitle>
               <CardDescription>
-                Import LCA materials from external database (4,000+ EPD records)
+                Import clean LCA materials database with full EN 15804 lifecycle stages from external Supabase
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <CardContent className="space-y-6">
+              {/* Current State */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Current Materials</CardTitle>
+                    <CardTitle className="text-sm">Current EPD Materials</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold">{materialsCount.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-primary">{epdMaterialsCount.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">records in materials_epd</p>
                   </CardContent>
                 </Card>
-                
-                {importProgress && (
-                  <>
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">Import Progress</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <Progress 
-                          value={importProgress.total > 0 ? (importProgress.imported / importProgress.total) * 100 : 0} 
-                          className="mb-2"
-                        />
-                        <p className="text-sm text-muted-foreground">
-                          {importProgress.imported} / {importProgress.total} ({importProgress.status})
-                        </p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">Failed</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-2xl font-bold text-destructive">{importProgress.failed}</p>
-                      </CardContent>
-                    </Card>
-                  </>
-                )}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Import Mode</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <RadioGroup 
+                      value={unifiedImportMode} 
+                      onValueChange={(v) => setUnifiedImportMode(v as 'replace' | 'merge')}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="replace" id="replace" />
+                        <Label htmlFor="replace" className="text-sm font-medium cursor-pointer">
+                          Replace All
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="merge" id="merge" />
+                        <Label htmlFor="merge" className="text-sm font-medium cursor-pointer">
+                          Merge (Keep Existing)
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                    {unifiedImportMode === 'replace' && (
+                      <p className="text-xs text-amber-600 mt-2">
+                        ⚠️ This will delete all existing materials before importing
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
               
+              {/* Import Button */}
               <div className="flex gap-4">
                 <Button 
-                  onClick={triggerMaterialsImport} 
-                  disabled={importLoading}
+                  onClick={triggerUnifiedMaterialsImport} 
+                  disabled={unifiedImportLoading}
                   className="gap-2"
+                  size="lg"
                 >
-                  {importLoading ? (
+                  {unifiedImportLoading ? (
                     <>
                       <RefreshCw className="h-4 w-4 animate-spin" />
-                      Importing...
+                      Importing... (2-5 mins)
                     </>
                   ) : (
                     <>
@@ -887,19 +992,156 @@ export default function AdminMonitoring() {
                     </>
                   )}
                 </Button>
-                <Button variant="outline" onClick={loadMaterialsCount}>
+                <Button variant="outline" onClick={loadEpdMaterialsCount} disabled={unifiedImportLoading}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh Count
                 </Button>
               </div>
               
-              <div className="bg-muted p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Import Notes:</h4>
+              {/* Loading Progress */}
+              {unifiedImportLoading && (
+                <Card className="border-primary/30 bg-primary/5">
+                  <CardContent className="py-6">
+                    <div className="flex items-center gap-4">
+                      <RefreshCw className="h-8 w-8 text-primary animate-spin" />
+                      <div>
+                        <p className="font-medium">Import in progress...</p>
+                        <p className="text-sm text-muted-foreground">
+                          {unifiedImportMode === 'replace' ? 'Deleting existing records and ' : ''}
+                          Fetching and importing materials from external database
+                        </p>
+                      </div>
+                    </div>
+                    <Progress className="mt-4" value={undefined} />
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Import Result */}
+              {unifiedImportResult && (
+                <Card className={unifiedImportResult.success ? 'border-green-500/50' : 'border-destructive/50'}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      {unifiedImportResult.success ? (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-destructive" />
+                      )}
+                      Import Result
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {unifiedImportResult.success ? (
+                      <>
+                        {/* Count Summary */}
+                        <div className="flex items-center gap-2 text-lg">
+                          <span className="text-muted-foreground">Previous:</span>
+                          <span className="font-bold">{unifiedImportResult.previousCount?.toLocaleString()}</span>
+                          <ArrowRight className="h-4 w-4" />
+                          <span className="text-muted-foreground">New:</span>
+                          <span className="font-bold text-primary">{unifiedImportResult.newCount?.toLocaleString()}</span>
+                        </div>
+                        
+                        {/* Detailed Stats */}
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                          {unifiedImportMode === 'replace' && unifiedImportResult.deletedExisting !== undefined && (
+                            <div className="p-3 rounded-lg bg-amber-500/10">
+                              <p className="text-2xl font-bold text-amber-600">{unifiedImportResult.deletedExisting.toLocaleString()}</p>
+                              <p className="text-xs text-muted-foreground">Deleted</p>
+                            </div>
+                          )}
+                          <div className="p-3 rounded-lg bg-green-500/10">
+                            <p className="text-2xl font-bold text-green-600">{unifiedImportResult.imported?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Imported</p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-muted">
+                            <p className="text-2xl font-bold">{unifiedImportResult.skippedDuplicates?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Duplicates</p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-muted">
+                            <p className="text-2xl font-bold">{unifiedImportResult.skippedInvalid?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Invalid</p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-destructive/10">
+                            <p className="text-2xl font-bold text-destructive">{unifiedImportResult.failed?.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">Failed</p>
+                          </div>
+                        </div>
+                        
+                        {/* Source Breakdown */}
+                        {unifiedImportResult.sources && Object.keys(unifiedImportResult.sources).length > 0 && (
+                          <div>
+                            <p className="text-sm font-medium mb-2">Source Breakdown:</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              {Object.entries(unifiedImportResult.sources).sort((a, b) => b[1] - a[1]).map(([source, count]) => (
+                                <div key={source} className="p-2 rounded bg-muted text-center">
+                                  <p className="font-bold">{count.toLocaleString()}</p>
+                                  <p className="text-xs text-muted-foreground truncate" title={source}>{source}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Data Quality */}
+                        {unifiedImportResult.dataQuality && unifiedImportResult.dataQuality.totalCount > 0 && (
+                          <div>
+                            <p className="text-sm font-medium mb-2">Data Quality Verification:</p>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs w-28">EPD URLs:</span>
+                                <Progress 
+                                  value={(unifiedImportResult.dataQuality.withEpdUrl / unifiedImportResult.dataQuality.totalCount) * 100} 
+                                  className="flex-1 h-2"
+                                />
+                                <span className="text-xs font-medium w-12 text-right">
+                                  {Math.round((unifiedImportResult.dataQuality.withEpdUrl / unifiedImportResult.dataQuality.totalCount) * 100)}%
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs w-28">Manufacturer:</span>
+                                <Progress 
+                                  value={(unifiedImportResult.dataQuality.withManufacturer / unifiedImportResult.dataQuality.totalCount) * 100} 
+                                  className="flex-1 h-2"
+                                />
+                                <span className="text-xs font-medium w-12 text-right">
+                                  {Math.round((unifiedImportResult.dataQuality.withManufacturer / unifiedImportResult.dataQuality.totalCount) * 100)}%
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs w-28">Expiry Date:</span>
+                                <Progress 
+                                  value={(unifiedImportResult.dataQuality.withExpiryDate / unifiedImportResult.dataQuality.totalCount) * 100} 
+                                  className="flex-1 h-2"
+                                />
+                                <span className="text-xs font-medium w-12 text-right">
+                                  {Math.round((unifiedImportResult.dataQuality.withExpiryDate / unifiedImportResult.dataQuality.totalCount) * 100)}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2 text-destructive">
+                        <AlertCircle className="h-5 w-5" />
+                        <p>{unifiedImportResult.error}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Info Notes */}
+              <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                <h4 className="font-medium mb-2 text-primary">Import Details:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Imports from EXTERNAL_SUPABASE_URL configured in secrets</li>
-                  <li>• Processes in batches of 100 records</li>
-                  <li>• Maps to lca_materials schema (material_name, category, embodied carbon A1-A5, etc.)</li>
-                  <li>• Duplicate entries may occur - consider clearing table first if needed</li>
+                  <li>• Imports from EXTERNAL_SUPABASE_URL (unified_materials table)</li>
+                  <li>• Full EN 15804 lifecycle stages: A1-A3, A4, A5, B1-B5, C1-C4, D</li>
+                  <li>• Processes in batches of 100 records for reliability</li>
+                  <li>• Includes EPD URLs, manufacturer data, expiry dates</li>
+                  <li>• Replace mode: Deletes all existing → imports fresh data</li>
+                  <li>• Merge mode: Keeps existing → skips duplicates</li>
                 </ul>
               </div>
             </CardContent>
