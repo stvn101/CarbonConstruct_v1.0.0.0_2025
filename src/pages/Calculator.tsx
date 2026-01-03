@@ -2744,22 +2744,21 @@ export default function Calculator() {
           {/* Right Column - Stats Panel */}
           <div className="lg:col-span-1">
             <Card className="p-4 md:p-6 lg:sticky lg:top-20 bg-slate-800 text-white shadow-lg z-40 neon-border" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
-              <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Footprint</h3>
-              <div className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-emerald-400">
-                {(calculations.total / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>
+              <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Whole Life Carbon (A-D)</h3>
+              <div className="text-3xl md:text-4xl font-bold mb-2 text-emerald-400">
+                {(calculations.total_with_benefits / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>
               </div>
-              <p className="text-[10px] text-slate-500 -mt-3 md:-mt-4 mb-3 md:mb-4">tonnes of CO₂ equivalent</p>
-              <div className="space-y-3 md:space-y-4 text-xs md:text-sm">
-                <div className="flex justify-between border-b border-slate-700 pb-2">
-                  <span className="text-slate-300">Energy (Scope 1+2)</span>
-                  <span className="font-bold">{((calculations.scope1 + calculations.scope2) / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
-                </div>
+              <p className="text-[10px] text-slate-500 mb-3 md:mb-4">Net carbon incl. Module D benefits</p>
+              
+              {/* Upfront Carbon (A1-A5) */}
+              <div className="space-y-2 text-xs md:text-sm">
+                <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider pt-2">Upfront (A1-A5)</div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Materials (A1-A3)</span>
-                  <span className="font-bold">{(calculations.scope3_materials / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
+                  <span className="font-bold">{(calculations.a1a3_product / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
                 </div>
                 {calculations.scope3_sequestration > 0 && (
-                  <div className="flex justify-between border-b border-slate-700 pb-2 bg-emerald-900/30 -mx-4 md:-mx-6 px-4 md:px-6 py-2">
+                  <div className="flex justify-between border-b border-slate-700 pb-2 bg-emerald-900/30 -mx-4 md:-mx-6 px-4 md:px-6 py-1">
                     <span className="text-emerald-300 flex items-center gap-1">
                       <Leaf className="h-3 w-3" /> Carbon Stored
                     </span>
@@ -2768,27 +2767,118 @@ export default function Calculator() {
                 )}
                 <div className="flex justify-between border-b border-slate-700 pb-2">
                   <span className="text-slate-300">Transport (A4)</span>
-                  <span className="font-bold">{(calculations.scope3_transport / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
+                  <span className="font-bold">{(calculations.a4_transport / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
                 </div>
                 <div className="flex justify-between border-b border-slate-700 pb-2">
-                  <span className="text-slate-300">On-Site (A5)</span>
-                  <span className="font-bold text-orange-400">{(calculations.scope3_a5 / 1000).toFixed(2)} <span className="text-xs">t</span></span>
+                  <span className="text-slate-300">Construction (A5)</span>
+                  <span className="font-bold text-orange-400">{(calculations.a5_construction / 1000).toFixed(2)} <span className="text-xs">t</span></span>
                 </div>
-                <div className="flex justify-between border-b border-slate-700 pb-2">
-                  <span className="text-slate-300">Commute</span>
-                  <span className="font-bold">{(calculations.scope3_commute / 1000).toFixed(2)} <span className="text-xs text-slate-400">tCO₂e</span></span>
+                <div className="flex justify-between bg-blue-900/30 -mx-4 md:-mx-6 px-4 md:px-6 py-2">
+                  <span className="text-blue-300 font-medium">Subtotal A1-A5</span>
+                  <span className="font-bold text-blue-300">{(calculations.total_upfront / 1000).toFixed(2)} <span className="text-xs">t</span></span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-300">Waste</span>
-                  <span className={`font-bold ${calculations.scope3_waste < 0 ? 'text-blue-400' : ''}`}>
-                    {(calculations.scope3_waste / 1000).toFixed(2)} <span className="text-xs text-slate-400">tCO₂e</span>
-                  </span>
+                
+                {/* Use Phase (B1-B7) */}
+                {(calculations.b1_use > 0 || calculations.b2_maintenance > 0 || calculations.b6_operational_energy > 0) && (
+                  <>
+                    <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider pt-3">Use Phase (B1-B7)</div>
+                    {calculations.b1_use > 0 && (
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-300">In-Use (B1)</span>
+                        <span className="font-bold text-amber-400">{(calculations.b1_use / 1000).toFixed(2)} <span className="text-xs">t</span></span>
+                      </div>
+                    )}
+                    {(calculations.b2_maintenance + calculations.b3_repair + calculations.b4_replacement + calculations.b5_refurbishment) > 0 && (
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-300">Maintenance (B2-B5)</span>
+                        <span className="font-bold text-amber-400">{((calculations.b2_maintenance + calculations.b3_repair + calculations.b4_replacement + calculations.b5_refurbishment) / 1000).toFixed(2)} <span className="text-xs">t</span></span>
+                      </div>
+                    )}
+                    {calculations.b6_operational_energy > 0 && (
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-300">Operational Energy (B6)</span>
+                        <span className="font-bold text-amber-400">{(calculations.b6_operational_energy / 1000).toFixed(2)} <span className="text-xs">t</span></span>
+                      </div>
+                    )}
+                    {calculations.b7_operational_water > 0 && (
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-300">Operational Water (B7)</span>
+                        <span className="font-bold text-amber-400">{(calculations.b7_operational_water / 1000).toFixed(2)} <span className="text-xs">t</span></span>
+                      </div>
+                    )}
+                    <div className="flex justify-between bg-amber-900/30 -mx-4 md:-mx-6 px-4 md:px-6 py-2">
+                      <span className="text-amber-300 font-medium">Subtotal B1-B7</span>
+                      <span className="font-bold text-amber-300">{((calculations.b1_use + calculations.b2_maintenance + calculations.b3_repair + calculations.b4_replacement + calculations.b5_refurbishment + calculations.b6_operational_energy + calculations.b7_operational_water) / 1000).toFixed(2)} <span className="text-xs">t</span></span>
+                    </div>
+                  </>
+                )}
+                
+                {/* End of Life (C1-C4) */}
+                {(calculations.c1_deconstruction + calculations.c2_transport + calculations.c3_waste_processing + calculations.c4_disposal) > 0 && (
+                  <>
+                    <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider pt-3">End of Life (C1-C4)</div>
+                    <div className="flex justify-between bg-red-900/30 -mx-4 md:-mx-6 px-4 md:px-6 py-2">
+                      <span className="text-red-300 font-medium">Subtotal C1-C4</span>
+                      <span className="font-bold text-red-300">{((calculations.c1_deconstruction + calculations.c2_transport + calculations.c3_waste_processing + calculations.c4_disposal) / 1000).toFixed(2)} <span className="text-xs">t</span></span>
+                    </div>
+                  </>
+                )}
+                
+                {/* Module D (Benefits) */}
+                {(calculations.d_recycling + calculations.d_reuse + calculations.d_energy_recovery) !== 0 && (
+                  <>
+                    <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider pt-3">Module D (Benefits)</div>
+                    <div className="flex justify-between bg-emerald-900/30 -mx-4 md:-mx-6 px-4 md:px-6 py-2">
+                      <span className="text-emerald-300 font-medium">Credits</span>
+                      <span className="font-bold text-emerald-400">{((calculations.d_recycling + calculations.d_reuse + calculations.d_energy_recovery) / 1000).toFixed(2)} <span className="text-xs">t</span></span>
+                    </div>
+                  </>
+                )}
+                
+                {/* Legacy Scope breakdowns (collapsible) */}
+                {(calculations.scope1 > 0 || calculations.scope2 > 0 || calculations.scope3_commute > 0 || calculations.scope3_waste !== 0) && (
+                  <>
+                    <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider pt-3">Other Emissions</div>
+                    {(calculations.scope1 + calculations.scope2) > 0 && (
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-300">Energy (Scope 1+2)</span>
+                        <span className="font-bold">{((calculations.scope1 + calculations.scope2) / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
+                      </div>
+                    )}
+                    {calculations.scope3_commute > 0 && (
+                      <div className="flex justify-between border-b border-slate-700 pb-2">
+                        <span className="text-slate-300">Commute</span>
+                        <span className="font-bold">{(calculations.scope3_commute / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
+                      </div>
+                    )}
+                    {calculations.scope3_waste !== 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-300">Waste</span>
+                        <span className={`font-bold ${calculations.scope3_waste < 0 ? 'text-blue-400' : ''}`}>
+                          {(calculations.scope3_waste / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span>
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+              
+              {/* Whole Life Summary */}
+              <div className="mt-4 pt-4 border-t border-slate-600 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Whole Life (A-C)</span>
+                  <span className="font-bold">{(calculations.total_whole_life / 1000).toFixed(2)} <span className="text-xs text-slate-400">t</span></span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-emerald-400 font-medium">Net Carbon (A-D)</span>
+                  <span className="font-bold text-lg text-emerald-400">{(calculations.total_with_benefits / 1000).toFixed(2)} <span className="text-xs">t</span></span>
                 </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-600">
-                <p className="text-[10px] text-slate-500 text-center">All values in tonnes CO₂ equivalent (tCO₂e)</p>
+              
+              <div className="mt-4 pt-2 border-t border-slate-700">
+                <p className="text-[10px] text-slate-500 text-center">EN 15978 Whole Life Carbon • tCO₂e</p>
               </div>
-              <div className="mt-2 pt-2 text-xs text-center text-slate-500">
+              <div className="mt-2 text-xs text-center text-slate-500">
                 {user ? '✓ Auto-save active' : 'Connecting...'}
               </div>
             </Card>
