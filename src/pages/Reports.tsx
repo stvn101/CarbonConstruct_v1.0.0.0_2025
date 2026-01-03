@@ -1347,8 +1347,8 @@ const Reports = () => {
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-3 pt-2">
-                        {/* Stage Summary */}
-                        <div className="grid grid-cols-4 gap-2 mb-4">
+                        {/* Stage Summary - EN 15978 requires Module D reported separately */}
+                        <div className="grid grid-cols-5 gap-2 mb-4">
                           <div className={`p-2 rounded text-center ${complianceResults.en15978.stages.a1a5.compliant ? 'bg-success/20' : 'bg-destructive/20'}`}>
                             <p className="text-xs font-medium">A1-A5</p>
                             <p className="text-sm font-bold">{complianceResults.en15978.stages.a1a5.value}</p>
@@ -1361,8 +1361,12 @@ const Reports = () => {
                             <p className="text-xs font-medium">C1-C4</p>
                             <p className="text-sm font-bold">{complianceResults.en15978.stages.c1c4.value}</p>
                           </div>
+                          <div className={`p-2 rounded text-center ${complianceResults.en15978.stages.moduleD.compliant ? 'bg-emerald-500/20' : 'bg-muted'}`}>
+                            <p className="text-xs font-medium">Module D</p>
+                            <p className="text-sm font-bold text-emerald-600">{complianceResults.en15978.stages.moduleD.value || '—'}</p>
+                          </div>
                           <div className={`p-2 rounded text-center ${complianceResults.en15978.stages.wholeLife.compliant ? 'bg-success/20' : 'bg-destructive/20'}`}>
-                            <p className="text-xs font-medium">Total</p>
+                            <p className="text-xs font-medium">A-C Total</p>
                             <p className="text-sm font-bold">{complianceResults.en15978.stages.wholeLife.value}</p>
                           </div>
                         </div>

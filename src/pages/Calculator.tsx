@@ -750,6 +750,35 @@ export default function Calculator() {
     };
   }, [scope1Inputs, scope2Inputs, selectedMaterials, a4TransportEmissions, commuteInputs, wasteInputs, a5Inputs, projectDetails.location, usePhaseEmissions, endOfLifeEmissions, moduleDEmissions]);
 
+  // Persist whole life carbon totals for Reports page
+  useEffect(() => {
+    const wholeLifeData = {
+      a1a3_product: calculations.a1a3_product,
+      a4_transport: calculations.a4_transport,
+      a5_construction: calculations.a5_construction,
+      b1_use: calculations.b1_use,
+      b2_maintenance: calculations.b2_maintenance,
+      b3_repair: calculations.b3_repair,
+      b4_replacement: calculations.b4_replacement,
+      b5_refurbishment: calculations.b5_refurbishment,
+      b6_operational_energy: calculations.b6_operational_energy,
+      b7_operational_water: calculations.b7_operational_water,
+      c1_deconstruction: calculations.c1_deconstruction,
+      c2_transport: calculations.c2_transport,
+      c3_waste_processing: calculations.c3_waste_processing,
+      c4_disposal: calculations.c4_disposal,
+      d_recycling: calculations.d_recycling,
+      d_reuse: calculations.d_reuse,
+      d_energy_recovery: calculations.d_energy_recovery,
+      total_upfront: calculations.total_upfront,
+      total_embodied: calculations.total_embodied,
+      total_operational: calculations.total_operational,
+      total_whole_life: calculations.total_whole_life,
+      total_with_benefits: calculations.total_with_benefits,
+    };
+    localStorage.setItem('wholeLifeCarbonTotals', JSON.stringify(wholeLifeData));
+  }, [calculations]);
+
   const addMaterialFromDb = (materialId: string, factorType: 'process' | 'hybrid' = 'hybrid') => {
     const material = dbMaterials.find(m => m.id === materialId);
     if (!material) return;
