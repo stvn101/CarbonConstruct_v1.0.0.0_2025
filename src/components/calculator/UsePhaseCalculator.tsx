@@ -275,6 +275,13 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
             <Plus className="h-3 w-3 mr-1" /> Add
           </Button>
         </div>
+        {maintenanceItems.length > 0 && (
+          <div className="flex gap-2 mb-1 text-xs text-muted-foreground px-1">
+            <div className="flex-1">Activity Type</div>
+            <div className="w-24 text-center">Area (m²)</div>
+            <div className="w-9"></div>
+          </div>
+        )}
         {maintenanceItems.map(item => (
           <div key={item.id} className="flex gap-2 mb-2 items-end">
             <div className="flex-1">
@@ -284,7 +291,12 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(MAINTENANCE_FACTORS).map(([key, val]) => (
-                    <SelectItem key={key} value={key}>{val.description}</SelectItem>
+                    <SelectItem key={key} value={key}>
+                      <span>{val.description}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        (every {val.interval}yr, {val.factor} kgCO₂e/m²)
+                      </span>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -296,6 +308,7 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
                 value={item.areaSqm}
                 onChange={(e) => setMaintenanceItems(prev => prev.map(i => i.id === item.id ? { ...i, areaSqm: parseFloat(e.target.value) || 0 } : i))}
                 className="text-foreground"
+                title="Area in square metres that this maintenance applies to"
               />
             </div>
             <Button variant="ghost" size="sm" onClick={() => setMaintenanceItems(prev => prev.filter(i => i.id !== item.id))}>
@@ -317,6 +330,13 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
             <Plus className="h-3 w-3 mr-1" /> Add
           </Button>
         </div>
+        {replacementItems.length > 0 && (
+          <div className="flex gap-2 mb-1 text-xs text-muted-foreground px-1">
+            <div className="flex-1">Component Type</div>
+            <div className="w-24 text-center">Area (m²)</div>
+            <div className="w-9"></div>
+          </div>
+        )}
         {replacementItems.map(item => (
           <div key={item.id} className="flex gap-2 mb-2 items-end">
             <div className="flex-1">
@@ -327,7 +347,10 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
                 <SelectContent>
                   {Object.entries(REPLACEMENT_COMPONENTS).map(([key, val]) => (
                     <SelectItem key={key} value={key}>
-                      {val.description} ({val.lifespan}yr life)
+                      <span>{val.description}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        ({val.lifespan}yr lifespan, {val.factor} kgCO₂e/m²)
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -340,6 +363,7 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
                 value={item.areaSqm}
                 onChange={(e) => setReplacementItems(prev => prev.map(i => i.id === item.id ? { ...i, areaSqm: parseFloat(e.target.value) || 0 } : i))}
                 className="text-foreground"
+                title="Area in square metres that this component covers"
               />
             </div>
             <Button variant="ghost" size="sm" onClick={() => setReplacementItems(prev => prev.filter(i => i.id !== item.id))}>
