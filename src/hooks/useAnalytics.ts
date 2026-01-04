@@ -9,15 +9,9 @@ interface AnalyticsEvent {
 }
 
 // Google Analytics helper - sends events to GA4
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
-}
-
 function sendToGA(eventName: string, eventData?: Record<string, unknown>) {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', eventName, eventData);
+  if (typeof window !== 'undefined' && typeof (window as { gtag?: (...args: unknown[]) => void }).gtag === 'function') {
+    (window as { gtag: (...args: unknown[]) => void }).gtag('event', eventName, eventData ?? {});
   }
 }
 
@@ -106,8 +100,9 @@ export function useAnalytics() {
       lastPageView.current = currentPath;
       
       // Send page view to GA4
-      if (window.gtag) {
-        window.gtag('config', 'G-LW6J3XSWX2', {
+      const gtag = (window as { gtag?: (...args: unknown[]) => void }).gtag;
+      if (typeof gtag === 'function') {
+        gtag('config', 'G-LW6J3XSWX2', {
           page_path: location.pathname,
           page_location: window.location.href,
         });
