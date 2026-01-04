@@ -222,11 +222,11 @@ export function EndOfLifeCalculator({ buildingSqm, onTotalsChange }: EndOfLifeCa
       </div>
 
       {/* C2: Transport Distance */}
-      <div className="mb-4">
+      <div className="bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 rounded-lg p-3 md:p-4 mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">C2</Badge>
-          <Truck className="h-4 w-4 text-red-600" />
-          <span className="text-sm font-medium">Transport to Disposal/Processing</span>
+          <Badge className="bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 hover:bg-red-200">C2</Badge>
+          <Truck className="h-4 w-4 text-red-600 dark:text-red-400" />
+          <span className="text-sm font-medium text-red-900 dark:text-red-100">Transport to Disposal/Processing</span>
         </div>
         <div className="flex items-center gap-3">
           <Input
@@ -234,41 +234,41 @@ export function EndOfLifeCalculator({ buildingSqm, onTotalsChange }: EndOfLifeCa
             placeholder="50"
             value={transportDistance}
             onChange={(e) => setTransportDistance(e.target.value)}
-            className="w-24 text-foreground"
+            className="w-24 bg-white dark:bg-background text-foreground"
           />
-          <span className="text-sm text-muted-foreground">km average distance</span>
+          <span className="text-sm text-red-700 dark:text-red-300">km average distance</span>
         </div>
       </div>
 
       {/* C3 & C4: Waste Processing & Disposal */}
-      <div className="mb-4">
+      <div className="bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 rounded-lg p-3 md:p-4 mb-4">
         <div className="flex items-center gap-2 mb-3">
-          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">C3/C4</Badge>
-          <Recycle className="h-4 w-4 text-red-600" />
-          <span className="text-sm font-medium">Waste Processing & Disposal</span>
+          <Badge className="bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 hover:bg-red-200">C3/C4</Badge>
+          <Recycle className="h-4 w-4 text-red-600 dark:text-red-400" />
+          <span className="text-sm font-medium text-red-900 dark:text-red-100">Waste Processing & Disposal</span>
         </div>
         
         <div className="space-y-4">
           {wasteFractions.map((w, index) => (
-            <div key={w.material} className="border rounded-lg p-3 bg-muted/30">
+            <div key={w.material} className="border border-red-200 dark:border-red-700 rounded-lg p-3 bg-white/50 dark:bg-red-900/30">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">{getMaterialLabel(w.material)}</span>
+                <span className="text-sm font-medium text-red-900 dark:text-red-100">{getMaterialLabel(w.material)}</span>
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
                     placeholder="0"
                     value={w.tonnes || ''}
                     onChange={(e) => updateWasteFraction(index, 'tonnes', parseFloat(e.target.value) || 0)}
-                    className="w-20 h-8 text-sm text-foreground"
+                    className="w-20 h-8 text-sm bg-white dark:bg-background text-foreground"
                   />
-                  <span className="text-xs text-muted-foreground">tonnes</span>
+                  <span className="text-xs text-red-700 dark:text-red-300">tonnes</span>
                 </div>
               </div>
               
               {w.tonnes > 0 && (
                 <div className="space-y-2 mt-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground w-20">Recycle</span>
+                    <span className="text-xs text-red-700 dark:text-red-300 w-20">Recycle</span>
                     <Slider
                       value={[w.recyclePercent]}
                       onValueChange={([v]) => updateWasteFraction(index, 'recyclePercent', v)}
@@ -276,10 +276,10 @@ export function EndOfLifeCalculator({ buildingSqm, onTotalsChange }: EndOfLifeCa
                       step={5}
                       className="flex-1"
                     />
-                    <span className="text-xs font-medium w-12 text-right text-emerald-600">{w.recyclePercent}%</span>
+                    <span className="text-xs font-medium w-12 text-right text-emerald-600 dark:text-emerald-400">{w.recyclePercent}%</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground w-20">Landfill</span>
+                    <span className="text-xs text-red-700 dark:text-red-300 w-20">Landfill</span>
                     <Slider
                       value={[w.landfillPercent]}
                       onValueChange={([v]) => updateWasteFraction(index, 'landfillPercent', v)}
@@ -287,10 +287,10 @@ export function EndOfLifeCalculator({ buildingSqm, onTotalsChange }: EndOfLifeCa
                       step={5}
                       className="flex-1"
                     />
-                    <span className="text-xs font-medium w-12 text-right text-red-600">{w.landfillPercent}%</span>
+                    <span className="text-xs font-medium w-12 text-right text-red-600 dark:text-red-400">{w.landfillPercent}%</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground w-20">Incinerate</span>
+                    <span className="text-xs text-red-700 dark:text-red-300 w-20">Incinerate</span>
                     <Slider
                       value={[w.incinerationPercent]}
                       onValueChange={([v]) => updateWasteFraction(index, 'incinerationPercent', v)}
@@ -298,7 +298,7 @@ export function EndOfLifeCalculator({ buildingSqm, onTotalsChange }: EndOfLifeCa
                       step={5}
                       className="flex-1"
                     />
-                    <span className="text-xs font-medium w-12 text-right text-orange-600">{w.incinerationPercent}%</span>
+                    <span className="text-xs font-medium w-12 text-right text-orange-600 dark:text-orange-400">{w.incinerationPercent}%</span>
                   </div>
                 </div>
               )}
