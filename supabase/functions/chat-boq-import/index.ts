@@ -96,7 +96,7 @@ Output format:
     const aiResponse = aiData.choices?.[0]?.message?.content || "";
     
     // Clean up markdown formatting
-    let cleanResponse = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+    const cleanResponse = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();
     
     try {
       const parsed = JSON.parse(cleanResponse);
