@@ -68,7 +68,7 @@ describe('PDFReport', () => {
       );
 
       // Component should render a download button
-      const button = screen.getByRole('button');
+      const button = screen.getByRole('button', { name: /download pdf/i });
       expect(button).toBeInTheDocument();
     });
 
@@ -81,7 +81,7 @@ describe('PDFReport', () => {
       );
 
       // Button should be rendered for PDF download
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
   });
 
@@ -94,7 +94,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('accepts compliance template', () => {
@@ -105,7 +105,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('accepts technical template', () => {
@@ -116,7 +116,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('accepts en15978 template', () => {
@@ -127,7 +127,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
   });
 
@@ -148,7 +148,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('renders with partial branding', () => {
@@ -164,7 +164,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('renders without branding (default CarbonConstruct)', () => {
@@ -175,7 +175,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
   });
 
@@ -189,7 +189,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('accepts showWatermark prop false', () => {
@@ -201,7 +201,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
   });
 
@@ -224,7 +224,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('handles large emission values', () => {
@@ -245,7 +245,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('handles decimal emission values', () => {
@@ -266,7 +266,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
   });
 
@@ -279,7 +279,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('handles non-compliant status', () => {
@@ -299,7 +299,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('handles mixed compliance status', () => {
@@ -319,7 +319,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
   });
 
@@ -340,7 +340,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('handles special characters in project name', () => {
@@ -359,7 +359,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
 
     it('handles long project names', () => {
@@ -378,7 +378,7 @@ describe('PDFReport', () => {
         />
       );
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /download pdf/i })).toBeInTheDocument();
     });
   });
 });

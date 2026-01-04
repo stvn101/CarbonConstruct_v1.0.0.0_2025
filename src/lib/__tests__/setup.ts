@@ -69,6 +69,17 @@ vi.mock('recharts', () => ({
   Tooltip: HiddenContent,
 }));
 
+// Mock logger to avoid errors in tests
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    error: vi.fn(),
+    critical: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 // Custom waitFor implementation
 export const waitFor = async (
   callback: () => void | Promise<void>,

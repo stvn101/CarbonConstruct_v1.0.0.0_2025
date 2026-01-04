@@ -11,7 +11,11 @@ import { ErrorBoundary } from '../ErrorBoundary';
 // Mock logger
 vi.mock('@/lib/logger', () => ({
   logger: {
-    critical: vi.fn()
+    critical: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
   }
 }));
 
