@@ -96,7 +96,7 @@ describe('useSubscriptionStatus', () => {
       await waitFor(() => {
         expect(result.current.subscribed).toBe(true);
         expect(result.current.tier_name).toBe('Pro');
-      }, { timeout: 3000 });
+      });
     });
 
     it('should include authorization header with JWT token', async () => {
@@ -110,7 +110,7 @@ describe('useSubscriptionStatus', () => {
             Authorization: 'Bearer test-token',
           },
         });
-      }, { timeout: 3000 });
+      });
     });
   });
 
@@ -142,7 +142,7 @@ describe('useSubscriptionStatus', () => {
 
       await waitFor(() => {
         expect(result.current.product_id).toBe('prod_123');
-      }, { timeout: 3000 });
+      });
     });
 
     it('should return subscription_end date', async () => {
@@ -162,7 +162,7 @@ describe('useSubscriptionStatus', () => {
 
       await waitFor(() => {
         expect(result.current.subscription_end).toBe('2025-12-31T00:00:00Z');
-      }, { timeout: 3000 });
+      });
     });
   });
 });
