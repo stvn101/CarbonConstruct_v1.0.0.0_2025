@@ -395,34 +395,34 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
       </div>
 
       {/* B6: Operational Energy */}
-      <div className="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-3">
+      <div className="mb-4 bg-orange-100 dark:bg-orange-950/60 border border-orange-300 dark:border-orange-800 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-2">
-          <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">B6</Badge>
-          <span className="text-sm font-medium dark:text-gray-900">Operational Energy (Annual)</span>
+          <Badge className="bg-orange-200 dark:bg-orange-900 text-orange-800 dark:text-orange-200 hover:bg-orange-200">B6</Badge>
+          <span className="text-sm font-medium text-orange-900 dark:text-orange-100">Operational Energy (Annual)</span>
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-700 mb-1 block">Electricity (kWh/yr)</label>
+            <label className="text-xs text-orange-700 dark:text-orange-300 mb-1 block font-medium">Electricity (kWh/yr)</label>
             <Input
               type="number"
               placeholder="0"
               value={annualElectricity}
               onChange={(e) => setAnnualElectricity(e.target.value)}
-              className="text-foreground dark:text-gray-900 dark:bg-white/80"
+              className="text-foreground bg-white dark:bg-background"
             />
           </div>
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-700 mb-1 block">Gas (GJ/yr)</label>
+            <label className="text-xs text-orange-700 dark:text-orange-300 mb-1 block font-medium">Gas (GJ/yr)</label>
             <Input
               type="number"
               placeholder="0"
               value={annualGas}
               onChange={(e) => setAnnualGas(e.target.value)}
-              className="text-foreground dark:text-gray-900 dark:bg-white/80"
+              className="text-foreground bg-white dark:bg-background"
             />
           </div>
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-700 mb-1 block">Renewable %</label>
+            <label className="text-xs text-orange-700 dark:text-orange-300 mb-1 block font-medium">Renewable %</label>
             <Input
               type="number"
               min="0"
@@ -430,26 +430,26 @@ export function UsePhaseCalculator({ buildingSqm, onTotalsChange }: UsePhaseCalc
               placeholder="0"
               value={renewablePercent}
               onChange={(e) => setRenewablePercent(e.target.value)}
-              className="text-foreground dark:text-gray-900 dark:bg-white/80"
+              className="text-foreground bg-white dark:bg-background"
             />
           </div>
         </div>
       </div>
 
       {/* B7: Operational Water */}
-      <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+      <div className="mb-4 bg-blue-100 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-800 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-2">
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">B7</Badge>
-          <span className="text-sm font-medium dark:text-gray-900">Operational Water (Annual)</span>
+          <Badge className="bg-blue-200 dark:bg-blue-900 text-blue-800 dark:text-blue-200 hover:bg-blue-200">B7</Badge>
+          <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Operational Water (Annual)</span>
         </div>
         <div>
-          <label className="text-xs text-gray-600 dark:text-gray-700 mb-1 block">Water Use (kL/yr)</label>
+          <label className="text-xs text-blue-700 dark:text-blue-300 mb-1 block font-medium">Water Use (kL/yr)</label>
           <Input
             type="number"
             placeholder="0"
             value={annualWater}
             onChange={(e) => setAnnualWater(e.target.value)}
-            className="text-foreground dark:text-gray-900 dark:bg-white/80"
+            className="text-foreground bg-white dark:bg-background"
           />
         </div>
       </div>
