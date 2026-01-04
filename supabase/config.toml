@@ -119,3 +119,6 @@ verify_jwt = true
 
 [functions.import-epic-materials]
 verify_jwt = true
+
+[functions.search-ec3-materials]
+verify_jwt = true
