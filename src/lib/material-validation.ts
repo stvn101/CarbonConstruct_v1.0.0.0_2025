@@ -183,6 +183,37 @@ export function getSourceTier(dataSource: string | null | undefined): SourceCred
 // PART 4: CONFIDENCE LEVEL DETERMINATION
 // ============================================
 
+// Data quality ratings with uncertainty percentages per your specification
+export type DataQualityRating = 'epd_verified' | 'industry_average' | 'generic_estimate';
+
+export interface DataQualityInfo {
+  rating: DataQualityRating;
+  label: string;
+  uncertaintyPercent: number;
+  description: string;
+}
+
+export const DATA_QUALITY_RATINGS: Record<DataQualityRating, DataQualityInfo> = {
+  epd_verified: {
+    rating: 'epd_verified',
+    label: 'EPD-Verified',
+    uncertaintyPercent: 5,
+    description: 'Product-specific EPD with third-party verification (±5% uncertainty)'
+  },
+  industry_average: {
+    rating: 'industry_average',
+    label: 'Industry Average',
+    uncertaintyPercent: 15,
+    description: 'Industry consensus data from ICE/ICM databases (±15% uncertainty)'
+  },
+  generic_estimate: {
+    rating: 'generic_estimate',
+    label: 'Generic Estimate',
+    uncertaintyPercent: 30,
+    description: 'Literature-based or proxy values requiring verification (±30% uncertainty)'
+  }
+};
+
 export interface MaterialValidation {
   confidenceLevel: ConfidenceLevel;
   confidenceLabel: string;
@@ -192,6 +223,7 @@ export interface MaterialValidation {
   isOutlier: boolean;
   outlierReason?: string;
   validUntil?: string;
+  dataQuality: DataQualityInfo;
 }
 
 /**
@@ -392,6 +424,16 @@ export function determineConfidenceLevel(
       break;
   }
   
+  // Determine data quality rating based on source tier and EPD status
+  let dataQuality: DataQualityInfo;
+  if (sourceTier.tier === 1 && hasValidEpdNumber && !isOutlier) {
+    dataQuality = DATA_QUALITY_RATINGS.epd_verified;
+  } else if (sourceTier.tier <= 2 && !isOutlier) {
+    dataQuality = DATA_QUALITY_RATINGS.industry_average;
+  } else {
+    dataQuality = DATA_QUALITY_RATINGS.generic_estimate;
+  }
+
   return {
     confidenceLevel,
     confidenceLabel,
@@ -400,7 +442,8 @@ export function determineConfidenceLevel(
     sourceTier: sourceTier.tier,
     isOutlier,
     outlierReason,
-    validUntil: material.expiry_date || undefined
+    validUntil: material.expiry_date || undefined,
+    dataQuality
   };
 }
 
