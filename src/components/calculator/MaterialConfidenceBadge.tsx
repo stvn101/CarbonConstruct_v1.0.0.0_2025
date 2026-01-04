@@ -12,6 +12,12 @@ interface MaterialConfidenceBadgeProps {
   validUntil?: string | null;
   outlierReason?: string;
   className?: string;
+  /** Data quality rating with uncertainty percentage */
+  dataQuality?: {
+    label: string;
+    uncertaintyPercent: number;
+    description: string;
+  };
 }
 
 const confidenceConfig: Record<ConfidenceColor, {
@@ -72,7 +78,8 @@ export function MaterialConfidenceBadge({
   dataSource,
   validUntil,
   outlierReason,
-  className
+  className,
+  dataQuality
 }: MaterialConfidenceBadgeProps) {
   const config = confidenceConfig[color];
   const Icon = config.icon;
@@ -130,6 +137,17 @@ export function MaterialConfidenceBadge({
             <p className="text-xs text-red-600">
               <span className="font-medium">⚠️ Issue:</span> {outlierReason}
             </p>
+          )}
+          
+          {dataQuality && (
+            <div className="border-t pt-2 mt-2">
+              <p className="text-xs font-medium">
+                Data Quality: {dataQuality.label}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Uncertainty: ±{dataQuality.uncertaintyPercent}%
+              </p>
+            </div>
           )}
           
           <p className="text-xs font-medium text-primary mt-2">{config.useCase}</p>
