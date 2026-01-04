@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
-import DOMPurify from "dompurify";
+import { sanitizeCss } from "@/lib/dompurify-config";
 
 import { cn } from "@/lib/utils";
 
@@ -59,6 +59,14 @@ const ChartContainer = React.forwardRef<
 });
 ChartContainer.displayName = "Chart";
 
+/**
+ * ChartStyle Component
+ * 
+ * Generates CSS variables for chart theming.
+ * XSS Protection: Uses sanitizeCss from dompurify-config for defense-in-depth.
+ * 
+ * @see src/lib/dompurify-config.ts for sanitization configuration
+ */
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(([_, config]) => config.theme || config.color);
 
@@ -66,13 +74,9 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null;
   }
 
-  return (
-    // XSS Protection: Sanitize CSS output for defense-in-depth
-    <style
-      dangerouslySetInnerHTML={{
-        __html: DOMPurify.sanitize(Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
+  const cssContent = Object.entries(THEMES)
+    .map(
+      ([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
@@ -82,8 +86,13 @@ ${colorConfig
   .join("\n")}
 }
 `,
-          )
-          .join("\n"), { FORCE_BODY: true })
+    )
+    .join("\n");
+
+  return (
+    <style
+      dangerouslySetInnerHTML={{
+        __html: sanitizeCss(cssContent)
       }}
     />
   );

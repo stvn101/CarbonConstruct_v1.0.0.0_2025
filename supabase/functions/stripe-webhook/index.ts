@@ -14,12 +14,23 @@ const logStep = (step: string, details?: any) => {
 };
 
 /**
- * Calculate GST from total amount using decimal.js for precision
- * Australian GST is 10% - GST = Total / 11
+ * Calculate GST from total amount using Decimal.js for precision
+ * 
+ * Australian GST Calculation per ATO GSTR 2001/1:
+ * - Formula: GST = Total ÷ 11 (tax-inclusive method for 10% GST)
+ * - Rounding: ROUND_HALF_UP to nearest cent
+ * - Precision: Decimal.js prevents JavaScript floating-point errors
+ * 
+ * @see GST_COMPLIANCE.md
+ * @see https://www.ato.gov.au/law/view/document?docid=GST/GSTR20011/NAT/ATO/00001
+ * 
+ * @param totalAmountCents - Total amount in cents (GST-inclusive)
+ * @returns Object with grossCents, gstCents, and netCents
  */
 function calculateGST(totalAmountCents: number): { grossCents: number; gstCents: number; netCents: number } {
   const gross = new Decimal(totalAmountCents);
-  const gst = gross.dividedBy(11).round(); // GST = Total / 11, rounded to nearest cent
+  // Explicitly use ROUND_HALF_UP per ATO GSTR 2001/1 rounding requirements
+  const gst = gross.dividedBy(11).toDecimalPlaces(0, Decimal.ROUND_HALF_UP);
   const net = gross.minus(gst);
   
   return {
