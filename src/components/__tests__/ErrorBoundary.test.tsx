@@ -11,7 +11,11 @@ import { ErrorBoundary } from '../ErrorBoundary';
 // Mock logger
 vi.mock('@/lib/logger', () => ({
   logger: {
-    critical: vi.fn()
+    critical: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
   }
 }));
 
@@ -212,7 +216,7 @@ describe('ErrorBoundary', () => {
 
     it('should handle non-Error objects thrown', () => {
       const ThrowNonError = () => {
-        throw 'string error'; // eslint-disable-line no-throw-literal
+        throw 'string error';  
       };
 
       render(

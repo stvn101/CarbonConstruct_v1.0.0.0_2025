@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
         }
         
         // Parse GWP - try primary column, then fallback columns
-        let gwpTotal = parseNumber(row[cols.gwpTotal]);
+        const gwpTotal = parseNumber(row[cols.gwpTotal]);
         
         // Skip if no valid GWP value
         if (gwpTotal === null || gwpTotal <= 0) {

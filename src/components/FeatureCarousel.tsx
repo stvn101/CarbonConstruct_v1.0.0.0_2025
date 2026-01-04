@@ -69,8 +69,20 @@ export function FeatureCarousel() {
   // Track current slide
   useEffect(() => {
     if (!api) return;
-    setCurrent(api.selectedScrollSnap());
-    api.on("select", () => setCurrent(api.selectedScrollSnap()));
+    
+    const onSelect = () => {
+      setCurrent(api.selectedScrollSnap());
+    };
+    
+    // Set initial value
+    onSelect();
+    
+    // Listen for changes
+    api.on("select", onSelect);
+    
+    return () => {
+      api.off("select", onSelect);
+    };
   }, [api]);
 
   // Auto-play logic (5s interval, pause on hover)

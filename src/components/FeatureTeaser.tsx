@@ -19,23 +19,19 @@ const overlays: Overlay[] = [
 ];
 
 export const FeatureTeaser = () => {
-  // Defensive navigation - useNavigate may fail if Router context is unavailable during edge cases
-  let navigate: ReturnType<typeof useNavigate> | null = null;
-  try {
-    navigate = useNavigate();
-  } catch {
-    // Router context not available - will use fallback
-  }
-
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeOverlays, setActiveOverlays] = useState<Overlay[]>([]);
   const [isVisible, setIsVisible] = useState(false);
+  
+  // Always call hooks unconditionally - handle errors in the callback instead
+  const navigate = useNavigate();
 
   const handleNavigate = useCallback(() => {
-    if (navigate) {
+    try {
       navigate("/calculator");
-    } else {
+    } catch {
+      // Fallback if navigation fails
       window.location.href = "/calculator";
     }
   }, [navigate]);

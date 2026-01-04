@@ -254,7 +254,7 @@ export const useComplianceCheck = (
     const nabersBaseEnergy = 100;
     const energyIntensity = (totals.scope2 / projectSize);
     const performanceRatio = energyIntensity > 0 ? nabersBaseEnergy / energyIntensity : 0;
-    let nabersRating = Math.min(6, Math.max(0, Math.round(performanceRatio * 3)));
+    const nabersRating = Math.min(6, Math.max(0, Math.round(performanceRatio * 3)));
     
     const nabersRequirements: ComplianceRequirement[] = [
       {
