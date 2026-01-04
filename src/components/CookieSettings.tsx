@@ -73,8 +73,8 @@ export function CookieSettings() {
       localStorage.setItem(COOKIE_CONSENT_KEY, consentValue);
 
       // Update Google Analytics consent
-      if (typeof window !== "undefined" && (window as any).gtag) {
-        (window as any).gtag("consent", "update", {
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("consent", "update", {
           analytics_storage: preferences.analytics ? "granted" : "denied",
           ad_storage: preferences.marketing ? "granted" : "denied",
         });

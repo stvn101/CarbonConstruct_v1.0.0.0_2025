@@ -15,21 +15,32 @@ interface FloatingParticlesProps {
   className?: string;
 }
 
+// Generate random particles outside of component to satisfy purity rules
+const generateParticles = (count: number): Particle[] => {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 4 + 2,
+    duration: Math.random() * 20 + 15,
+    delay: Math.random() * 5,
+  }));
+};
+
+// Generate random x offset outside of component
+const generateXOffset = () => Math.random() * 20 - 10;
+
 export function FloatingParticles({ count = 20, className = "" }: FloatingParticlesProps) {
-  const particles = useMemo<Particle[]>(() => {
-    return Array.from({ length: count }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 4 + 2,
-      duration: Math.random() * 20 + 15,
-      delay: Math.random() * 5,
-    }));
-  }, [count]);
+  const particles = useMemo<Particle[]>(() => generateParticles(count), [count]);
+
+  // Pre-compute random x offsets for animation
+  const xOffsets = useMemo(() => {
+    return particles.map(() => generateXOffset());
+  }, [particles]);
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
-      {particles.map((particle) => (
+      {particles.map((particle, index) => (
         <motion.div
           key={particle.id}
           className="absolute rounded-full bg-primary/20"
@@ -41,7 +52,7 @@ export function FloatingParticles({ count = 20, className = "" }: FloatingPartic
           }}
           animate={{
             y: [0, -30, 0],
-            x: [0, Math.random() * 20 - 10, 0],
+            x: [0, xOffsets[index], 0],
             opacity: [0.2, 0.6, 0.2],
             scale: [1, 1.2, 1],
           }}
