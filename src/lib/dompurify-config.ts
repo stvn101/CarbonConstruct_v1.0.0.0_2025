@@ -206,13 +206,9 @@ export function sanitizeUrl(url: string): string {
   ) {
     return trimmed;
   }
-  
-  // For other cases, use DOMPurify's URL sanitization
-  return DOMPurify.sanitize(trimmed, { 
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-    KEEP_CONTENT: true,
-  });
+
+  // For all other cases, treat the URL as unsafe and return an empty string
+  return '';
 }
 
 /**
