@@ -150,11 +150,13 @@ export function useEcoCompliance(
     setError(null);
 
     try {
-      // Fetch project materials from unified_calculations
+      // Fetch project materials from unified_calculations (get latest by updated_at)
       const { data: calculations, error: calcError } = await supabase
         .from('unified_calculations')
         .select('materials')
         .eq('project_id', currentProject.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (calcError) throw calcError;
