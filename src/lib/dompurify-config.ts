@@ -71,7 +71,7 @@ export function sanitizeHtml(html: string): string {
     // Keep type information for TypeScript
     RETURN_DOM: false,
     RETURN_DOM_FRAGMENT: false,
-    // Allow data URIs only for images
+    // Disallow data-* attributes and data: URIs for stricter XSS protection
     ALLOW_DATA_ATTR: false,
     // Safe defaults
     KEEP_CONTENT: true,
