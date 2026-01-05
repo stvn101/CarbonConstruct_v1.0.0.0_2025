@@ -93,6 +93,17 @@ export const useUnifiedCalculations = () => {
   const [validationResult, setValidationResult] = useState<UnitValidationResult | null>(null);
   const { currentProject } = useProject();
 
+  const safeParseJson = <T,>(value: string, fallback: T, label: string): T => {
+    try {
+      return JSON.parse(value) as T;
+    } catch (error) {
+      logger.warn('UnifiedCalculations:parseJson', `Failed to parse ${label}, using fallback`, {
+        error
+      });
+      return fallback;
+    }
+  };
+
   const fetchUnifiedCalculations = async () => {
     if (!currentProject?.id) {
       setError(null);
@@ -138,7 +149,8 @@ export const useUnifiedCalculations = () => {
         // Transform fuel_inputs object to array - with better parsing
         const fuelInputs: FuelInput[] = [];
         const fuelData = calcData.fuel_inputs;
-        const parsedFuelData = typeof fuelData === 'string' ? JSON.parse(fuelData) : fuelData;
+        const parsedFuelData =
+          typeof fuelData === 'string' ? safeParseJson(fuelData, {}, 'fuel_inputs') : fuelData;
         
         if (parsedFuelData && typeof parsedFuelData === 'object' && !Array.isArray(parsedFuelData)) {
           // Emission factors for different fuel types (kgCO2e/L)
@@ -170,7 +182,10 @@ export const useUnifiedCalculations = () => {
         // Transform electricity_inputs object to array - with better parsing
         const electricityInputs: ElectricityInput[] = [];
         const elecData = calcData.electricity_inputs;
-        const parsedElecData = typeof elecData === 'string' ? JSON.parse(elecData) : elecData;
+        const parsedElecData =
+          typeof elecData === 'string'
+            ? safeParseJson(elecData, {}, 'electricity_inputs')
+            : elecData;
         
         if (parsedElecData && typeof parsedElecData === 'object' && !Array.isArray(parsedElecData)) {
           // Australian grid emission factor (kgCO2e/kWh)
@@ -195,7 +210,10 @@ export const useUnifiedCalculations = () => {
         // Transform transport_inputs object to array - with better parsing
         const transportInputs: TransportInput[] = [];
         const transData = calcData.transport_inputs;
-        const parsedTransData = typeof transData === 'string' ? JSON.parse(transData) : transData;
+        const parsedTransData =
+          typeof transData === 'string'
+            ? safeParseJson(transData, {}, 'transport_inputs')
+            : transData;
         
         // Transport emission factors (kgCO2e/km or kgCO2e/t-km)
         const transportFactors: Record<string, number> = {
