@@ -183,6 +183,8 @@ export function sanitizeUrl(url: string): string {
     'vbscript:',
     'file:',
     'about:',
+    'blob:',
+    'filesystem:',
   ];
   
   const lowerUrl = trimmed.toLowerCase();
