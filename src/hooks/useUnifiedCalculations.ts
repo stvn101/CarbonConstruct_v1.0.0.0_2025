@@ -232,7 +232,8 @@ export const useUnifiedCalculations = () => {
         
         if (parsedTransData && typeof parsedTransData === 'object' && !Array.isArray(parsedTransData)) {
           // First check for A4 transport items saved from TransportCalculator
-          const a4Items = parsedTransData.a4_transport_items;
+          const transDataRecord = parsedTransData as Record<string, unknown>;
+          const a4Items = transDataRecord.a4_transport_items;
           if (Array.isArray(a4Items)) {
             a4Items.forEach((item: any) => {
               if (item.emissions > 0) {
@@ -248,7 +249,7 @@ export const useUnifiedCalculations = () => {
           }
           
           // Then process commute/other transport inputs
-          Object.entries(parsedTransData).forEach(([mode, value]) => {
+          Object.entries(transDataRecord).forEach(([mode, value]) => {
             // Skip the A4 transport items array and total
             if (mode === 'a4_transport_items' || mode === 'a4_total_emissions') return;
             
