@@ -80,11 +80,13 @@ export const TRANSPORT_MODES: TransportMode[] = [
 
 // Australian postcode regions with major supply hubs
 export const REGIONS: { id: string; name: string; state: string; postcodes: string }[] = [
-  // NSW
-  { id: 'sydney_cbd', name: 'Sydney CBD', state: 'NSW', postcodes: '2000-2010' },
-  { id: 'sydney_west', name: 'Western Sydney', state: 'NSW', postcodes: '2140-2200' },
-  { id: 'sydney_north', name: 'Northern Sydney', state: 'NSW', postcodes: '2060-2090' },
-  { id: 'sydney_south', name: 'Southern Sydney', state: 'NSW', postcodes: '2200-2234' },
+  // NSW - Sydney Metro (expanded for better coverage)
+  { id: 'sydney_cbd', name: 'Sydney CBD', state: 'NSW', postcodes: '2000-2020' },
+  { id: 'sydney_inner_west', name: 'Sydney Inner West', state: 'NSW', postcodes: '2021-2050' },
+  { id: 'sydney_north', name: 'Northern Sydney', state: 'NSW', postcodes: '2060-2099' },
+  { id: 'sydney_northwest', name: 'Sydney North West', state: 'NSW', postcodes: '2100-2139' },
+  { id: 'sydney_west', name: 'Western Sydney', state: 'NSW', postcodes: '2140-2199' },
+  { id: 'sydney_south', name: 'Southern Sydney', state: 'NSW', postcodes: '2200-2249' },
   { id: 'newcastle', name: 'Newcastle', state: 'NSW', postcodes: '2280-2320' },
   { id: 'wollongong', name: 'Wollongong', state: 'NSW', postcodes: '2500-2530' },
   { id: 'central_coast', name: 'Central Coast', state: 'NSW', postcodes: '2250-2263' },
@@ -132,10 +134,15 @@ export const REGIONS: { id: string; name: string; state: string; postcodes: stri
 // Pre-calculated distances between major regions (km)
 // Based on road distances for typical construction material routes
 export const TRANSPORT_ROUTES: TransportRoute[] = [
-  // Sydney internal
-  { id: 'syd_cbd_west', from_region: 'sydney_cbd', to_region: 'sydney_west', distance_km: 35, default_mode: 'rigid_truck_heavy' },
-  { id: 'syd_cbd_north', from_region: 'sydney_cbd', to_region: 'sydney_north', distance_km: 20, default_mode: 'rigid_truck_heavy' },
-  { id: 'syd_cbd_south', from_region: 'sydney_cbd', to_region: 'sydney_south', distance_km: 25, default_mode: 'rigid_truck_heavy' },
+  // Sydney internal (comprehensive metro routes)
+  { id: 'syd_cbd_inner_west', from_region: 'sydney_cbd', to_region: 'sydney_inner_west', distance_km: 8, default_mode: 'rigid_truck_heavy' },
+  { id: 'syd_cbd_west', from_region: 'sydney_cbd', to_region: 'sydney_west', distance_km: 28, default_mode: 'rigid_truck_heavy' },
+  { id: 'syd_cbd_north', from_region: 'sydney_cbd', to_region: 'sydney_north', distance_km: 15, default_mode: 'rigid_truck_heavy' },
+  { id: 'syd_cbd_northwest', from_region: 'sydney_cbd', to_region: 'sydney_northwest', distance_km: 22, default_mode: 'rigid_truck_heavy' },
+  { id: 'syd_cbd_south', from_region: 'sydney_cbd', to_region: 'sydney_south', distance_km: 20, default_mode: 'rigid_truck_heavy' },
+  { id: 'syd_inner_west_west', from_region: 'sydney_inner_west', to_region: 'sydney_west', distance_km: 18, default_mode: 'rigid_truck_heavy' },
+  { id: 'syd_north_northwest', from_region: 'sydney_north', to_region: 'sydney_northwest', distance_km: 15, default_mode: 'rigid_truck_heavy' },
+  { id: 'syd_west_south', from_region: 'sydney_west', to_region: 'sydney_south', distance_km: 25, default_mode: 'rigid_truck_heavy' },
   
   // Sydney to regional NSW
   { id: 'syd_newcastle', from_region: 'sydney_cbd', to_region: 'newcastle', distance_km: 160, default_mode: 'articulated_truck' },
@@ -256,12 +263,14 @@ export function estimateDistanceByPostcodes(
   
   if (!fromRegion || !toRegion) {
     // Estimate based on postcode difference for unknown postcodes
+    // Use more realistic estimation: ~0.15km per postcode unit for metro areas
     const diff = Math.abs(parseInt(fromPostcode) - parseInt(toPostcode));
-    return { distance_km: Math.max(50, diff * 0.5), estimated: true };
+    const estimatedKm = Math.max(20, Math.min(diff * 0.15, 300));
+    return { distance_km: Math.round(estimatedKm), estimated: true };
   }
   
   if (fromRegion.id === toRegion.id) {
-    return { distance_km: 15, estimated: false }; // Same region
+    return { distance_km: 10, estimated: false }; // Same region - shorter default
   }
   
   const route = findRoute(fromRegion.id, toRegion.id);
@@ -269,9 +278,11 @@ export function estimateDistanceByPostcodes(
     return { distance_km: route.distance_km, route, estimated: false };
   }
   
-  // Estimate based on state
+  // Estimate based on state - use more accurate metro/regional estimates
   if (fromRegion.state === toRegion.state) {
-    return { distance_km: 150, estimated: true }; // Same state, no direct route
+    // Same state but no direct route - estimate based on typical distances
+    // Metro areas within same state are typically 30-80km apart
+    return { distance_km: 60, estimated: true };
   }
   
   // Different states - estimate based on typical interstate distances
