@@ -102,41 +102,60 @@ export function sanitizeHtml(html: string): string {
  * ```
  */
 export function sanitizeCss(css: string): string {
-  // For CSS content, we use a more permissive configuration
-  // since we're primarily dealing with CSS variables and chart styles
-  // DOMPurify will strip any JavaScript or dangerous patterns
-  
-  // Remove any potential script tags or event handlers that might have been
-  // embedded in CSS (defense in depth)
-  let sanitized = css
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+\s*=/gi, '')
-    .replace(/expression\s*\(/gi, '');
-  
-  // Use DOMPurify to sanitize any HTML-like content
-  // This handles edge cases where HTML might be mixed with CSS
-  sanitized = DOMPurify.sanitize(sanitized, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-    KEEP_CONTENT: true,
-    RETURN_DOM: false,
-    RETURN_DOM_FRAGMENT: false,
-    ALLOW_DATA_ATTR: false,
-    SANITIZE_DOM: true,
-  });
-  
-  // Additional CSS-specific sanitization
+  // For CSS content, delegate sanitization to DOMPurify's built-in
+  // CSS sanitizer by using a temporary <style> element. This avoids
+  // brittle regex-based filtering and handles obfuscated payloads.
+
+  // In non-browser environments (e.g. SSR), fall back to a conservative,
+  // minimal pattern removal instead of attempting DOM-based sanitization.
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    let fallback = css;
+
+    // Remove @import to prevent loading external stylesheets
+    fallback = fallback.replace(/@import\s+[^;]+;?/gi, '');
+
+    // Strip obvious expression() usages
+    fallback = fallback.replace(/expression\s*\([^)]*\)/gi, '');
+
+    // Neutralise javascript: URLs inside url(...)
+    fallback = fallback.replace(
+      /url\(\s*(['"])?\s*javascript:[^)]*\)/gi,
+      'url()',
+    );
+
+    // Remove legacy behavior and -moz-binding properties
+    fallback = fallback.replace(/behavior\s*:[^;]*;?/gi, '');
+    fallback = fallback.replace(/-moz-binding\s*:[^;]*;?/gi, '');
+
+    return fallback;
+  }
+
+  // Browser path: use a real <style> element so DOMPurify can apply
+  // its CSS sanitization logic.
+  const container = document.createElement('div');
+  const styleElement = document.createElement('style');
+  styleElement.textContent = css;
+  container.appendChild(styleElement);
+
+  const sanitizedContainer = DOMPurify.sanitize(container, {
+    RETURN_DOM: true,
+    WHOLE_DOCUMENT: false,
+  }) as HTMLElement;
+
+  const sanitizedStyle = sanitizedContainer.querySelector('style');
+  let sanitizedCss = sanitizedStyle?.textContent ?? '';
+
+  // Additional CSS-specific hardening (defense in depth)
   // Remove @import to prevent loading external stylesheets
-  sanitized = sanitized.replace(/@import\s+/gi, '');
-  
+  sanitizedCss = sanitizedCss.replace(/@import\s+[^;]+;?/gi, '');
+
   // Remove behavior properties (IE-specific XSS vector)
-  sanitized = sanitized.replace(/behavior\s*:/gi, '');
-  
+  sanitizedCss = sanitizedCss.replace(/behavior\s*:[^;]*;?/gi, '');
+
   // Remove -moz-binding (Firefox XSS vector)
-  sanitized = sanitized.replace(/-moz-binding\s*:/gi, '');
-  
-  return sanitized;
+  sanitizedCss = sanitizedCss.replace(/-moz-binding\s*:[^;]*;?/gi, '');
+
+  return sanitizedCss;
 }
 
 /**
