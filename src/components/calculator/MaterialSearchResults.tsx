@@ -1,4 +1,4 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChainedScrollArea } from "@/components/ui/chained-scroll-area";
 import { Button } from "@/components/ui/button";
 import { Plus, Database, FlaskConical, RefreshCcw, Info, MapPin, AlertTriangle, Clock, Scale, Filter } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -214,7 +214,7 @@ export function MaterialSearchResults({
             <LCAMethodologyInfo />
           </div>
         </div>
-        <ScrollArea className="h-72 border rounded-lg bg-background">
+        <ChainedScrollArea className="h-72 border rounded-lg bg-background">
           <div className="p-2 space-y-1">
           {groupedMaterials.map(({ category, items }) => (
             <div key={category}>
@@ -433,7 +433,7 @@ export function MaterialSearchResults({
             </div>
           ))}
           </div>
-        </ScrollArea>
+        </ChainedScrollArea>
       </div>
     </TooltipProvider>
   );

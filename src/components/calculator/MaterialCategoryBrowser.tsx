@@ -1,5 +1,5 @@
-
 import { Button } from "@/components/ui/button";
+import { ChainedScrollArea } from "@/components/ui/chained-scroll-area";
 import { 
   Package, Layers, Box, Hammer, TreePine, Thermometer, Square, Grid3X3, 
   Droplets, Paintbrush, Shield, Leaf, Building, Wrench, Zap, CircleDot,
@@ -86,7 +86,7 @@ export function MaterialCategoryBrowser({
         </span>
       </div>
       
-      <div className="max-h-[280px] md:max-h-[240px] overflow-y-auto">
+      <ChainedScrollArea className="max-h-[280px] md:max-h-[240px]">
         <div className="flex flex-wrap gap-1.5 md:gap-2 pr-4 pb-2">
           {allCategories.map(({ category, count }) => {
             const Icon = CATEGORY_ICONS[category] || Package;
@@ -127,7 +127,7 @@ export function MaterialCategoryBrowser({
             </Button>
           )}
         </div>
-      </div>
+      </ChainedScrollArea>
     </div>
   );
 }
