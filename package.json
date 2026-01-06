@@ -7,10 +7,7 @@
   "author": "CarbonConstruct Team",
   "license": "UNLICENSED",
   "overrides": {
-    "scheduler": "0.23.2",
-    "html2pdf.js": {
-      "jspdf": "^4.0.0"
-    }
+    "scheduler": "0.23.2"
   },
   "scripts": {
     "dev": "vite",
