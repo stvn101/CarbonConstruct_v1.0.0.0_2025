@@ -1759,9 +1759,9 @@ export default function Calculator() {
 
                 {/* Materials Section */}
                 <Card variant="glass" className="p-4 md:p-6 glass-glow-featured neon-border">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 md:mb-4">
+                  <div className="flex flex-col gap-3 mb-3 md:mb-4">
                     <h3 className="font-bold text-base md:text-lg text-foreground">Materials (Upfront A1-A3)</h3>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {/* Export Materials Button */}
                       {selectedMaterials.length > 0 && (
                         <Button 
