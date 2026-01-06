@@ -725,8 +725,12 @@ All colors MUST be HSL.
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Carbon Surface - Rich dark gradient background for glass sections */
+/* Carbon Surface - Themed background for glass sections */
 .carbon-surface {
+  background: hsl(var(--muted));
+}
+
+.dark .carbon-surface {
   background: linear-gradient(135deg, hsl(220 20% 18%), hsl(220 25% 22%));
 }
 
