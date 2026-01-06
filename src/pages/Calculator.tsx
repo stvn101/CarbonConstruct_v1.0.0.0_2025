@@ -1767,7 +1767,7 @@ export default function Calculator() {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 text-xs md:text-sm"
+                          className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:text-emerald-800 dark:hover:text-emerald-200 text-xs md:text-sm"
                           onClick={() => {
                             const headers = ['Name', 'Category', 'Quantity', 'Unit', 'Factor (kgCO2e)', 'Emissions (tCO2e)', 'Source', 'EPD Number', 'Manufacturer', 'A1-A3', 'A4', 'A5', 'Data Quality'];
                             const rows = selectedMaterials.map(m => [
@@ -1805,7 +1805,7 @@ export default function Calculator() {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 text-xs md:text-sm"
+                              className="bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:text-blue-800 dark:hover:text-blue-200 text-xs md:text-sm"
                             >
                               <Scale className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                               Compare
@@ -1842,7 +1842,7 @@ export default function Calculator() {
                               variant="outline" 
                               size="sm" 
                               onClick={downloadCSVTemplate}
-                              className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 text-xs px-2"
+                              className="bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/50 hover:text-amber-800 dark:hover:text-amber-200 text-xs px-2"
                             >
                               <FileDown className="h-3 w-3 md:h-4 md:w-4" />
                             </Button>
@@ -1853,7 +1853,7 @@ export default function Calculator() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => csvInputRef.current?.click()}
-                          className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 text-xs md:text-sm"
+                          className="bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/50 hover:text-amber-800 dark:hover:text-amber-200 text-xs md:text-sm"
                         >
                           <FileUp className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                           <span className="hidden md:inline">Import CSV</span>
@@ -1866,8 +1866,8 @@ export default function Calculator() {
                                 size="sm" 
                                 onClick={() => setShowImportHistory(!showImportHistory)}
                                 className={`px-2 text-xs ${showImportHistory 
-                                  ? 'bg-amber-100 text-amber-800 border-amber-300' 
-                                  : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'}`}
+                                  ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700' 
+                                  : 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/50 hover:text-amber-800 dark:hover:text-amber-200'}`}
                               >
                                 <History className="h-3 w-3 md:h-4 md:w-4" />
                               </Button>
@@ -1891,8 +1891,8 @@ export default function Calculator() {
                           }}
                           disabled={isSyncing}
                           className={`text-xs md:text-sm ${cloudSyncEnabled 
-                            ? 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100' 
-                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                            ? 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800 hover:bg-sky-100 dark:hover:bg-sky-900/50 hover:text-sky-800 dark:hover:text-sky-200' 
+                            : 'bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-200'}`}
                         >
                           {isSyncing ? (
                             <Loader2 className="h-3 w-3 md:h-4 md:w-4 mr-1 animate-spin" />
@@ -1919,7 +1919,7 @@ export default function Calculator() {
                         variant="outline" 
                         size="sm" 
                         onClick={addCustomMaterial}
-                        className="bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 text-xs md:text-sm"
+                        className="bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/50 hover:text-purple-800 dark:hover:text-purple-200 text-xs md:text-sm"
                       >
                         <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                         Custom
@@ -2771,8 +2771,8 @@ export default function Calculator() {
           </div>
 
           {/* Right Column - Stats Panel */}
-          <div className="lg:col-span-1">
-            <Card className="p-4 md:p-6 lg:sticky lg:top-20 bg-slate-800 text-white shadow-lg z-40 neon-border" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
+          <div className="lg:col-span-1 relative">
+            <Card className="p-4 md:p-6 sticky top-4 lg:top-20 bg-slate-800 text-white shadow-lg z-40 neon-border" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
               <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Whole Life Carbon (A-D)</h3>
               <div className="text-3xl md:text-4xl font-bold mb-2 text-emerald-400">
                 {(calculations.total_with_benefits / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>
