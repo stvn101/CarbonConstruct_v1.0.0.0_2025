@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu, Loader2, RefreshCw, CheckCheck, History, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
-import html2pdf from "html2pdf.js";
+import secureHtml2Pdf from "@/lib/secure-html-to-pdf";
 import { sanitizeHtml } from "@/lib/dompurify-config";
 import { useMaterialsDatabaseStats, MaterialsDatabaseStats, OutlierMaterial, CategoryStats } from "@/hooks/useMaterialsDatabaseStats";
 import { supabase } from "@/integrations/supabase/client";
@@ -568,7 +568,7 @@ const MaterialVerificationReport = () => {
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
       };
 
-      await html2pdf().set(opt).from(tempDiv).save();
+      await secureHtml2Pdf().set(opt).from(tempDiv).save();
       
       // Clean up
       document.body.removeChild(tempDiv);
