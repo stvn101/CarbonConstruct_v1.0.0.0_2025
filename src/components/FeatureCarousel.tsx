@@ -113,10 +113,10 @@ export function FeatureCarousel() {
       onMouseLeave={() => setIsPaused(false)}
     >
       <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-white">
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-foreground dark:text-white">
           Powerful Tools for Carbon Assessment
         </h2>
-        <p className="text-white/70">
+        <p className="text-muted-foreground dark:text-white/70">
           Everything you need for professional construction carbon reporting
         </p>
       </div>
@@ -134,7 +134,8 @@ export function FeatureCarousel() {
             <CarouselItem key={index} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
               <Card 
                 className={cn(
-                  "h-full glass-dark border transition-all duration-500 relative overflow-hidden group",
+                  "h-full border transition-all duration-500 relative overflow-hidden group",
+                  "bg-card/95 dark:bg-card/80 backdrop-blur-sm",
                   isInView ? "animate-slide-up opacity-100" : "opacity-0 translate-y-8",
                   feature.accentColor,
                   "hover:shadow-glass-hover hover:-translate-y-1"
@@ -145,7 +146,7 @@ export function FeatureCarousel() {
                 }}
               >
                 {/* Gradient overlay */}
-                <div className={cn("absolute inset-0 opacity-50", feature.gradient)} />
+                <div className={cn("absolute inset-0 opacity-30 dark:opacity-50", feature.gradient)} />
                 
                 {/* Shimmer effect on hover */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
@@ -168,17 +169,17 @@ export function FeatureCarousel() {
                   >
                     <feature.icon className={cn("h-7 w-7", feature.iconColor)} />
                   </div>
-                  <CardTitle className="text-lg text-white">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg text-card-foreground">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <p className="text-sm text-white/70">{feature.description}</p>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </CardContent>
               </Card>
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="hidden sm:flex -left-4 glass-dark border-white/20 text-white hover:bg-white/10" />
-        <CarouselNext className="hidden sm:flex -right-4 glass-dark border-white/20 text-white hover:bg-white/10" />
+        <CarouselPrevious className="hidden sm:flex -left-4 bg-card border-border text-foreground hover:bg-muted" />
+        <CarouselNext className="hidden sm:flex -right-4 bg-card border-border text-foreground hover:bg-muted" />
       </Carousel>
 
       {/* Controls: Dot indicators + Pause/Play button */}
@@ -191,8 +192,8 @@ export function FeatureCarousel() {
               className={cn(
                 "h-2 rounded-full transition-all duration-300",
                 current === index 
-                  ? "w-6 bg-white" 
-                  : "w-2 bg-white/30 hover:bg-white/50"
+                  ? "w-6 bg-primary" 
+                  : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
               )}
               onClick={() => api?.scrollTo(index)}
             />
@@ -201,7 +202,7 @@ export function FeatureCarousel() {
         <button
           onClick={() => setIsPaused(!isPaused)}
           aria-label={isPaused ? "Resume carousel auto-play" : "Pause carousel auto-play"}
-          className="p-2 rounded-full glass-dark border border-white/20 hover:bg-white/10 transition-colors text-white"
+          className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors text-foreground"
         >
           {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
         </button>
