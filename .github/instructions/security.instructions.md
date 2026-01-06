@@ -190,6 +190,41 @@ await logSecurityEvent(supabase, {
 });
 ```
 
+## PDF Generation Security
+
+### NEVER Accept File Paths from Users
+
+```typescript
+// ❌ NEVER do this - Path Traversal vulnerability
+const userFilePath = userInput; // DANGEROUS!
+pdf.loadFile(userFilePath);
+
+// ✅ ALWAYS generate from DOM elements only
+import { generatePDFFromElement } from '@/lib/pdf-generator';
+
+const element = document.getElementById('report-content');
+await generatePDFFromElement(element, {
+  filename: 'report.pdf'
+});
+```
+
+### Safe PDF Generation Pattern
+
+```typescript
+// All PDF generation must:
+// 1. Start from React-rendered DOM elements
+// 2. Use html2canvas to capture
+// 3. Use jsPDF to create PDF from image data
+// 4. NEVER use loadFile(), addImage(path), or addFont(path)
+
+const element = document.getElementById('content-id');
+const canvas = await html2canvas(element);
+const imgData = canvas.toDataURL('image/jpeg');
+const pdf = new jsPDF();
+pdf.addImage(imgData, 'JPEG', x, y, width, height);
+pdf.save('filename.pdf');
+```
+
 ## Security Checklist
 
 Before committing code:
@@ -204,3 +239,4 @@ Before committing code:
 - [ ] Error messages don't leak internals
 - [ ] Security events logged
 - [ ] Admin operations require role check
+- [ ] PDF generation NEVER uses user-provided file paths
