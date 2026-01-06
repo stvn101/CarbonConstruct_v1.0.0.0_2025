@@ -21,7 +21,7 @@ import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQ
 import { MaterialSchema } from "@/lib/validation-schemas";
 import { SEOHead } from "@/components/SEOHead";
 import { useEPDMaterials, EPDMaterial } from "@/hooks/useEPDMaterials";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChainedScrollArea } from "@/components/ui/chained-scroll-area";
 import { useFavoriteMaterials } from "@/hooks/useFavoriteMaterials";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { MaterialCategoryBrowser } from "@/components/calculator/MaterialCategoryBrowser";
@@ -1562,7 +1562,7 @@ export default function Calculator() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-12">
+    <div className="bg-background pb-12">
       <SEOHead 
         title="Carbon Calculator" 
         description="Calculate Scope 1, 2, and 3 carbon emissions for Australian construction projects. NCC compliant with AI-powered BOQ import."
@@ -2198,7 +2198,7 @@ export default function Calculator() {
                             <Hash className="h-3 w-3" />
                             EPD Matches ({epdSearchResults.length})
                           </div>
-                          <ScrollArea className="max-h-48">
+                          <ChainedScrollArea className="max-h-48">
                             <div className="space-y-1">
                               {epdSearchResults.map(item => (
                                 <button
@@ -2222,7 +2222,7 @@ export default function Calculator() {
                                 </button>
                               ))}
                             </div>
-                          </ScrollArea>
+                          </ChainedScrollArea>
                         </div>
                       )}
                       {epdSearch.length >= 3 && epdSearchResults.length === 0 && (
@@ -2350,7 +2350,7 @@ export default function Calculator() {
                       </div>
                       {/* Local database loads instantly - no loading state needed */}
                       {materialSearch.length >= 2 && groupedMaterials.length > 0 && (
-                        <ScrollArea className="h-64 mt-2 border rounded-md">
+                        <ChainedScrollArea className="h-64 mt-2 border rounded-md">
                           <div className="p-2">
                             {groupedMaterials.map(({ category, items }) => (
                               <div key={category} className="mb-3">
@@ -2372,7 +2372,7 @@ export default function Calculator() {
                               </div>
                             ))}
                           </div>
-                        </ScrollArea>
+                        </ChainedScrollArea>
                       )}
                       {materialSearch.length >= 2 && groupedMaterials.length === 0 && !materialsLoading && (
                         <div className="mt-2 text-sm text-muted-foreground text-center py-4 border rounded">
@@ -2768,6 +2768,10 @@ export default function Calculator() {
                 </div>
               </Card>
             )}
+
+            <div className="mt-6">
+              <CalculatorReportSection currentProject={currentProject} />
+            </div>
           </div>
 
           {/* Right Column - Stats Panel */}
@@ -2941,9 +2945,6 @@ export default function Calculator() {
             )}
           </div>
         </div>
-        
-        {/* Generate Report Section */}
-        <CalculatorReportSection currentProject={currentProject} />
       </main>
       
       <UpgradeModal
