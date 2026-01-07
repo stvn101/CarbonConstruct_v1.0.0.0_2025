@@ -31,7 +31,14 @@ vi.mock('html2pdf.js', () => {
 vi.mock('../dompurify-config', () => ({
   sanitizeHtml: vi.fn((html: string) => {
     // Simple mock that removes script tags
-    return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    // Apply the replacement repeatedly to avoid incomplete multi-character sanitization
+    let sanitized = html;
+    let previous: string;
+    do {
+      previous = sanitized;
+      sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    } while (sanitized !== previous);
+    return sanitized;
   }),
 }));
 
