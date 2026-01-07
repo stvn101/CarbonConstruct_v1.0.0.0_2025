@@ -22,7 +22,12 @@ const EVENTS_FLUSH_INTERVAL = 10000; // 10 seconds
 function getSessionId(): string {
   let sessionId = sessionStorage.getItem('analytics_session_id');
   if (!sessionId) {
-    sessionId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    const randomBytes = new Uint8Array(16);
+    window.crypto.getRandomValues(randomBytes);
+    const randomHex = Array.from(randomBytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    sessionId = `${Date.now()}-${randomHex}`;
     sessionStorage.setItem('analytics_session_id', sessionId);
   }
   return sessionId;
