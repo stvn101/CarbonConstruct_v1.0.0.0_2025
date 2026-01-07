@@ -230,6 +230,130 @@ export function configureDOMPurify(): void {
   });
 }
 
+/**
+ * Escapes HTML special characters to prevent XSS in dynamic content
+ * 
+ * Use this function to escape user-generated or database-sourced text
+ * before interpolating it into trusted HTML templates (like PDF reports).
+ * 
+ * @param text - Raw text that may contain HTML special characters
+ * @returns Text with HTML entities escaped
+ * 
+ * @example
+ * ```typescript
+ * const userName = '<script>alert("xss")</script>';
+ * const safe = escapeHtml(userName);
+ * // Returns: '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'
+ * 
+ * const template = `<div>Hello ${escapeHtml(userName)}</div>`;
+ * // Safe to use in trusted template
+ * ```
+ */
+export function escapeHtml(text: string | number | null | undefined): string {
+  if (text === null || text === undefined) {
+    return '';
+  }
+  
+  const str = String(text);
+  const htmlEscapeMap: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '/': '&#x2F;',
+  };
+  
+  return str.replace(/[&<>"'/]/g, (char) => htmlEscapeMap[char] || char);
+}
+
+/**
+ * Sanitizes HTML for PDF documents with relaxed rules for styling
+ * 
+ * This function allows <style> tags and inline styles for PDF generation
+ * where the HTML template is developer-controlled. Use this ONLY for
+ * PDF/print documents where you control the template structure.
+ * 
+ * IMPORTANT: Always escape dynamic data with escapeHtml() before
+ * interpolating into the template.
+ * 
+ * @param html - HTML string with trusted template structure
+ * @returns Sanitized HTML safe for PDF generation
+ * 
+ * @example
+ * ```typescript
+ * const data = { name: '<script>xss</script>', count: 42 };
+ * const template = `
+ *   <style>body { color: blue; }</style>
+ *   <h1>${escapeHtml(data.name)}</h1>
+ *   <p>Count: ${data.count}</p>
+ * `;
+ * const safe = sanitizeHtmlForPdf(template);
+ * // Style tag preserved, script in name escaped
+ * ```
+ */
+export function sanitizeHtmlForPdf(html: string): string {
+  return DOMPurify.sanitize(html, {
+    // Allow all safe HTML tags plus style for PDF formatting
+    ALLOWED_TAGS: [
+      // Text formatting
+      'b', 'i', 'em', 'strong', 'u', 's', 'sup', 'sub', 'mark', 'small',
+      // Structure
+      'p', 'br', 'div', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'html', 'head', 'body', 'title',
+      // Lists
+      'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+      // Tables
+      'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'col', 'colgroup',
+      // Links
+      'a',
+      // Images
+      'img',
+      // Block elements
+      'blockquote', 'pre', 'code', 'hr',
+      // PDF-specific: Allow style tags for formatting
+      'style',
+    ],
+    // Allow style attributes and other safe attributes
+    ALLOWED_ATTR: [
+      // General
+      'class', 'id', 'title', 'style',
+      // Links
+      'href', 'target', 'rel',
+      // Images
+      'src', 'alt', 'width', 'height',
+      // Tables
+      'colspan', 'rowspan', 'scope',
+      // Accessibility
+      'aria-label', 'aria-labelledby', 'aria-describedby', 'role',
+    ],
+    // Still forbid dangerous tags
+    FORBID_TAGS: [
+      'script', 'iframe', 'object', 'embed', 'applet', 'base',
+      'link', 'meta', 'form', 'input', 'button', 'select', 'textarea',
+    ],
+    // Forbid event handlers
+    FORBID_ATTR: [
+      'onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout',
+      'onmouseenter', 'onmouseleave', 'onfocus', 'onblur', 'onchange',
+      'onsubmit', 'onkeydown', 'onkeyup', 'onkeypress',
+    ],
+    // Keep type information for TypeScript
+    RETURN_DOM: false,
+    RETURN_DOM_FRAGMENT: false,
+    // Disallow data-* attributes and data: URIs for stricter XSS protection
+    ALLOW_DATA_ATTR: false,
+    // Safe defaults
+    KEEP_CONTENT: true,
+    // Force body context
+    FORCE_BODY: false,
+    // Sanitize DOM
+    SANITIZE_DOM: true,
+    // Use a safe parser
+    USE_PROFILES: { html: true },
+  });
+}
+
 // Initialize DOMPurify configuration on module load
 if (typeof window !== 'undefined') {
   configureDOMPurify();
