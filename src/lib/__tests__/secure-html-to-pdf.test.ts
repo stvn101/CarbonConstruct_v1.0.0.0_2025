@@ -116,7 +116,7 @@ describe('secure-html-to-pdf', () => {
 
     it('should_HandleEmptyFilename_When_InputIsEmpty', () => {
       const result = sanitizeFilename('');
-      expect(result).toBe('.pdf');
+      expect(result).toBe('document.pdf');
     });
 
     it('should_PreserveValidCharacters_When_FilenameIsValid', () => {
