@@ -89,13 +89,7 @@ ${colorConfig
     )
     .join("\n");
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: sanitizeCss(cssContent)
-      }}
-    />
-  );
+  return <style>{sanitizeCss(cssContent)}</style>;
 };
 
 const ChartTooltip = RechartsPrimitive.Tooltip;

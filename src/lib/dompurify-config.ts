@@ -102,10 +102,6 @@ export function sanitizeHtml(html: string): string {
  * ```
  */
 export function sanitizeCss(css: string): string {
-  // For CSS content, delegate sanitization to DOMPurify's built-in
-  // CSS sanitizer by using a temporary <style> element. This avoids
-  // brittle regex-based filtering and handles obfuscated payloads.
-
   // In non-browser environments (e.g. SSR), fall back to a conservative,
   // minimal pattern removal instead of attempting DOM-based sanitization.
   if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -130,20 +126,18 @@ export function sanitizeCss(css: string): string {
     return fallback;
   }
 
-  // Browser path: use a real <style> element so DOMPurify can apply
-  // its CSS sanitization logic.
-  const container = document.createElement('div');
-  const styleElement = document.createElement('style');
-  styleElement.textContent = css;
-  container.appendChild(styleElement);
+  // Browser path: sanitize CSS using DOMPurify on a wrapped <style> string,
+  // then extract the style content without reading from DOM text nodes.
+  const wrapped = `<style>${css}</style>`;
 
-  const sanitizedContainer = DOMPurify.sanitize(container, {
-    RETURN_DOM: true,
-    WHOLE_DOCUMENT: false,
-  }) as HTMLElement;
+  const sanitizedWrapped = DOMPurify.sanitize(wrapped, {
+    ALLOWED_TAGS: ['style'],
+    ALLOWED_ATTR: [],
+  }) as string;
 
-  const sanitizedStyle = sanitizedContainer.querySelector('style');
-  let sanitizedCss = sanitizedStyle?.textContent ?? '';
+  // Extract the content between <style> and </style>.
+  let sanitizedCssMatch = sanitizedWrapped.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+  let sanitizedCss = sanitizedCssMatch ? sanitizedCssMatch[1] : '';
 
   // Additional CSS-specific hardening (defense in depth)
   // Remove @import to prevent loading external stylesheets
