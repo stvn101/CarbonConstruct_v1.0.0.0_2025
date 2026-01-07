@@ -161,13 +161,13 @@ export default function MaterialDatabaseStatus() {
       </html>
     `;
 
-    // Dynamic import html2pdf.js
-    const html2pdf = (await import('html2pdf.js')).default;
+    // Dynamic import secure html2pdf
+    const secureHtml2Pdf = (await import('@/lib/secure-html-to-pdf')).default;
     const element = document.createElement('div');
     element.innerHTML = htmlContent;
     document.body.appendChild(element);
     
-    html2pdf()
+    secureHtml2Pdf()
       .set({
         margin: 10,
         filename: `carbonconstruct-database-stats-${new Date().toISOString().split('T')[0]}.pdf`,
