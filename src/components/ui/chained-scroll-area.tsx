@@ -52,6 +52,7 @@ const ChainedScrollArea = React.forwardRef<
         ref={viewportRef}
         onWheel={handleWheel}
         className="h-full w-full rounded-[inherit]"
+        style={{ overscrollBehavior: 'contain' }}
       >
         {children}
       </ScrollAreaPrimitive.Viewport>

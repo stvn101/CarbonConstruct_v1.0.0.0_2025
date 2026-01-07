@@ -463,7 +463,7 @@ export default function MaterialDatabaseStatus() {
                       })}
                   </Pie>
                   <Tooltip 
-                    formatter={(value: number) => [value.toLocaleString(), 'Materials']}
+                    formatter={(value: number | undefined) => [(value ?? 0).toLocaleString(), 'Materials']}
                     contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
                   />
                   <Legend />
