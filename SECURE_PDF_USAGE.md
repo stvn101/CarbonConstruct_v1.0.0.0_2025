@@ -70,7 +70,7 @@ const options: SecurePDFOptions = {
   
   // html2canvas settings
   html2canvas: {
-    scale: 2,        // Higher = better quality (0-4 range)
+    scale: 2,        // Higher = better quality (greater than 0, up to 4)
     useCORS: true,   // Allow cross-origin images
     logging: false
   },
