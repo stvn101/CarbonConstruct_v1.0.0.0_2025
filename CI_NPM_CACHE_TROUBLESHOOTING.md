@@ -47,6 +47,25 @@ The Deploy Preview workflow was failing due to dependency conflicts between `rea
        npm ls react --depth=0 || true
    ```
 
+### Changes to `.github/workflows/ci.yml`
+
+Applied the same fix to all jobs in the main CI/CD workflow:
+
+1. **Disabled npm cache in all jobs** (lint, typecheck, unit-tests, e2e-tests, e2e-auth-comprehensive, visual-regression, build, security-scan, bundle-analysis, lighthouse)
+   ```yaml
+   - name: Setup Node.js
+     uses: actions/setup-node@v4
+     with:
+       node-version: ${{ env.NODE_VERSION }}
+       cache: false  # Changed from 'npm' to false
+   ```
+
+2. **Added explicit cache clearing to all jobs**
+   ```yaml
+   - name: Clear npm cache
+     run: npm cache clean --force
+   ```
+
 ## When to Use npm Cache
 
 ### ✅ Use npm cache when:
@@ -171,6 +190,7 @@ To re-enable:
 | Date | Change | Reason |
 |------|--------|--------|
 | 2026-01-07 | Disabled cache in preview.yml | React dependency conflicts from cached React 19 |
+| 2026-01-07 | Disabled cache in ci.yml (all jobs) | Applied same fix across all CI workflows to prevent cache-related build failures |
 
 ## Support
 
