@@ -85,8 +85,8 @@ export const LCADashboard = memo(() => {
       setExporting(true);
       const element = document.getElementById('lca-dashboard-content');
       if (element) {
-        const html2pdf = (await import('html2pdf.js')).default;
-        await html2pdf()
+        const secureHtml2Pdf = (await import('@/lib/secure-html-to-pdf')).default;
+        await secureHtml2Pdf()
           .set({
             margin: 15,
             filename: `lca-dashboard-${new Date().toISOString().split('T')[0]}.pdf`,

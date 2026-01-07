@@ -1,361 +1,246 @@
 /**
- * Secure HTML to PDF Conversion Utility
- * 
- * This module provides a centralized, secure wrapper for HTML to PDF conversion
- * using html2pdf.js with integrated content sanitization via DOMPurify.
- * 
- * Security Features:
- * - Sanitizes HTML content before PDF generation to prevent XSS
- * - Validates input elements and options
- * - Provides consistent error handling and logging
- * - Follows security best practices from dompurify-config.ts
- * 
- * @see .github/instructions/security.instructions.md for security guidelines
+ * Secure HTML to PDF converter
+ * Replaces vulnerable html2pdf.js with direct use of html2canvas + jspdf@4.0.0
+ * This avoids the critical vulnerability in jspdf <=3.0.4 used by html2pdf.js
  */
 
-import { sanitizeHtml } from './dompurify-config';
-import { logger } from './logger';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
-/**
- * PDF generation options compatible with html2pdf.js
- */
-export interface SecurePDFOptions {
-  /** Output filename (will be sanitized) */
+interface Html2PdfOptions {
+  margin?: number | [number, number, number, number];
   filename?: string;
-  /** Page margins in mm [top, right, bottom, left] */
-  margin?: [number, number, number, number] | number;
-  /** Image options for the PDF */
   image?: {
-    type: 'jpeg' | 'png' | 'webp';
-    quality: number;
+    type?: 'jpeg' | 'png' | 'webp';
+    quality?: number;
   };
-  /** html2canvas options */
   html2canvas?: {
     scale?: number;
     useCORS?: boolean;
     logging?: boolean;
-    [key: string]: unknown;
+    [key: string]: any;
   };
-  /** jsPDF options */
   jsPDF?: {
-    unit: 'pt' | 'mm' | 'cm' | 'in';
-    format: 'a4' | 'a3' | 'letter' | [number, number];
-    orientation: 'portrait' | 'landscape';
-    [key: string]: unknown;
+    unit?: 'pt' | 'mm' | 'cm' | 'in';
+    format?: string | number[];
+    orientation?: 'portrait' | 'landscape';
+    compress?: boolean;
   };
-  /** Whether to sanitize HTML content (default: true) */
-  sanitize?: boolean;
+  pagebreak?: {
+    mode?: string | string[];
+    before?: string[];
+    after?: string[];
+    avoid?: string[];
+  };
 }
 
 /**
- * Result of PDF generation operation
+ * Convert HTML element to PDF
+ * Compatible API with html2pdf.js but uses secure jspdf@4.0.0
  */
-export interface PDFGenerationResult {
-  success: boolean;
-  filename?: string;
-  error?: string;
-}
+export async function convertHtmlToPdf(
+  element: HTMLElement,
+  options: Html2PdfOptions = {}
+): Promise<jsPDF> {
+  // Default options matching html2pdf.js behavior
+  const opts: Html2PdfOptions = {
+    margin: options.margin ?? 10,
+    filename: options.filename ?? 'document.pdf',
+    image: {
+      type: options.image?.type ?? 'jpeg',
+      quality: options.image?.quality ?? 0.95,
+    },
+    html2canvas: {
+      scale: options.html2canvas?.scale ?? 2,
+      useCORS: options.html2canvas?.useCORS ?? true,
+      logging: options.html2canvas?.logging ?? false,
+      ...options.html2canvas,
+    },
+    jsPDF: {
+      unit: options.jsPDF?.unit ?? 'mm',
+      format: options.jsPDF?.format ?? 'a4',
+      orientation: options.jsPDF?.orientation ?? 'portrait',
+      compress: options.jsPDF?.compress ?? true,
+      ...options.jsPDF,
+    },
+    pagebreak: options.pagebreak,
+  };
 
-/**
- * Sanitizes a filename to prevent path traversal and other security issues
- * 
- * @param filename - Raw filename string
- * @returns Sanitized filename safe for file system use
- */
-export function sanitizeFilename(filename: string): string {
-  return filename
-    .toLowerCase()
-    .trim()
-    // Remove .pdf extension first (we'll add it back at the end)
-    .replace(/\.pdf$/i, '')
-    // Remove any path separators and dots at start (path traversal prevention)
-    .replace(/[/\\]+/g, '')
-    .replace(/^\.+/, '')
-    // Replace unsafe characters with dashes (including angle brackets, but preserve extension dots temporarily)
-    .replace(/[^a-z0-9._-]+/g, '-')
-    // Remove dots that aren't part of a valid extension at the end
-    .replace(/\.(?![a-z0-9]+$)/g, '-')
-    // Remove multiple consecutive dashes
-    .replace(/-+/g, '-')
-    // Remove leading/trailing dashes and dots
-    .replace(/^[-._]+|[-._]+$/g, '')
-    // Add .pdf extension back
-    + '.pdf';
-}
-
-/**
- * Validates PDF generation options
- * 
- * @param options - PDF options to validate
- * @throws Error if options are invalid
- */
-function validateOptions(options: SecurePDFOptions): void {
-  // Validate margin
-  if (options.margin !== undefined) {
-    if (Array.isArray(options.margin)) {
-      if (options.margin.length !== 4) {
-        throw new Error('Margin array must have exactly 4 elements');
-      }
-      if (!options.margin.every(m => typeof m === 'number' && m >= 0)) {
-        throw new Error('Margin values must be non-negative numbers');
-      }
-    } else if (typeof options.margin !== 'number' || options.margin < 0) {
-      throw new Error('Margin must be a non-negative number or array of 4 numbers');
-    }
+  // Convert margin to array format
+  let margins: [number, number, number, number];
+  if (typeof opts.margin === 'number') {
+    margins = [opts.margin, opts.margin, opts.margin, opts.margin];
+  } else if (Array.isArray(opts.margin)) {
+    margins = opts.margin as [number, number, number, number];
+  } else {
+    margins = [10, 10, 10, 10];
   }
 
-  // Validate image quality
-  if (options.image?.quality !== undefined) {
-    if (typeof options.image.quality !== 'number' || 
-        options.image.quality < 0 || 
-        options.image.quality > 1) {
-      throw new Error('Image quality must be between 0 and 1');
-    }
-  }
+  // Capture element as canvas
+  const canvas = await html2canvas(element, opts.html2canvas);
 
-  // Validate scale
-  if (options.html2canvas?.scale !== undefined) {
-    if (typeof options.html2canvas.scale !== 'number' || 
-        options.html2canvas.scale <= 0 || 
-        options.html2canvas.scale > 4) {
-      throw new Error('html2canvas scale must be greater than 0 and up to 4');
-    }
-  }
-}
-
-/**
- * Sanitizes HTML content within a DOM element
- * 
- * @param element - DOM element containing HTML to sanitize
- * @returns Sanitized element (modifies in place and returns)
- */
-function sanitizeElementContent(element: HTMLElement): HTMLElement {
-  // Get all text nodes and element content
-  const walker = document.createTreeWalker(
-    element,
-    NodeFilter.SHOW_ELEMENT,
-    null
-  );
-
-  const elementsToSanitize: HTMLElement[] = [];
-  let currentNode = walker.currentNode as HTMLElement;
-  
-  while (currentNode) {
-    elementsToSanitize.push(currentNode);
-    currentNode = walker.nextNode() as HTMLElement;
-  }
-
-  // Sanitize each element's innerHTML
-  elementsToSanitize.forEach((el) => {
-    if (el.innerHTML) {
-      el.innerHTML = sanitizeHtml(el.innerHTML);
-    }
+  // Create PDF
+  const pdf = new jsPDF({
+    orientation: opts.jsPDF!.orientation,
+    unit: opts.jsPDF!.unit,
+    format: opts.jsPDF!.format,
+    compress: opts.jsPDF!.compress,
   });
 
-  return element;
-}
+  const imgData = canvas.toDataURL(`image/${opts.image!.type}`, opts.image!.quality);
 
-/**
- * Generates a PDF from an HTML element with security measures
- * 
- * This function:
- * 1. Validates the input element and options
- * 2. Optionally sanitizes HTML content to prevent XSS
- * 3. Uses html2pdf.js to generate the PDF
- * 4. Handles errors and logs security events
- * 
- * @param element - HTML element or element ID to convert to PDF
- * @param options - PDF generation options
- * @returns Promise resolving to generation result
- * 
- * @example
- * ```typescript
- * const result = await generateSecurePDF('report-content', {
- *   filename: 'carbon-report.pdf',
- *   margin: [10, 10, 10, 10],
- *   image: { type: 'jpeg', quality: 0.98 },
- *   html2canvas: { scale: 2, useCORS: true },
- *   jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
- * });
- * 
- * if (result.success) {
- *   console.log('PDF generated:', result.filename);
- * } else {
- *   console.error('PDF generation failed:', result.error);
- * }
- * ```
- */
-export async function generateSecurePDF(
-  element: HTMLElement | string,
-  options: SecurePDFOptions = {}
-): Promise<PDFGenerationResult> {
-  const startTime = Date.now();
+  // Calculate dimensions
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
   
-  try {
-    // Import html2pdf.js dynamically
-    const html2pdf = (await import('html2pdf.js')).default;
+  // Account for margins
+  const contentWidth = pdfWidth - margins[1] - margins[3]; // left + right margins
+  const contentHeight = pdfHeight - margins[0] - margins[2]; // top + bottom margins
 
-    // Validate options first
-    validateOptions(options);
+  // Calculate image dimensions maintaining aspect ratio
+  const imgWidth = canvas.width;
+  const imgHeight = canvas.height;
+  const ratio = imgWidth / imgHeight;
 
-    // Resolve element
-    let targetElement: HTMLElement | null;
-    if (typeof element === 'string') {
-      targetElement = document.getElementById(element);
-      if (!targetElement) {
-        throw new Error(`Element with ID "${element}" not found`);
+  let finalWidth = contentWidth;
+  let finalHeight = contentWidth / ratio;
+
+  // If height exceeds page, split into multiple pages
+  if (finalHeight > contentHeight) {
+    finalHeight = contentHeight;
+    finalWidth = contentHeight * ratio;
+  }
+
+  // Center image if it doesn't fill the width
+  const xOffset = margins[3] + (contentWidth - finalWidth) / 2;
+  const yOffset = margins[0];
+
+  // Check if we need multiple pages
+  const totalPdfHeight = (canvas.height * finalWidth) / canvas.width;
+  const pageCount = Math.ceil(totalPdfHeight / contentHeight);
+
+  if (pageCount > 1) {
+    // Multi-page document
+    for (let i = 0; i < pageCount; i++) {
+      if (i > 0) {
+        pdf.addPage();
       }
-    } else {
-      targetElement = element;
+
+      const sourceY = (i * contentHeight * canvas.width) / finalWidth;
+      const sourceHeight = Math.min(
+        (contentHeight * canvas.width) / finalWidth,
+        canvas.height - sourceY
+      );
+
+      // Create a temporary canvas for this page
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = sourceHeight;
+      const pageCtx = pageCanvas.getContext('2d');
+
+      if (pageCtx) {
+        pageCtx.drawImage(
+          canvas,
+          0,
+          sourceY,
+          canvas.width,
+          sourceHeight,
+          0,
+          0,
+          canvas.width,
+          sourceHeight
+        );
+
+        const pageImgData = pageCanvas.toDataURL(
+          `image/${opts.image!.type}`,
+          opts.image!.quality
+        );
+        
+        const pageHeight = (sourceHeight * finalWidth) / canvas.width;
+        pdf.addImage(pageImgData, opts.image!.type!.toUpperCase(), xOffset, yOffset, finalWidth, pageHeight);
+      }
     }
+  } else {
+    // Single page document
+    pdf.addImage(imgData, opts.image!.type!.toUpperCase(), xOffset, yOffset, finalWidth, finalHeight);
+  }
 
-    // Validate element has content
-    if (!targetElement.offsetWidth || !targetElement.offsetHeight) {
-      throw new Error('Element has zero dimensions - cannot generate PDF');
+  return pdf;
+}
+
+/**
+ * Fluent API wrapper to match html2pdf.js interface
+ */
+export class SecureHtml2Pdf {
+  private element: HTMLElement | null = null;
+  private options: Html2PdfOptions = {};
+  private pdf: jsPDF | null = null;
+
+  set(options: Html2PdfOptions): SecureHtml2Pdf {
+    this.options = { ...this.options, ...options };
+    return this;
+  }
+
+  from(element: HTMLElement): SecureHtml2Pdf {
+    this.element = element;
+    return this;
+  }
+
+  async toPdf(): Promise<SecureHtml2Pdf> {
+    if (!this.element) {
+      throw new Error('No element specified. Call from() first.');
     }
+    this.pdf = await convertHtmlToPdf(this.element, this.options);
+    return this;
+  }
 
-    // Sanitize filename
-    const filename = options.filename 
-      ? sanitizeFilename(options.filename)
-      : `document-${Date.now()}.pdf`;
-
-    // Clone element to avoid modifying the original
-    const clonedElement = targetElement.cloneNode(true) as HTMLElement;
-
-    // Sanitize HTML content if enabled (default: true)
-    if (options.sanitize !== false) {
-      sanitizeElementContent(clonedElement);
-      logger.info('pdf_content_sanitized', { filename });
+  get(key: 'pdf'): jsPDF {
+    if (key === 'pdf') {
+      if (!this.pdf) {
+        throw new Error('PDF not generated yet. Call toPdf() first.');
+      }
+      return this.pdf;
     }
+    throw new Error(`Unknown key: ${key}`);
+  }
 
-    // Build html2pdf options
-    const html2pdfOptions = {
-      margin: options.margin ?? 10,
-      filename,
-      image: options.image ?? { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: options.html2canvas ?? { scale: 2, useCORS: true },
-      jsPDF: options.jsPDF ?? { 
-        unit: 'mm' as const, 
-        format: 'a4' as const, 
-        orientation: 'portrait' as const 
-      },
-    };
-
-    // Generate PDF
-    await html2pdf()
-      .set(html2pdfOptions)
-      .from(clonedElement)
-      .save();
-
-    const duration = Date.now() - startTime;
-    logger.info('pdf_generated_successfully', { 
-      filename, 
-      duration,
-      sanitized: options.sanitize !== false
-    });
-
-    return {
-      success: true,
-      filename,
-    };
-
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  async save(filename?: string): Promise<void> {
+    if (!this.element) {
+      throw new Error('No element specified. Call from() first.');
+    }
     
-    logger.error('pdf_generation_failed', { 
-      error: errorMessage,
-      duration,
-      element: typeof element === 'string' ? element : 'HTMLElement',
-      filename: options.filename
-    });
+    if (!this.pdf) {
+      this.pdf = await convertHtmlToPdf(this.element, this.options);
+    }
 
-    return {
-      success: false,
-      error: errorMessage,
-    };
+    const finalFilename = filename || this.options.filename || 'document.pdf';
+    this.pdf.save(finalFilename);
+  }
+
+  async output(type: 'blob' | 'datauristring' | 'arraybuffer'): Promise<any> {
+    if (!this.pdf) {
+      if (!this.element) {
+        throw new Error('No element specified. Call from() first.');
+      }
+      this.pdf = await convertHtmlToPdf(this.element, this.options);
+    }
+
+    switch (type) {
+      case 'blob':
+        return this.pdf.output('blob');
+      case 'datauristring':
+        return this.pdf.output('datauristring');
+      case 'arraybuffer':
+        return this.pdf.output('arraybuffer');
+      default:
+        throw new Error(`Unknown output type: ${type}`);
+    }
   }
 }
 
 /**
- * Generates a PDF and returns it as a Blob instead of downloading
- * 
- * Useful for:
- * - Sending PDFs via email
- * - Uploading PDFs to storage
- * - Preview before download
- * 
- * @param element - HTML element or element ID to convert to PDF
- * @param options - PDF generation options (filename ignored)
- * @returns Promise resolving to PDF Blob or null on error
+ * Factory function matching html2pdf.js API
  */
-export async function generateSecurePDFBlob(
-  element: HTMLElement | string,
-  options: Omit<SecurePDFOptions, 'filename'> = {}
-): Promise<Blob | null> {
-  try {
-    const html2pdf = (await import('html2pdf.js')).default;
-
-    // Validate options first
-    validateOptions(options as SecurePDFOptions);
-
-    // Resolve element
-    let targetElement: HTMLElement | null;
-    if (typeof element === 'string') {
-      targetElement = document.getElementById(element);
-      if (!targetElement) {
-        throw new Error(`Element with ID "${element}" not found`);
-      }
-    } else {
-      targetElement = element;
-    }
-
-    // Validate element has content
-    if (!targetElement.offsetWidth || !targetElement.offsetHeight) {
-      throw new Error('Element has zero dimensions - cannot generate PDF');
-    }
-
-    // Clone element to avoid modifying the original
-    const clonedElement = targetElement.cloneNode(true) as HTMLElement;
-
-    // Sanitize HTML content if enabled (default: true)
-    if (options.sanitize !== false) {
-      sanitizeElementContent(clonedElement);
-    }
-
-    // Build html2pdf options
-    const html2pdfOptions = {
-      margin: options.margin ?? 10,
-      image: options.image ?? { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: options.html2canvas ?? { scale: 2, useCORS: true },
-      jsPDF: options.jsPDF ?? { 
-        unit: 'mm' as const, 
-        format: 'a4' as const, 
-        orientation: 'portrait' as const 
-      },
-    };
-
-    // Generate PDF and get blob
-    const pdf = await html2pdf()
-      .set(html2pdfOptions)
-      .from(clonedElement)
-      .output('blob');
-
-    logger.info('pdf_blob_generated_successfully', {
-      size: pdf.size,
-      sanitized: options.sanitize !== false
-    });
-
-    return pdf;
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
-    logger.error('pdf_blob_generation_failed', { 
-      error: errorMessage,
-      element: typeof element === 'string' ? element : 'HTMLElement'
-    });
-
-    return null;
-  }
+export default function secureHtml2Pdf(): SecureHtml2Pdf {
+  return new SecureHtml2Pdf();
 }
