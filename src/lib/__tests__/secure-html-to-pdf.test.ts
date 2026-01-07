@@ -194,7 +194,7 @@ describe('secure-html-to-pdf', () => {
 
     it('should_UseDefaultFilename_When_NoFilenameProvided', async () => {
       // Arrange
-      const element = createElementWithDimensions('test-default-filename', '<p>Test content</p>');
+      createElementWithDimensions('test-default-filename', '<p>Test content</p>');
 
       // Act
       const result = await generateSecurePDF('test-default-filename');
