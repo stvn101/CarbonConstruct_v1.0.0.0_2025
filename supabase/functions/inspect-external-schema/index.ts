@@ -90,8 +90,8 @@ Deno.serve(async (req) => {
     console.error('Error in inspect-external-schema function:', error);
     return new Response(
       JSON.stringify({
-        error: error.message,
-        details: error.stack,
+        error: 'Internal server error',
+        details: 'An unexpected error occurred. Please check server logs for more information.',
       }),
       {
         status: 500,
