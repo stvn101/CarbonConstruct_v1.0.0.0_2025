@@ -5,7 +5,7 @@ pydantic==2.5.3
 python-multipart==0.0.18
 
 # Database
-# sqlite3 is built into Python standard library (no pip install needed)
+# sqlite3 is built into Python - no separate installation needed
 
 # PDF Generation (for future reports)
 weasyprint==60.2
