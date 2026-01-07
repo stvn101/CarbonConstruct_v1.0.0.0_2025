@@ -118,7 +118,7 @@ function validateOptions(options: SecurePDFOptions): void {
     if (typeof options.html2canvas.scale !== 'number' || 
         options.html2canvas.scale <= 0 || 
         options.html2canvas.scale > 4) {
-      throw new Error('html2canvas scale must be between 0 and 4');
+      throw new Error('html2canvas scale must be greater than 0 and up to 4');
     }
   }
 }
