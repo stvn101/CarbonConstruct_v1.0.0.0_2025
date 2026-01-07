@@ -233,7 +233,17 @@ serve(async (req) => {
               message: alert.message,
               metadata: {
                 event_count: alert.count,
-                threshold: ALERT_THRESHOLDS[`${alert.type.replace('_', '_') as keyof typeof ALERT_THRESHOLDS}s_per_hour`] || 10,
+                // Map alert types to their corresponding threshold keys
+                threshold: (() => {
+                  const thresholdKeyByType: Record<string, keyof typeof ALERT_THRESHOLDS> = {
+                    auth_failure: 'auth_failures_per_hour',
+                    rate_limit: 'rate_limit_violations_per_hour',
+                    invalid_token: 'suspicious_activity_per_hour',
+                    honeypot_triggered: 'honeypot_triggers_per_hour',
+                  };
+                  const key = thresholdKeyByType[alert.type] ?? 'auth_failures_per_hour';
+                  return ALERT_THRESHOLDS[key] || 10;
+                })(),
                 detected_at: new Date().toISOString()
               }
             });
