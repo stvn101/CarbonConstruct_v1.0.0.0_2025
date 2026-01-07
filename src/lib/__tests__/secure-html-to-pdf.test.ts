@@ -177,7 +177,7 @@ describe('secure-html-to-pdf', () => {
 
     it('should_SanitizeFilename_When_UnsafeFilenameProvided', async () => {
       // Arrange
-      const element = createElementWithDimensions('test-sanitize-filename', '<p>Test content</p>');
+      createElementWithDimensions('test-sanitize-filename', '<p>Test content</p>');
 
       const options: SecurePDFOptions = {
         filename: '../../../evil/path.pdf',
