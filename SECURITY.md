@@ -250,6 +250,15 @@ These are intentional design choices that have been reviewed and accepted:
 2. **Email Deliverability**: First emails may require domain reputation building
 3. **Rate Limiting**: Applied to all users to ensure fair resource usage
 4. **Third-Party Dependencies**: We use well-maintained, security-audited libraries
+5. **xlsx@0.18.5 Usage**: Known vulnerabilities mitigated through multiple defense layers (see [XLSX_SECURITY_MITIGATION.md](./XLSX_SECURITY_MITIGATION.md))
+
+### Known Mitigated Vulnerabilities
+
+- **xlsx@0.18.5 (CVE-2023-30533, CVE-2024-22363)**: Prototype Pollution and ReDoS vulnerabilities
+  - **Status**: 🟡 MITIGATED with admin-only access, file size limits, timeouts, and secure parse options
+  - **Functions Affected**: `import-icm-materials`, `import-nabers-epd`
+  - **Risk Level**: Moderate (reduced from High)
+  - **Documentation**: See [XLSX_SECURITY_MITIGATION.md](./XLSX_SECURITY_MITIGATION.md)
 
 ### Ongoing Monitoring
 
@@ -331,6 +340,7 @@ For more detailed security information, please refer to:
 - [**SECURITY_TEST_AUTOMATION.md**](./SECURITY_TEST_AUTOMATION.md): Automated security testing implementation
 - [**PRODUCTION_READINESS_CHECKLIST.md**](./PRODUCTION_READINESS_CHECKLIST.md): Production deployment security checks
 - [**FINAL_LAUNCH_CHECKLIST.md**](./FINAL_LAUNCH_CHECKLIST.md): Launch security verification procedures
+- [**XLSX_SECURITY_MITIGATION.md**](./XLSX_SECURITY_MITIGATION.md): xlsx@0.18.5 vulnerability mitigation strategy
 
 ---
 
