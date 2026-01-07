@@ -134,7 +134,7 @@ describe('secure-html-to-pdf', () => {
   describe('generateSecurePDF', () => {
     it('should_GeneratePDF_When_ValidElementProvided', async () => {
       // Arrange
-      const element = createElementWithDimensions('test-pdf-content', '<p>Test content</p>');
+      createElementWithDimensions('test-pdf-content', '<p>Test content</p>');
 
       const options: SecurePDFOptions = {
         filename: 'test-report.pdf',
