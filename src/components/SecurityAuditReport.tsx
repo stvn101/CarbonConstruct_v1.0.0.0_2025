@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import html2pdf from 'html2pdf.js';
+import secureHtml2Pdf from '@/lib/secure-html-to-pdf';
 
 const auditDate = '1 January 2026';
 
@@ -94,7 +94,7 @@ export const SecurityAuditReportDownload = () => {
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
       };
 
-      await html2pdf().set(opt).from(element).save();
+      await secureHtml2Pdf().set(opt).from(element).save();
     } finally {
       setIsGenerating(false);
     }

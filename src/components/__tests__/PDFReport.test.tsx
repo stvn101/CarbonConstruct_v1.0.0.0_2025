@@ -1,14 +1,14 @@
 /**
  * Tests for PDFReport component
  * Validates report generation, branding, and Professional tier restrictions
- * Updated: Uses html2pdf.js instead of @react-pdf/renderer
+ * Updated: Uses secure-html-to-pdf instead of vulnerable html2pdf.js
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '../../lib/__tests__/setup';
 
-// Mock html2pdf.js
-vi.mock('html2pdf.js', () => ({
+// Mock secure-html-to-pdf
+vi.mock('@/lib/secure-html-to-pdf', () => ({
   default: () => ({
     set: () => ({
       from: () => ({

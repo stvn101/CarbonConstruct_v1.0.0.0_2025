@@ -86,7 +86,7 @@ const Reports = () => {
 
   useEffect(() => {
     let cancelled = false;
-    import('html2pdf.js')
+    import('@/lib/secure-html-to-pdf')
       .then((m) => {
         if (!cancelled) html2pdfRef.current = m.default;
       })
@@ -242,7 +242,7 @@ const Reports = () => {
     };
 
     try {
-      const html2pdf = html2pdfRef.current ?? (await import('html2pdf.js')).default;
+      const html2pdf = html2pdfRef.current ?? (await import('@/lib/secure-html-to-pdf')).default;
       html2pdfRef.current = html2pdf;
 
       const safeProjectName = toSafeFilename(currentProject?.name || 'project');
