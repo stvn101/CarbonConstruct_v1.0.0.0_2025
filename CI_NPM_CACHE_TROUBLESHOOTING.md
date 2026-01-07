@@ -66,6 +66,25 @@ Applied the same fix to all jobs in the main CI/CD workflow:
      run: npm cache clean --force
    ```
 
+### Changes to `.github/workflows/scheduled-tests.yml`
+
+Applied the same fix to all scheduled test jobs:
+
+1. **Disabled npm cache in all jobs** (full-test-suite, accessibility-audit, performance-audit, material-validation-audit)
+   ```yaml
+   - name: Setup Node.js
+     uses: actions/setup-node@v4
+     with:
+       node-version: ${{ env.NODE_VERSION }}
+       cache: false  # Changed from 'npm' to false
+   ```
+
+2. **Added explicit cache clearing to all jobs**
+   ```yaml
+   - name: Clear npm cache
+     run: npm cache clean --force
+   ```
+
 ## When to Use npm Cache
 
 ### ✅ Use npm cache when:
@@ -191,6 +210,7 @@ To re-enable:
 |------|--------|--------|
 | 2026-01-07 | Disabled cache in preview.yml | React dependency conflicts from cached React 19 |
 | 2026-01-07 | Disabled cache in ci.yml (all jobs) | Applied same fix across all CI workflows to prevent cache-related build failures |
+| 2026-01-07 | Disabled cache in scheduled-tests.yml | Applied same fix to scheduled workflows for consistency |
 
 ## Support
 
