@@ -8,7 +8,7 @@ import secureHtml2Pdf, { convertHtmlToPdf } from '../secure-html-to-pdf';
 
 // Mock dependencies
 vi.mock('html2canvas', () => ({
-  default: vi.fn((element) => {
+  default: vi.fn((_element) => {
     // Return a mock canvas
     const canvas = document.createElement('canvas');
     canvas.width = 800;
@@ -23,7 +23,7 @@ vi.mock('html2canvas', () => ({
 }));
 
 vi.mock('jspdf', () => {
-  const mockJsPDF = function(this: any, options?: any) {
+  const mockJsPDF = function(this: any, _options?: any) {
     this.internal = {
       pageSize: {
         getWidth: () => 210,

@@ -134,10 +134,10 @@ const Methodology = () => {
       };
       
       // Generate content PDF
-      const contentPdf = await secureHtml2Pdf().set(opt).from(element).toPdf().get('pdf');
+      const contentPdf = (await secureHtml2Pdf().set(opt).from(element).toPdf()).get('pdf');
       
       // Add page numbers and footer to content pages
-      const totalPages = contentPdf.internal.getNumberOfPages();
+      const totalPages = contentPdf.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         contentPdf.setPage(i);
         contentPdf.setFontSize(8);

@@ -199,7 +199,7 @@ export function MaterialsAnalyticsCharts() {
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px'
                 }}
-                formatter={(value: number, name: string) => [value.toLocaleString(), name]}
+                formatter={(value: number | undefined, name?: string) => [(value ?? 0).toLocaleString(), name ?? '']}
               />
               <Legend 
                 layout="vertical" 
