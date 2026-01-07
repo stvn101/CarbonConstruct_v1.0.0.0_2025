@@ -36,7 +36,7 @@ vi.mock('../dompurify-config', () => ({
     let previous: string;
     do {
       previous = sanitized;
-      sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+      sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script\b[^>]*>)[^<])*<\/script\b[^>]*>/gi, '');
     } while (sanitized !== previous);
     return sanitized;
   }),
