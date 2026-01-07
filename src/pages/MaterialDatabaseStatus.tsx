@@ -10,7 +10,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { DataSourceAttribution, MultiSourceAttribution } from "@/components/DataSourceAttribution";
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { toast } from "sonner";
-import { sanitizeHtml } from "@/lib/dompurify-config";
+import { escapeHtml, sanitizeHtmlForPdf } from "@/lib/dompurify-config";
 
 export default function MaterialDatabaseStatus() {
   const { data: stats, isLoading, error } = useMaterialsDatabaseStats();
@@ -95,24 +95,24 @@ export default function MaterialDatabaseStatus() {
         </head>
         <body>
           <h1>CarbonConstruct Materials Database Report</h1>
-          <p class="subtitle">Generated: ${new Date().toLocaleDateString('en-AU', { dateStyle: 'full' })}</p>
+          <p class="subtitle">Generated: ${escapeHtml(new Date().toLocaleDateString('en-AU', { dateStyle: 'full' }))}</p>
           
           <div class="stat-grid">
             <div class="stat-box">
               <div class="stat-label">Total Materials</div>
-              <div class="stat-value">${statsData.totalMaterials.toLocaleString()}</div>
+              <div class="stat-value">${escapeHtml(statsData.totalMaterials.toLocaleString())}</div>
             </div>
             <div class="stat-box">
               <div class="stat-label">Total Categories</div>
-              <div class="stat-value">${statsData.totalCategories}</div>
+              <div class="stat-value">${escapeHtml(statsData.totalCategories)}</div>
             </div>
             <div class="stat-box">
               <div class="stat-label">Validation Pass Rate</div>
-              <div class="stat-value">${statsData.validationStatus.passRate}%</div>
+              <div class="stat-value">${escapeHtml(statsData.validationStatus.passRate)}%</div>
             </div>
             <div class="stat-box">
               <div class="stat-label">Data Sources</div>
-              <div class="stat-value">${statsData.totalSources}</div>
+              <div class="stat-value">${escapeHtml(statsData.totalSources)}</div>
             </div>
           </div>
 
@@ -124,10 +124,10 @@ export default function MaterialDatabaseStatus() {
             <tbody>
               ${Object.values(statsData.dataSourceStats).map(s => `
                 <tr>
-                  <td>${s.name}</td>
-                  <td>${s.count.toLocaleString()}</td>
-                  <td>${s.percentage}%</td>
-                  <td>${s.lastImported ? new Date(s.lastImported).toLocaleDateString() : 'N/A'}</td>
+                  <td>${escapeHtml(s.name)}</td>
+                  <td>${escapeHtml(s.count.toLocaleString())}</td>
+                  <td>${escapeHtml(s.percentage)}%</td>
+                  <td>${escapeHtml(s.lastImported ? new Date(s.lastImported).toLocaleDateString() : 'N/A')}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -137,10 +137,10 @@ export default function MaterialDatabaseStatus() {
           <table>
             <thead><tr><th>Level</th><th>Count</th></tr></thead>
             <tbody>
-              <tr><td>Verified EPD</td><td>${statsData.confidenceLevelCounts.verified.toLocaleString()}</td></tr>
-              <tr><td>Documented Variant</td><td>${statsData.confidenceLevelCounts.documented.toLocaleString()}</td></tr>
-              <tr><td>Industry Average</td><td>${statsData.confidenceLevelCounts.industry_average.toLocaleString()}</td></tr>
-              <tr><td>Needs Review</td><td>${statsData.confidenceLevelCounts.needs_review.toLocaleString()}</td></tr>
+              <tr><td>Verified EPD</td><td>${escapeHtml(statsData.confidenceLevelCounts.verified.toLocaleString())}</td></tr>
+              <tr><td>Documented Variant</td><td>${escapeHtml(statsData.confidenceLevelCounts.documented.toLocaleString())}</td></tr>
+              <tr><td>Industry Average</td><td>${escapeHtml(statsData.confidenceLevelCounts.industry_average.toLocaleString())}</td></tr>
+              <tr><td>Needs Review</td><td>${escapeHtml(statsData.confidenceLevelCounts.needs_review.toLocaleString())}</td></tr>
             </tbody>
           </table>
 
@@ -148,15 +148,15 @@ export default function MaterialDatabaseStatus() {
           <table>
             <thead><tr><th>Tier</th><th>Count</th></tr></thead>
             <tbody>
-              <tr><td>Tier 1: EPD Australasia / NABERS</td><td>${statsData.sourceTierCounts.tier1.toLocaleString()}</td></tr>
-              <tr><td>Tier 2: ICM / International EPD</td><td>${statsData.sourceTierCounts.tier2.toLocaleString()}</td></tr>
-              <tr><td>Tier 3: Requires Review</td><td>${statsData.sourceTierCounts.tier3.toLocaleString()}</td></tr>
+              <tr><td>Tier 1: EPD Australasia / NABERS</td><td>${escapeHtml(statsData.sourceTierCounts.tier1.toLocaleString())}</td></tr>
+              <tr><td>Tier 2: ICM / International EPD</td><td>${escapeHtml(statsData.sourceTierCounts.tier2.toLocaleString())}</td></tr>
+              <tr><td>Tier 3: Requires Review</td><td>${escapeHtml(statsData.sourceTierCounts.tier3.toLocaleString())}</td></tr>
             </tbody>
           </table>
 
           <div class="footer">
             <p><strong>CarbonConstruct</strong> • Materials Database Statistics Report</p>
-            <p>Version: v2025.1 • Last Database Update: ${statsData.lastUpdated ? new Date(statsData.lastUpdated).toLocaleDateString() : 'N/A'}</p>
+            <p>Version: v2025.1 • Last Database Update: ${escapeHtml(statsData.lastUpdated ? new Date(statsData.lastUpdated).toLocaleDateString() : 'N/A')}</p>
           </div>
         </body>
       </html>
@@ -165,8 +165,9 @@ export default function MaterialDatabaseStatus() {
     // Dynamic import secure html2pdf
     const secureHtml2Pdf = (await import('@/lib/secure-html-to-pdf')).default;
     const element = document.createElement('div');
-    // Sanitize HTML content before assignment to prevent XSS
-    element.innerHTML = sanitizeHtml(htmlContent);
+    // Use PDF-specific sanitization that preserves <style> tags while blocking scripts
+    // Dynamic data is already escaped with escapeHtml() in the template above
+    element.innerHTML = sanitizeHtmlForPdf(htmlContent);
     document.body.appendChild(element);
     
     secureHtml2Pdf()

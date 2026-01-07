@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { ExpiryWarning } from "@/hooks/useEPDRenewalReminders";
-import { sanitizeHtml } from "@/lib/dompurify-config";
+import { escapeHtml } from "@/lib/dompurify-config";
 
 interface EPDRenewalExportProps {
   expiryWarnings: ExpiryWarning[];
@@ -154,7 +154,7 @@ export function EPDRenewalExport({ expiryWarnings, projectName = 'Project' }: EP
       <!DOCTYPE html>
       <html>
       <head>
-        <title>EPD Renewal List - ${projectName}</title>
+        <title>EPD Renewal List - ${escapeHtml(projectName)}</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 20px; max-width: 210mm; margin: 0 auto; }
           h1 { color: #1a1a1a; border-bottom: 2px solid #b91c1c; padding-bottom: 8px; }
@@ -176,15 +176,15 @@ export function EPDRenewalExport({ expiryWarnings, projectName = 'Project' }: EP
       <body>
         <div class="header">
           <h1>⚠️ EPD Renewal List for Procurement</h1>
-          <p><strong>Project:</strong> ${projectName}</p>
-          <p><strong>Generated:</strong> ${new Date().toLocaleDateString()}</p>
+          <p><strong>Project:</strong> ${escapeHtml(projectName)}</p>
+          <p><strong>Generated:</strong> ${escapeHtml(new Date().toLocaleDateString())}</p>
         </div>
         
         <div class="summary">
-          ${expiredItems.length > 0 ? `<div class="summary-item expired"><strong>${expiredItems.length}</strong> Expired</div>` : ''}
-          ${criticalItems.length > 0 ? `<div class="summary-item critical"><strong>${criticalItems.length}</strong> Critical (≤30 days)</div>` : ''}
-          ${warningItems.length > 0 ? `<div class="summary-item warning"><strong>${warningItems.length}</strong> Warning (≤90 days)</div>` : ''}
-          ${upcomingItems.length > 0 ? `<div class="summary-item upcoming"><strong>${upcomingItems.length}</strong> Upcoming (≤180 days)</div>` : ''}
+          ${expiredItems.length > 0 ? `<div class="summary-item expired"><strong>${escapeHtml(expiredItems.length)}</strong> Expired</div>` : ''}
+          ${criticalItems.length > 0 ? `<div class="summary-item critical"><strong>${escapeHtml(criticalItems.length)}</strong> Critical (≤30 days)</div>` : ''}
+          ${warningItems.length > 0 ? `<div class="summary-item warning"><strong>${escapeHtml(warningItems.length)}</strong> Warning (≤90 days)</div>` : ''}
+          ${upcomingItems.length > 0 ? `<div class="summary-item upcoming"><strong>${escapeHtml(upcomingItems.length)}</strong> Upcoming (≤180 days)</div>` : ''}
         </div>
 
         ${expiredItems.length > 0 ? `
@@ -196,11 +196,11 @@ export function EPDRenewalExport({ expiryWarnings, projectName = 'Project' }: EP
             <tbody>
               ${expiredItems.map(w => `
                 <tr style="background: #fef2f2;">
-                  <td><strong>${w.materialName}</strong></td>
-                  <td style="font-family: monospace;">${w.epdNumber || '-'}</td>
-                  <td>${w.manufacturer || '-'}</td>
-                  <td>${new Date(w.expiryDate).toLocaleDateString()}</td>
-                  <td style="color: #b91c1c; font-weight: 600;">${Math.abs(w.daysUntil)} days</td>
+                  <td><strong>${escapeHtml(w.materialName)}</strong></td>
+                  <td style="font-family: monospace;">${escapeHtml(w.epdNumber || '-')}</td>
+                  <td>${escapeHtml(w.manufacturer || '-')}</td>
+                  <td>${escapeHtml(new Date(w.expiryDate).toLocaleDateString())}</td>
+                  <td style="color: #b91c1c; font-weight: 600;">${escapeHtml(Math.abs(w.daysUntil))} days</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -216,11 +216,11 @@ export function EPDRenewalExport({ expiryWarnings, projectName = 'Project' }: EP
             <tbody>
               ${criticalItems.map(w => `
                 <tr style="background: #fff7ed;">
-                  <td><strong>${w.materialName}</strong></td>
-                  <td style="font-family: monospace;">${w.epdNumber || '-'}</td>
-                  <td>${w.manufacturer || '-'}</td>
-                  <td>${new Date(w.expiryDate).toLocaleDateString()}</td>
-                  <td style="color: #c2410c; font-weight: 600;">${w.daysUntil} days</td>
+                  <td><strong>${escapeHtml(w.materialName)}</strong></td>
+                  <td style="font-family: monospace;">${escapeHtml(w.epdNumber || '-')}</td>
+                  <td>${escapeHtml(w.manufacturer || '-')}</td>
+                  <td>${escapeHtml(new Date(w.expiryDate).toLocaleDateString())}</td>
+                  <td style="color: #c2410c; font-weight: 600;">${escapeHtml(w.daysUntil)} days</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -236,11 +236,11 @@ export function EPDRenewalExport({ expiryWarnings, projectName = 'Project' }: EP
             <tbody>
               ${warningItems.map(w => `
                 <tr style="background: #fffbeb;">
-                  <td>${w.materialName}</td>
-                  <td style="font-family: monospace;">${w.epdNumber || '-'}</td>
-                  <td>${w.manufacturer || '-'}</td>
-                  <td>${new Date(w.expiryDate).toLocaleDateString()}</td>
-                  <td style="color: #b45309;">${w.daysUntil} days</td>
+                  <td>${escapeHtml(w.materialName)}</td>
+                  <td style="font-family: monospace;">${escapeHtml(w.epdNumber || '-')}</td>
+                  <td>${escapeHtml(w.manufacturer || '-')}</td>
+                  <td>${escapeHtml(new Date(w.expiryDate).toLocaleDateString())}</td>
+                  <td style="color: #b45309;">${escapeHtml(w.daysUntil)} days</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -256,11 +256,11 @@ export function EPDRenewalExport({ expiryWarnings, projectName = 'Project' }: EP
             <tbody>
               ${upcomingItems.map(w => `
                 <tr>
-                  <td>${w.materialName}</td>
-                  <td style="font-family: monospace;">${w.epdNumber || '-'}</td>
-                  <td>${w.manufacturer || '-'}</td>
-                  <td>${new Date(w.expiryDate).toLocaleDateString()}</td>
-                  <td>${w.daysUntil} days</td>
+                  <td>${escapeHtml(w.materialName)}</td>
+                  <td style="font-family: monospace;">${escapeHtml(w.epdNumber || '-')}</td>
+                  <td>${escapeHtml(w.manufacturer || '-')}</td>
+                  <td>${escapeHtml(new Date(w.expiryDate).toLocaleDateString())}</td>
+                  <td>${escapeHtml(w.daysUntil)} days</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -274,25 +274,17 @@ export function EPDRenewalExport({ expiryWarnings, projectName = 'Project' }: EP
             <li>EPD renewals typically take 4-8 weeks to process</li>
             <li>Expired EPDs may affect project compliance with EN 15804+A2 and Green Star requirements</li>
           </ul>
-          <p style="margin-top: 12px;">Generated by CarbonConstruct - ${new Date().toISOString()}</p>
+          <p style="margin-top: 12px;">Generated by CarbonConstruct - ${escapeHtml(new Date().toISOString())}</p>
         </div>
       </body>
       </html>
     `;
 
-    // Replace document.write with safer DOM manipulation to prevent XSS
-    // Create a new document with proper doctype and sanitized content
-    printWindow.document.open();
-    printWindow.document.write('<!DOCTYPE html>');
+    // Use document.write() with escaped dynamic data
+    // The HTML template is developer-controlled and trusted
+    // Only the interpolated data (material names, dates, etc.) from expiryWarnings needs escaping
+    printWindow.document.write(html);
     printWindow.document.close();
-    
-    // Create a container and sanitize the HTML content
-    const container = printWindow.document.createElement('div');
-    container.innerHTML = sanitizeHtml(html);
-    
-    // Append the sanitized content to the document body
-    printWindow.document.documentElement.innerHTML = container.innerHTML;
-    
     printWindow.onload = () => {
       printWindow.print();
     };
