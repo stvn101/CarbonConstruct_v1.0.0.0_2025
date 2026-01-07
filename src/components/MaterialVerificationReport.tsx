@@ -552,7 +552,8 @@ const MaterialVerificationReport = () => {
 
       // Create temporary element in DOM
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = pdfContent;
+      // Sanitize HTML content before assignment to prevent XSS
+      tempDiv.innerHTML = sanitizeHtml(pdfContent);
       tempDiv.style.position = 'absolute';
       tempDiv.style.left = '0';
       tempDiv.style.top = '0';

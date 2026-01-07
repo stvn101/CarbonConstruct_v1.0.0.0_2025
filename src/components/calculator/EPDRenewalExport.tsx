@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { ExpiryWarning } from "@/hooks/useEPDRenewalReminders";
+import { sanitizeHtml } from "@/lib/dompurify-config";
 
 interface EPDRenewalExportProps {
   expiryWarnings: ExpiryWarning[];
@@ -279,8 +280,19 @@ export function EPDRenewalExport({ expiryWarnings, projectName = 'Project' }: EP
       </html>
     `;
 
-    printWindow.document.write(html);
+    // Replace document.write with safer DOM manipulation to prevent XSS
+    // Create a new document with proper doctype and sanitized content
+    printWindow.document.open();
+    printWindow.document.write('<!DOCTYPE html>');
     printWindow.document.close();
+    
+    // Create a container and sanitize the HTML content
+    const container = printWindow.document.createElement('div');
+    container.innerHTML = sanitizeHtml(html);
+    
+    // Append the sanitized content to the document body
+    printWindow.document.documentElement.innerHTML = container.innerHTML;
+    
     printWindow.onload = () => {
       printWindow.print();
     };

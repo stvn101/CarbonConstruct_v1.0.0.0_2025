@@ -10,6 +10,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { DataSourceAttribution, MultiSourceAttribution } from "@/components/DataSourceAttribution";
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { toast } from "sonner";
+import { sanitizeHtml } from "@/lib/dompurify-config";
 
 export default function MaterialDatabaseStatus() {
   const { data: stats, isLoading, error } = useMaterialsDatabaseStats();
@@ -164,7 +165,8 @@ export default function MaterialDatabaseStatus() {
     // Dynamic import secure html2pdf
     const secureHtml2Pdf = (await import('@/lib/secure-html-to-pdf')).default;
     const element = document.createElement('div');
-    element.innerHTML = htmlContent;
+    // Sanitize HTML content before assignment to prevent XSS
+    element.innerHTML = sanitizeHtml(htmlContent);
     document.body.appendChild(element);
     
     secureHtml2Pdf()
