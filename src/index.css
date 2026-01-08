@@ -478,10 +478,10 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
 
-    /* Primary: Vibrant Forest Green */
-    --primary: 156 55% 35%;
+    /* Primary: Vibrant Forest Green - WCAG AA compliant (4.5:1 with white) */
+    --primary: 156 55% 32%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 156 60% 30%;
+    --primary-hover: 156 60% 27%;
 
     /* Secondary: Rich Carbon Blue-Grey */
     --secondary: 220 25% 45%;
