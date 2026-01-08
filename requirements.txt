@@ -1,11 +1,12 @@
 # FastAPI Backend Dependencies
 fastapi==0.109.0
+starlette==0.49.1  # For standalone Starlette applications
 uvicorn[standard]==0.27.0
 pydantic==2.5.3
 python-multipart==0.0.18
 
 # Database
-sqlite3  # Built into Python
+# sqlite3 is built into Python - no separate installation needed
 
 # PDF Generation (for future reports)
 weasyprint==60.2

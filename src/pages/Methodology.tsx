@@ -16,7 +16,7 @@ const Methodology = () => {
     document.documentElement.classList.add('pdf-exporting');
     
     try {
-    const html2pdf = (await import('html2pdf.js')).default;
+    const secureHtml2Pdf = (await import('@/lib/secure-html-to-pdf')).default;
     const { jsPDF } = await import('jspdf');
     
     // Create cover page
@@ -134,10 +134,10 @@ const Methodology = () => {
       };
       
       // Generate content PDF
-      const contentPdf = await html2pdf().set(opt).from(element).toPdf().get('pdf');
+      const contentPdf = (await secureHtml2Pdf().set(opt).from(element).toPdf()).get('pdf');
       
       // Add page numbers and footer to content pages
-      const totalPages = contentPdf.internal.getNumberOfPages();
+      const totalPages = contentPdf.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         contentPdf.setPage(i);
         contentPdf.setFontSize(8);

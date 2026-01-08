@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { CheckCircle, XCircle, AlertTriangle, FileCheck, Database, Shield, FileDown, Bot, Cpu, Loader2, RefreshCw, CheckCheck, History, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
-import html2pdf from "html2pdf.js";
-import { sanitizeHtml } from "@/lib/dompurify-config";
+import secureHtml2Pdf from "@/lib/secure-html-to-pdf";
+import { sanitizeHtml, escapeHtml } from "@/lib/dompurify-config";
 import { useMaterialsDatabaseStats, MaterialsDatabaseStats, OutlierMaterial, CategoryStats } from "@/hooks/useMaterialsDatabaseStats";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -392,22 +392,22 @@ const MaterialVerificationReport = () => {
     // Build verification table HTML helper
     const buildTableRows = (data: VerificationResult[]) => data.map(row => `
       <tr style="border-bottom: 1px solid #e5e7eb;">
-        <td style="padding: 5px;">${row.material}</td>
-        <td style="padding: 5px;">${row.nabersDefault}</td>
-        <td style="padding: 5px;">${row.nabersRange}</td>
-        <td style="padding: 5px;">${row.databaseValue}</td>
-        <td style="padding: 5px;">${row.unit}</td>
+        <td style="padding: 5px;">${escapeHtml(row.material)}</td>
+        <td style="padding: 5px;">${escapeHtml(row.nabersDefault)}</td>
+        <td style="padding: 5px;">${escapeHtml(row.nabersRange)}</td>
+        <td style="padding: 5px;">${escapeHtml(row.databaseValue)}</td>
+        <td style="padding: 5px;">${escapeHtml(row.unit)}</td>
         <td style="padding: 5px; color: ${row.status === 'pass' ? '#16a34a' : row.status === 'warn' ? '#ca8a04' : '#dc2626'};">
           ${row.status === 'pass' ? '✓ PASS' : row.status === 'warn' ? '⚠ WARN' : '✗ FAIL'}
         </td>
-        <td style="padding: 5px;">${row.notes}</td>
+        <td style="padding: 5px;">${escapeHtml(row.notes)}</td>
       </tr>
     `).join('');
 
     const buildTable = (data: VerificationResult[], title: string) => `
       <div style="margin-bottom: 20px;">
         <h3 style="font-size: 14px; font-weight: bold; color: #2d5a27; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">
-          ${title}
+          ${escapeHtml(title)}
         </h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
           <thead>
@@ -552,7 +552,8 @@ const MaterialVerificationReport = () => {
 
       // Create temporary element in DOM
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = pdfContent;
+      // Sanitize HTML content before assignment to prevent XSS
+      tempDiv.innerHTML = sanitizeHtml(pdfContent);
       tempDiv.style.position = 'absolute';
       tempDiv.style.left = '0';
       tempDiv.style.top = '0';
@@ -568,7 +569,7 @@ const MaterialVerificationReport = () => {
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
       };
 
-      await html2pdf().set(opt).from(tempDiv).save();
+      await secureHtml2Pdf().set(opt).from(tempDiv).save();
       
       // Clean up
       document.body.removeChild(tempDiv);

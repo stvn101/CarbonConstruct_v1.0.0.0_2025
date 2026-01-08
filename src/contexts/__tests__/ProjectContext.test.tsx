@@ -11,29 +11,31 @@ import type { ReactNode } from 'react';
 
 // Mock dependencies
 vi.mock('@/integrations/supabase/client', () => {
+  const mockData = [
+    {
+      id: 'project-1',
+      name: 'Test Project 1',
+      description: 'Test Description',
+      location: 'Sydney',
+      project_type: 'residential',
+      status: 'active',
+      created_at: '2025-01-01T00:00:00Z',
+      updated_at: '2025-01-01T00:00:00Z'
+    }
+  ];
+
   const createChainableMock = () => {
     const chain: any = {
-      select: vi.fn(() => chain),
-      eq: vi.fn(() => chain),
-      order: vi.fn(() => Promise.resolve({
-        data: [
-          {
-            id: 'project-1',
-            name: 'Test Project 1',
-            description: 'Test Description',
-            location: 'Sydney',
-            project_type: 'residential',
-            status: 'active',
-            created_at: '2025-01-01T00:00:00Z',
-            updated_at: '2025-01-01T00:00:00Z'
-          }
-        ],
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: mockData,
         error: null
-      })),
-      insert: vi.fn(() => chain),
-      update: vi.fn(() => chain),
-      delete: vi.fn(() => chain),
-      single: vi.fn(() => Promise.resolve({
+      }),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
         data: {
           id: 'new-project',
           name: 'New Project',
@@ -43,8 +45,8 @@ vi.mock('@/integrations/supabase/client', () => {
           updated_at: '2025-01-02T00:00:00Z'
         },
         error: null
-      })),
-      maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null }))
+      }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null })
     };
     return chain;
   };
@@ -84,11 +86,15 @@ describe('ProjectContext', () => {
     it('should provide default values', async () => {
       const { result } = renderHook(() => useProject(), { wrapper });
 
+      // Wait for the context to be defined first
+      expect(result.current).toBeDefined();
+      expect(result.current.projects).toBeDefined();
+      
+      // Wait for loading to complete and projects to be loaded
       await waitFor(() => {
-        expect(result.current).toBeDefined();
-        expect(result.current.projects).toBeDefined();
         expect(result.current.loading).toBe(false);
-      }, { timeout: 3000 });
+        expect(result.current.projects.length).toBeGreaterThan(0);
+      }, { timeout: 5000, interval: 100 });
     });
 
     it('should load projects on mount', async () => {

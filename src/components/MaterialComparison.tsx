@@ -517,9 +517,9 @@ export const MaterialComparison = memo(() => {
                       <XAxis type="number" label={{ value: 'kgCO₂e per unit', position: 'insideBottom', offset: -5 }} />
                       <YAxis type="category" dataKey="name" width={150} />
                       <Tooltip 
-                        formatter={(value: number, name: string) => [
-                          `${value.toFixed(1)} kgCO₂e`,
-                          name === 'gross' ? 'Gross Emissions' : name === 'sequestration' ? 'Carbon Stored' : 'Net Carbon'
+                        formatter={(value: number | undefined, name?: string) => [
+                          `${(value ?? 0).toFixed(1)} kgCO₂e`,
+                          (name ?? '') === 'gross' ? 'Gross Emissions' : (name ?? '') === 'sequestration' ? 'Carbon Stored' : 'Net Carbon'
                         ]}
                       />
                       <Legend />
