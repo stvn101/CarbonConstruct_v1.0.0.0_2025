@@ -144,7 +144,6 @@ export const QuickCarbonCalculator = () => {
               disabled={!projectSize || !projectType || !duration || isCalculating}
               className="w-full"
               size="lg"
-              aria-label="Calculate carbon emissions estimate"
               aria-busy={isCalculating}
             >
               {isCalculating ? (
