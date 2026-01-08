@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 /**
  * SECURITY NOTICE: xlsx@0.18.5 Vulnerability Mitigation
  * 
@@ -485,9 +485,11 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
     
-  } catch (error) {
-    console.error('[import-nabers-epd] Error:', error);
-    console.error('[import-nabers-epd] Stack trace:', error.stack);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('[import-nabers-epd] Error:', errorMessage);
+    console.error('[import-nabers-epd] Stack trace:', errorStack);
     return new Response(JSON.stringify({ 
       error: 'An error occurred while importing EPD materials. Please try again.'
     }), {

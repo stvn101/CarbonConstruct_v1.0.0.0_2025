@@ -117,7 +117,7 @@ serve(async (req) => {
     });
 
     // Filter to active OR trialing status (trial users should have full access)
-    const validSubscriptions = subscriptions.data.filter(s => 
+    const validSubscriptions = subscriptions.data.filter((s: { status: string }) => 
       s.status === "active" || s.status === "trialing"
     );
     const hasActiveSub = validSubscriptions.length > 0;

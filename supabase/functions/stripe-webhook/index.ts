@@ -69,8 +69,9 @@ serve(async (req) => {
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       logStep("Webhook signature verified", { type: event.type });
-    } catch (err) {
-      logStep("Webhook signature verification failed", { error: err.message });
+    } catch (err: unknown) {
+      const errMessage = err instanceof Error ? err.message : String(err);
+      logStep("Webhook signature verification failed", { error: errMessage });
       return new Response(JSON.stringify({ error: "Invalid signature" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -247,12 +248,14 @@ async function handleSubscriptionUpdate(
         }
       });
       logStep("Subscription email sent", { email: customer.email });
-    } catch (emailError) {
-      logStep("Failed to send subscription email", { error: emailError.message });
+    } catch (emailError: unknown) {
+      const emailErrorMessage = emailError instanceof Error ? emailError.message : String(emailError);
+      logStep("Failed to send subscription email", { error: emailErrorMessage });
       // Don't throw - email failure shouldn't block webhook
     }
-  } catch (error) {
-    logStep("Error in handleSubscriptionUpdate", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("Error in handleSubscriptionUpdate", { error: errorMessage });
     throw error;
   }
 }
@@ -295,12 +298,14 @@ async function handleSubscriptionDeleted(
           }
         });
         logStep("Cancellation email sent", { email: customerEmail });
-      } catch (emailError) {
-        logStep("Failed to send cancellation email", { error: emailError.message });
+      } catch (emailError: unknown) {
+        const emailErrorMessage = emailError instanceof Error ? emailError.message : String(emailError);
+        logStep("Failed to send cancellation email", { error: emailErrorMessage });
       }
     }
-  } catch (error) {
-    logStep("Error in handleSubscriptionDeleted", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("Error in handleSubscriptionDeleted", { error: errorMessage });
     throw error;
   }
 }
@@ -453,8 +458,9 @@ async function handlePaymentSucceeded(
 
     if (error) throw error;
     logStep("Subscription marked as active");
-  } catch (error) {
-    logStep("Error in handlePaymentSucceeded", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("Error in handlePaymentSucceeded", { error: errorMessage });
     throw error;
   }
 }
@@ -479,8 +485,9 @@ async function handlePaymentFailed(
 
     if (error) throw error;
     logStep("Subscription marked as past_due");
-  } catch (error) {
-    logStep("Error in handlePaymentFailed", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("Error in handlePaymentFailed", { error: errorMessage });
     throw error;
   }
 }
@@ -525,12 +532,14 @@ async function handleTrialWillEnd(
           }
         });
         logStep("Trial ending email sent", { email: customer.email, daysLeft });
-      } catch (emailError) {
-        logStep("Failed to send trial ending email", { error: emailError.message });
+      } catch (emailError: unknown) {
+        const emailErrorMessage = emailError instanceof Error ? emailError.message : String(emailError);
+        logStep("Failed to send trial ending email", { error: emailErrorMessage });
       }
     }
-  } catch (error) {
-    logStep("Error in handleTrialWillEnd", { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("Error in handleTrialWillEnd", { error: errorMessage });
     throw error;
   }
 }
