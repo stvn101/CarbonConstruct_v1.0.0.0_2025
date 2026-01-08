@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
 /**
@@ -137,9 +137,9 @@ const handler = async (req: Request): Promise<Response> => {
           // Always send for expired materials
           if (m.days_until_expiry < 0) return true;
           // Check if days until expiry matches any of the reminder thresholds
-          return reminderDays.some(threshold => 
-            m.days_until_expiry <= threshold && m.days_until_expiry > threshold - 7
-          );
+        return reminderDays.some((threshold: number) => 
+          m.days_until_expiry <= threshold && m.days_until_expiry > threshold - 7
+        );
         });
 
         // Also check last reminder sent - don't send more than once per day
@@ -244,7 +244,7 @@ const handler = async (req: Request): Promise<Response> => {
                 
                 <p style="margin-top: 24px; font-size: 12px; color: #9ca3af;">
                   This is an automated daily reminder from CarbonConstruct. You can manage your notification preferences and reminder schedule in the Settings page.
-                  <br>Reminder thresholds: ${reminderDays.sort((a, b) => b - a).join(', ')} days before expiry.
+                  <br>Reminder thresholds: ${reminderDays.sort((a: number, b: number) => b - a).join(', ')} days before expiry.
                 </p>
               </div>
             </body>

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -108,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "CarbonConstruct <onboarding@resend.dev>",
       to: ["support@carbonconstruct.com.au"],
-      replyTo: email,
+      reply_to: email,
       subject: `Support Request: ${safeSubject}`,
       html: `
         <h2>New Support Request</h2>

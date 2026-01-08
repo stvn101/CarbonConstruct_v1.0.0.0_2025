@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 /**
  * SECURITY NOTICE: xlsx@0.18.5 Vulnerability Mitigation
  * 
@@ -187,11 +187,10 @@ Deno.serve(async (req) => {
 
     // Clear ICM materials only
     if (action === 'clear_icm') {
-      const { error: deleteError, count } = await supabase
+      const { error: deleteError } = await supabase
         .from('materials_epd')
         .delete()
-        .eq('data_source', 'ICM Database 2019 (AusLCI)')
-        .select('*', { count: 'exact', head: true });
+        .eq('data_source', 'ICM Database 2019 (AusLCI)');
       
       if (deleteError) throw deleteError;
       

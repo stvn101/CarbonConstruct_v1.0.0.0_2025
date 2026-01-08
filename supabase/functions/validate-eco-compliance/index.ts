@@ -355,7 +355,7 @@ function generateComplianceReport(
     .filter(m => m.characterisation_factor_version)
     .map(m => m.characterisation_factor_version!);
   const mostCommonCF = cfVersions.length > 0 
-    ? getMostCommon(cfVersions) 
+    ? getMostCommon(cfVersions) || 'JRC-EF-3.1'
     : 'JRC-EF-3.1';
   
   return {
