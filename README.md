@@ -120,6 +120,21 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/3175be27-a2e8-448e-9119-b56fba138059) and click on Share -> Publish.
 
+### Supabase Functions Deployment
+
+Supabase Edge Functions are automatically deployed via GitHub Actions when changes are pushed to the `main` branch:
+
+- **Automatic Deployment**: Functions deploy on push to `main` when files in `supabase/` are modified
+- **Manual Deployment**: Trigger via GitHub Actions → Deploy Supabase Functions → Run workflow
+- **Functions Location**: All Edge Functions are in `supabase/functions/`
+- **Configuration**: Function settings are in `supabase/config.toml`
+
+**Required GitHub Secrets:**
+- `SUPABASE_ACCESS_TOKEN` - Your Supabase access token for CLI authentication
+
+**View Deployment Status:**
+Navigate to the Actions tab in GitHub to see deployment progress and logs.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!
