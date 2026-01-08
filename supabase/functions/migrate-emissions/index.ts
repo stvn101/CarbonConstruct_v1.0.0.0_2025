@@ -226,11 +226,12 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    // Log full error details on the server for diagnostics
     console.error("Migration Error:", error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Unknown error",
-        details: error instanceof Error ? error.stack : undefined
+        error: "An internal error occurred during migration.",
+        error_code: "MIGRATION_ERROR"
       }),
       { 
         status: 500, 
