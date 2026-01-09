@@ -1,3 +1,4 @@
+// --- FIX START: Bulk upload carbon factor validation (branch: fix/bulk-upload-carbon-factor-validation) ---
 import { useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { 
-  Upload, FileText, CheckCircle, XCircle, AlertTriangle, 
+import {
+  Upload, FileText, CheckCircle, XCircle, AlertTriangle,
   RefreshCw, Trash2, Edit2, Save, FolderOpen, FileSpreadsheet, Download, Eye, ShieldCheck
 } from "lucide-react";
 import ExcelJS from 'exceljs';
@@ -331,7 +332,7 @@ export function BulkEPDUploader() {
           if (extension === '.csv') {
             const text = e.target?.result as string;
             const lines = text.split(/\r?\n/).filter(line => line.trim());
-            
+
             if (lines.length < 2) {
               reject(new Error('File must have a header row and at least one data row'));
               return;
@@ -375,100 +376,107 @@ export function BulkEPDUploader() {
           processData();
 
           function processData() {
-          
-          // Build column mapping using NABERS_COLUMN_DEFINITIONS
-          const columnMapping: ColumnMappingResult[] = [];
-          const columnMap: Record<string, number> = {};
-          
-          for (const def of NABERS_COLUMN_DEFINITIONS) {
-            let foundIndex = -1;
-            let foundHeader: string | null = null;
-            
-            for (const searchKey of def.searchKeys) {
-              const needle = searchKey.toLowerCase();
-              const idx = headers.findIndex(h => (h ?? '').includes(needle));
-              if (idx !== -1) {
-                foundIndex = idx;
-                foundHeader = headers[idx];
-                break;
+
+            // Build column mapping using NABERS_COLUMN_DEFINITIONS
+            const columnMapping: ColumnMappingResult[] = [];
+            const columnMap: Record<string, number> = {};
+
+            for (const def of NABERS_COLUMN_DEFINITIONS) {
+              let foundIndex = -1;
+              let foundHeader: string | null = null;
+
+              for (const searchKey of def.searchKeys) {
+                const needle = searchKey.toLowerCase();
+                const idx = headers.findIndex(h => (h ?? '').includes(needle));
+                if (idx !== -1) {
+                  foundIndex = idx;
+                  foundHeader = headers[idx];
+                  break;
+                }
               }
+
+              columnMap[def.key] = foundIndex;
+              columnMapping.push({
+                columnName: def.key,
+                expectedHeaders: def.searchKeys,
+                foundHeader,
+                foundIndex,
+                required: def.required,
+              });
             }
-            
-            columnMap[def.key] = foundIndex;
-            columnMapping.push({
-              columnName: def.key,
-              expectedHeaders: def.searchKeys,
-              foundHeader,
-              foundIndex,
-              required: def.required,
-            });
-          }
 
-          const parseNumber = (value: string | undefined): number | null => {
-            if (!value || value.trim() === '') return null;
-            const num = parseFloat(value.replace(/[^0-9.eE+-]/g, ''));
-            return isNaN(num) ? null : num;
-          };
-
-          const products: ExtractedProduct[] = [];
-          for (const values of dataRows) {
-            if (values.length === 0 || values.every(v => !v.trim())) continue;
-
-            const getValue = (idx: number): string | null => {
-              if (idx === -1 || idx >= values.length) return null;
-              const val = values[idx]?.trim();
-              return val || null;
+            const parseNumber = (value: string | undefined): number | null => {
+              if (!value || value.trim() === '') return null;
+              const num = parseFloat(value.replace(/[^0-9.eE+-]/g, ''));
+              return isNaN(num) ? null : num;
             };
 
-            products.push({
-              material_type: getValue(columnMap.material_type) || 'Unknown',
-              material_classification: getValue(columnMap.material_classification),
-              material_category_matching: getValue(columnMap.material_category_matching),
-              material_long_name: getValue(columnMap.material_long_name) || 'Unknown Material',
-              data_valid_start: getValue(columnMap.data_valid_start),
-              data_valid_end: getValue(columnMap.data_valid_end),
-              location: getValue(columnMap.location),
-              registration_number: getValue(columnMap.registration_number),
-              version: getValue(columnMap.version),
-              program: getValue(columnMap.program),
-              reference_link: getValue(columnMap.reference_link),
-              declared_unit: getValue(columnMap.declared_unit) || 'kg',
-              density_kg_m3: parseNumber(getValue(columnMap.density_kg_m3) ?? undefined),
-              area_density_kg_m2: parseNumber(getValue(columnMap.area_density_kg_m2) ?? undefined),
-              mass_per_m_kg: parseNumber(getValue(columnMap.mass_per_m_kg) ?? undefined),
-              mass_per_unit_kg: parseNumber(getValue(columnMap.mass_per_unit_kg) ?? undefined),
-              gwp_total_quantity: parseNumber(getValue(columnMap.gwp_total_quantity) ?? undefined),
-              gwp_fossil_quantity: parseNumber(getValue(columnMap.gwp_fossil_quantity) ?? undefined),
-              gwp_biogenic_quantity: parseNumber(getValue(columnMap.gwp_biogenic_quantity) ?? undefined),
-              gwp_luluc_quantity: parseNumber(getValue(columnMap.gwp_luluc_quantity) ?? undefined),
-              gwp_stored_quantity: parseNumber(getValue(columnMap.gwp_stored_quantity) ?? undefined),
-              upfront_carbon_emissions_quantity: parseNumber(getValue(columnMap.upfront_carbon_emissions_quantity) ?? undefined),
-              upfront_carbon_storage_quantity: parseNumber(getValue(columnMap.upfront_carbon_storage_quantity) ?? undefined),
-              gwp_total_kg: parseNumber(getValue(columnMap.gwp_total_kg) ?? undefined),
-              gwp_fossil_kg: parseNumber(getValue(columnMap.gwp_fossil_kg) ?? undefined),
-              gwp_biogenic_kg: parseNumber(getValue(columnMap.gwp_biogenic_kg) ?? undefined),
-              gwp_luluc_kg: parseNumber(getValue(columnMap.gwp_luluc_kg) ?? undefined),
-              gwp_stored_kg: parseNumber(getValue(columnMap.gwp_stored_kg) ?? undefined),
-              upfront_carbon_emissions_kg: parseNumber(getValue(columnMap.upfront_carbon_emissions_kg) ?? undefined),
-              upfront_carbon_storage_kg: parseNumber(getValue(columnMap.upfront_carbon_storage_kg) ?? undefined),
-              record_added_to_database: getValue(columnMap.record_added_to_database),
-            });
-          }
+            const products: ExtractedProduct[] = [];
+            for (const values of dataRows) {
+              if (values.length === 0 || values.every(v => !v.trim())) continue;
 
-          const validProducts = products.filter(p =>
-            p.material_long_name !== 'Unknown Material' ||
-            p.gwp_total_quantity !== null ||
-            p.gwp_total_kg !== null
-          );
+              const getValue = (idx: number): string | null => {
+                if (idx === -1 || idx >= values.length) return null;
+                const val = values[idx]?.trim();
+                return val || null;
+              };
 
-          resolve({ products: validProducts, columnMapping });
+              // --- FIX STEP 2: Add carbon factor validation and flag missing ---
+              const gwpTotalQuantity = parseNumber(getValue(columnMap.gwp_total_quantity) ?? undefined);
+              const gwpTotalKg = parseNumber(getValue(columnMap.gwp_total_kg) ?? undefined);
+              const missingCarbonFactor = gwpTotalQuantity === null && gwpTotalKg === null;
+
+              products.push({
+                material_type: getValue(columnMap.material_type) || 'Unknown',
+                material_classification: getValue(columnMap.material_classification),
+                material_category_matching: getValue(columnMap.material_category_matching),
+                material_long_name: getValue(columnMap.material_long_name) || 'Unknown Material',
+                data_valid_start: getValue(columnMap.data_valid_start),
+                data_valid_end: getValue(columnMap.data_valid_end),
+                location: getValue(columnMap.location),
+                registration_number: getValue(columnMap.registration_number),
+                version: getValue(columnMap.version),
+                program: getValue(columnMap.program),
+                reference_link: getValue(columnMap.reference_link),
+                declared_unit: getValue(columnMap.declared_unit) || 'kg',
+                density_kg_m3: parseNumber(getValue(columnMap.density_kg_m3) ?? undefined),
+                area_density_kg_m2: parseNumber(getValue(columnMap.area_density_kg_m2) ?? undefined),
+                mass_per_m_kg: parseNumber(getValue(columnMap.mass_per_m_kg) ?? undefined),
+                mass_per_unit_kg: parseNumber(getValue(columnMap.mass_per_unit_kg) ?? undefined),
+                gwp_total_quantity: gwpTotalQuantity,
+                gwp_fossil_quantity: parseNumber(getValue(columnMap.gwp_fossil_quantity) ?? undefined),
+                gwp_biogenic_quantity: parseNumber(getValue(columnMap.gwp_biogenic_quantity) ?? undefined),
+                gwp_luluc_quantity: parseNumber(getValue(columnMap.gwp_luluc_quantity) ?? undefined),
+                gwp_stored_quantity: parseNumber(getValue(columnMap.gwp_stored_quantity) ?? undefined),
+                upfront_carbon_emissions_quantity: parseNumber(getValue(columnMap.upfront_carbon_emissions_quantity) ?? undefined),
+                upfront_carbon_storage_quantity: parseNumber(getValue(columnMap.upfront_carbon_storage_quantity) ?? undefined),
+                gwp_total_kg: gwpTotalKg,
+                gwp_fossil_kg: parseNumber(getValue(columnMap.gwp_fossil_kg) ?? undefined),
+                gwp_biogenic_kg: parseNumber(getValue(columnMap.gwp_biogenic_kg) ?? undefined),
+                gwp_luluc_kg: parseNumber(getValue(columnMap.gwp_luluc_kg) ?? undefined),
+                gwp_stored_kg: parseNumber(getValue(columnMap.gwp_stored_kg) ?? undefined),
+                upfront_carbon_emissions_kg: parseNumber(getValue(columnMap.upfront_carbon_emissions_kg) ?? undefined),
+                upfront_carbon_storage_kg: parseNumber(getValue(columnMap.upfront_carbon_storage_kg) ?? undefined),
+                record_added_to_database: getValue(columnMap.record_added_to_database),
+                // --- FIX STEP 2: Flag for missing carbon factor ---
+                missingCarbonFactor,
+              });
+            }
+
+            const validProducts = products.filter(p =>
+              p.material_long_name !== 'Unknown Material' ||
+              p.gwp_total_quantity !== null ||
+              p.gwp_total_kg !== null
+            );
+
+            resolve({ products: validProducts, columnMapping });
           }
         } catch (error) {
           reject(error);
         }
       };
       reader.onerror = () => reject(new Error('Failed to read file'));
-      
+
       const extension = '.' + file.name.split('.').pop()?.toLowerCase();
       if (extension === '.csv') {
         reader.readAsText(file);
@@ -483,7 +491,7 @@ export function BulkEPDUploader() {
     const result: string[] = [];
     let current = '';
     let inQuotes = false;
-    
+
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
       if (char === '"') {
@@ -505,7 +513,7 @@ export function BulkEPDUploader() {
     formData.append('file', file);
 
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-pdf-text`, {
       method: 'POST',
       headers: {
@@ -516,21 +524,21 @@ export function BulkEPDUploader() {
 
     if (!response.ok) {
       const error = await response.json();
-      
+
       // Handle rate limit with retry + exponential backoff
       if (response.status === 429 && retryCount < MAX_RETRIES) {
         const waitTime = Math.pow(2, retryCount + 1) * 1000; // 2s, 4s, 8s
-        console.log(`[BulkEPDUploader] Rate limited, retrying in ${waitTime/1000}s (attempt ${retryCount + 1}/${MAX_RETRIES})`);
-        toast.info(`Rate limited, retrying in ${waitTime/1000}s...`);
+        console.log(`[BulkEPDUploader] Rate limited, retrying in ${waitTime / 1000}s (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+        toast.info(`Rate limited, retrying in ${waitTime / 1000}s...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         return extractTextFromPDF(file, retryCount + 1);
       }
-      
+
       // Handle file too large
       if (response.status === 413) {
         throw new Error(`PDF too large (max 5MB for AI extraction). Try a smaller file.`);
       }
-      
+
       throw new Error(error.error || 'Failed to extract text');
     }
 
@@ -553,8 +561,8 @@ export function BulkEPDUploader() {
 
   // Process a single file and return the result
   const processSingleFile = async (
-    file: File, 
-    _fileIndex: number, 
+    file: File,
+    _fileIndex: number,
     session: any
   ): Promise<ProcessedFile> => {
     const fileIsSpreadsheet = isSpreadsheetFile(file);
@@ -574,7 +582,7 @@ export function BulkEPDUploader() {
         const { products, columnMapping } = await parseSpreadsheetFile(file);
         const foundCount = columnMapping.filter(c => c.foundIndex !== -1).length;
         const missingRequired = columnMapping.filter(c => c.required && c.foundIndex === -1);
-        
+
         return {
           ...result,
           status: 'extracted',
@@ -663,36 +671,36 @@ export function BulkEPDUploader() {
     // Separate PDFs and spreadsheets - process PDFs sequentially, spreadsheets in batches
     const pdfFiles = files.filter(f => !isSpreadsheetFile(f));
     const spreadsheetFiles = files.filter(f => isSpreadsheetFile(f));
-    
+
     const results: ProcessedFile[] = [];
     let globalIndex = 0;
 
     // Process PDFs sequentially with delay to avoid rate limits
     if (pdfFiles.length > 0) {
       toast.info(`Processing ${pdfFiles.length} PDF file(s) sequentially...`);
-      
+
       for (let i = 0; i < pdfFiles.length; i++) {
         const file = pdfFiles[i];
         const fileIndex = files.indexOf(file);
         setCurrentFile(fileIndex);
-        
+
         // Update status to extracting
-        setProcessedFiles(prev => prev.map((f, idx) => 
+        setProcessedFiles(prev => prev.map((f, idx) =>
           idx === fileIndex ? { ...f, status: 'extracting' } : f
         ));
 
         const result = await processSingleFile(file, fileIndex, session);
-        
-        setProcessedFiles(prev => prev.map((f, idx) => 
+
+        setProcessedFiles(prev => prev.map((f, idx) =>
           idx === fileIndex ? result : f
         ));
-        
+
         if (result.status === 'extracted') {
           toast.success(`${result.fileName}: ${result.products.length} products extracted`);
         } else if (result.status === 'error') {
           toast.error(`${result.fileName}: ${result.error}`);
         }
-        
+
         results.push(result);
         globalIndex++;
 
@@ -707,14 +715,14 @@ export function BulkEPDUploader() {
     if (spreadsheetFiles.length > 0) {
       const BATCH_SIZE = 3;
       toast.info(`Processing ${spreadsheetFiles.length} spreadsheet file(s)...`);
-      
+
       for (let i = 0; i < spreadsheetFiles.length; i += BATCH_SIZE) {
         const batch = spreadsheetFiles.slice(i, i + BATCH_SIZE);
-        
+
         // Update status to extracting for this batch
         batch.forEach(file => {
           const fileIndex = files.indexOf(file);
-          setProcessedFiles(prev => prev.map((f, idx) => 
+          setProcessedFiles(prev => prev.map((f, idx) =>
             idx === fileIndex ? { ...f, status: 'extracting' } : f
           ));
         });
@@ -727,10 +735,10 @@ export function BulkEPDUploader() {
         // Update results
         batchResults.forEach((result) => {
           const fileIndex = files.findIndex(f => f.name === result.fileName);
-          setProcessedFiles(prev => prev.map((f, idx) => 
+          setProcessedFiles(prev => prev.map((f, idx) =>
             idx === fileIndex ? result : f
           ));
-          
+
           if (result.status === 'extracted') {
             toast.success(`${result.fileName}: ${result.products.length} products extracted`);
           } else if (result.status === 'error') {
@@ -743,10 +751,10 @@ export function BulkEPDUploader() {
     }
 
     setIsProcessing(false);
-    
+
     const successCount = results.filter(r => r.status === 'extracted').length;
     const errorCount = results.filter(r => r.status === 'error').length;
-    
+
     if (errorCount === 0) {
       toast.success(`All ${successCount} files processed successfully!`);
     } else {
@@ -755,10 +763,10 @@ export function BulkEPDUploader() {
   };
 
   const updateProduct = (fileIndex: number, productIndex: number, updates: Partial<ExtractedProduct>) => {
-    setProcessedFiles(prev => prev.map((f, fi) => 
+    setProcessedFiles(prev => prev.map((f, fi) =>
       fi === fileIndex ? {
         ...f,
-        products: f.products.map((p, pi) => 
+        products: f.products.map((p, pi) =>
           pi === productIndex ? { ...p, ...updates } : p
         )
       } : f
@@ -766,7 +774,7 @@ export function BulkEPDUploader() {
   };
 
   const removeProduct = (fileIndex: number, productIndex: number) => {
-    setProcessedFiles(prev => prev.map((f, fi) => 
+    setProcessedFiles(prev => prev.map((f, fi) =>
       fi === fileIndex ? {
         ...f,
         products: f.products.filter((_, pi) => pi !== productIndex)
@@ -775,28 +783,37 @@ export function BulkEPDUploader() {
   };
 
   const approveFile = (fileIndex: number) => {
-    setProcessedFiles(prev => prev.map((f, i) => 
+    setProcessedFiles(prev => prev.map((f, i) =>
       i === fileIndex ? { ...f, status: 'approved' } : f
     ));
   };
 
   const saveApprovedMaterials = async () => {
     const approvedFiles = processedFiles.filter(f => f.status === 'approved');
-    
-    // Strict mode check - block if any file has missing columns
+
+
+    // --- FIX STEP 4: Block saving in strict mode if any product is missing carbon factor ---
     if (strictMode) {
       const filesWithMissingColumns = approvedFiles.filter(f => {
         if (!f.columnMapping) return true;
         return f.columnMapping.some(c => c.foundIndex === -1);
       });
-      
+
+      const filesWithMissingCarbonFactor = approvedFiles.filter(f =>
+        f.products.some(p => p.missingCarbonFactor)
+      );
+
       if (filesWithMissingColumns.length > 0) {
         toast.error(`Strict mode: ${filesWithMissingColumns.length} file(s) have missing columns. Disable strict mode or fix the spreadsheet.`);
         return;
       }
+      if (filesWithMissingCarbonFactor.length > 0) {
+        toast.error(`Strict mode: ${filesWithMissingCarbonFactor.length} file(s) have products missing carbon factor. Fix the spreadsheet or disable strict mode.`);
+        return;
+      }
     }
-    
-    const allMaterials = approvedFiles.flatMap(f => 
+
+    const allMaterials = approvedFiles.flatMap(f =>
       f.products.map(p => ({ ...p, storage_url: f.storagePath }))
     );
 
@@ -829,7 +846,7 @@ export function BulkEPDUploader() {
       setSavedCount(prev => prev + result.inserted);
 
       // Mark files as saved
-      setProcessedFiles(prev => prev.map(f => 
+      setProcessedFiles(prev => prev.map(f =>
         f.status === 'approved' ? { ...f, status: 'saved' } : f
       ));
 
@@ -975,9 +992,9 @@ export function BulkEPDUploader() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">Files to Process ({files.length})</h4>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setFiles([])}
                       className="text-destructive"
                     >
@@ -1094,8 +1111,8 @@ export function BulkEPDUploader() {
                       <div className="flex items-center gap-2">
                         {getStatusBadge(file.status)}
                         {file.columnMapping && (
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="outline"
                             onClick={() => setShowColumnMapping(fileIndex)}
                           >
@@ -1127,7 +1144,7 @@ export function BulkEPDUploader() {
                       <ScrollArea className="max-h-96">
                         <div className="space-y-3">
                           {file.products.map((product, productIndex) => (
-                            <div key={productIndex} className="border rounded-lg p-4 bg-muted/30">
+                            <div key={productIndex} className={`border rounded-lg p-4 bg-muted/30${product.missingCarbonFactor ? ' border-amber-500 bg-amber-50' : ''}`}>
                               <div className="flex items-start justify-between mb-3">
                                 <div>
                                   <h4 className="font-medium">{product.material_long_name}</h4>
@@ -1140,18 +1157,25 @@ export function BulkEPDUploader() {
                                   {product.location && (
                                     <p className="text-xs text-muted-foreground">Location: {product.location}</p>
                                   )}
+                                  {/* --- FIX STEP 3: Show warning if missing carbon factor --- */}
+                                  {product.missingCarbonFactor && (
+                                    <div className="flex items-center gap-2 mt-2">
+                                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                                      <span className="text-xs text-amber-700 font-semibold">Missing carbon factor: GWP Total and GWP/kg are both empty. Cannot calculate emissions.</span>
+                                    </div>
+                                  )}
                                 </div>
                                 <div className="flex gap-1">
-                                  <Button 
-                                    variant="ghost" 
+                                  <Button
+                                    variant="ghost"
                                     size="icon"
                                     onClick={() => setEditingProduct({ fileIndex, productIndex })}
                                     aria-label={`Edit ${product.material_long_name}`}
                                   >
                                     <Edit2 className="h-4 w-4" />
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
+                                  <Button
+                                    variant="ghost"
                                     size="icon"
                                     onClick={() => removeProduct(fileIndex, productIndex)}
                                     aria-label={`Delete ${product.material_long_name}`}
