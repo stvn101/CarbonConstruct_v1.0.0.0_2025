@@ -2790,8 +2790,8 @@ export default function Calculator() {
           </div>
 
           {/* Right Column - Stats Panel */}
-          <div className="lg:col-span-1">
-            <Card className="!static !top-auto p-4 md:p-6 bg-slate-800 text-white shadow-lg neon-border" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
+          <div className="lg:col-span-1 self-start">
+            <Card className="p-4 md:p-6 bg-slate-800 text-white shadow-lg neon-border" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
               <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Whole Life Carbon (A-D)</h3>
               <div className="text-3xl md:text-4xl font-bold mb-2 text-emerald-400">
                 {(calculations.total_with_benefits / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>
