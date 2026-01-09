@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
         mode: mode,
         status: 'running',
         performed_by: user.id
-      } as Record<string, unknown>)
+      } as any)
       .select('id')
       .single();
 
@@ -375,7 +375,7 @@ Deno.serve(async (req) => {
         if (mappedData.length > 0) {
           const { error: insertError } = await supabaseAdmin
             .from('materials_epd')
-            .insert(mappedData as Record<string, unknown>[]);
+            .insert(mappedData as any);
 
           if (insertError) {
             console.error(`Error inserting batch at offset ${offset}:`, insertError);
@@ -415,12 +415,12 @@ Deno.serve(async (req) => {
     if (metadataId && supabaseAdmin) {
       await supabaseAdmin
         .from('import_metadata')
-        .update({
-          completed_at: new Date().toISOString(),
-          records_imported: progress.imported,
-          records_deleted: progress.deletedExisting,
-          status: progress.status,
-        } as Record<string, unknown>)
+      .update({
+        completed_at: new Date().toISOString(),
+        records_imported: progress.imported,
+        records_deleted: progress.deletedExisting,
+        status: progress.status,
+      } as any)
         .eq('id', metadataId);
       console.log(`Updated import metadata: ${metadataId}`);
     }
@@ -450,11 +450,11 @@ Deno.serve(async (req) => {
     if (metadataId && supabaseAdmin) {
       await supabaseAdmin
         .from('import_metadata')
-        .update({
-          completed_at: new Date().toISOString(),
-          status: 'failed',
-          error_message: errorMessage,
-        } as Record<string, unknown>)
+      .update({
+        completed_at: new Date().toISOString(),
+        status: 'failed',
+        error_message: errorMessage,
+      } as any)
         .eq('id', metadataId);
     }
 
