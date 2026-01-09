@@ -48,7 +48,7 @@ function validateCarbonFactors(csvText: string): { valid: boolean; error?: strin
   if (factorColIndex === -1) return { valid: true };
 
   // Validate each data row
-  const invalidRows: { row: number; value: string }[] = [];
+  const invalidRows: { row: number; value: string; reason?: string }[] = [];
   const nonNumericPatterns = ['tbc', 'n/a', 'unknown', 'pending', '#error', '#ref', '#value', '#div', 'error', 'na', '-'];
 
   for (let i = 1; i < lines.length; i++) {
@@ -67,21 +67,33 @@ function validateCarbonFactors(csvText: string): { valid: boolean; error?: strin
       factorValue === pattern || factorValue.startsWith('#')
     );
     
-    // Also check if it's not a valid number
+    // Also check if it's not a valid number or is negative
     const parsedNum = parseFloat(factorValue);
     const isInvalidNumber = isNaN(parsedNum);
+    const isNegative = !isNaN(parsedNum) && parsedNum < 0;
     
-    if (isNonNumeric || isInvalidNumber) {
-      invalidRows.push({ row: i + 1, value: columns[factorColIndex] });
+    if (isNonNumeric || isInvalidNumber || isNegative) {
+      const reason = isNegative ? 'negative' : 'non-numeric';
+      invalidRows.push({ row: i + 1, value: columns[factorColIndex], reason });
     }
   }
 
   if (invalidRows.length > 0) {
+    const negativeCount = invalidRows.filter(r => r.reason === 'negative').length;
+    const nonNumericCount = invalidRows.length - negativeCount;
     const examples = invalidRows.slice(0, 3).map(r => `Row ${r.row}: "${r.value}"`).join(', ');
-    return {
-      valid: false,
-      error: `Invalid carbon factors detected in ${invalidRows.length} row(s). Carbon factors must be numeric values (e.g., 5.87, 820.5). Found non-numeric values: ${examples}. Please correct these values in your spreadsheet before uploading.`
-    };
+    
+    let errorMsg = `Invalid carbon factors detected in ${invalidRows.length} row(s). `;
+    if (negativeCount > 0 && nonNumericCount > 0) {
+      errorMsg += `Found ${negativeCount} negative and ${nonNumericCount} non-numeric values. `;
+    } else if (negativeCount > 0) {
+      errorMsg += `Carbon factors cannot be negative. `;
+    } else {
+      errorMsg += `Carbon factors must be numeric values (e.g., 5.87, 820.5). `;
+    }
+    errorMsg += `Examples: ${examples}. Please correct these values before uploading.`;
+    
+    return { valid: false, error: errorMsg };
   }
 
   return { valid: true };
