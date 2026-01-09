@@ -106,15 +106,32 @@ The design system features:
 - Accessible, high-contrast color combinations
 - Responsive utilities and modern shadows
 
+## Routing Architecture
+
+This project uses **React Router v7** with JSX-based declarative routing:
+
+- **Version**: `react-router-dom@7.11.0` ✅
+- **Pattern**: `<BrowserRouter>`, `<Routes>`, `<Route>` (fully supported in v7)
+- **Documentation**: See [REACT_ROUTER_V7.md](./REACT_ROUTER_V7.md) for complete architecture guide
+- **Status**: Production-ready, all tests passing
+
+Key features:
+- Code-splitting with React lazy loading
+- Protected admin routes with `AdminRouteGuard`
+- Smooth page transitions
+- SEO-friendly navigation
+
 ## What technologies are used for this project?
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
+- Vite 7.3.0
+- TypeScript 5.8.3
+- React 18.3.1
+- React Router 7.11.0
 - shadcn-ui
-- Tailwind CSS
+- Tailwind CSS v4
+- Supabase (Backend & Auth)
 
 ## How can I deploy this project?
 
