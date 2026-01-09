@@ -477,7 +477,21 @@ export default function Reconciliation() {
                     )}
                     
                     {run.status === 'pending' && (
-                      <div className="mt-4">
+                      <div className="mt-4 space-y-3">
+                        <div className="flex flex-wrap gap-2">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            .csv
+                          </span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                            .xlsx
+                          </span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                            .xls
+                          </span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                            .txt
+                          </span>
+                        </div>
                         <input
                           ref={fileInputRef}
                           type="file"
