@@ -106,20 +106,49 @@ The design system features:
 - Accessible, high-contrast color combinations
 - Responsive utilities and modern shadows
 
-## Routing Architecture
+## GitHub Copilot Instructions
 
-This project uses **React Router v7** with JSX-based declarative routing:
+This repository is fully configured for GitHub Copilot Coding Agent with comprehensive instructions for autonomous work.
 
-- **Version**: `react-router-dom@7.11.0` ✅
-- **Pattern**: `<BrowserRouter>`, `<Routes>`, `<Route>` (fully supported in v7)
-- **Documentation**: See [REACT_ROUTER_V7.md](./REACT_ROUTER_V7.md) for complete architecture guide
-- **Status**: Production-ready, all tests passing
+### Instruction Files
 
-Key features:
-- Code-splitting with React lazy loading
-- Protected admin routes with `AdminRouteGuard`
-- Smooth page transitions
-- SEO-friendly navigation
+**Main Instructions:**
+- `.github/copilot-instructions.md` - Core repository guidance, tech stack, and coding standards
+
+**Scoped Instructions (`.github/instructions/`):**
+- `compliance.instructions.md` - EN 15978 standards, Australian regulations (Privacy Act, ACL, GST, NCC 2024), EU GDPR
+- `components.instructions.md` - React component patterns, shadcn/ui usage, Tailwind semantic tokens
+- `edge-functions.instructions.md` - Deno Edge Function patterns, CORS, authentication, rate limiting
+- `hooks.instructions.md` - Custom React hooks, TanStack Query patterns, error handling
+- `security.instructions.md` - Input validation, XSS prevention, authentication, secrets management
+- `tests.instructions.md` - Testing patterns (Vitest, Playwright), AAA structure, mocking
+
+**Custom Agents (`.github/agents/`):**
+- `security_pilot` - Automated security monitoring and PR security reviews
+
+**Custom Prompts:**
+- `.copilot/prompts/` - Reusable prompts (code review, security review, testing, documentation)
+- `.github/prompts/` - Detailed prompt templates for code quality tasks
+- `.github/prompt-snippets/` - Snippet library (Australian compliance, Supabase patterns, testing)
+
+### Agent Documentation
+
+See `AGENTS.md` for complete documentation on:
+- Pre-commit validation checklist
+- Code style requirements
+- Commit message conventions
+- PR requirements
+- Debugging tips
+
+### Using Copilot Agent
+
+1. **Assign Issues**: Create well-scoped issues with clear acceptance criteria
+2. **Agent Works**: Copilot will create PRs following repository instructions
+3. **Review PRs**: Review as you would any contributor's work
+4. **Iterate**: Use `@copilot` mentions to request changes
+5. **Merge**: Approve and merge when satisfied
+
+All instruction files use YAML frontmatter with `applyTo` patterns to scope rules to specific file types and paths.
 
 ## What technologies are used for this project?
 
