@@ -43,6 +43,7 @@ import { useEPDRenewalReminders } from "@/hooks/useEPDRenewalReminders";
 import { EPDRenewalReminders } from "@/components/calculator/EPDRenewalReminders";
 import { EPDWorkflowDashboardWidget } from "@/components/calculator/EPDWorkflowDashboardWidget";
 import { CalculatorReportSection } from "@/components/calculator/CalculatorReportSection";
+import { validateCarbonFactors } from "@/lib/boq-carbon-factor-validation";
 
 interface Material {
   id: string;
@@ -1198,6 +1199,20 @@ export default function Calculator() {
           description: `Your file has ${text.length.toLocaleString()} characters (max 50,000). Please reduce the document size.`,
           variant: "destructive",
           duration: 7000
+        });
+        setAiProcessing(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      // Validate carbon factors before processing (same validation as /boq-import route)
+      const validationResult = validateCarbonFactors(text, true);
+      if (!validationResult.valid) {
+        toast({ 
+          title: "❌ Invalid BOQ Data", 
+          description: validationResult.error,
+          variant: "destructive",
+          duration: 10000
         });
         setAiProcessing(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
