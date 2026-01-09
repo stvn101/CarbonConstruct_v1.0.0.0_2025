@@ -1,7 +1,15 @@
 /**
  * AdminRouteGuard - Protects admin routes from unauthorized access
+ * 
+ * React Router v7 Implementation:
+ * - Uses <Navigate> component for declarative redirects (v7 recommended pattern)
+ * - Preserves location state for redirect-after-login flow
+ * - Implements proper loading states before redirect
+ * 
  * CRITICAL SECURITY: Only contact@carbonconstruct.net is allowed admin access
  * This component redirects non-admin users to the home page
+ * 
+ * @see https://reactrouter.com/en/main/components/navigate - Navigate API
  */
 
 import { useEffect, useState } from 'react';
