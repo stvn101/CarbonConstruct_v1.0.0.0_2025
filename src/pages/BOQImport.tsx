@@ -17,8 +17,13 @@ type ProcessingSubStage = "uploading" | "parsing" | "matching" | "complete";
  * Returns validation result with specific error messages.
  */
 function validateCarbonFactors(csvText: string): { valid: boolean; error?: string } {
+  console.log('[BOQ Validation] Starting validation of CSV content...');
   const lines = csvText.split('\n').map(line => line.trim()).filter(Boolean);
-  if (lines.length < 2) return { valid: true }; // No data rows to validate
+  console.log(`[BOQ Validation] Found ${lines.length} lines`);
+  if (lines.length < 2) {
+    console.log('[BOQ Validation] Skipping - less than 2 lines');
+    return { valid: true }; // No data rows to validate
+  }
 
   const headerRow = lines[0].toLowerCase();
   
@@ -37,7 +42,13 @@ function validateCarbonFactors(csvText: string): { valid: boolean; error?: strin
     headerRow.includes(pattern)
   );
   
-  if (!hasFactorColumn) return { valid: true }; // Not a structured carbon factor CSV
+  console.log(`[BOQ Validation] Header row: "${headerRow}"`);
+  console.log(`[BOQ Validation] Has factor column: ${hasFactorColumn}`);
+  
+  if (!hasFactorColumn) {
+    console.log('[BOQ Validation] No carbon factor column found - skipping validation');
+    return { valid: true }; // Not a structured carbon factor CSV
+  }
 
   // Find the column index
   const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
@@ -180,13 +191,17 @@ export default function BOQImport() {
         throw new Error("Could not extract meaningful text from file. Please check the file format.");
       }
 
-      // Validate CSV/text files for non-numeric carbon factors
-      if (fileNameLower.endsWith('.csv') || fileNameLower.endsWith('.txt')) {
-        const validationResult = validateCarbonFactors(text);
-        if (!validationResult.valid) {
-          throw new Error(validationResult.error);
-        }
+      // Validate CSV/text files for non-numeric or negative carbon factors
+      // Also validate Excel files after conversion to CSV
+      console.log('[BOQ Upload] Running carbon factor validation...');
+      console.log('[BOQ Upload] File type:', fileNameLower);
+      const validationResult = validateCarbonFactors(text);
+      console.log('[BOQ Upload] Validation result:', validationResult);
+      if (!validationResult.valid) {
+        console.error('[BOQ Upload] Validation failed:', validationResult.error);
+        throw new Error(validationResult.error);
       }
+      console.log('[BOQ Upload] Validation passed');
 
       setProgress(40);
       setProcessingStage("parsing");
