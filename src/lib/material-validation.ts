@@ -641,22 +641,39 @@ export function validateCarbonFactors(csvText: string): BOQValidationResult {
     return { valid: true };
   }
 
-  const lines = csvText.split(/\r?\n/).filter(line => line.trim().length > 0);
+  // Filter out Excel "Sheet:" prefixes and empty lines
+  const lines = csvText.split(/\r?\n/)
+    .filter(line => line.trim().length > 0)
+    .filter(line => !line.trim().startsWith('Sheet:'));
   
   if (lines.length < 2) {
     return { valid: true };
   }
 
+  // Find the header row - skip any non-tabular lines at the start
+  let headerRowIndex = 0;
   const delimiter = lines[0].includes(';') ? ';' : ',';
-  const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, ''));
+  
+  // Look for first row that contains multiple delimited cells (likely the header)
+  for (let i = 0; i < Math.min(5, lines.length); i++) {
+    const cells = lines[i].split(delimiter);
+    if (cells.length >= 3) {
+      headerRowIndex = i;
+      break;
+    }
+  }
+  
+  const headers = lines[headerRowIndex].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, ''));
   
   const factorColIndex = headers.findIndex(h => isBOQFactorColumnHeader(h));
   
+  // No carbon factor column found - this is NOT a BOQ with factors, so pass through
   if (factorColIndex === -1) {
     return { valid: true };
   }
 
-  const dataRows = lines.slice(1);
+  // Start from row after header (accounting for headerRowIndex offset)
+  const dataRows = lines.slice(headerRowIndex + 1);
   let negativeCount = 0;
   let emptyCount = 0;
   let validCount = 0;
@@ -678,7 +695,7 @@ export function validateCarbonFactors(csvText: string): BOQValidationResult {
     switch (parsed.type) {
       case 'negative':
         negativeCount++;
-        negativeRows.push(i + 2);
+        negativeRows.push(headerRowIndex + i + 2); // Adjust row number for original file
         break;
       case 'empty':
         emptyCount++;
