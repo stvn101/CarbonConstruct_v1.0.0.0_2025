@@ -567,3 +567,159 @@ export async function runFullValidation(
     }
   };
 }
+
+// ============================================
+// PART 10: BOQ CARBON FACTOR VALIDATION
+// ============================================
+
+/**
+ * BOQ Carbon Factor Validation
+ * 
+ * Validation rules for BOQ CSV uploads:
+ * - FAIL: Any negative carbon factor values (physically impossible)
+ * - FAIL: All carbon factor cells empty (no usable data)
+ * - PASS: Text placeholders like "TBD", "N/A" (AI can handle these)
+ * - PASS: Mix of valid numbers and text (partial data is acceptable)
+ */
+
+export interface BOQValidationResult {
+  valid: boolean;
+  error?: string;
+  details?: {
+    totalRows: number;
+    negativeCount: number;
+    emptyCount: number;
+    validCount: number;
+    textCount: number;
+    negativeRows?: number[];
+  };
+}
+
+const BOQ_FACTOR_COLUMN_PATTERNS = [
+  /carbon\s*factor/i,
+  /emission\s*factor/i,
+  /ef[_\s]?total/i,
+  /co2[_\s]?factor/i,
+  /gwp/i,
+  /kgco2e?/i,
+  /carbon[_\s]?coefficient/i,
+  /embodied[_\s]?carbon/i,
+];
+
+function isBOQFactorColumnHeader(header: string): boolean {
+  const normalized = header.trim().toLowerCase();
+  return BOQ_FACTOR_COLUMN_PATTERNS.some(pattern => pattern.test(normalized));
+}
+
+function parseBOQFactorValue(raw: string): { type: 'number' | 'empty' | 'text' | 'negative'; value?: number } {
+  const trimmed = raw.trim();
+  
+  if (trimmed === '' || trimmed === '-' || trimmed === '--') {
+    return { type: 'empty' };
+  }
+  
+  const num = parseFloat(trimmed.replace(/,/g, ''));
+  
+  if (!isNaN(num)) {
+    if (num < 0) {
+      return { type: 'negative', value: num };
+    }
+    return { type: 'number', value: num };
+  }
+  
+  return { type: 'text' };
+}
+
+/**
+ * Validate carbon factors in a CSV/text BOQ
+ * 
+ * @param csvText - Raw text content (CSV or similar tabular format)
+ * @returns BOQValidationResult with valid status and optional error message
+ */
+export function validateCarbonFactors(csvText: string): BOQValidationResult {
+  if (!csvText || csvText.trim().length === 0) {
+    return { valid: true };
+  }
+
+  const lines = csvText.split(/\r?\n/).filter(line => line.trim().length > 0);
+  
+  if (lines.length < 2) {
+    return { valid: true };
+  }
+
+  const delimiter = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, ''));
+  
+  const factorColIndex = headers.findIndex(h => isBOQFactorColumnHeader(h));
+  
+  if (factorColIndex === -1) {
+    return { valid: true };
+  }
+
+  const dataRows = lines.slice(1);
+  let negativeCount = 0;
+  let emptyCount = 0;
+  let validCount = 0;
+  let textCount = 0;
+  const negativeRows: number[] = [];
+
+  for (let i = 0; i < dataRows.length; i++) {
+    const row = dataRows[i];
+    const cells = row.split(delimiter).map(c => c.trim().replace(/^["']|["']$/g, ''));
+    
+    if (cells.length <= factorColIndex) {
+      emptyCount++;
+      continue;
+    }
+
+    const factorCell = cells[factorColIndex];
+    const parsed = parseBOQFactorValue(factorCell);
+
+    switch (parsed.type) {
+      case 'negative':
+        negativeCount++;
+        negativeRows.push(i + 2);
+        break;
+      case 'empty':
+        emptyCount++;
+        break;
+      case 'text':
+        textCount++;
+        break;
+      case 'number':
+        validCount++;
+        break;
+    }
+  }
+
+  const totalRows = dataRows.length;
+  const details = { totalRows, negativeCount, emptyCount, validCount, textCount, negativeRows };
+
+  if (negativeCount > 0) {
+    const rowList = negativeRows.slice(0, 5).join(', ');
+    const moreText = negativeRows.length > 5 ? ` and ${negativeRows.length - 5} more` : '';
+    return {
+      valid: false,
+      error: `Invalid BOQ: ${negativeCount} negative carbon factor value(s) detected in rows ${rowList}${moreText}. Carbon factors cannot be negative.`,
+      details,
+    };
+  }
+
+  if (emptyCount === totalRows && validCount === 0 && textCount === 0) {
+    return {
+      valid: false,
+      error: `Invalid BOQ: All ${totalRows} carbon factor cells are empty. Please provide carbon factor values.`,
+      details,
+    };
+  }
+
+  return { valid: true, details };
+}
+
+/**
+ * Quick check if text likely contains a BOQ with carbon factors
+ */
+export function likelyContainsCarbonFactors(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return BOQ_FACTOR_COLUMN_PATTERNS.some(pattern => pattern.test(lowerText));
+}

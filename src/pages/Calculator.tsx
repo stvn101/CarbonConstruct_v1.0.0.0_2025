@@ -43,7 +43,7 @@ import { useEPDRenewalReminders } from "@/hooks/useEPDRenewalReminders";
 import { EPDRenewalReminders } from "@/components/calculator/EPDRenewalReminders";
 import { EPDWorkflowDashboardWidget } from "@/components/calculator/EPDWorkflowDashboardWidget";
 import { CalculatorReportSection } from "@/components/calculator/CalculatorReportSection";
-import { validateCarbonFactors } from "@/lib/boq-carbon-factor-validation";
+import { validateCarbonFactors } from "@/lib/material-validation";
 
 interface Material {
   id: string;
@@ -1206,7 +1206,7 @@ export default function Calculator() {
       }
 
       // Validate carbon factors before processing (same validation as /boq-import route)
-      const validationResult = validateCarbonFactors(text, true);
+      const validationResult = validateCarbonFactors(text);
       if (!validationResult.valid) {
         toast({ 
           title: "❌ Invalid BOQ Data", 
