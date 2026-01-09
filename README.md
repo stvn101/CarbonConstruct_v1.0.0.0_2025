@@ -1,5 +1,21 @@
 # Welcome to your Lovable project
 
+## 🚀 Quick Start
+
+**New to the project?** Check out the [**BUILD_GUIDE.md**](./BUILD_GUIDE.md) for comprehensive build and development server setup instructions.
+
+**TL;DR:**
+```bash
+npm install --legacy-peer-deps  # Install dependencies
+npm run dev                     # Start dev server at http://localhost:8080
+```
+
+Or use the quick-start script:
+```bash
+./start-dev.sh     # Linux/Mac
+start-dev.bat      # Windows
+```
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/3175be27-a2e8-448e-9119-b56fba138059
@@ -44,11 +60,13 @@ git clone <YOUR_GIT_URL>
 cd <YOUR_PROJECT_NAME>
 
 # Step 3: Install the necessary dependencies.
-npm i
+npm install --legacy-peer-deps
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
+
+**Note**: Use `--legacy-peer-deps` flag due to React 19 compatibility with some dependencies. See [BUILD_GUIDE.md](./BUILD_GUIDE.md) for details.
 
 **Edit a file directly in GitHub**
 
