@@ -77,6 +77,56 @@ export type Database = {
         }
         Relationships: []
       }
+      boq_items_snapshot: {
+        Row: {
+          carbon_factor: number
+          carbon_total_kg: number
+          created_at: string
+          data_source: string | null
+          id: string
+          material_category: string | null
+          material_name: string
+          original_material_id: string | null
+          quantity_estimated: number
+          run_id: string
+          unit: string
+        }
+        Insert: {
+          carbon_factor: number
+          carbon_total_kg: number
+          created_at?: string
+          data_source?: string | null
+          id?: string
+          material_category?: string | null
+          material_name: string
+          original_material_id?: string | null
+          quantity_estimated: number
+          run_id: string
+          unit: string
+        }
+        Update: {
+          carbon_factor?: number
+          carbon_total_kg?: number
+          created_at?: string
+          data_source?: string | null
+          id?: string
+          material_category?: string | null
+          material_name?: string
+          original_material_id?: string | null
+          quantity_estimated?: number
+          run_id?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boq_items_snapshot_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "reconciliation_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_campaign_analytics: {
         Row: {
           audience: string
@@ -477,6 +527,69 @@ export type Database = {
           status?: string | null
         }
         Relationships: []
+      }
+      invoice_items: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          document_id: string | null
+          id: string
+          line_number: number | null
+          material_category: string | null
+          normalized_description: string | null
+          quantity: number
+          raw_description: string
+          run_id: string
+          total_price_cents: number | null
+          unit: string
+          unit_price_cents: number | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          line_number?: number | null
+          material_category?: string | null
+          normalized_description?: string | null
+          quantity: number
+          raw_description: string
+          run_id: string
+          total_price_cents?: number | null
+          unit: string
+          unit_price_cents?: number | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          line_number?: number | null
+          material_category?: string | null
+          normalized_description?: string | null
+          quantity?: number
+          raw_description?: string
+          run_id?: string
+          total_price_cents?: number | null
+          unit?: string
+          unit_price_cents?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "reconciliation_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "reconciliation_runs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       material_verification_history: {
         Row: {
@@ -948,6 +1061,200 @@ export type Database = {
           window_start?: string | null
         }
         Relationships: []
+      }
+      reconciliation_documents: {
+        Row: {
+          created_at: string
+          document_date: string | null
+          file_name: string
+          file_size_bytes: number | null
+          file_type: string
+          id: string
+          invoice_number: string | null
+          parsed_text_hash: string | null
+          run_id: string
+          storage_path: string | null
+          supplier_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_date?: string | null
+          file_name: string
+          file_size_bytes?: number | null
+          file_type: string
+          id?: string
+          invoice_number?: string | null
+          parsed_text_hash?: string | null
+          run_id: string
+          storage_path?: string | null
+          supplier_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_date?: string | null
+          file_name?: string
+          file_size_bytes?: number | null
+          file_type?: string
+          id?: string
+          invoice_number?: string | null
+          parsed_text_hash?: string | null
+          run_id?: string
+          storage_path?: string | null
+          supplier_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_documents_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "reconciliation_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reconciliation_matches: {
+        Row: {
+          boq_item_id: string | null
+          carbon_actual_kg: number | null
+          carbon_estimated_kg: number | null
+          carbon_variance_kg: number | null
+          cost_variance_cents: number | null
+          created_at: string
+          id: string
+          invoice_item_id: string
+          is_override: boolean | null
+          match_score: number | null
+          match_type: string
+          override_reason: string | null
+          quantity_actual: number | null
+          quantity_estimated: number | null
+          quantity_variance: number | null
+          quantity_variance_pct: number | null
+          run_id: string
+          updated_at: string
+        }
+        Insert: {
+          boq_item_id?: string | null
+          carbon_actual_kg?: number | null
+          carbon_estimated_kg?: number | null
+          carbon_variance_kg?: number | null
+          cost_variance_cents?: number | null
+          created_at?: string
+          id?: string
+          invoice_item_id: string
+          is_override?: boolean | null
+          match_score?: number | null
+          match_type: string
+          override_reason?: string | null
+          quantity_actual?: number | null
+          quantity_estimated?: number | null
+          quantity_variance?: number | null
+          quantity_variance_pct?: number | null
+          run_id: string
+          updated_at?: string
+        }
+        Update: {
+          boq_item_id?: string | null
+          carbon_actual_kg?: number | null
+          carbon_estimated_kg?: number | null
+          carbon_variance_kg?: number | null
+          cost_variance_cents?: number | null
+          created_at?: string
+          id?: string
+          invoice_item_id?: string
+          is_override?: boolean | null
+          match_score?: number | null
+          match_type?: string
+          override_reason?: string | null
+          quantity_actual?: number | null
+          quantity_estimated?: number | null
+          quantity_variance?: number | null
+          quantity_variance_pct?: number | null
+          run_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_matches_boq_item_id_fkey"
+            columns: ["boq_item_id"]
+            isOneToOne: false
+            referencedRelation: "boq_items_snapshot"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_matches_invoice_item_id_fkey"
+            columns: ["invoice_item_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_matches_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "reconciliation_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reconciliation_runs: {
+        Row: {
+          created_at: string
+          id: string
+          matched_items: number | null
+          name: string
+          notes: string | null
+          project_id: string | null
+          status: string
+          total_invoice_items: number | null
+          total_variance_carbon_kg: number | null
+          total_variance_cost_cents: number | null
+          total_variance_quantity: number | null
+          unmatched_items: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          matched_items?: number | null
+          name: string
+          notes?: string | null
+          project_id?: string | null
+          status?: string
+          total_invoice_items?: number | null
+          total_variance_carbon_kg?: number | null
+          total_variance_cost_cents?: number | null
+          total_variance_quantity?: number | null
+          unmatched_items?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          matched_items?: number | null
+          name?: string
+          notes?: string | null
+          project_id?: string | null
+          status?: string
+          total_invoice_items?: number | null
+          total_variance_carbon_kg?: number | null
+          total_variance_cost_cents?: number | null
+          total_variance_quantity?: number | null
+          unmatched_items?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_runs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reports: {
         Row: {

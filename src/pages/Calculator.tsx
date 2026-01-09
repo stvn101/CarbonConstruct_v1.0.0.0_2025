@@ -1606,7 +1606,7 @@ export default function Calculator() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto mt-4 md:mt-8 px-3 md:px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
           {/* Left Column - Inputs */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Project Config */}
@@ -2790,7 +2790,7 @@ export default function Calculator() {
           </div>
 
           {/* Right Column - Stats Panel */}
-          <div className="lg:col-span-1 lg:self-start">
+          <div className="lg:col-span-1">
             <Card className="p-4 md:p-6 bg-slate-800 text-white shadow-lg neon-border" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
               <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Whole Life Carbon (A-D)</h3>
               <div className="text-3xl md:text-4xl font-bold mb-2 text-emerald-400">
