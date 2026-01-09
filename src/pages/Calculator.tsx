@@ -2198,7 +2198,7 @@ export default function Calculator() {
                             <Hash className="h-3 w-3" />
                             EPD Matches ({epdSearchResults.length})
                           </div>
-                          <ChainedScrollArea className="max-h-48">
+                          <ChainedScrollArea className="max-h-48" chainToWindow={false}>
                             <div className="space-y-1">
                               {epdSearchResults.map(item => (
                                 <button
@@ -2350,7 +2350,7 @@ export default function Calculator() {
                       </div>
                       {/* Local database loads instantly - no loading state needed */}
                       {materialSearch.length >= 2 && groupedMaterials.length > 0 && (
-                        <ChainedScrollArea className="h-64 mt-2 border rounded-md">
+                        <ChainedScrollArea className="h-64 mt-2 border rounded-md" chainToWindow={false}>
                           <div className="p-2">
                             {groupedMaterials.map(({ category, items }) => (
                               <div key={category} className="mb-3">
@@ -2776,7 +2776,7 @@ export default function Calculator() {
 
           {/* Right Column - Stats Panel */}
           <div className="lg:col-span-1 lg:self-start">
-            <Card className="p-4 md:p-6 lg:sticky lg:top-20 bg-slate-800 text-white shadow-lg z-40 neon-border" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
+            <Card className="p-4 md:p-6 bg-slate-800 text-white shadow-lg neon-border" role="region" aria-label="Calculation totals" aria-live="polite" aria-atomic="true">
               <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Whole Life Carbon (A-D)</h3>
               <div className="text-3xl md:text-4xl font-bold mb-2 text-emerald-400">
                 {(calculations.total_with_benefits / 1000).toFixed(2)} <span className="text-sm md:text-lg text-white">tCO₂e</span>
