@@ -86,7 +86,7 @@ export function MaterialCategoryBrowser({
         </span>
       </div>
       
-      <ChainedScrollArea className="max-h-[280px] md:max-h-[240px]" chainToWindow={false}>
+      <ChainedScrollArea className="h-[280px] md:h-[240px]" chainToWindow={false}>
         <div className="flex flex-wrap gap-1.5 md:gap-2 pr-4 pb-2">
           {allCategories.map(({ category, count }) => {
             const Icon = CATEGORY_ICONS[category] || Package;

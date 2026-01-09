@@ -64,12 +64,12 @@ serve(async (req) => {
     const user = userData.user;
     console.log(`[parse-boq] Authenticated user: ${user.id.substring(0, 8)}...`);
 
-    // Check rate limit using service role client (10 requests per 5 minutes for BOQ parsing)
+    // Check rate limit using service role client (30 requests per 5 minutes for BOQ parsing)
     const rateLimitResult = await checkRateLimit(
       supabaseServiceClient,
       user.id,
       'parse-boq',
-      { windowMinutes: 5, maxRequests: 10 }
+      { windowMinutes: 5, maxRequests: 30 }
     );
 
     if (!rateLimitResult.allowed) {
@@ -223,26 +223,34 @@ INSULATION (unit: m²): 2-10 kgCO2e/m² depending on type
 
 Your task is to extract material items from construction documents and match them to the provided material database.
 
-IMPORTANT MATCHING RULES:
+CRITICAL MATCHING RULES:
 1. ALWAYS try to match to an existing database material by ID first
 2. Use the exact "id" (UUID) from the database when matching
-3. Match based on material type, not brand names (e.g., "Gyprock" = plasterboard)
+3. Match based on material type, not brand names (e.g., "Gyprock" = plasterboard, "Rondo" = steel framing)
 4. If quantity includes dimensions, calculate the total (e.g., "10m x 5m" = 50m²)
 5. Convert units if needed (e.g., mm² to m², tonnes to kg)
-6. Only set isCustom: true if there's genuinely no similar material in the database
+6. If no EXACT match exists, find the CLOSEST category match from the database
+7. NEVER use arbitrary values like 1.234 - always use real database factors
+8. Only set isCustom: true if there's genuinely no similar material category in the database
+
+UNIT CONVERSION RULES:
+- Steel framing in linear metres: convert to kg using ~2.5 kg/m for light gauge framing
+- If BOQ uses "m" for steel products, multiply by 2.5 to get approximate kg equivalent
 
 Return a JSON array of materials ONLY. No explanations, no markdown, just the JSON array.
 
 Each item must have:
-- category: string (use the material_category from the database match)
+- category: string (use the material_category from the database match, or closest category)
 - typeId: string (the UUID id from the database, or "custom" if no match)
 - name: string (the material name as it appears in the BOQ)
-- quantity: number (always a positive number)
-- unit: string (m³, Tonnes, m², kg, etc. - match database unit)
-- factor: number (ef_total from database, or conservative estimate)
+- quantity: number (always a positive number, converted to database-compatible units)
+- unit: string (m³, Tonnes, m², kg, etc. - MUST match database unit for the category)
+- factor: number (ef_total from database - NEVER make up values)
 - isCustom: boolean (false if matched to database, true if not)
-- source: string (data_source from database, or "estimated")
+- source: string (data_source from database, or "category average" if using similar material)
 - epdNumber: string | null (epd_number from database if available)
+- confidenceLevel: string ("high" if exact match, "medium" if category match, "low" if estimated)
+- unitConversionApplied: boolean (true if units were converted, e.g., metres to kg)
 
 ${materialSchema}`;
 
@@ -299,7 +307,7 @@ ${materialSchema}`;
       throw new Error("Invalid response format from AI");
     }
 
-    // Post-process: validate material IDs against database
+    // Post-process: validate material IDs against database and fix fallback factors
     const validatedMaterials = materials.map((mat: Record<string, unknown>) => {
       // If typeId looks like a UUID, verify it exists in database
       if (mat.typeId && typeof mat.typeId === 'string' && mat.typeId.length === 36 && mat.typeId.includes('-')) {
@@ -312,15 +320,56 @@ ${materialSchema}`;
             unit: dbMatch.unit,
             source: dbMatch.data_source,
             epdNumber: dbMatch.epd_number,
-            isCustom: false
+            isCustom: false,
+            confidenceLevel: 'high'
           };
         }
       }
-      // Mark as custom if ID not found
+      
+      // ID not found or custom - try to find category match for better factor
+      const matCategory = typeof mat.category === 'string' ? mat.category.toLowerCase() : '';
+      const matName = typeof mat.name === 'string' ? mat.name.toLowerCase() : '';
+      
+      // Try to find a matching material by category
+      let categoryMatch = dbMaterials?.find(m => 
+        m.material_category?.toLowerCase() === matCategory
+      );
+      
+      // If no category match, try by name keywords
+      if (!categoryMatch) {
+        const keywords = ['steel', 'concrete', 'timber', 'plasterboard', 'insulation', 'glass', 'aluminium'];
+        for (const keyword of keywords) {
+          if (matName.includes(keyword) || matCategory.includes(keyword)) {
+            categoryMatch = dbMaterials?.find(m => 
+              m.material_category?.toLowerCase().includes(keyword) ||
+              m.material_name?.toLowerCase().includes(keyword)
+            );
+            if (categoryMatch) break;
+          }
+        }
+      }
+      
+      // Apply category match if found and current factor looks suspicious (< 0.5 or exactly 1.234)
+      const currentFactor = typeof mat.factor === 'number' ? mat.factor : 0;
+      const isSuspiciousFactor = currentFactor < 0.5 || Math.abs(currentFactor - 1.234) < 0.001;
+      
+      if (categoryMatch && isSuspiciousFactor) {
+        return {
+          ...mat,
+          factor: categoryMatch.ef_total,
+          unit: categoryMatch.unit,
+          source: `${categoryMatch.data_source} (category average)`,
+          isCustom: true,
+          confidenceLevel: 'medium'
+        };
+      }
+      
+      // No match found - mark as custom with low confidence
       return {
         ...mat,
         isCustom: true,
-        source: mat.source || 'estimated'
+        source: mat.source || 'estimated',
+        confidenceLevel: 'low'
       };
     });
 
