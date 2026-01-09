@@ -12,8 +12,9 @@ import { Progress } from '@/components/ui/progress';
 import { 
   FileText, Upload, CheckCircle, AlertTriangle, Clock, 
   Loader2, Plus, Trash2, ArrowRight, FileSpreadsheet,
-  TrendingUp, TrendingDown, Minus, Eye
+  TrendingUp, TrendingDown, Minus, FileDown
 } from 'lucide-react';
+import { default as SecureHtml2Pdf } from '@/lib/secure-html-to-pdf';
 import {
   Dialog,
   DialogContent,
@@ -54,6 +55,10 @@ export default function Reconciliation() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [selectedReportRun, setSelectedReportRun] = useState<NonNullable<typeof runs>[0] | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
   const [parsedItems, setParsedItems] = useState<Array<{
     lineNumber: number;
     description: string;
@@ -197,10 +202,154 @@ export default function Reconciliation() {
     }
   };
 
-  const getVarianceIcon = (variance: number) => {
+  const getVarianceIcon = (variance: number | null) => {
+    if (variance === null) return <Minus className="h-4 w-4 text-gray-400" />;
     if (variance > 0) return <TrendingUp className="h-4 w-4 text-red-500" />;
     if (variance < 0) return <TrendingDown className="h-4 w-4 text-emerald-500" />;
     return <Minus className="h-4 w-4 text-gray-400" />;
+  };
+
+  const generateReconciliationPDF = async (run: NonNullable<typeof runs>[0]) => {
+    setIsGeneratingPDF(true);
+    setSelectedReportRun(run);
+    setReportDialogOpen(true);
+    
+    // Wait for the dialog to render
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    try {
+      const element = reportRef.current;
+      if (!element) {
+        throw new Error('Report element not found');
+      }
+      
+      // Add pdf-exporting class for high-contrast print styles
+      document.documentElement.classList.add('pdf-exporting');
+      
+      await SecureHtml2Pdf()
+        .set({
+          margin: 10,
+          filename: `Reconciliation-${run.name.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .from(element)
+        .save();
+      
+      toast({ title: 'PDF Downloaded', description: 'Reconciliation report saved successfully' });
+    } catch (error) {
+      toast({ 
+        title: 'PDF Generation Failed', 
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive' 
+      });
+    } finally {
+      document.documentElement.classList.remove('pdf-exporting');
+      setIsGeneratingPDF(false);
+      setReportDialogOpen(false);
+    }
+  };
+
+  // Reconciliation Report Content Component for PDF
+  const ReconciliationReportContent = ({ run }: { run: NonNullable<typeof runs>[0] }) => {
+    const carbonVarianceT = new Decimal(run.total_variance_carbon_kg || 0).div(1000);
+    const costVariance = new Decimal(run.total_variance_cost_cents || 0).div(100);
+    const matchRate = run.total_invoice_items 
+      ? new Decimal(run.matched_items || 0).div(run.total_invoice_items).mul(100).toFixed(1)
+      : '0';
+    
+    return (
+      <div ref={reportRef} className="bg-white text-black p-8 min-h-[297mm] w-[210mm]">
+        {/* Header */}
+        <div className="border-b-2 border-gray-800 pb-4 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Invoice Reconciliation Report</h1>
+          <p className="text-gray-600">{run.name}</p>
+          <p className="text-sm text-gray-500">Generated: {new Date().toLocaleDateString('en-AU')}</p>
+        </div>
+        
+        {/* Summary Stats */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="border border-gray-300 rounded p-4">
+            <h3 className="font-semibold text-gray-700 mb-2">Matching Summary</h3>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span>Total Invoice Items:</span>
+                <span className="font-medium">{run.total_invoice_items || 0}</span>
+              </div>
+              <div className="flex justify-between text-green-700">
+                <span>Matched Items:</span>
+                <span className="font-medium">{run.matched_items || 0}</span>
+              </div>
+              <div className="flex justify-between text-amber-700">
+                <span>Unmatched Items:</span>
+                <span className="font-medium">{run.unmatched_items || 0}</span>
+              </div>
+              <div className="flex justify-between border-t pt-1 mt-1">
+                <span>Match Rate:</span>
+                <span className="font-bold">{matchRate}%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border border-gray-300 rounded p-4">
+            <h3 className="font-semibold text-gray-700 mb-2">Variance Summary</h3>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span>Carbon Variance:</span>
+                <span className={`font-medium ${carbonVarianceT.greaterThan(0) ? 'text-red-700' : 'text-green-700'}`}>
+                  {carbonVarianceT.greaterThan(0) ? '+' : ''}{carbonVarianceT.toFixed(3)} tCO₂e
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Cost Variance:</span>
+                <span className={`font-medium ${costVariance.greaterThan(0) ? 'text-red-700' : 'text-green-700'}`}>
+                  {costVariance.greaterThan(0) ? '+' : ''}${costVariance.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Quantity Variance:</span>
+                <span className="font-medium">
+                  {run.total_variance_quantity ? `${run.total_variance_quantity > 0 ? '+' : ''}${run.total_variance_quantity.toFixed(1)}` : '0'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Status & Dates */}
+        <div className="mb-6 text-sm">
+          <div className="flex gap-8">
+            <div>
+              <span className="text-gray-600">Status: </span>
+              <span className="font-medium capitalize">{run.status}</span>
+            </div>
+            <div>
+              <span className="text-gray-600">Created: </span>
+              <span>{new Date(run.created_at).toLocaleDateString('en-AU')}</span>
+            </div>
+            <div>
+              <span className="text-gray-600">Last Updated: </span>
+              <span>{new Date(run.updated_at).toLocaleDateString('en-AU')}</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Notes */}
+        {run.notes && (
+          <div className="mb-6 border border-gray-200 rounded p-3 bg-gray-50">
+            <h4 className="font-medium text-gray-700 mb-1">Notes</h4>
+            <p className="text-sm text-gray-600">{run.notes}</p>
+          </div>
+        )}
+        
+        {/* Footer */}
+        <div className="mt-8 pt-4 border-t border-gray-300 text-xs text-gray-500">
+          <p>CarbonConstruct Pro Edition | ABN: 12 345 678 901</p>
+          <p>This report is for internal use only. Carbon calculations include 10% GST where applicable.</p>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -364,9 +513,18 @@ export default function Reconciliation() {
                   
                   <div className="flex items-center gap-2">
                     {run.status === 'completed' && (
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Report
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => generateReconciliationPDF(run)}
+                        disabled={isGeneratingPDF}
+                      >
+                        {isGeneratingPDF ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <FileDown className="h-4 w-4 mr-1" />
+                        )}
+                        Download PDF
                       </Button>
                     )}
                     <Button 
@@ -443,6 +601,13 @@ export default function Reconciliation() {
               </div>
             </DialogContent>
           </Dialog>
+        )}
+        
+        {/* Hidden PDF Report Content */}
+        {reportDialogOpen && selectedReportRun && (
+          <div className="fixed left-[-9999px] top-0">
+            <ReconciliationReportContent run={selectedReportRun} />
+          </div>
         )}
       </main>
     </div>

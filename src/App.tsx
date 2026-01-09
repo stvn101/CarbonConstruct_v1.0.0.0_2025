@@ -63,6 +63,7 @@ const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const EcoGlassDashboard = lazy(() => import("./pages/EcoGlassDashboard"));
 const Methodology = lazy(() => import("./pages/Methodology"));
+const Reconciliation = lazy(() => import("./pages/Reconciliation"));
 
 // Campaign landing pages
 const LandingBuilders = lazy(() => import("./pages/LandingBuilders"));
@@ -191,6 +192,7 @@ const FullApp = () => (
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/calculator" element={<Calculator />} />
                     <Route path="/boq-import" element={<BOQImport />} />
+                    <Route path="/reconciliation" element={<Reconciliation />} />
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/help" element={<Help />} />
