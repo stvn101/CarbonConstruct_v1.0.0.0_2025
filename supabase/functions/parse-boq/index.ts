@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
 import { logSecurityEvent, getClientIP } from "../_shared/security-logger.ts";
+import { validateCarbonFactorsServer } from "../_shared/boq-validation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -136,6 +137,19 @@ serve(async (req) => {
       console.error(`[parse-boq] Text too long`);
       return new Response(
         JSON.stringify({ error: "Text exceeds maximum length of 15,000 characters. Please split your document into smaller sections." }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SERVER-SIDE VALIDATION: Check for negative carbon factors (defense-in-depth)
+    const carbonValidation = validateCarbonFactorsServer(trimmedText);
+    if (carbonValidation) {
+      console.error(`[parse-boq] Carbon factor validation failed: ${carbonValidation.errorCode}`);
+      return new Response(
+        JSON.stringify({ 
+          error: carbonValidation.error,
+          errorCode: carbonValidation.errorCode 
+        }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
