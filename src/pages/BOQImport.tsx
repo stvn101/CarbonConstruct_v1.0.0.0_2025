@@ -13,16 +13,19 @@ type ProcessingStage = "upload" | "processing" | "review";
 type ProcessingSubStage = "uploading" | "parsing" | "matching" | "complete";
 
 /**
- * Validates carbon factor column in CSV data for non-numeric values.
- * Returns validation result with specific error messages.
+ * Validates carbon factor column in CSV data.
+ * - FAILS if all carbon factors are empty (incomplete data)
+ * - FAILS if any carbon factors are negative (data error)
+ * - PASSES non-numeric text like TBC, N/A (AI can handle these)
  */
 function validateCarbonFactors(csvText: string): { valid: boolean; error?: string } {
   console.log('[BOQ Validation] Starting validation of CSV content...');
   const lines = csvText.split('\n').map(line => line.trim()).filter(Boolean);
   console.log(`[BOQ Validation] Found ${lines.length} lines`);
+  
   if (lines.length < 2) {
     console.log('[BOQ Validation] Skipping - less than 2 lines');
-    return { valid: true }; // No data rows to validate
+    return { valid: true };
   }
 
   const headerRow = lines[0].toLowerCase();
@@ -47,7 +50,7 @@ function validateCarbonFactors(csvText: string): { valid: boolean; error?: strin
   
   if (!hasFactorColumn) {
     console.log('[BOQ Validation] No carbon factor column found - skipping validation');
-    return { valid: true }; // Not a structured carbon factor CSV
+    return { valid: true };
   }
 
   // Find the column index
@@ -58,55 +61,68 @@ function validateCarbonFactors(csvText: string): { valid: boolean; error?: strin
   
   if (factorColIndex === -1) return { valid: true };
 
-  // Validate each data row
-  const invalidRows: { row: number; value: string; reason?: string }[] = [];
-  const nonNumericPatterns = ['tbc', 'n/a', 'unknown', 'pending', '#error', '#ref', '#value', '#div', 'error', 'na', '-'];
+  // Collect stats
+  const negativeRows: { row: number; value: string }[] = [];
+  let emptyCount = 0;
+  let validNumericCount = 0;
+  let textValueCount = 0;
+  const dataRowCount = lines.length - 1;
 
   for (let i = 1; i < lines.length; i++) {
     const row = lines[i];
     const columns = row.split(',').map(c => c.trim());
     
-    if (columns.length <= factorColIndex) continue; // Skip incomplete rows
+    if (columns.length <= factorColIndex) {
+      emptyCount++;
+      continue;
+    }
     
-    const factorValue = columns[factorColIndex].toLowerCase().trim();
+    const factorValue = columns[factorColIndex].trim();
+    void factorValue.toLowerCase(); // Normalized for logging
     
-    // Skip empty values (these are warnings, not errors)
-    if (factorValue === '') continue;
+    // Check empty
+    if (factorValue === '') {
+      emptyCount++;
+      continue;
+    }
     
-    // Check for non-numeric text patterns
-    const isNonNumeric = nonNumericPatterns.some(pattern => 
-      factorValue === pattern || factorValue.startsWith('#')
-    );
-    
-    // Also check if it's not a valid number or is negative
+    // Check if it's a number
     const parsedNum = parseFloat(factorValue);
-    const isInvalidNumber = isNaN(parsedNum);
-    const isNegative = !isNaN(parsedNum) && parsedNum < 0;
     
-    if (isNonNumeric || isInvalidNumber || isNegative) {
-      const reason = isNegative ? 'negative' : 'non-numeric';
-      invalidRows.push({ row: i + 1, value: columns[factorColIndex], reason });
-    }
-  }
-
-  if (invalidRows.length > 0) {
-    const negativeCount = invalidRows.filter(r => r.reason === 'negative').length;
-    const nonNumericCount = invalidRows.length - negativeCount;
-    const examples = invalidRows.slice(0, 3).map(r => `Row ${r.row}: "${r.value}"`).join(', ');
-    
-    let errorMsg = `Invalid carbon factors detected in ${invalidRows.length} row(s). `;
-    if (negativeCount > 0 && nonNumericCount > 0) {
-      errorMsg += `Found ${negativeCount} negative and ${nonNumericCount} non-numeric values. `;
-    } else if (negativeCount > 0) {
-      errorMsg += `Carbon factors cannot be negative. `;
+    if (!isNaN(parsedNum)) {
+      // It's a number - check if negative
+      if (parsedNum < 0) {
+        negativeRows.push({ row: i + 1, value: factorValue });
+      } else {
+        validNumericCount++;
+      }
     } else {
-      errorMsg += `Carbon factors must be numeric values (e.g., 5.87, 820.5). `;
+      // It's text (TBC, N/A, etc.) - count but don't fail
+      textValueCount++;
+      console.log(`[BOQ Validation] Row ${i + 1}: Text value "${factorValue}" - will let AI handle`);
     }
-    errorMsg += `Examples: ${examples}. Please correct these values before uploading.`;
-    
-    return { valid: false, error: errorMsg };
   }
 
+  console.log(`[BOQ Validation] Stats: ${validNumericCount} valid, ${emptyCount} empty, ${textValueCount} text, ${negativeRows.length} negative`);
+
+  // FAIL: Any negative values
+  if (negativeRows.length > 0) {
+    const examples = negativeRows.slice(0, 3).map(r => `Row ${r.row}: "${r.value}"`).join(', ');
+    return {
+      valid: false,
+      error: `Carbon factors cannot be negative. Found ${negativeRows.length} negative value(s): ${examples}. Please correct these values before uploading.`
+    };
+  }
+
+  // FAIL: All factors are empty (no data to process)
+  if (emptyCount === dataRowCount) {
+    return {
+      valid: false,
+      error: `All carbon factor values are empty. Please provide at least some carbon factor data, or upload a BOQ without a carbon factor column to have the AI estimate values.`
+    };
+  }
+
+  console.log('[BOQ Validation] Validation passed');
   return { valid: true };
 }
 
