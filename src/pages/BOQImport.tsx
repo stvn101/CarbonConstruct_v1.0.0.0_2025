@@ -8,7 +8,7 @@ import { BOQMaterialReview } from "@/components/BOQMaterialReview";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import * as XLSX from 'xlsx';
-import { validateCarbonFactors } from "@/lib/boq-carbon-factor-validation";
+import { validateCarbonFactors } from "@/lib/material-validation";
 
 type ProcessingStage = "upload" | "processing" | "review";
 type ProcessingSubStage = "uploading" | "parsing" | "matching" | "complete";
@@ -96,7 +96,7 @@ export default function BOQImport() {
 
       // Validate CSV/text files for negative or all-empty carbon factors
       // Uses shared validation module for consistency with Calculator route
-      const validationResult = validateCarbonFactors(text, true); // Enable logging for debugging
+      const validationResult = validateCarbonFactors(text);
       if (!validationResult.valid) {
         console.error('[BOQ Upload] Validation failed:', validationResult.error);
         throw new Error(validationResult.error);
