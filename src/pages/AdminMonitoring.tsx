@@ -20,7 +20,7 @@ import { SecurityAuditReportDownload } from "@/components/SecurityAuditReport";
 import { SecurityDashboard } from "@/components/SecurityDashboard";
 import { MaterialValidationReport } from "@/components/MaterialValidationReport";
 import { BluescopeEPDImporter } from "@/components/BluescopeEPDImporter";
-import { BulkEPDUploader } from "@/components/BulkEPDUploader";
+import BulkEPDUploader from "@/components/BulkEPDUploader";
 import { ABTestDashboard } from "@/components/ABTestDashboard";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { ProductionAlertingPanel } from "@/components/ProductionAlertingPanel";
