@@ -997,6 +997,22 @@ All colors MUST be HSL.
   background-color: white !important;
 }
 
+/* Force minimum width for PDF export on mobile devices */
+/* This ensures PDF renders at desktop width, not narrow mobile viewport */
+.pdf-exporting #methodology-content {
+  min-width: 800px !important;
+  width: 800px !important;
+  max-width: none !important;
+}
+
+/* Ensure content containers expand properly during PDF export */
+.pdf-exporting .container,
+.pdf-exporting main,
+.pdf-exporting [class*="max-w-"] {
+  max-width: none !important;
+  width: 100% !important;
+}
+
 /* Live indicator pulse */
 @keyframes live-pulse {
   0%, 100% { 

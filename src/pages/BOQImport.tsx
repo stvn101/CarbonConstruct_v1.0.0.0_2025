@@ -12,6 +12,81 @@ import * as XLSX from 'xlsx';
 type ProcessingStage = "upload" | "processing" | "review";
 type ProcessingSubStage = "uploading" | "parsing" | "matching" | "complete";
 
+/**
+ * Validates carbon factor column in CSV data for non-numeric values.
+ * Returns validation result with specific error messages.
+ */
+function validateCarbonFactors(csvText: string): { valid: boolean; error?: string } {
+  const lines = csvText.split('\n').map(line => line.trim()).filter(Boolean);
+  if (lines.length < 2) return { valid: true }; // No data rows to validate
+
+  const headerRow = lines[0].toLowerCase();
+  
+  // Check if this looks like a BOQ with carbon factor column
+  const carbonFactorPatterns = [
+    'carbon factor',
+    'carbon_factor',
+    'kgco2e',
+    'ef_total',
+    'emission factor',
+    'emission_factor',
+    'co2e'
+  ];
+  
+  const hasFactorColumn = carbonFactorPatterns.some(pattern => 
+    headerRow.includes(pattern)
+  );
+  
+  if (!hasFactorColumn) return { valid: true }; // Not a structured carbon factor CSV
+
+  // Find the column index
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  const factorColIndex = headers.findIndex(h => 
+    carbonFactorPatterns.some(pattern => h.includes(pattern))
+  );
+  
+  if (factorColIndex === -1) return { valid: true };
+
+  // Validate each data row
+  const invalidRows: { row: number; value: string }[] = [];
+  const nonNumericPatterns = ['tbc', 'n/a', 'unknown', 'pending', '#error', '#ref', '#value', '#div', 'error', 'na', '-'];
+
+  for (let i = 1; i < lines.length; i++) {
+    const row = lines[i];
+    const columns = row.split(',').map(c => c.trim());
+    
+    if (columns.length <= factorColIndex) continue; // Skip incomplete rows
+    
+    const factorValue = columns[factorColIndex].toLowerCase().trim();
+    
+    // Skip empty values (these are warnings, not errors)
+    if (factorValue === '') continue;
+    
+    // Check for non-numeric text patterns
+    const isNonNumeric = nonNumericPatterns.some(pattern => 
+      factorValue === pattern || factorValue.startsWith('#')
+    );
+    
+    // Also check if it's not a valid number
+    const parsedNum = parseFloat(factorValue);
+    const isInvalidNumber = isNaN(parsedNum);
+    
+    if (isNonNumeric || isInvalidNumber) {
+      invalidRows.push({ row: i + 1, value: columns[factorColIndex] });
+    }
+  }
+
+  if (invalidRows.length > 0) {
+    const examples = invalidRows.slice(0, 3).map(r => `Row ${r.row}: "${r.value}"`).join(', ');
+    return {
+      valid: false,
+      error: `Invalid carbon factors detected in ${invalidRows.length} row(s). Carbon factors must be numeric values (e.g., 5.87, 820.5). Found non-numeric values: ${examples}. Please correct these values in your spreadsheet before uploading.`
+    };
+  }
+
+  return { valid: true };
+}
+
 interface Material {
   material_name: string;
   quantity: number;
@@ -91,6 +166,14 @@ export default function BOQImport() {
 
       if (!text || text.trim().length < 10) {
         throw new Error("Could not extract meaningful text from file. Please check the file format.");
+      }
+
+      // Validate CSV/text files for non-numeric carbon factors
+      if (fileNameLower.endsWith('.csv') || fileNameLower.endsWith('.txt')) {
+        const validationResult = validateCarbonFactors(text);
+        if (!validationResult.valid) {
+          throw new Error(validationResult.error);
+        }
       }
 
       setProgress(40);
