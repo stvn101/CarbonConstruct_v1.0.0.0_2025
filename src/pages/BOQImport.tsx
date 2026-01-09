@@ -19,16 +19,20 @@ type ProcessingSubStage = "uploading" | "parsing" | "matching" | "complete";
  * - PASSES non-numeric text like TBC, N/A (AI can handle these)
  */
 function validateCarbonFactors(csvText: string): { valid: boolean; error?: string } {
-  console.log('[BOQ Validation] Starting validation of CSV content...');
+  console.log('[BOQ Validation] ========== VALIDATION START ==========');
+  console.log('[BOQ Validation] Input text length:', csvText.length);
+  console.log('[BOQ Validation] First 500 chars:', csvText.substring(0, 500));
+  
   const lines = csvText.split('\n').map(line => line.trim()).filter(Boolean);
-  console.log(`[BOQ Validation] Found ${lines.length} lines`);
+  console.log(`[BOQ Validation] Found ${lines.length} non-empty lines`);
   
   if (lines.length < 2) {
-    console.log('[BOQ Validation] Skipping - less than 2 lines');
+    console.log('[BOQ Validation] SKIP: Less than 2 lines');
     return { valid: true };
   }
 
   const headerRow = lines[0].toLowerCase();
+  console.log(`[BOQ Validation] Header row (lowercase): "${headerRow}"`);
   
   // Check if this looks like a BOQ with carbon factor column
   const carbonFactorPatterns = [
@@ -41,47 +45,59 @@ function validateCarbonFactors(csvText: string): { valid: boolean; error?: strin
     'co2e'
   ];
   
-  const hasFactorColumn = carbonFactorPatterns.some(pattern => 
-    headerRow.includes(pattern)
-  );
+  const matchedPattern = carbonFactorPatterns.find(pattern => headerRow.includes(pattern));
+  const hasFactorColumn = !!matchedPattern;
   
-  console.log(`[BOQ Validation] Header row: "${headerRow}"`);
+  console.log(`[BOQ Validation] Pattern match result: ${matchedPattern || 'NONE'}`);
   console.log(`[BOQ Validation] Has factor column: ${hasFactorColumn}`);
   
   if (!hasFactorColumn) {
-    console.log('[BOQ Validation] No carbon factor column found - skipping validation');
+    console.log('[BOQ Validation] SKIP: No carbon factor column detected');
     return { valid: true };
   }
 
-  // Find the column index
+  // Find the column index - split by comma but handle quoted values
   const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  console.log('[BOQ Validation] Headers array:', headers);
+  
   const factorColIndex = headers.findIndex(h => 
     carbonFactorPatterns.some(pattern => h.includes(pattern))
   );
   
-  if (factorColIndex === -1) return { valid: true };
+  console.log(`[BOQ Validation] Factor column index: ${factorColIndex}`);
+  
+  if (factorColIndex === -1) {
+    console.log('[BOQ Validation] SKIP: Could not find factor column index');
+    return { valid: true };
+  }
 
-  // Collect stats
+  // Collect stats from data rows
   const negativeRows: { row: number; value: string }[] = [];
   let emptyCount = 0;
   let validNumericCount = 0;
   let textValueCount = 0;
   const dataRowCount = lines.length - 1;
+  
+  console.log(`[BOQ Validation] Checking ${dataRowCount} data rows...`);
 
   for (let i = 1; i < lines.length; i++) {
     const row = lines[i];
     const columns = row.split(',').map(c => c.trim());
     
+    console.log(`[BOQ Validation] Row ${i}: columns=${columns.length}, factorColIndex=${factorColIndex}`);
+    
     if (columns.length <= factorColIndex) {
+      console.log(`[BOQ Validation] Row ${i}: EMPTY (not enough columns)`);
       emptyCount++;
       continue;
     }
     
     const factorValue = columns[factorColIndex].trim();
-    void factorValue.toLowerCase(); // Normalized for logging
+    console.log(`[BOQ Validation] Row ${i}: factorValue="${factorValue}"`);
     
     // Check empty
     if (factorValue === '') {
+      console.log(`[BOQ Validation] Row ${i}: EMPTY (blank value)`);
       emptyCount++;
       continue;
     }
@@ -92,37 +108,42 @@ function validateCarbonFactors(csvText: string): { valid: boolean; error?: strin
     if (!isNaN(parsedNum)) {
       // It's a number - check if negative
       if (parsedNum < 0) {
+        console.log(`[BOQ Validation] Row ${i}: NEGATIVE (${parsedNum})`);
         negativeRows.push({ row: i + 1, value: factorValue });
       } else {
+        console.log(`[BOQ Validation] Row ${i}: VALID NUMERIC (${parsedNum})`);
         validNumericCount++;
       }
     } else {
       // It's text (TBC, N/A, etc.) - count but don't fail
+      console.log(`[BOQ Validation] Row ${i}: TEXT ("${factorValue}") - AI will handle`);
       textValueCount++;
-      console.log(`[BOQ Validation] Row ${i + 1}: Text value "${factorValue}" - will let AI handle`);
     }
   }
 
-  console.log(`[BOQ Validation] Stats: ${validNumericCount} valid, ${emptyCount} empty, ${textValueCount} text, ${negativeRows.length} negative`);
+  console.log(`[BOQ Validation] ========== FINAL STATS ==========`);
+  console.log(`[BOQ Validation] Total data rows: ${dataRowCount}`);
+  console.log(`[BOQ Validation] Valid numeric: ${validNumericCount}`);
+  console.log(`[BOQ Validation] Empty: ${emptyCount}`);
+  console.log(`[BOQ Validation] Text values: ${textValueCount}`);
+  console.log(`[BOQ Validation] Negative: ${negativeRows.length}`);
 
   // FAIL: Any negative values
   if (negativeRows.length > 0) {
     const examples = negativeRows.slice(0, 3).map(r => `Row ${r.row}: "${r.value}"`).join(', ');
-    return {
-      valid: false,
-      error: `Carbon factors cannot be negative. Found ${negativeRows.length} negative value(s): ${examples}. Please correct these values before uploading.`
-    };
+    const errorMsg = `Carbon factors cannot be negative. Found ${negativeRows.length} negative value(s): ${examples}. Please correct these values before uploading.`;
+    console.log(`[BOQ Validation] ❌ FAIL: ${errorMsg}`);
+    return { valid: false, error: errorMsg };
   }
 
   // FAIL: All factors are empty (no data to process)
   if (emptyCount === dataRowCount) {
-    return {
-      valid: false,
-      error: `All carbon factor values are empty. Please provide at least some carbon factor data, or upload a BOQ without a carbon factor column to have the AI estimate values.`
-    };
+    const errorMsg = `All carbon factor values are empty. Please provide at least some carbon factor data, or upload a BOQ without a carbon factor column to have the AI estimate values.`;
+    console.log(`[BOQ Validation] ❌ FAIL: ${errorMsg}`);
+    return { valid: false, error: errorMsg };
   }
 
-  console.log('[BOQ Validation] Validation passed');
+  console.log('[BOQ Validation] ✅ VALIDATION PASSED');
   return { valid: true };
 }
 
