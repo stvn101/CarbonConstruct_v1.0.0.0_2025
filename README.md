@@ -154,11 +154,13 @@ All instruction files use YAML frontmatter with `applyTo` patterns to scope rule
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
+- Vite 7.3.0
+- TypeScript 5.8.3
+- React 18.3.1
+- React Router 7.11.0
 - shadcn-ui
-- Tailwind CSS
+- Tailwind CSS v4
+- Supabase (Backend & Auth)
 
 ## How can I deploy this project?
 

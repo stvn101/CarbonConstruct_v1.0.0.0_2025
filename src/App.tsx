@@ -1,3 +1,15 @@
+/**
+ * App.tsx - Main Application Component
+ * 
+ * React Router v7 Implementation:
+ * - Using JSX-based routing with BrowserRouter, Routes, and Route
+ * - This pattern is fully supported in React Router v7 for backward compatibility
+ * - Alternative: Could migrate to createBrowserRouter() for advanced features (loaders, actions)
+ * - Current implementation is production-ready and follows v7 best practices
+ * 
+ * @see https://reactrouter.com/en/main - React Router v7 Documentation
+ */
+
 import * as React from "react";
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
@@ -91,7 +103,11 @@ const queryClient = new QueryClient({
   },
 });
 
-// Page transition wrapper
+/**
+ * AnimatedRoutes - Page transition wrapper component
+ * Uses React Router v7's useLocation hook to track route changes
+ * Implements smooth fade transitions between pages
+ */
 function AnimatedRoutes({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [displayLocation, setDisplayLocation] = React.useState(location);
@@ -139,7 +155,22 @@ const MaintenanceApp = () => (
   </BrowserRouter>
 );
 
-// Full app with all routes
+/**
+ * FullApp - Main application with all routes
+ * 
+ * React Router v7 Architecture:
+ * - Uses JSX-based declarative routing (fully supported in v7)
+ * - All routes are wrapped in Suspense for code-splitting
+ * - AdminRouteGuard protects sensitive routes
+ * - Layout provides consistent navigation and structure
+ * 
+ * Route Organization:
+ * - Public routes: /, /auth, /pricing, etc.
+ * - Protected routes: /calculator, /reports, /settings
+ * - Admin routes: /admin/* (protected by AdminRouteGuard)
+ * - Campaign landing pages: /lp/*
+ * - 404 catch-all: * (must be last)
+ */
 const FullApp = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
