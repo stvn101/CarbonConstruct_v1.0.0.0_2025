@@ -214,7 +214,7 @@ export function MaterialSearchResults({
             <LCAMethodologyInfo />
           </div>
         </div>
-        <ChainedScrollArea className="h-[300px] border rounded-lg bg-background" chainToWindow={false}>
+        <ChainedScrollArea className="h-[300px] border rounded-lg bg-background" chainToWindow={true}>
           <div className="p-2 space-y-1">
           {groupedMaterials.map(({ category, items }) => (
             <div key={category}>
