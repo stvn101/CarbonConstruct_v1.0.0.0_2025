@@ -2213,7 +2213,7 @@ export default function Calculator() {
                             <Hash className="h-3 w-3" />
                             EPD Matches ({epdSearchResults.length})
                           </div>
-                          <ChainedScrollArea className="max-h-48" chainToWindow={false}>
+                          <ChainedScrollArea className="max-h-48" chainToWindow={true}>
                             <div className="space-y-1">
                               {epdSearchResults.map(item => (
                                 <button
@@ -2365,7 +2365,7 @@ export default function Calculator() {
                       </div>
                       {/* Local database loads instantly - no loading state needed */}
                       {materialSearch.length >= 2 && groupedMaterials.length > 0 && (
-                        <ChainedScrollArea className="h-64 mt-2 border rounded-md" chainToWindow={false}>
+                        <ChainedScrollArea className="h-64 mt-2 border rounded-md" chainToWindow={true}>
                           <div className="p-2">
                             {groupedMaterials.map(({ category, items }) => (
                               <div key={category} className="mb-3">
