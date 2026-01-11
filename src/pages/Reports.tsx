@@ -25,6 +25,7 @@ import { ReportErrorBoundary } from '@/components/ReportErrorBoundary';
 import { SkeletonPage } from '@/components/SkeletonPage';
 import { ComplianceCard } from '@/components/ComplianceCard';
 import { EPDRenewalReminders } from '@/components/calculator/EPDRenewalReminders';
+import { ACAMonthlyReport } from '@/components/reports/ACAMonthlyReport';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { EcoPlatformComplianceReport } from '@/lib/eco-platform-types';
@@ -1562,6 +1563,9 @@ const Reports = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* ACA Monthly Emissions Report */}
+          <ACAMonthlyReport />
 
           {/* Export Information */}
           <Card className="neon-border glass-glow-hover">
