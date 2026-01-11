@@ -90,16 +90,16 @@ export const useLCAMaterials = () => {
       const data = mappedData;
 
       if (data) {
-        // Validate materials data and calculate breakdowns in single pass
+        // Single-pass optimization: Validate materials and calculate breakdowns in one iteration
         const validatedMaterials: LCAMaterialData[] = [];
         const totals = { a1a3: 0, a4: 0, a5: 0, total: 0 };
         const categoryMap = new Map<string, LCACategoryBreakdown>();
         
-        // Single iteration for validation and calculations
+        // Iterate once through data performing all operations
         for (let i = 0; i < data.length; i++) {
           const material = data[i];
           
-          // Validate
+          // 1. Validate material data
           const result = LCAMaterialSchema.safeParse(material);
           if (!result.success) {
             logger.warn('useLCAMaterials', 'Invalid LCA material data', { 
@@ -110,7 +110,7 @@ export const useLCAMaterials = () => {
             validatedMaterials.push(result.data as LCAMaterialData);
           }
           
-          // Calculate stage breakdown totals
+          // 2. Calculate stage breakdown totals
           const a1a3 = material.embodied_carbon_a1a3 || 0;
           const a4 = material.embodied_carbon_a4 || 0;
           const a5 = material.embodied_carbon_a5 || 0;
@@ -121,7 +121,7 @@ export const useLCAMaterials = () => {
           totals.a5 += a5;
           totals.total += total;
           
-          // Calculate category breakdown
+          // 3. Calculate category breakdown
           const category = material.material_category;
           const existing = categoryMap.get(category);
           if (existing) {

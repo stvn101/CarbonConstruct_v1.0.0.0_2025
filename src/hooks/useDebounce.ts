@@ -7,6 +7,19 @@ import { useState, useEffect } from 'react';
  * @param value - The value to debounce
  * @param delay - Delay in milliseconds (default: 300ms)
  * @returns The debounced value
+ * 
+ * @example
+ * ```typescript
+ * const [searchTerm, setSearchTerm] = useState('');
+ * const debouncedSearch = useDebounce(searchTerm, 300);
+ * 
+ * // Use debouncedSearch in expensive operations
+ * const results = useMemo(() => {
+ *   return largeDataset.filter(item => 
+ *     item.name.includes(debouncedSearch)
+ *   );
+ * }, [debouncedSearch, largeDataset]);
+ * ```
  */
 export function useDebounce<T>(value: T, delay: number = 300): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);

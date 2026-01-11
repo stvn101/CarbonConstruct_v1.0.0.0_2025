@@ -459,7 +459,8 @@ export default function Calculator() {
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (let i = 0; i < dbMaterials.length; i++) {
-      const category = dbMaterials[i].material_category;
+      const material = dbMaterials[i];
+      const category = material.material_category;
       counts.set(category, (counts.get(category) || 0) + 1);
     }
     const result: { category: string; count: number }[] = [];
