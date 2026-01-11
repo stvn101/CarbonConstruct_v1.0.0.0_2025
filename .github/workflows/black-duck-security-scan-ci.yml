@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Black Duck SCA scan
         uses: blackduck-inc/black-duck-security-scan@8ad96f48d45560e0f6678e2a0ea63969362d564f
         with:
