@@ -97,11 +97,17 @@ const loadFromStorage = (key: string, fallback: any) => {
 };
 
 // Mobile-optimized MaterialRow - card layout on mobile
-const MaterialRow = ({ material, onChange, onRemove }: { 
+// Memoized to prevent unnecessary re-renders when sibling materials change
+const MaterialRow = React.memo(({ material, onChange, onRemove }: { 
   material: Material; 
   onChange: (m: Material) => void; 
   onRemove: () => void;
 }) => {
+  const emissions = useMemo(() => 
+    ((material.quantity * material.factor) / 1000).toFixed(3),
+    [material.quantity, material.factor]
+  );
+
   return (
     <div className={`rounded-lg border p-3 mb-2 ${
       material.isCustom ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800' : 'hover:bg-muted/50'
@@ -181,23 +187,27 @@ const MaterialRow = ({ material, onChange, onRemove }: {
         <div className="col-span-2 md:col-span-1">
           <label className="text-xs text-muted-foreground mb-1 block">Emissions</label>
           <div className="h-9 flex items-center justify-center px-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-md font-bold text-emerald-700 dark:text-emerald-300 text-sm">
-            {((material.quantity * material.factor) / 1000).toFixed(3)} t
+            {emissions} t
           </div>
         </div>
       </div>
     </div>
   );
-};
+});
 
 // Mobile-optimized FactorRow - stacks on mobile, grid on desktop
-const FactorRow = ({ label, unit, value, onChange, factor, total }: {
+// Memoized to prevent re-renders when other factors change
+const FactorRow = React.memo(({ label, unit, value, onChange, factor, total }: {
   label: string;
   unit: string;
   value: string | number;
   onChange: (v: string) => void;
   factor: number;
   total: number;
-}) => (
+}) => {
+  const totalTonnes = useMemo(() => (total / 1000).toFixed(3), [total]);
+  
+  return (
   <div className="py-2.5 md:py-3 border-b last:border-0 hover:bg-muted/50 px-2 rounded">
     <div className="flex flex-col md:grid md:grid-cols-12 md:gap-4 md:items-center gap-2">
       <div className="md:col-span-5 font-medium text-sm">{label}</div>
@@ -217,15 +227,16 @@ const FactorRow = ({ label, unit, value, onChange, factor, total }: {
         {/* Mobile: show factor and total inline */}
         <div className="flex items-center gap-2 md:hidden">
           <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">× {factor}</span>
-          <span className="font-bold text-emerald-600 text-sm whitespace-nowrap">{(total / 1000).toFixed(3)} t</span>
+          <span className="font-bold text-emerald-600 text-sm whitespace-nowrap">{totalTonnes} t</span>
         </div>
       </div>
       {/* Desktop-only columns */}
       <div className="hidden md:block md:col-span-2 text-xs text-muted-foreground text-right font-mono">× {factor}</div>
-      <div className="hidden md:block md:col-span-2 text-right font-bold text-emerald-600 text-sm">{(total / 1000).toFixed(3)} t</div>
+      <div className="hidden md:block md:col-span-2 text-right font-bold text-emerald-600 text-sm">{totalTonnes} t</div>
     </div>
   </div>
-);
+  );
+});
 
 export default function Calculator() {
   const { user } = useAuth();

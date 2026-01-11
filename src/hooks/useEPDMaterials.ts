@@ -2,6 +2,7 @@
  * Hook for accessing the EPD materials database from Supabase
  * Uses the new materials_epd table with regional manufacturer data
  * Implements TanStack Query for caching to prevent redundant fetches
+ * Optimized with debounced search for better performance
  */
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
@@ -9,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export interface EPDMaterial {
   id: string;
@@ -104,6 +106,9 @@ export function useEPDMaterials() {
   const [selectedManufacturer, setSelectedManufacturer] = useState<string>('all');
   const [selectedDataSource, setSelectedDataSource] = useState<string>('all');
   const [hideExpiredEPDs, setHideExpiredEPDs] = useState<boolean>(false);
+
+  // Debounce search term to reduce filtering frequency
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   // Get subscription tier and admin status to determine database access
   const { currentTier } = useSubscription();
@@ -212,9 +217,9 @@ export function useEPDMaterials() {
       result = result.filter(m => m.data_source === selectedDataSource);
     }
 
-    // Filter by search term
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
+    // Filter by search term (using debounced value)
+    if (debouncedSearchTerm.trim()) {
+      const searchLower = debouncedSearchTerm.toLowerCase();
       result = result.filter(m =>
         m.material_name.toLowerCase().includes(searchLower) ||
         m.material_category.toLowerCase().includes(searchLower) ||
@@ -225,23 +230,33 @@ export function useEPDMaterials() {
     }
 
     return result;
-  }, [accessibleMaterials, searchTerm, selectedCategory, selectedState, selectedManufacturer, selectedDataSource, hideExpiredEPDs, isExpired]);
+  }, [accessibleMaterials, debouncedSearchTerm, selectedCategory, selectedState, selectedManufacturer, selectedDataSource, hideExpiredEPDs, isExpired]);
 
   // Group materials by category
   const groupedMaterials = useMemo((): GroupedEPDMaterials[] => {
     const groups = new Map<string, EPDMaterial[]>();
     
-    filteredMaterials.forEach(material => {
-      const existing = groups.get(material.material_category) || [];
-      groups.set(material.material_category, [...existing, material]);
-    });
+    // Use for loop instead of forEach for better performance
+    for (let i = 0; i < filteredMaterials.length; i++) {
+      const material = filteredMaterials[i];
+      const category = material.material_category;
+      
+      if (!groups.has(category)) {
+        groups.set(category, []);
+      }
+      groups.get(category)!.push(material);
+    }
 
-    return Array.from(groups.entries())
-      .map(([category, mats]) => ({
+    // Convert Map to array and sort
+    const result: GroupedEPDMaterials[] = [];
+    for (const [category, mats] of groups.entries()) {
+      result.push({
         category,
         materials: mats.sort((a, b) => a.material_name.localeCompare(b.material_name))
-      }))
-      .sort((a, b) => a.category.localeCompare(b.category));
+      });
+    }
+    
+    return result.sort((a, b) => a.category.localeCompare(b.category));
   }, [filteredMaterials]);
 
   // Reset filters

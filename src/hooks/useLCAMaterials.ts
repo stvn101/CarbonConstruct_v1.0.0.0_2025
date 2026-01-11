@@ -90,10 +90,16 @@ export const useLCAMaterials = () => {
       const data = mappedData;
 
       if (data) {
-        // Validate materials data
+        // Validate materials data and calculate breakdowns in single pass
         const validatedMaterials: LCAMaterialData[] = [];
+        const totals = { a1a3: 0, a4: 0, a5: 0, total: 0 };
+        const categoryMap = new Map<string, LCACategoryBreakdown>();
         
-        data.forEach(material => {
+        // Single iteration for validation and calculations
+        for (let i = 0; i < data.length; i++) {
+          const material = data[i];
+          
+          // Validate
           const result = LCAMaterialSchema.safeParse(material);
           if (!result.success) {
             logger.warn('useLCAMaterials', 'Invalid LCA material data', { 
@@ -103,41 +109,39 @@ export const useLCAMaterials = () => {
           } else {
             validatedMaterials.push(result.data as LCAMaterialData);
           }
-        });
-
-        setMaterials(validatedMaterials);
-
-        // Calculate stage breakdown totals
-        const totals = data.reduce((acc, material) => ({
-          a1a3: acc.a1a3 + (material.embodied_carbon_a1a3 || 0),
-          a4: acc.a4 + (material.embodied_carbon_a4 || 0),
-          a5: acc.a5 + (material.embodied_carbon_a5 || 0),
-          total: acc.total + (material.embodied_carbon_total || 0)
-        }), { a1a3: 0, a4: 0, a5: 0, total: 0 });
-
-        setStageBreakdown(totals);
-
-        // Calculate category breakdown
-        const categoryMap = new Map<string, LCACategoryBreakdown>();
-        
-        data.forEach(material => {
-          const existing = categoryMap.get(material.material_category);
+          
+          // Calculate stage breakdown totals
+          const a1a3 = material.embodied_carbon_a1a3 || 0;
+          const a4 = material.embodied_carbon_a4 || 0;
+          const a5 = material.embodied_carbon_a5 || 0;
+          const total = material.embodied_carbon_total || 0;
+          
+          totals.a1a3 += a1a3;
+          totals.a4 += a4;
+          totals.a5 += a5;
+          totals.total += total;
+          
+          // Calculate category breakdown
+          const category = material.material_category;
+          const existing = categoryMap.get(category);
           if (existing) {
-            existing.a1a3 += material.embodied_carbon_a1a3 || 0;
-            existing.a4 += material.embodied_carbon_a4 || 0;
-            existing.a5 += material.embodied_carbon_a5 || 0;
-            existing.total += material.embodied_carbon_total || 0;
+            existing.a1a3 += a1a3;
+            existing.a4 += a4;
+            existing.a5 += a5;
+            existing.total += total;
           } else {
-            categoryMap.set(material.material_category, {
-              category: material.material_category,
-              a1a3: material.embodied_carbon_a1a3 || 0,
-              a4: material.embodied_carbon_a4 || 0,
-              a5: material.embodied_carbon_a5 || 0,
-              total: material.embodied_carbon_total || 0
+            categoryMap.set(category, {
+              category,
+              a1a3,
+              a4,
+              a5,
+              total
             });
           }
-        });
+        }
 
+        setMaterials(validatedMaterials);
+        setStageBreakdown(totals);
         setCategoryBreakdown(Array.from(categoryMap.values()));
       }
     } catch (error) {
