@@ -92,11 +92,16 @@ export const useEmissionTotals = () => {
           total: total / 1000
         });
 
+        // Parse JSON data once and cache
+        const fuelData = unifiedData.fuel_inputs;
+        const parsedFuelData = typeof fuelData === 'string' ? JSON.parse(fuelData) : fuelData;
+        
+        const elecData = unifiedData.electricity_inputs;
+        const parsedElecData = typeof elecData === 'string' ? JSON.parse(elecData) : elecData;
+
         // Build Scope 1 details from fuel_inputs
         // Convert emissions to tCO2e for display
         const scope1Categories: EmissionDetails[] = [];
-        const fuelData = unifiedData.fuel_inputs;
-        const parsedFuelData = typeof fuelData === 'string' ? JSON.parse(fuelData) : fuelData;
         const scope1TotalTonnes = scope1Total / 1000;
         
         if (parsedFuelData && typeof parsedFuelData === 'object' && !Array.isArray(parsedFuelData)) {
@@ -108,7 +113,7 @@ export const useEmissionTotals = () => {
             natural_gas: 2.04,
           };
           
-          Object.entries(parsedFuelData).forEach(([fuelType, quantity]) => {
+          for (const [fuelType, quantity] of Object.entries(parsedFuelData)) {
             const qty = Number(quantity);
             if (!isNaN(qty) && qty > 0) {
               const factor = fuelFactors[fuelType] || 2.31;
@@ -119,19 +124,17 @@ export const useEmissionTotals = () => {
                 percentage: scope1TotalTonnes > 0 ? (emissions / scope1TotalTonnes) * 100 : 0
               });
             }
-          });
+          }
         }
         setScope1Details(scope1Categories);
 
         // Build Scope 2 details from electricity_inputs
         // Convert emissions to tCO2e for display
         const scope2Categories: EmissionDetails[] = [];
-        const elecData = unifiedData.electricity_inputs;
-        const parsedElecData = typeof elecData === 'string' ? JSON.parse(elecData) : elecData;
         const scope2TotalTonnes = scope2Total / 1000;
         
         if (parsedElecData && typeof parsedElecData === 'object' && !Array.isArray(parsedElecData)) {
-          Object.entries(parsedElecData).forEach(([key, quantity]) => {
+          for (const [key, quantity] of Object.entries(parsedElecData)) {
             const qty = Number(quantity);
             if (!isNaN(qty) && qty > 0) {
               const emissions = (qty * 0.72) / 1000; // Australian grid factor, convert to tCO2e
@@ -141,7 +144,7 @@ export const useEmissionTotals = () => {
                 percentage: scope2TotalTonnes > 0 ? (emissions / scope2TotalTonnes) * 100 : 0
               });
             }
-          });
+          }
         }
         setScope2Details(scope2Categories);
 

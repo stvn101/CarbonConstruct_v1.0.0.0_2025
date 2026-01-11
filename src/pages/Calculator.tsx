@@ -9,6 +9,7 @@ import { useUsageTracking } from "@/hooks/useUsageTracking";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useEcoCompliance } from "@/hooks/useEcoCompliance";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,11 +98,17 @@ const loadFromStorage = (key: string, fallback: any) => {
 };
 
 // Mobile-optimized MaterialRow - card layout on mobile
-const MaterialRow = ({ material, onChange, onRemove }: { 
+// Memoized to prevent unnecessary re-renders when sibling materials change
+const MaterialRow = React.memo(({ material, onChange, onRemove }: { 
   material: Material; 
   onChange: (m: Material) => void; 
   onRemove: () => void;
 }) => {
+  const emissions = useMemo(() => 
+    ((material.quantity * material.factor) / 1000).toFixed(3),
+    [material.quantity, material.factor]
+  );
+
   return (
     <div className={`rounded-lg border p-3 mb-2 ${
       material.isCustom ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800' : 'hover:bg-muted/50'
@@ -181,23 +188,27 @@ const MaterialRow = ({ material, onChange, onRemove }: {
         <div className="col-span-2 md:col-span-1">
           <label className="text-xs text-muted-foreground mb-1 block">Emissions</label>
           <div className="h-9 flex items-center justify-center px-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-md font-bold text-emerald-700 dark:text-emerald-300 text-sm">
-            {((material.quantity * material.factor) / 1000).toFixed(3)} t
+            {emissions} t
           </div>
         </div>
       </div>
     </div>
   );
-};
+});
 
 // Mobile-optimized FactorRow - stacks on mobile, grid on desktop
-const FactorRow = ({ label, unit, value, onChange, factor, total }: {
+// Memoized to prevent re-renders when other factors change
+const FactorRow = React.memo(({ label, unit, value, onChange, factor, total }: {
   label: string;
   unit: string;
   value: string | number;
   onChange: (v: string) => void;
   factor: number;
   total: number;
-}) => (
+}) => {
+  const totalTonnes = useMemo(() => (total / 1000).toFixed(3), [total]);
+  
+  return (
   <div className="py-2.5 md:py-3 border-b last:border-0 hover:bg-muted/50 px-2 rounded">
     <div className="flex flex-col md:grid md:grid-cols-12 md:gap-4 md:items-center gap-2">
       <div className="md:col-span-5 font-medium text-sm">{label}</div>
@@ -217,15 +228,16 @@ const FactorRow = ({ label, unit, value, onChange, factor, total }: {
         {/* Mobile: show factor and total inline */}
         <div className="flex items-center gap-2 md:hidden">
           <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">× {factor}</span>
-          <span className="font-bold text-emerald-600 text-sm whitespace-nowrap">{(total / 1000).toFixed(3)} t</span>
+          <span className="font-bold text-emerald-600 text-sm whitespace-nowrap">{totalTonnes} t</span>
         </div>
       </div>
       {/* Desktop-only columns */}
       <div className="hidden md:block md:col-span-2 text-xs text-muted-foreground text-right font-mono">× {factor}</div>
-      <div className="hidden md:block md:col-span-2 text-right font-bold text-emerald-600 text-sm">{(total / 1000).toFixed(3)} t</div>
+      <div className="hidden md:block md:col-span-2 text-right font-bold text-emerald-600 text-sm">{totalTonnes} t</div>
     </div>
   </div>
-);
+  );
+});
 
 export default function Calculator() {
   const { user } = useAuth();
@@ -269,6 +281,7 @@ export default function Calculator() {
     setHideExpiredEPDs
   } = useEPDMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
+  const debouncedMaterialSearch = useDebounce(materialSearch, 300);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedDataSource, setSelectedDataSource] = useState<string | null>(null);
@@ -445,12 +458,16 @@ export default function Calculator() {
   // Category counts for browser - using EPD database
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    dbMaterials.forEach(m => {
-      counts.set(m.material_category, (counts.get(m.material_category) || 0) + 1);
-    });
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([category, count]) => ({ category, count }));
+    for (let i = 0; i < dbMaterials.length; i++) {
+      const material = dbMaterials[i];
+      const category = material.material_category;
+      counts.set(category, (counts.get(category) || 0) + 1);
+    }
+    const result: { category: string; count: number }[] = [];
+    for (const [category, count] of counts.entries()) {
+      result.push({ category, count });
+    }
+    return result.sort((a, b) => b.count - a.count);
   }, [dbMaterials]);
   
   // Save UI preference
@@ -542,7 +559,7 @@ export default function Calculator() {
   
   // Group database materials by category and filter by search/category/state
   const groupedMaterials = useMemo(() => {
-    let filtered = [...dbMaterials];
+    let filtered = dbMaterials;
     
     // Filter by selected state
     if (selectedState) {
@@ -559,9 +576,9 @@ export default function Calculator() {
       filtered = filtered.filter(m => m.material_category === selectedCategory);
     }
     
-    // Filter by search term - improved search logic
-    if (materialSearch.trim().length >= 2) {
-      const searchLower = materialSearch.toLowerCase().trim();
+    // Filter by search term - improved search logic with debounced value
+    if (debouncedMaterialSearch.trim().length >= 2) {
+      const searchLower = debouncedMaterialSearch.toLowerCase().trim();
       // Split search into words for multi-word matching
       const searchWords = searchLower.split(/\s+/).filter(w => w.length > 0);
       
@@ -586,26 +603,28 @@ export default function Calculator() {
     // For new UI, show results when category is selected OR search is active
     // For old UI, only show when search is active
     const shouldShow = useNewMaterialUI 
-      ? (selectedCategory || materialSearch.trim().length >= 2 || selectedState || selectedDataSource)
-      : materialSearch.trim().length >= 2;
+      ? (selectedCategory || debouncedMaterialSearch.trim().length >= 2 || selectedState || selectedDataSource)
+      : debouncedMaterialSearch.trim().length >= 2;
     
     if (!shouldShow) return [];
     
     const groups = new Map<string, EPDMaterial[]>();
-    filtered.forEach(mat => {
-      const existing = groups.get(mat.material_category) || [];
-      existing.push(mat);
-      groups.set(mat.material_category, existing);
-    });
+    for (let i = 0; i < filtered.length; i++) {
+      const mat = filtered[i];
+      const category = mat.material_category;
+      if (!groups.has(category)) {
+        groups.set(category, []);
+      }
+      groups.get(category)!.push(mat);
+    }
     
     // Sort categories - no limit, show all matching results
-    return Array.from(groups.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([cat, items]) => ({
-        category: cat,
-        items: items // Show all matching items, no limit
-      }));
-  }, [dbMaterials, materialSearch, selectedCategory, selectedState, selectedDataSource, useNewMaterialUI]);
+    const result: { category: string; items: EPDMaterial[] }[] = [];
+    for (const [cat, items] of groups.entries()) {
+      result.push({ category: cat, items });
+    }
+    return result.sort((a, b) => a.category.localeCompare(b.category));
+  }, [dbMaterials, debouncedMaterialSearch, selectedCategory, selectedState, selectedDataSource, useNewMaterialUI]);
   
   // Total count of filtered materials for display
   const filteredMaterialsCount = useMemo(() => 
