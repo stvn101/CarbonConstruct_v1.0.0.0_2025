@@ -9,6 +9,7 @@ import { useUsageTracking } from "@/hooks/useUsageTracking";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useEcoCompliance } from "@/hooks/useEcoCompliance";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -280,6 +281,7 @@ export default function Calculator() {
     setHideExpiredEPDs
   } = useEPDMaterials();
   const [materialSearch, setMaterialSearch] = useState('');
+  const debouncedMaterialSearch = useDebounce(materialSearch, 300);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedDataSource, setSelectedDataSource] = useState<string | null>(null);
@@ -456,12 +458,15 @@ export default function Calculator() {
   // Category counts for browser - using EPD database
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    dbMaterials.forEach(m => {
-      counts.set(m.material_category, (counts.get(m.material_category) || 0) + 1);
-    });
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([category, count]) => ({ category, count }));
+    for (let i = 0; i < dbMaterials.length; i++) {
+      const category = dbMaterials[i].material_category;
+      counts.set(category, (counts.get(category) || 0) + 1);
+    }
+    const result: { category: string; count: number }[] = [];
+    for (const [category, count] of counts.entries()) {
+      result.push({ category, count });
+    }
+    return result.sort((a, b) => b.count - a.count);
   }, [dbMaterials]);
   
   // Save UI preference
@@ -553,7 +558,7 @@ export default function Calculator() {
   
   // Group database materials by category and filter by search/category/state
   const groupedMaterials = useMemo(() => {
-    let filtered = [...dbMaterials];
+    let filtered = dbMaterials;
     
     // Filter by selected state
     if (selectedState) {
@@ -570,9 +575,9 @@ export default function Calculator() {
       filtered = filtered.filter(m => m.material_category === selectedCategory);
     }
     
-    // Filter by search term - improved search logic
-    if (materialSearch.trim().length >= 2) {
-      const searchLower = materialSearch.toLowerCase().trim();
+    // Filter by search term - improved search logic with debounced value
+    if (debouncedMaterialSearch.trim().length >= 2) {
+      const searchLower = debouncedMaterialSearch.toLowerCase().trim();
       // Split search into words for multi-word matching
       const searchWords = searchLower.split(/\s+/).filter(w => w.length > 0);
       
@@ -597,26 +602,28 @@ export default function Calculator() {
     // For new UI, show results when category is selected OR search is active
     // For old UI, only show when search is active
     const shouldShow = useNewMaterialUI 
-      ? (selectedCategory || materialSearch.trim().length >= 2 || selectedState || selectedDataSource)
-      : materialSearch.trim().length >= 2;
+      ? (selectedCategory || debouncedMaterialSearch.trim().length >= 2 || selectedState || selectedDataSource)
+      : debouncedMaterialSearch.trim().length >= 2;
     
     if (!shouldShow) return [];
     
     const groups = new Map<string, EPDMaterial[]>();
-    filtered.forEach(mat => {
-      const existing = groups.get(mat.material_category) || [];
-      existing.push(mat);
-      groups.set(mat.material_category, existing);
-    });
+    for (let i = 0; i < filtered.length; i++) {
+      const mat = filtered[i];
+      const category = mat.material_category;
+      if (!groups.has(category)) {
+        groups.set(category, []);
+      }
+      groups.get(category)!.push(mat);
+    }
     
     // Sort categories - no limit, show all matching results
-    return Array.from(groups.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([cat, items]) => ({
-        category: cat,
-        items: items // Show all matching items, no limit
-      }));
-  }, [dbMaterials, materialSearch, selectedCategory, selectedState, selectedDataSource, useNewMaterialUI]);
+    const result: { category: string; items: EPDMaterial[] }[] = [];
+    for (const [cat, items] of groups.entries()) {
+      result.push({ category: cat, items });
+    }
+    return result.sort((a, b) => a.category.localeCompare(b.category));
+  }, [dbMaterials, debouncedMaterialSearch, selectedCategory, selectedState, selectedDataSource, useNewMaterialUI]);
   
   // Total count of filtered materials for display
   const filteredMaterialsCount = useMemo(() => 

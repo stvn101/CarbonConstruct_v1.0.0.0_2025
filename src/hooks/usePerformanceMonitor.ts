@@ -9,10 +9,12 @@ interface PerformanceMetric {
 
 const METRICS_BATCH_SIZE = 20;
 const METRICS_FLUSH_INTERVAL = 10000; // 10 seconds
+const MAX_QUEUE_SIZE = 100; // Prevent unbounded growth
 
 export function usePerformanceMonitor() {
   const metricsQueue = useRef<PerformanceMetric[]>([]);
   const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isFlushingRef = useRef(false);
 
   const getDeviceType = useCallback(() => {
     const width = window.innerWidth;
@@ -22,8 +24,9 @@ export function usePerformanceMonitor() {
   }, []);
 
   const flushMetrics = useCallback(async () => {
-    if (metricsQueue.current.length === 0) return;
-
+    if (metricsQueue.current.length === 0 || isFlushingRef.current) return;
+    
+    isFlushingRef.current = true;
     const metricsToSend = metricsQueue.current.splice(0, METRICS_BATCH_SIZE);
     
     try {
@@ -37,7 +40,9 @@ export function usePerformanceMonitor() {
         },
       });
     } catch {
-      // Silently fail
+      // Silently fail - performance monitoring shouldn't break the app
+    } finally {
+      isFlushingRef.current = false;
     }
   }, [getDeviceType]);
 
@@ -51,6 +56,12 @@ export function usePerformanceMonitor() {
   }, [flushMetrics]);
 
   const trackMetric = useCallback((name: string, value: number, metadata?: Record<string, unknown>) => {
+    // Prevent unbounded queue growth
+    if (metricsQueue.current.length >= MAX_QUEUE_SIZE) {
+      // Drop oldest metrics if queue is full
+      metricsQueue.current.shift();
+    }
+    
     metricsQueue.current.push({
       metric_name: name,
       metric_value: value,
