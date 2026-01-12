@@ -163,7 +163,7 @@ serve(async (req) => {
       .from('materials_epd')
       .select('id, material_name, material_category, subcategory, unit, ef_total, data_source, epd_number, manufacturer')
       .order('material_category')
-      .limit(2000); // Get top 2000 materials for matching reference (44% of database coverage)
+      .limit(500); // Get top 500 materials for matching reference
 
     if (dbError) {
       console.error(`[parse-boq] Database query failed:`, dbError.message);
@@ -234,10 +234,8 @@ CRITICAL MATCHING RULES:
 8. Only set isCustom: true if there's genuinely no similar material category in the database
 
 UNIT CONVERSION RULES:
-- Steel products in linear metres: ONLY convert if description explicitly contains "stud", "track", "furring channel", or "light gauge framing"
-- Light gauge steel framing (studs/tracks): use 2.5 kg/m ONLY when description clearly indicates light gauge (e.g., "92mm steel stud", "ceiling track", "wall frame")
-- Structural steel sections (UB, UC, PFC, RHS, CHS, angles, channels): DO NOT convert linear metres to kg. Set requiresReview: true with reviewReason: "Structural steel requires mass specification in tonnes - cannot estimate from linear metres. Please specify total tonnage or refer to structural drawings."
-- If unsure whether steel is light gauge or structural: set requiresReview: true
+- Steel framing in linear metres: convert to kg using ~2.5 kg/m for light gauge framing
+- If BOQ uses "m" for steel products, multiply by 2.5 to get approximate kg equivalent
 
 Return a JSON array of materials ONLY. No explanations, no markdown, just the JSON array.
 
@@ -352,14 +350,14 @@ ${materialSchema}`;
       // STRICT matching: same category AND same unit, sorted by ef_total for determinism
       // Filter to Australian materials only
       const categoryMatches = dbMaterials
-        ?.filter(m =>
+        ?.filter(m => 
           m.material_category?.toLowerCase() === matCategory &&
           m.unit?.toLowerCase() === matUnit &&
           isAustralianMaterial(m)
         )
-        .sort((a, b) => (b.ef_total || 0) - (a.ef_total || 0)); // Sort descending (highest first)
-
-      let proxyMatch = categoryMatches?.[0]; // Take highest (conservative for compliance)
+        .sort((a, b) => (a.ef_total || 0) - (b.ef_total || 0)); // Sort for determinism
+      
+      let proxyMatch = categoryMatches?.[0]; // Take lowest (most conservative)
       
       // If no exact category+unit match, try keyword matching (still unit-aware)
       if (!proxyMatch) {
@@ -367,13 +365,13 @@ ${materialSchema}`;
         for (const keyword of keywords) {
           if (matName.includes(keyword) || matCategory.includes(keyword)) {
             const keywordMatches = dbMaterials
-              ?.filter(m =>
+              ?.filter(m => 
                 (m.material_category?.toLowerCase().includes(keyword) ||
                  m.material_name?.toLowerCase().includes(keyword)) &&
                 m.unit?.toLowerCase() === matUnit &&
                 isAustralianMaterial(m)
               )
-              .sort((a, b) => (b.ef_total || 0) - (a.ef_total || 0)); // Sort descending (highest first)
+              .sort((a, b) => (a.ef_total || 0) - (b.ef_total || 0));
             
             proxyMatch = keywordMatches?.[0];
             if (proxyMatch) break;
