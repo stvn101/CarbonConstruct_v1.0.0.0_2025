@@ -8,7 +8,7 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CheckoutSuccessHandler } from "@/components/CheckoutSuccessHandler";
 import { SEOHead } from "@/components/SEOHead";
-import { FeatureTeaser } from "@/components/FeatureTeaser";
+// FeatureTeaser removed from landing page - BOQ uploader under repair
 import { QuickCarbonCalculator } from "@/components/QuickCarbonCalculator";
 import { FeatureCarousel } from "@/components/FeatureCarousel";
 import { CheckCircle, Shield, Leaf, Check, X, HardHat, Award, Calendar, Crown, Clock, Linkedin, User, Building2, FileText, Database, ExternalLink } from "lucide-react";
@@ -89,22 +89,50 @@ const Index = () => {
                   loading="eager"
                 />
               </picture>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-end md:items-center justify-center p-6">
-                <div className="text-center space-y-2 md:space-y-4">
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/20 flex items-end md:items-center justify-center p-6">
+                <div className="text-center space-y-2 md:space-y-4 bg-background/85 backdrop-blur-sm rounded-lg p-4 md:p-6 shadow-lg">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
                     Professional Carbon Assessment
                   </h2>
-                  <p className="text-sm sm:text-base text-white/90 max-w-md">
+                  <p className="text-sm sm:text-base text-muted-foreground max-w-md">
                     Comprehensive LCA methodologies for Australian construction projects. Calculate and track your project's carbon emissions across all three scopes with Australian NCC compliance standards.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Feature Teaser Video Section */}
-            <ParallaxSection speed={0.3}>
-              <FeatureTeaser />
-            </ParallaxSection>
+            {/* Sign In Section - Replaced BOQ video teaser */}
+            <div className="py-8 md:py-12">
+              <Card variant="glass" className="max-w-xl mx-auto p-6 md:p-8 text-center glass-glow-hover">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Shield className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold">Ready to Start?</h3>
+                  <p className="text-muted-foreground">
+                    Sign in to access your carbon calculator, material database, and compliance reports.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                    <Button 
+                      onClick={() => navigate("/auth")} 
+                      size="lg" 
+                      className="text-base px-8 py-5 bg-primary hover:bg-primary/90 font-semibold"
+                    >
+                      <User className="mr-2 h-5 w-5" />
+                      Sign In
+                    </Button>
+                    <Button 
+                      onClick={() => navigate("/auth")} 
+                      variant="outline" 
+                      size="lg" 
+                      className="text-base px-8 py-5"
+                    >
+                      Create Free Account
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </div>
 
             {/* Feature Carousel - Glass Cards */}
             <ParallaxSection speed={0.2} className="carbon-surface py-12 -mx-4 px-4 rounded-xl">

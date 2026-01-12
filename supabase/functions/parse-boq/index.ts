@@ -307,69 +307,105 @@ ${materialSchema}`;
       throw new Error("Invalid response format from AI");
     }
 
+    // AUSTRALIAN STATES for filtering
+    const AUSTRALIAN_STATES = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
+    
+    // Helper: check if material is Australian
+    const isAustralianMaterial = (mat: typeof dbMaterials[0]) => {
+      if (mat.state && AUSTRALIAN_STATES.includes(mat.state.toUpperCase())) return true;
+      if (mat.region && mat.region.toLowerCase().includes('australia')) return true;
+      // Default to true if no region info (assume Australian for local DB)
+      if (!mat.state && !mat.region) return true;
+      return false;
+    };
+
     // Post-process: validate material IDs against database and fix fallback factors
+    // CRITICAL: Never trust AI-provided factors for custom materials
     const validatedMaterials = materials.map((mat: Record<string, unknown>) => {
       // If typeId looks like a UUID, verify it exists in database
       if (mat.typeId && typeof mat.typeId === 'string' && mat.typeId.length === 36 && mat.typeId.includes('-')) {
         const dbMatch = dbMaterials?.find(m => m.id === mat.typeId);
         if (dbMatch) {
-          // Ensure we use exact database values
+          // Ensure we use exact database values - NEVER use AI-provided factor
           return {
             ...mat,
             factor: dbMatch.ef_total,
             unit: dbMatch.unit,
             source: dbMatch.data_source,
             epdNumber: dbMatch.epd_number,
+            manufacturer: dbMatch.manufacturer,
             isCustom: false,
-            confidenceLevel: 'high'
+            confidenceLevel: 'high',
+            requiresReview: false
           };
         }
       }
       
-      // ID not found or custom - try to find category match for better factor
+      // ID not found or custom - try to find DETERMINISTIC category match
+      // This ensures consistent results across multiple parses
       const matCategory = typeof mat.category === 'string' ? mat.category.toLowerCase() : '';
       const matName = typeof mat.name === 'string' ? mat.name.toLowerCase() : '';
+      const matUnit = typeof mat.unit === 'string' ? mat.unit.toLowerCase() : '';
       
-      // Try to find a matching material by category
-      let categoryMatch = dbMaterials?.find(m => 
-        m.material_category?.toLowerCase() === matCategory
-      );
+      // STRICT matching: same category AND same unit, sorted by ef_total for determinism
+      // Filter to Australian materials only
+      const categoryMatches = dbMaterials
+        ?.filter(m => 
+          m.material_category?.toLowerCase() === matCategory &&
+          m.unit?.toLowerCase() === matUnit &&
+          isAustralianMaterial(m)
+        )
+        .sort((a, b) => (a.ef_total || 0) - (b.ef_total || 0)); // Sort for determinism
       
-      // If no category match, try by name keywords
-      if (!categoryMatch) {
-        const keywords = ['steel', 'concrete', 'timber', 'plasterboard', 'insulation', 'glass', 'aluminium'];
+      let proxyMatch = categoryMatches?.[0]; // Take lowest (most conservative)
+      
+      // If no exact category+unit match, try keyword matching (still unit-aware)
+      if (!proxyMatch) {
+        const keywords = ['steel', 'concrete', 'timber', 'plasterboard', 'insulation', 'glass', 'aluminium', 'brick', 'masonry', 'carpet', 'vinyl'];
         for (const keyword of keywords) {
           if (matName.includes(keyword) || matCategory.includes(keyword)) {
-            categoryMatch = dbMaterials?.find(m => 
-              m.material_category?.toLowerCase().includes(keyword) ||
-              m.material_name?.toLowerCase().includes(keyword)
-            );
-            if (categoryMatch) break;
+            const keywordMatches = dbMaterials
+              ?.filter(m => 
+                (m.material_category?.toLowerCase().includes(keyword) ||
+                 m.material_name?.toLowerCase().includes(keyword)) &&
+                m.unit?.toLowerCase() === matUnit &&
+                isAustralianMaterial(m)
+              )
+              .sort((a, b) => (a.ef_total || 0) - (b.ef_total || 0));
+            
+            proxyMatch = keywordMatches?.[0];
+            if (proxyMatch) break;
           }
         }
       }
       
-      // Apply category match if found and current factor looks suspicious (< 0.5 or exactly 1.234)
-      const currentFactor = typeof mat.factor === 'number' ? mat.factor : 0;
-      const isSuspiciousFactor = currentFactor < 0.5 || Math.abs(currentFactor - 1.234) < 0.001;
-      
-      if (categoryMatch && isSuspiciousFactor) {
+      // If we found a proxy match, use its factor (deterministic)
+      if (proxyMatch) {
         return {
           ...mat,
-          factor: categoryMatch.ef_total,
-          unit: categoryMatch.unit,
-          source: `${categoryMatch.data_source} (category average)`,
+          factor: proxyMatch.ef_total,
+          unit: proxyMatch.unit,
+          source: `${proxyMatch.data_source} (proxy match: ${proxyMatch.material_name})`,
+          proxyMaterialId: proxyMatch.id,
+          proxyMaterialName: proxyMatch.material_name,
           isCustom: true,
-          confidenceLevel: 'medium'
+          confidenceLevel: 'medium',
+          requiresReview: false // Has a valid proxy factor
         };
       }
       
-      // No match found - mark as custom with low confidence
+      // NO MATCH FOUND - DO NOT USE AI FACTOR
+      // Mark as requiring review with null factor
+      console.warn(`[parse-boq] No database match for custom material: ${mat.name} (${mat.category}, ${mat.unit})`);
+      
       return {
         ...mat,
+        factor: null, // CRITICAL: null factor forces user review
+        source: 'N/A - requires selection',
         isCustom: true,
-        source: mat.source || 'estimated',
-        confidenceLevel: 'low'
+        confidenceLevel: 'low',
+        requiresReview: true,
+        reviewReason: `No verified Australian material found for "${mat.name}" in category "${mat.category}" with unit "${mat.unit}". Please select a material from the database.`
       };
     });
 
