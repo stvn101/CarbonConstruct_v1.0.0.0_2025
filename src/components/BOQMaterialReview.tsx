@@ -26,6 +26,8 @@ export interface Material {
   confidence?: number;
   ef_total?: number;
   data_source?: string;
+  requiresReview?: boolean;
+  reviewReason?: string;
 }
 
 interface BOQMaterialReviewProps {
@@ -291,7 +293,14 @@ export const BOQMaterialReview = memo(({
                               <Badge variant="outline">{material.category}</Badge>
                             </TableCell>
                             <TableCell>
-                              {material.matched_epd_id ? (
+                              {material.requiresReview ? (
+                                <div className="flex items-center gap-2">
+                                  <AlertTriangle className="h-4 w-4 text-amber-500" aria-hidden="true" />
+                                  <Badge variant="default" className="bg-amber-500 hover:bg-amber-600" title={material.reviewReason}>
+                                    Review Required
+                                  </Badge>
+                                </div>
+                              ) : material.matched_epd_id ? (
                                 <div className="flex items-center gap-2">
                                   <Check className="h-4 w-4 text-green-500" aria-hidden="true" />
                                   {getConfidenceBadge(material.confidence, material.data_source)}

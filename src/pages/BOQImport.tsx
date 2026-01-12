@@ -25,6 +25,8 @@ interface Material {
   matched_epd_id?: string;
   confidence?: number;
   ef_total?: number;
+  requiresReview?: boolean;
+  reviewReason?: string;
 }
 
 export default function BOQImport() {
