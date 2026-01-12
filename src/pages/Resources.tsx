@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SEOHead } from "@/components/SEOHead";
 import { Footer } from "@/components/Footer";
+import { WhitepaperEmailGate } from "@/components/WhitepaperEmailGate";
 
 const Resources = () => {
   const { toast } = useToast();
@@ -359,16 +360,13 @@ const Resources = () => {
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Link>
                     </Button>
-                    <Button variant="outline" asChild>
-                      <a 
-                        href="/resources/the-silent-transfer-whitepaper.pdf" 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Read Full Whitepaper
-                      </a>
-                    </Button>
+                    <WhitepaperEmailGate 
+                      variant="outline" 
+                      source="resources-executive-summary"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Read Full Whitepaper
+                    </WhitepaperEmailGate>
                   </div>
                 </CardContent>
               </Card>
