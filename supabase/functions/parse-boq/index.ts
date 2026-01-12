@@ -161,9 +161,10 @@ serve(async (req) => {
     
     const { data: dbMaterials, error: dbError } = await supabaseServiceClient
       .from('materials_epd')
-      .select('id, material_name, material_category, subcategory, unit, ef_total, data_source, epd_number, manufacturer')
-      .order('material_category')
-      .limit(500); // Get top 500 materials for matching reference
+      .select('id, material_name, material_category, subcategory, unit, ef_total, data_source, epd_number, manufacturer, state, region')
+      .eq('region', 'Australia')
+      .order('ef_total', { ascending: false })
+      .limit(2000); // Conservative approach: fetch 2000 highest-emission Australian materials
 
     if (dbError) {
       console.error(`[parse-boq] Database query failed:`, dbError.message);
@@ -234,8 +235,10 @@ CRITICAL MATCHING RULES:
 8. Only set isCustom: true if there's genuinely no similar material category in the database
 
 UNIT CONVERSION RULES:
-- Steel framing in linear metres: convert to kg using ~2.5 kg/m for light gauge framing
-- If BOQ uses "m" for steel products, multiply by 2.5 to get approximate kg equivalent
+- Steel products in linear metres: ONLY convert if description explicitly contains "stud", "track", "furring channel", or "light gauge framing"
+- Light gauge steel framing (studs/tracks): use 2.5 kg/m ONLY when description clearly indicates light gauge (e.g., "92mm steel stud", "ceiling track", "wall frame")
+- Structural steel sections (UB, UC, PFC, RHS, CHS, SHS, HEA, HEB, HEM, IPE, angles, channels, Tees, Flats): DO NOT convert linear metres to kg. Set requiresReview: true with reviewReason: "Structural steel requires mass specification in tonnes - cannot estimate from linear metres. Please specify total tonnage or refer to structural drawings."
+- If unsure whether steel is light gauge or structural: set requiresReview: true
 
 Return a JSON array of materials ONLY. No explanations, no markdown, just the JSON array.
 
@@ -251,6 +254,8 @@ Each item must have:
 - epdNumber: string | null (epd_number from database if available)
 - confidenceLevel: string ("high" if exact match, "medium" if category match, "low" if estimated)
 - unitConversionApplied: boolean (true if units were converted, e.g., metres to kg)
+- requiresReview: boolean (true if material needs manual review)
+- reviewReason: string | undefined (explanation for why review is required)
 
 ${materialSchema}`;
 
@@ -340,7 +345,29 @@ ${materialSchema}`;
           };
         }
       }
-      
+
+      // STRUCTURAL STEEL FALLBACK: If AI missed it, catch it here
+      if (!mat.typeId || mat.typeId === 'custom') {
+        const matNameLower = typeof mat.name === 'string' ? mat.name.toLowerCase() : '';
+        const matUnitLower = typeof mat.unit === 'string' ? mat.unit.toLowerCase() : '';
+
+        // Check for structural steel in linear metres
+        if (matNameLower.includes('steel') &&
+            (matUnitLower === 'm' || matUnitLower === 'metres' || matUnitLower === 'meter') &&
+            !matNameLower.match(/stud|track|furring|light gauge|ceiling/)) {
+
+          return {
+            ...mat,
+            factor: null,
+            requiresReview: true,
+            reviewReason: 'Structural steel in linear metres requires mass specification in tonnes - cannot estimate from linear metres alone. Please specify total tonnage or consult structural drawings.',
+            isCustom: true,
+            confidenceLevel: 'low',
+            source: 'N/A - requires specification'
+          };
+        }
+      }
+
       // ID not found or custom - try to find DETERMINISTIC category match
       // This ensures consistent results across multiple parses
       const matCategory = typeof mat.category === 'string' ? mat.category.toLowerCase() : '';
@@ -350,14 +377,14 @@ ${materialSchema}`;
       // STRICT matching: same category AND same unit, sorted by ef_total for determinism
       // Filter to Australian materials only
       const categoryMatches = dbMaterials
-        ?.filter(m => 
+        ?.filter(m =>
           m.material_category?.toLowerCase() === matCategory &&
           m.unit?.toLowerCase() === matUnit &&
           isAustralianMaterial(m)
         )
-        .sort((a, b) => (a.ef_total || 0) - (b.ef_total || 0)); // Sort for determinism
-      
-      let proxyMatch = categoryMatches?.[0]; // Take lowest (most conservative)
+        .sort((a, b) => (b.ef_total || 0) - (a.ef_total || 0)); // Sort descending (highest first)
+
+      let proxyMatch = categoryMatches?.[0]; // Take highest (conservative for compliance)
       
       // If no exact category+unit match, try keyword matching (still unit-aware)
       if (!proxyMatch) {
@@ -365,13 +392,13 @@ ${materialSchema}`;
         for (const keyword of keywords) {
           if (matName.includes(keyword) || matCategory.includes(keyword)) {
             const keywordMatches = dbMaterials
-              ?.filter(m => 
+              ?.filter(m =>
                 (m.material_category?.toLowerCase().includes(keyword) ||
                  m.material_name?.toLowerCase().includes(keyword)) &&
                 m.unit?.toLowerCase() === matUnit &&
                 isAustralianMaterial(m)
               )
-              .sort((a, b) => (a.ef_total || 0) - (b.ef_total || 0));
+              .sort((a, b) => (b.ef_total || 0) - (a.ef_total || 0)); // Sort descending (highest first)
             
             proxyMatch = keywordMatches?.[0];
             if (proxyMatch) break;
