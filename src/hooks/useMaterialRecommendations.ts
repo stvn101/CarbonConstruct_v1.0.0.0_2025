@@ -44,11 +44,30 @@ interface RecommendationResponse {
     best_alternative_carbon: number;
     max_savings_percent: number;
     category: string;
+    message?: string; // Optional message for no-results case
   };
 }
 
 // Terms that indicate end-of-life/disposal materials - not valid construction alternatives
 const EXCLUDED_TERMS = ['disposal', 'recycling', 'waste', 'landfill', 'sorting plant', 'incineration', 'end of life', 'eol', 'demolition waste'];
+
+// Australian states for strict filtering
+const AUSTRALIAN_STATES = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
+
+// Check if material is Australian (strict filter - not just preference)
+function isAustralianMaterial(state: string | null, region: string | null): boolean {
+  // If state is an Australian state, it's Australian
+  if (state && AUSTRALIAN_STATES.includes(state.toUpperCase())) {
+    return true;
+  }
+  // If region contains "Australia", it's Australian
+  if (region && region.toLowerCase().includes('australia')) {
+    return true;
+  }
+  // If no location info, we cannot confirm it's Australian - exclude
+  // This is a strict filter to prevent non-AU materials from appearing
+  return false;
+}
 
 // Calculate functional relevance between current material and alternative
 function getFunctionalRelevanceScore(
@@ -95,13 +114,29 @@ export function useMaterialRecommendations(currentMaterial: Material | null) {
 
         if (error) throw error;
 
-        // Filter out disposal/end-of-life materials - these are never valid alternatives
+        // Filter out:
+        // 1. Disposal/end-of-life materials - never valid alternatives
+        // 2. Non-Australian materials - strict filter, not just preference
         const relevantAlternatives = (alternatives || []).filter(alt => {
           const nameLower = alt.material_name.toLowerCase();
-          return !EXCLUDED_TERMS.some(term => nameLower.includes(term));
+          
+          // Exclude disposal materials
+          if (EXCLUDED_TERMS.some(term => nameLower.includes(term))) {
+            return false;
+          }
+          
+          // STRICT: Only include Australian materials
+          if (!isAustralianMaterial(alt.state, alt.region)) {
+            return false;
+          }
+          
+          return true;
         });
 
         if (relevantAlternatives.length === 0) {
+          logger.info('useMaterialRecommendations:queryFn', 
+            `No Australian alternatives found for ${currentMaterial.material_category}`
+          );
           return {
             recommendations: [],
             reasoning: {
@@ -109,6 +144,7 @@ export function useMaterialRecommendations(currentMaterial: Material | null) {
               best_alternative_carbon: currentMaterial.ef_total,
               max_savings_percent: 0,
               category: currentMaterial.material_category,
+              message: 'No Australian alternatives found for this category/unit.',
             },
           };
         }

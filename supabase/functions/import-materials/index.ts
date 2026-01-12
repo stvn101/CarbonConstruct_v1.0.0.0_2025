@@ -413,14 +413,14 @@ Deno.serve(async (req) => {
 
     // Update import metadata with completion status
     if (metadataId && supabaseAdmin) {
-      await supabaseAdmin
-        .from('import_metadata')
-      .update({
-        completed_at: new Date().toISOString(),
-        records_imported: progress.imported,
-        records_deleted: progress.deletedExisting,
-        status: progress.status,
-      } as any)
+      await (supabaseAdmin
+        .from('import_metadata') as any)
+        .update({
+          completed_at: new Date().toISOString(),
+          records_imported: progress.imported,
+          records_deleted: progress.deletedExisting,
+          status: progress.status,
+        })
         .eq('id', metadataId);
       console.log(`Updated import metadata: ${metadataId}`);
     }
@@ -448,13 +448,13 @@ Deno.serve(async (req) => {
 
     // Update import metadata with failure status
     if (metadataId && supabaseAdmin) {
-      await supabaseAdmin
-        .from('import_metadata')
-      .update({
-        completed_at: new Date().toISOString(),
-        status: 'failed',
-        error_message: errorMessage,
-      } as any)
+      await (supabaseAdmin
+        .from('import_metadata') as any)
+        .update({
+          completed_at: new Date().toISOString(),
+          status: 'failed',
+          error_message: errorMessage,
+        })
         .eq('id', metadataId);
     }
 
