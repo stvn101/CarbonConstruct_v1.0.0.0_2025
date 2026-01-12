@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WhitepaperEmailGate } from "@/components/WhitepaperEmailGate";
 import { Badge } from "@/components/ui/badge";
 
 interface WhitepaperSummaryProps {
@@ -60,12 +61,14 @@ export const WhitepaperSummary = ({ compact = false, className = "" }: Whitepape
                     <ArrowRight className="w-3 h-3 ml-1" />
                   </Link>
                 </Button>
-                <Button size="sm" variant="outline" asChild>
-                  <a href="/resources/the-silent-transfer-whitepaper.pdf" download>
-                    <Download className="w-3 h-3 mr-1" />
-                    Download PDF
-                  </a>
-                </Button>
+                <WhitepaperEmailGate 
+                  variant="outline" 
+                  size="sm" 
+                  source="whitepaper-summary-compact"
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  Download PDF
+                </WhitepaperEmailGate>
               </div>
             </div>
           </div>
@@ -123,12 +126,13 @@ export const WhitepaperSummary = ({ compact = false, className = "" }: Whitepape
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Link>
                   </Button>
-                  <Button variant="outline" asChild>
-                    <a href="/resources/the-silent-transfer-whitepaper.pdf" download>
-                      <Download className="w-4 h-4 mr-2" />
-                      Download PDF
-                    </a>
-                  </Button>
+                  <WhitepaperEmailGate 
+                    variant="outline" 
+                    source="whitepaper-summary-full"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PDF
+                  </WhitepaperEmailGate>
                 </div>
               </CardContent>
             </div>
