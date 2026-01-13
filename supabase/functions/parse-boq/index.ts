@@ -9,6 +9,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Define DBMaterial interface for type safety
+interface DBMaterial {
+  id: string;
+  material_name: string;
+  material_category: string;
+  subcategory: string | null;
+  unit: string;
+  ef_total: number;
+  data_source: string;
+  epd_number: string | null;
+  manufacturer: string | null;
+  state: string | null;
+  region: string | null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -159,17 +174,35 @@ serve(async (req) => {
     // Query the actual materials_epd database for reference materials
     console.log(`[parse-boq] Fetching materials from database...`);
     
-    const { data: dbMaterials, error: dbError } = await supabaseServiceClient
+    // Fetch ALL materials from database - no limit, no region filter
+    // Australian filtering is done in post-processing for comprehensive matching
+    const { data: allDbMaterials, error: dbError } = await supabaseServiceClient
       .from('materials_epd')
       .select('id, material_name, material_category, subcategory, unit, ef_total, data_source, epd_number, manufacturer, state, region')
-      .eq('region', 'Australia')
-      .order('ef_total', { ascending: false })
-      .limit(2000); // Conservative approach: fetch 2000 highest-emission Australian materials
+      .not('ef_total', 'is', null) // Only materials with valid emission factors
+      .order('ef_total', { ascending: false });
 
     if (dbError) {
       console.error(`[parse-boq] Database query failed:`, dbError.message);
       // Continue with fallback - don't fail entirely
     }
+
+    // AUSTRALIAN STATES for filtering
+    const AUSTRALIAN_STATES = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
+    
+    // Helper: check if material is Australian (moved here for early filtering)
+    const isAustralianMaterial = (mat: DBMaterial): boolean => {
+      if (mat.state && AUSTRALIAN_STATES.includes(mat.state.toUpperCase())) return true;
+      if (mat.region && mat.region.toLowerCase().includes('australia')) return true;
+      // Default to true if no region info (assume Australian for local DB)
+      if (!mat.state && !mat.region) return true;
+      return false;
+    };
+
+    // Filter to Australian materials only for matching
+    const dbMaterials: DBMaterial[] = (allDbMaterials || []).filter(m => isAustralianMaterial(m as DBMaterial)) as DBMaterial[];
+    
+    console.log(`[parse-boq] Database: ${allDbMaterials?.length || 0} total materials, ${dbMaterials.length} Australian materials available for matching`);
 
     // Build material schema from actual database
     let materialSchema = '';
@@ -312,18 +345,6 @@ ${materialSchema}`;
       throw new Error("Invalid response format from AI");
     }
 
-    // AUSTRALIAN STATES for filtering
-    const AUSTRALIAN_STATES = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
-    
-    // Helper: check if material is Australian
-    const isAustralianMaterial = (mat: typeof dbMaterials[0]) => {
-      if (mat.state && AUSTRALIAN_STATES.includes(mat.state.toUpperCase())) return true;
-      if (mat.region && mat.region.toLowerCase().includes('australia')) return true;
-      // Default to true if no region info (assume Australian for local DB)
-      if (!mat.state && !mat.region) return true;
-      return false;
-    };
-
     // Post-process: validate material IDs against database and fix fallback factors
     // CRITICAL: Never trust AI-provided factors for custom materials
     const validatedMaterials = materials.map((mat: Record<string, unknown>) => {
@@ -375,12 +396,11 @@ ${materialSchema}`;
       const matUnit = typeof mat.unit === 'string' ? mat.unit.toLowerCase() : '';
       
       // STRICT matching: same category AND same unit, sorted by ef_total for determinism
-      // Filter to Australian materials only
+      // dbMaterials is already filtered to Australian materials only
       const categoryMatches = dbMaterials
-        ?.filter(m =>
+        .filter(m =>
           m.material_category?.toLowerCase() === matCategory &&
-          m.unit?.toLowerCase() === matUnit &&
-          isAustralianMaterial(m)
+          m.unit?.toLowerCase() === matUnit
         )
         .sort((a, b) => (b.ef_total || 0) - (a.ef_total || 0)); // Sort descending (highest first)
 
@@ -391,12 +411,12 @@ ${materialSchema}`;
         const keywords = ['steel', 'concrete', 'timber', 'plasterboard', 'insulation', 'glass', 'aluminium', 'brick', 'masonry', 'carpet', 'vinyl'];
         for (const keyword of keywords) {
           if (matName.includes(keyword) || matCategory.includes(keyword)) {
+            // dbMaterials is already filtered to Australian materials only
             const keywordMatches = dbMaterials
-              ?.filter(m =>
+              .filter(m =>
                 (m.material_category?.toLowerCase().includes(keyword) ||
                  m.material_name?.toLowerCase().includes(keyword)) &&
-                m.unit?.toLowerCase() === matUnit &&
-                isAustralianMaterial(m)
+                m.unit?.toLowerCase() === matUnit
               )
               .sort((a, b) => (b.ef_total || 0) - (a.ef_total || 0)); // Sort descending (highest first)
             
