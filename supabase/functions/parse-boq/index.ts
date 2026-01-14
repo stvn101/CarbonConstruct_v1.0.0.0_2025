@@ -437,16 +437,25 @@ ${materialSchema}`;
       const matName = typeof mat.name === 'string' ? mat.name.toLowerCase() : '';
       const matUnit = typeof mat.unit === 'string' ? mat.unit.toLowerCase() : '';
       
-      // STRICT matching: same category AND same unit, sorted by ef_total for determinism
+      // Helper to get median value from sorted array (deterministic and reasonable)
+      const getMedianMatch = (matches: DBMaterial[]): DBMaterial | undefined => {
+        if (!matches || matches.length === 0) return undefined;
+        // Sort by ef_total ascending for consistent ordering
+        const sorted = [...matches].sort((a, b) => (a.ef_total || 0) - (b.ef_total || 0));
+        // Take the median (middle value) - more representative than max/min
+        const medianIndex = Math.floor(sorted.length / 2);
+        return sorted[medianIndex];
+      };
+      
+      // STRICT matching: same category AND same unit
       // dbMaterials is already filtered to Australian materials only
       const categoryMatches = dbMaterials
         .filter(m =>
           m.material_category?.toLowerCase() === matCategory &&
           m.unit?.toLowerCase() === matUnit
-        )
-        .sort((a, b) => (b.ef_total || 0) - (a.ef_total || 0)); // Sort descending (highest first)
+        );
 
-      let proxyMatch = categoryMatches?.[0]; // Take highest (conservative for compliance)
+      let proxyMatch = getMedianMatch(categoryMatches); // Take median (representative value)
       
       // If no exact category+unit match, try keyword matching (still unit-aware)
       if (!proxyMatch) {
@@ -459,10 +468,9 @@ ${materialSchema}`;
                 (m.material_category?.toLowerCase().includes(keyword) ||
                  m.material_name?.toLowerCase().includes(keyword)) &&
                 m.unit?.toLowerCase() === matUnit
-              )
-              .sort((a, b) => (b.ef_total || 0) - (a.ef_total || 0)); // Sort descending (highest first)
+              );
             
-            proxyMatch = keywordMatches?.[0];
+            proxyMatch = getMedianMatch(keywordMatches); // Take median (representative value)
             if (proxyMatch) break;
           }
         }
