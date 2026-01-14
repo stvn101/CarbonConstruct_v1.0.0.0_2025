@@ -338,11 +338,28 @@ ${materialSchema}`;
     let cleanContent = content.trim();
     cleanContent = cleanContent.replace(/```json\n?/g, '').replace(/```\n?/g, '');
     
-    // Parse the JSON
-    const materials = JSON.parse(cleanContent);
+    // CRITICAL: Remove any JavaScript undefined values that the AI might have generated
+    // These are invalid JSON and cause parsing to fail
+    cleanContent = cleanContent.replace(/:\s*undefined\b/g, ': null');
+    cleanContent = cleanContent.replace(/,\s*undefined\b/g, '');
+    
+    // Try to extract JSON array if response includes extra text
+    const jsonMatch = cleanContent.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      cleanContent = jsonMatch[0];
+    }
+    
+    // Parse the JSON with error handling
+    let materials;
+    try {
+      materials = JSON.parse(cleanContent);
+    } catch (parseError) {
+      console.error("[parse-boq] JSON parse failed. Content preview:", cleanContent.substring(0, 500));
+      throw new Error(`Failed to parse AI response as JSON: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`);
+    }
     
     if (!Array.isArray(materials)) {
-      throw new Error("Invalid response format from AI");
+      throw new Error("Invalid response format from AI - expected array");
     }
 
     // Post-process: validate material IDs against database and fix fallback factors
