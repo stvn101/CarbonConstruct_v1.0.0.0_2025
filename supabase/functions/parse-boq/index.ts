@@ -174,16 +174,41 @@ serve(async (req) => {
     // Query the actual materials_epd database for reference materials
     console.log(`[parse-boq] Fetching materials from database...`);
     
-    // Fetch ALL materials from database - no limit, no region filter
+    // Fetch ALL materials from database using pagination to overcome 1000 row limit
     // Australian filtering is done in post-processing for comprehensive matching
-    const { data: allDbMaterials, error: dbError } = await supabaseServiceClient
-      .from('materials_epd')
-      .select('id, material_name, material_category, subcategory, unit, ef_total, data_source, epd_number, manufacturer, state, region')
-      .not('ef_total', 'is', null) // Only materials with valid emission factors
-      .order('ef_total', { ascending: false });
+    let allDbMaterials: DBMaterial[] = [];
+    let dbError: Error | null = null;
+    const pageSize = 1000;
+    let offset = 0;
+    let hasMore = true;
+    
+    while (hasMore) {
+      const { data: page, error: pageError } = await supabaseServiceClient
+        .from('materials_epd')
+        .select('id, material_name, material_category, subcategory, unit, ef_total, data_source, epd_number, manufacturer, state, region')
+        .not('ef_total', 'is', null) // Only materials with valid emission factors
+        .order('ef_total', { ascending: false })
+        .range(offset, offset + pageSize - 1);
+      
+      if (pageError) {
+        console.error(`[parse-boq] Database query failed at offset ${offset}:`, pageError.message);
+        dbError = pageError;
+        break;
+      }
+      
+      if (page && page.length > 0) {
+        allDbMaterials = allDbMaterials.concat(page as DBMaterial[]);
+        offset += pageSize;
+        hasMore = page.length === pageSize;
+      } else {
+        hasMore = false;
+      }
+    }
+    
+    console.log(`[parse-boq] Fetched ${allDbMaterials.length} total materials from database`);
 
-    if (dbError) {
-      console.error(`[parse-boq] Database query failed:`, dbError.message);
+    if (dbError && allDbMaterials.length === 0) {
+      console.error(`[parse-boq] Database query completely failed:`, dbError.message);
       // Continue with fallback - don't fail entirely
     }
 
