@@ -13,6 +13,33 @@
     <link rel="dns-prefetch" href="https://htruyldcvakkzpykfoxq.supabase.co" />
     <link rel="preconnect" href="https://htruyldcvakkzpykfoxq.supabase.co" crossorigin />
     
+    <!-- Critical CSS - Inlined for instant first paint (eliminates render-blocking) -->
+    <style>
+      /* Critical above-the-fold CSS - prevents FOUC and render-blocking */
+      *,*::before,*::after{box-sizing:border-box;border-width:0;border-style:solid}
+      html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:Inter,system-ui,sans-serif;min-height:100dvh;scroll-behavior:smooth}
+      body{margin:0;line-height:inherit;min-height:100dvh;background-color:hsl(240 10% 3.9%);color:hsl(0 0% 98%);overscroll-behavior-y:none}
+      #root{min-height:100dvh;display:flex;flex-direction:column}
+      /* Dark mode base colors */
+      .dark{--background:240 10% 3.9%;--foreground:0 0% 98%;--primary:156 55% 42%;--primary-foreground:0 0% 100%}
+      /* Loading spinner for Suspense fallback */
+      .animate-spin{animation:spin 1s linear infinite}
+      @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+      /* Essential layout utilities */
+      .flex{display:flex}.items-center{align-items:center}.justify-center{justify-content:center}
+      .min-h-screen{min-height:100vh}.rounded-full{border-radius:9999px}
+      .h-8{height:2rem}.w-8{width:2rem}.border-b-2{border-bottom-width:2px}
+      .border-primary{border-color:hsl(156 55% 42%)}
+      /* Header skeleton to prevent layout shift */
+      header{height:3.5rem;position:sticky;top:0;z-index:50;background:hsl(240 10% 3.9%/0.95);backdrop-filter:blur(8px)}
+      /* Font loading with fallback */
+      @font-face{font-family:'Inter';font-style:normal;font-weight:400 700;font-display:swap;src:local('Inter')}
+      @font-face{font-family:'Space Grotesk';font-style:normal;font-weight:400 700;font-display:swap;src:local('Space Grotesk')}
+      h1,h2,h3,h4,h5,h6{font-family:'Space Grotesk',system-ui,sans-serif}
+      /* Screen reader only */
+      .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+    </style>
+    
     <!-- Inter + Space Grotesk Fonts - Non-blocking load with font-display:swap -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
