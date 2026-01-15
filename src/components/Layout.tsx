@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { ResponsiveImage } from "@/components/ui/responsive-image";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Play, LogIn, UserPlus, Mail } from "lucide-react";
 
@@ -53,7 +54,22 @@ export function Layout({ children }: LayoutProps) {
           >
             <SidebarTrigger className="mr-2 md:mr-4" aria-label="Toggle sidebar navigation" />
             <a href="/" className="flex items-center">
-              <img src="/logo-optimized.webp" alt="CarbonConstruct" className="h-8 w-auto" />
+              <ResponsiveImage 
+                src="/logo-32.webp" 
+                sources={{
+                  "32w": "/logo-32.webp",
+                  "56w": "/logo-56.webp",
+                  "96w": "/logo-96.webp"
+                }}
+                sizes="32px"
+                alt="CarbonConstruct" 
+                className="h-8 w-auto"
+                width={32}
+                height={32}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+              />
             </a>
             {isToolsPage && (
               <a href="https://calendar.app.google/1SMFPsNBFS7V5pu37" target="_blank" rel="noopener noreferrer">
