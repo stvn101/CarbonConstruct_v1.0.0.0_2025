@@ -14,8 +14,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { BOQRematchDialog } from './BOQRematchDialog';
+import { validateQuantity, getWarningIconClass } from '@/utils/quantity-validation';
 
 export interface Material {
   material_name: string;
@@ -287,7 +289,29 @@ export const BOQMaterialReview = memo(({
                             <TableCell className="font-medium max-w-[200px] truncate" title={material.material_name}>
                               {material.material_name || 'Unnamed material'}
                             </TableCell>
-                            <TableCell>{typeof material.quantity === 'number' ? material.quantity.toLocaleString() : (material.quantity ?? '-')}</TableCell>
+                            <TableCell>
+                              {(() => {
+                                const qtyWarning = validateQuantity(material.quantity, material.unit, material.category);
+                                return (
+                                  <div className="flex items-center gap-1">
+                                    <span>{typeof material.quantity === 'number' ? material.quantity.toLocaleString() : (material.quantity ?? '-')}</span>
+                                    {qtyWarning && (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <AlertTriangle className={`h-3.5 w-3.5 flex-shrink-0 ${getWarningIconClass(qtyWarning.level)}`} />
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" className="max-w-xs">
+                                          <p className="font-medium">{qtyWarning.message}</p>
+                                          {qtyWarning.suggestion && (
+                                            <p className="text-xs mt-1 opacity-80">{qtyWarning.suggestion}</p>
+                                          )}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </TableCell>
                             <TableCell>{material.unit || '-'}</TableCell>
                             <TableCell>
                               <Badge variant="outline">{material.category}</Badge>
