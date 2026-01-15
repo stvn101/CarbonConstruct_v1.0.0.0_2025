@@ -54,7 +54,7 @@ const Methodology = () => {
     // Badges
     coverDoc.setFontSize(11);
     coverDoc.setTextColor(34, 197, 94);
-    const badges = ['EN 15978:2011 Compliant', 'Green Star Ready', 'NCC 2024 Aligned', '4,620 Verified Materials'];
+    const badges = ['EN 15978:2011 Compliant', 'NCC 2024 Aligned', '5,122 Verified Materials'];
     badges.forEach((badge, i) => {
       coverDoc.text(`✓ ${badge}`, pageWidth / 2, 170 + (i * 10), { align: 'center' });
     });
@@ -62,7 +62,7 @@ const Methodology = () => {
     // Footer
     coverDoc.setFontSize(10);
     coverDoc.setTextColor(120, 120, 120);
-    coverDoc.text('United Facade Pty Ltd | ABN 67 652 069 139', pageWidth / 2, pageHeight - 40, { align: 'center' });
+    coverDoc.text('United Facade Pty Ltd | ABN 57 679 602 498', pageWidth / 2, pageHeight - 40, { align: 'center' });
     coverDoc.text('carbonconstruct.com.au/methodology', pageWidth / 2, pageHeight - 30, { align: 'center' });
     
     // Table of Contents page
@@ -285,7 +285,7 @@ const Methodology = () => {
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Clock className="h-4 w-4 text-yellow-500 shrink-0" />
-                      <span>GBCA Review Pending Q1 2026</span>
+                      <span>Independent Verification Q1 2026</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -317,10 +317,10 @@ const Methodology = () => {
                       Australian NCC Compliant
                     </Badge>
                     <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                      Green Star Ready
+                      EN 15978 Aligned
                     </Badge>
                     <Badge variant="secondary">
-                      4,620 Verified Materials
+                      5,122 Verified Materials
                     </Badge>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -439,8 +439,7 @@ const Methodology = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="text-sm text-muted-foreground space-y-2">
-                    <p>• GBCA technical review (Q1 2026)</p>
-                    <p>• Pilot project validation with GBCA-accredited assessors (Q1 2026)</p>
+                    <p>• Pilot project validation with accredited assessors (Q1 2026)</p>
                     <p>• BRE Global EN 15978 software validation (2026, subject to partnership confirmation)</p>
                   </CardContent>
                 </Card>
@@ -455,7 +454,7 @@ const Methodology = () => {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                   <Card className="neon-border">
                     <CardContent className="pt-6 text-center">
-                      <p className="text-3xl font-bold text-primary font-mono">4,620</p>
+                      <p className="text-3xl font-bold text-primary font-mono">5,122</p>
                       <p className="text-sm text-muted-foreground">Verified Materials</p>
                     </CardContent>
                   </Card>
@@ -552,7 +551,7 @@ const Methodology = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-muted-foreground text-sm">
-                      Current database size (4,620 materials) focuses on Australian construction market with 
+                      Current database size (5,122 materials) focuses on Australian construction market with 
                       verified EPD traceability. This compares to:
                     </p>
                     <ul className="space-y-1 text-sm text-muted-foreground">
@@ -838,7 +837,7 @@ const Methodology = () => {
                       </li>
                       <li className="flex items-start gap-2">
                         <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                        <span>GBCA technical manual alignment</span>
+                        <span>EN 15978 technical alignment</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -1066,8 +1065,7 @@ const Methodology = () => {
                       <CardTitle className="text-lg">Immediate (Q1 2026)</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground space-y-2">
-                      <p>• GBCA technical review for Green Star credit mapping</p>
-                      <p>• Pilot project validation with GBCA-accredited assessors on real commercial developments</p>
+                      <p>• Pilot project validation with accredited assessors on real commercial developments</p>
                       <p>• Benchmark testing against certified tools (OneClickLCA, eTool)</p>
                     </CardContent>
                   </Card>
@@ -1088,7 +1086,7 @@ const Methodology = () => {
                       <CardTitle className="text-lg">Timeline</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground space-y-2">
-                      <p>• <strong className="text-foreground">Jan-Mar 2026:</strong> GBCA submission and pilot validation</p>
+                      <p>• <strong className="text-foreground">Jan-Mar 2026:</strong> Pilot project validation</p>
                       <p>• <strong className="text-foreground">Apr-Jun 2026:</strong> BRE Global validation process</p>
                       <p>• <strong className="text-foreground">Q3 2026:</strong> Published validation status and scheme approvals</p>
                     </CardContent>

@@ -238,12 +238,21 @@ export default function BulkEPDUploader() {
   };
 
   const processFile = async (uploadedFile: UploadedFile): Promise<ParsedMaterial[]> => {
-    const { read, utils } = await import("xlsx");
-    const data = await uploadedFile.file.arrayBuffer();
-    const workbook = read(data);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const jsonData = utils.sheet_to_json(sheet, { header: 1 }) as unknown[][];
+    const ExcelJS = await import("exceljs");
+    const workbook = new ExcelJS.Workbook();
+    const arrayBuffer = await uploadedFile.file.arrayBuffer();
+    await workbook.xlsx.load(arrayBuffer);
+    const worksheet = workbook.worksheets[0];
+    
+    // Convert ExcelJS format to array of arrays
+    const jsonData: unknown[][] = [];
+    worksheet.eachRow((row, _rowNumber) => {
+      const rowData: unknown[] = [];
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        rowData.push(cell.value);
+      });
+      jsonData.push(rowData);
+    });
 
     if (jsonData.length < 2) {
       throw new Error("File appears to be empty or has no data rows");
