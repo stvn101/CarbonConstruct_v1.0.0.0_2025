@@ -29,7 +29,7 @@ export default function TermsOfService() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
                 <p className="text-muted-foreground mb-4">
-                  These Terms of Service ("Terms") constitute a legally binding agreement between you ("User", "you", or "your") and CarbonConstruct Tech, a company of United Facade Pty Ltd (ABN 57 679 602 498) ("we", "us", or "our") regarding your access to and use of the CarbonConstruct platform, website, and related services (collectively, the "Service").
+                  These Terms of Service ("Terms") constitute a legally binding agreement between you ("User", "you", or "your") and CarbonConstruct Tech, a company of United Facade Pty Ltd (ABN 67 652 069 139) ("we", "us", or "our") regarding your access to and use of the CarbonConstruct platform, website, and related services (collectively, the "Service").
                 </p>
                 <p className="text-muted-foreground">
                   These Terms are governed by the laws of Australia, and any disputes will be subject to the exclusive jurisdiction of the courts of New South Wales, Australia.
