@@ -42,7 +42,7 @@ export default function PrivacyPolicy() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
                 <p className="text-muted-foreground mb-4">
-                  This Privacy Policy explains how CarbonConstruct Tech, a company of United Facade Pty Ltd (ABN 57 679 602 498) ("we", "us", or "our") collects, uses, discloses, and protects your personal information when you use our carbon emissions calculation platform and related services (the "Service").
+                  This Privacy Policy explains how CarbonConstruct Tech, a company of United Facade Pty Ltd (ABN 67 652 069 139) ("we", "us", or "our") collects, uses, discloses, and protects your personal information when you use our carbon emissions calculation platform and related services (the "Service").
                 </p>
                 <p className="text-muted-foreground">
                   By using CarbonConstruct, you consent to the collection and use of your information as described in this Privacy Policy. If you do not agree with this policy, please do not use our Service.

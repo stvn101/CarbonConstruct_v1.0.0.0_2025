@@ -62,7 +62,7 @@ const Methodology = () => {
     // Footer
     coverDoc.setFontSize(10);
     coverDoc.setTextColor(120, 120, 120);
-    coverDoc.text('United Facade Pty Ltd | ABN 57 679 602 498', pageWidth / 2, pageHeight - 40, { align: 'center' });
+    coverDoc.text('United Facade Pty Ltd | ABN 67 652 069 139', pageWidth / 2, pageHeight - 40, { align: 'center' });
     coverDoc.text('carbonconstruct.com.au/methodology', pageWidth / 2, pageHeight - 30, { align: 'center' });
     
     // Table of Contents page
