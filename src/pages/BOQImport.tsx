@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, FileSpreadsheet, Receipt, Upload, ArrowRight, Loader2 } from "lucide-react";
-import * as XLSX from 'xlsx';
+import { parseExcelToText, parseExcelFirstSheet } from "@/lib/excel-parser";
 import { validateCarbonFactors } from "@/lib/material-validation";
 import { useReconciliation } from "@/hooks/useReconciliation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -70,24 +70,13 @@ export default function BOQImport() {
       const fileNameLower = file.name.toLowerCase();
       
       if (fileNameLower.match(/\.xlsx?$/)) {
-        // Parse Excel file using xlsx library
+        // Parse Excel file using ExcelJS library
         const arrayBuffer = await file.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        
-        // Extract text from all sheets
-        const textParts: string[] = [];
-        for (const sheetName of workbook.SheetNames) {
-          const sheet = workbook.Sheets[sheetName];
-          const csv = XLSX.utils.sheet_to_csv(sheet);
-          if (csv.trim()) {
-            textParts.push(`Sheet: ${sheetName}\n${csv}`);
-          }
-        }
-        text = textParts.join('\n\n');
+        text = await parseExcelToText(arrayBuffer);
         
         toast({ 
           title: "📊 Excel file parsed", 
-          description: `Extracted ${text.length.toLocaleString()} characters from ${workbook.SheetNames.length} sheet(s)`,
+          description: `Extracted ${text.length.toLocaleString()} characters`,
           duration: 2000
         });
       } else if (fileNameLower.endsWith('.csv') || fileNameLower.endsWith('.txt')) {
@@ -214,9 +203,7 @@ export default function BOQImport() {
         fileType = 'csv';
       } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
         const buffer = await file.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array' });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        text = XLSX.utils.sheet_to_csv(firstSheet);
+        text = await parseExcelFirstSheet(buffer);
         fileType = 'xlsx';
       } else if (file.name.endsWith('.txt')) {
         text = await file.text();

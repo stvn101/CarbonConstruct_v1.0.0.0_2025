@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
+import {
   FileText, Upload, CheckCircle, AlertTriangle, Clock, 
   Loader2, Plus, Trash2, ArrowRight, FileSpreadsheet,
   TrendingUp, TrendingDown, Minus, FileDown
@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import Decimal from 'decimal.js';
-import * as XLSX from 'xlsx';
+import { parseExcelFirstSheet } from '@/lib/excel-parser';
 
 export default function Reconciliation() {
   const { user } = useAuth();
@@ -140,9 +140,7 @@ export default function Reconciliation() {
         fileType = 'csv';
       } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
         const buffer = await file.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array' });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        text = XLSX.utils.sheet_to_csv(firstSheet);
+        text = await parseExcelFirstSheet(buffer);
         fileType = 'xlsx';
       } else if (file.name.endsWith('.txt')) {
         text = await file.text();
