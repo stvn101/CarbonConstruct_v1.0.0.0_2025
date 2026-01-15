@@ -1,5 +1,5 @@
 import * as React from "react";
-import { parseExcelToText } from "@/lib/excel-parser";
+import { parseExcelToText } from "@/utils/excel-parser";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
