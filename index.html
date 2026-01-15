@@ -82,21 +82,30 @@
     }
     </script>
     
-    <!-- Google Analytics 4 - Deferred to not block LCP -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW6J3XSWX2"></script>
+    <!-- Google Analytics 4 - Loaded after page is interactive to reduce unused JS -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-LW6J3XSWX2', { 'send_page_view': false });
-      // Defer page view until after LCP
-      if (document.readyState === 'complete') {
-        gtag('event', 'page_view');
-      } else {
-        window.addEventListener('load', function() {
-          gtag('event', 'page_view');
-        });
+      // Defer GA script loading until after page is interactive
+      function loadGA() {
+        if (window.gaLoaded) return;
+        window.gaLoaded = true;
+        var s = document.createElement('script');
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-LW6J3XSWX2';
+        s.async = true;
+        document.head.appendChild(s);
+        gtag('js', new Date());
+        gtag('config', 'G-LW6J3XSWX2', { 'send_page_view': true });
       }
+      // Load GA after user interaction or after 3 seconds (whichever comes first)
+      if (document.readyState === 'complete') {
+        setTimeout(loadGA, 3000);
+      } else {
+        window.addEventListener('load', function() { setTimeout(loadGA, 3000); });
+      }
+      ['scroll', 'click', 'touchstart', 'keydown'].forEach(function(e) {
+        document.addEventListener(e, loadGA, { once: true, passive: true });
+      });
     </script>
   </head>
 
