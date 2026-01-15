@@ -149,7 +149,7 @@ const Contact = () => {
               <CardContent className="text-sm text-muted-foreground space-y-1">
                 <p><span className="font-medium text-foreground">Trading as:</span> CarbonConstruct Tech</p>
                 <p><span className="font-medium text-foreground">Parent Company:</span> United Facade Pty Ltd</p>
-                <p><span className="font-medium text-foreground">ABN:</span> 57 679 602 498</p>
+                <p><span className="font-medium text-foreground">ABN:</span> 67 652 069 139</p>
               </CardContent>
             </Card>
           </div>

@@ -343,7 +343,7 @@ export default function Reconciliation() {
         
         {/* Footer */}
         <div className="mt-8 pt-4 border-t border-gray-300 text-xs text-gray-500">
-          <p>CarbonConstruct Pro Edition | ABN: 12 345 678 901</p>
+          <p>CarbonConstruct Pro Edition | ABN: 67 652 069 139</p>
           <p>This report is for internal use only. Carbon calculations include 10% GST where applicable.</p>
         </div>
       </div>

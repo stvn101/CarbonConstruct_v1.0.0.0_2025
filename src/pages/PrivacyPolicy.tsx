@@ -370,7 +370,7 @@ export default function PrivacyPolicy() {
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg space-y-2">
                   <p className="text-sm"><strong>Legal Entity:</strong> CarbonConstruct Tech (a company of United Facade Pty Ltd)</p>
-                  <p className="text-sm"><strong>ABN:</strong> 57 679 602 498</p>
+                  <p className="text-sm"><strong>ABN:</strong> 67 652 069 139</p>
                   <p className="text-sm"><strong>Privacy Officer Email:</strong> privacy@carbonconstruct.com.au</p>
                   <p className="text-sm"><strong>Phone:</strong> 0459 148 862</p>
                   <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Tech Privacy Officer, Lawnton, Queensland, Australia</p>
