@@ -129,14 +129,35 @@ export default function BOQImport() {
       setProgress(70);
       setProcessingStage("matching");
 
-      // Step 3: Process the results
-      if (data && data.materials) {
-        const parsedMaterials = data.materials as Material[];
+      // Step 3: Process and transform the results
+      // CRITICAL: Transform AI response fields to frontend interface
+      if (data && Array.isArray(data.materials) && data.materials.length > 0) {
+        // Transform AI response fields to match frontend Material interface
+        const parsedMaterials: Material[] = data.materials.map((m: Record<string, unknown>) => ({
+          material_name: String(m.name || m.material_name || 'Unknown'),
+          quantity: Number(m.quantity) || 0,
+          unit: String(m.unit || ''),
+          category: String(m.category || ''),
+          // Map typeId -> matched_epd_id (only if not custom)
+          matched_epd_id: m.typeId && m.typeId !== 'custom' && typeof m.typeId === 'string' && m.typeId.length === 36 
+            ? m.typeId 
+            : (m.matched_epd_id ? String(m.matched_epd_id) : undefined),
+          // Map factor -> ef_total
+          ef_total: m.factor !== null && m.factor !== undefined ? Number(m.factor) : (m.ef_total !== undefined ? Number(m.ef_total) : undefined),
+          // Map confidenceLevel -> confidence (0-1 scale)
+          confidence: m.confidenceLevel === 'high' ? 1.0 
+            : m.confidenceLevel === 'medium' ? 0.7 
+            : m.confidenceLevel === 'low' ? 0.4 
+            : (typeof m.confidence === 'number' ? m.confidence : 0.5),
+          requiresReview: Boolean(m.requiresReview),
+          reviewReason: m.reviewReason ? String(m.reviewReason) : undefined,
+        }));
+
+        console.log(`[BOQ Import] Transformed ${parsedMaterials.length} materials. Matched: ${parsedMaterials.filter(m => m.matched_epd_id).length}`);
+
         setMaterials(parsedMaterials);
         setMaterialsFound(parsedMaterials.length);
-        setMaterialsMatched(
-          parsedMaterials.filter((m) => m.matched_epd_id).length
-        );
+        setMaterialsMatched(parsedMaterials.filter((m) => m.matched_epd_id).length);
 
         setProgress(100);
         setProcessingStage("complete");
@@ -148,10 +169,11 @@ export default function BOQImport() {
 
         toast({
           title: "BOQ Processed Successfully",
-          description: `Found ${parsedMaterials.length} materials in your BOQ file`,
+          description: `Found ${parsedMaterials.length} materials (${parsedMaterials.filter(m => m.matched_epd_id).length} matched)`,
         });
       } else {
-        throw new Error("No materials found in the response");
+        console.error('[BOQ Import] Invalid response structure:', data);
+        throw new Error("No materials found in the response. Please check your file format.");
       }
     } catch (error) {
       console.error("BOQ processing error:", error);
