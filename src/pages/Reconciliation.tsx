@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import Decimal from 'decimal.js';
-import { parseExcelFirstSheet } from '@/lib/excel-parser';
+import { parseExcelFirstSheet } from '@/utils/excel-parser';
 
 export default function Reconciliation() {
   const { user } = useAuth();

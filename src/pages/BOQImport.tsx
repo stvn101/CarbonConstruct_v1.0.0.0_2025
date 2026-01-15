@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, FileSpreadsheet, Receipt, Upload, ArrowRight, Loader2 } from "lucide-react";
-import { parseExcelToText, parseExcelFirstSheet } from "@/lib/excel-parser";
+import { parseExcelToText, parseExcelFirstSheet } from "@/utils/excel-parser";
 import { validateCarbonFactors } from "@/lib/material-validation";
 import { useReconciliation } from "@/hooks/useReconciliation";
 import { useAuth } from "@/contexts/AuthContext";
