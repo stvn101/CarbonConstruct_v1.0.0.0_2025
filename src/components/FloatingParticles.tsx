@@ -1,5 +1,4 @@
-import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 
 interface Particle {
   id: number;
@@ -31,6 +30,7 @@ const generateParticles = (count: number): Particle[] => {
 const generateXOffset = () => Math.random() * 20 - 10;
 
 export function FloatingParticles({ count = 20, className = "" }: FloatingParticlesProps) {
+  const [isReady, setIsReady] = useState(false);
   const particles = useMemo<Particle[]>(() => generateParticles(count), [count]);
 
   // Pre-compute random x offsets for animation
@@ -38,56 +38,82 @@ export function FloatingParticles({ count = 20, className = "" }: FloatingPartic
     return particles.map(() => generateXOffset());
   }, [particles]);
 
+  // Defer particle rendering to avoid forced reflow during initial page load
+  useEffect(() => {
+    // Use requestIdleCallback if available, otherwise setTimeout
+    const scheduleReady = window.requestIdleCallback || ((cb: () => void) => setTimeout(cb, 100));
+    const handle = scheduleReady(() => {
+      setIsReady(true);
+    });
+    
+    return () => {
+      if (window.cancelIdleCallback) {
+        window.cancelIdleCallback(handle as number);
+      } else {
+        clearTimeout(handle as number);
+      }
+    };
+  }, []);
+
+  if (!isReady) {
+    return <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`} />;
+  }
+
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
+      {/* Use CSS animations instead of framer-motion to avoid JS layout queries */}
+      <style>{`
+        @keyframes float-particle {
+          0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.2; }
+          50% { transform: translateY(-30px) translateX(var(--x-offset, 0)) scale(1.2); opacity: 0.6; }
+        }
+        @keyframes float-orb {
+          0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+          50% { transform: translateY(-50px) translateX(var(--x-offset, 0)) scale(1.3); }
+        }
+        .floating-particle {
+          animation: float-particle var(--duration) ease-in-out infinite;
+          animation-delay: var(--delay);
+          will-change: transform, opacity;
+        }
+        .floating-orb {
+          animation: float-orb var(--duration) ease-in-out infinite;
+          animation-delay: var(--delay);
+          will-change: transform;
+        }
+      `}</style>
+      
       {particles.map((particle, index) => (
-        <motion.div
+        <div
           key={particle.id}
-          className="absolute rounded-full bg-primary/20"
+          className="absolute rounded-full bg-primary/20 floating-particle"
           style={{
             left: `${particle.x}%`,
             top: `${particle.y}%`,
             width: particle.size,
             height: particle.size,
-          }}
-          animate={{
-            y: [0, -30, 0],
-            x: [0, xOffsets[index], 0],
-            opacity: [0.2, 0.6, 0.2],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: particle.duration,
-            delay: particle.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+            '--duration': `${particle.duration}s`,
+            '--delay': `${particle.delay}s`,
+            '--x-offset': `${xOffsets[index]}px`,
+          } as React.CSSProperties}
         />
       ))}
       
       {/* Larger glowing orbs */}
       {[...Array(5)].map((_, i) => (
-        <motion.div
+        <div
           key={`orb-${i}`}
-          className="absolute rounded-full"
+          className="absolute rounded-full floating-orb"
           style={{
             left: `${20 + i * 15}%`,
             top: `${30 + (i % 3) * 20}%`,
             width: 60 + i * 10,
             height: 60 + i * 10,
             background: `radial-gradient(circle, hsla(var(--primary) / 0.15) 0%, transparent 70%)`,
-          }}
-          animate={{
-            y: [0, -50, 0],
-            x: [0, 30 - i * 10, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{
-            duration: 25 + i * 5,
-            delay: i * 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+            '--duration': `${25 + i * 5}s`,
+            '--delay': `${i * 2}s`,
+            '--x-offset': `${30 - i * 10}px`,
+          } as React.CSSProperties}
         />
       ))}
     </div>

@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useMotionValue, useSpring } from "framer-motion";
 
 interface AnimatedCounterProps {
   value: number;
@@ -19,7 +19,8 @@ export function AnimatedCounter({
   className = "",
 }: AnimatedCounterProps) {
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [isInView, setIsInView] = useState(false);
+  const hasAnimated = useRef(false);
   
   const motionValue = useMotionValue(0);
   const springValue = useSpring(motionValue, {
@@ -28,32 +29,65 @@ export function AnimatedCounter({
     duration: duration * 1000,
   });
 
+  // Use native IntersectionObserver to avoid forced reflow from framer-motion's useInView
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || hasAnimated.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          // Defer animation start to next frame to avoid forced reflow
+          requestAnimationFrame(() => {
+            setIsInView(true);
+          });
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "-100px", threshold: 0.1 }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     if (isInView) {
       motionValue.set(value);
     }
   }, [isInView, value, motionValue]);
 
+  // Batch DOM writes using requestAnimationFrame
+  const updateTextContent = useCallback((text: string) => {
+    if (ref.current) {
+      ref.current.textContent = text;
+    }
+  }, []);
+
   useEffect(() => {
     const unsubscribe = springValue.on("change", (latest) => {
-      if (ref.current) {
-        ref.current.textContent = `${prefix}${latest.toFixed(decimals)}${suffix}`;
-      }
+      // Use RAF to batch DOM writes and avoid forced reflow
+      requestAnimationFrame(() => {
+        updateTextContent(`${prefix}${latest.toFixed(decimals)}${suffix}`);
+      });
     });
 
     return unsubscribe;
-  }, [springValue, decimals, prefix, suffix]);
+  }, [springValue, decimals, prefix, suffix, updateTextContent]);
 
   return (
-    <motion.span
+    <span
       ref={ref}
-      className={className}
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5 }}
+      className={`${className} will-change-transform`}
+      style={{
+        opacity: isInView ? 1 : 0,
+        transform: isInView ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'opacity 0.5s ease-out, transform 0.5s ease-out',
+      }}
     >
       {prefix}0{suffix}
-    </motion.span>
+    </span>
   );
 }
 
@@ -82,41 +116,61 @@ export function AnimatedStatCard({
   trend,
 }: StatCardProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const [isInView, setIsInView] = useState(false);
+  const hasAnimated = useRef(false);
+
+  // Use native IntersectionObserver to avoid forced reflow
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || hasAnimated.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          // Defer to next frame to avoid forced reflow
+          requestAnimationFrame(() => {
+            setIsInView(true);
+          });
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "-50px", threshold: 0.1 }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      className={`glass p-4 md:p-6 rounded-xl ${className}`}
-      initial={{ opacity: 0, y: 30, scale: 0.95 }}
-      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+      className={`glass p-4 md:p-6 rounded-xl will-change-transform transition-all duration-500 ease-out hover:scale-[1.02] ${className}`}
+      style={{
+        opacity: isInView ? 1 : 0,
+        transform: isInView ? 'translateY(0) scale(1)' : 'translateY(30px) scale(0.95)',
+      }}
     >
       <div className="flex items-start justify-between mb-2">
         {icon && (
-          <motion.div
-            className="p-2 rounded-lg bg-primary/10"
-            initial={{ rotate: -10, scale: 0 }}
-            animate={isInView ? { rotate: 0, scale: 1 } : {}}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+          <div
+            className={`p-2 rounded-lg bg-primary/10 transition-transform duration-500 ease-out ${isInView ? 'scale-100 rotate-0' : 'scale-75 -rotate-[10deg]'}`}
+            style={{ transitionDelay: '200ms' }}
           >
             {icon}
-          </motion.div>
+          </div>
         )}
         {trend && (
-          <motion.span
-            className={`text-xs font-medium px-2 py-1 rounded-full ${
+          <span
+            className={`text-xs font-medium px-2 py-1 rounded-full transition-all duration-300 ${
               trend.isPositive 
                 ? "bg-emerald-500/10 text-emerald-600" 
                 : "bg-red-500/10 text-red-600"
-            }`}
-            initial={{ opacity: 0, x: 10 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ delay: 0.3 }}
+            } ${isInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2.5'}`}
+            style={{ transitionDelay: '300ms' }}
           >
             {trend.isPositive ? "+" : ""}{trend.value}%
-          </motion.span>
+          </span>
         )}
       </div>
       <div className="space-y-1">
@@ -127,15 +181,13 @@ export function AnimatedStatCard({
           decimals={decimals}
           className="text-2xl md:text-3xl font-bold text-foreground"
         />
-        <motion.p
-          className="text-sm text-muted-foreground"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.4 }}
+        <p
+          className={`text-sm text-muted-foreground transition-opacity duration-300 ${isInView ? 'opacity-100' : 'opacity-0'}`}
+          style={{ transitionDelay: '400ms' }}
         >
           {label}
-        </motion.p>
+        </p>
       </div>
-    </motion.div>
+    </div>
   );
 }
