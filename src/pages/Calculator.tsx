@@ -1,5 +1,5 @@
 import * as React from "react";
-import * as XLSX from 'xlsx';
+import { parseExcelToText } from "@/lib/excel-parser";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -1187,24 +1187,13 @@ export default function Calculator() {
           duration: 2000
         });
       } else if (file.name.toLowerCase().match(/\.xlsx?$/)) {
-        // Parse Excel file using xlsx library
+        // Parse Excel file using ExcelJS library
         const arrayBuffer = await file.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        
-        // Extract text from all sheets
-        const textParts: string[] = [];
-        for (const sheetName of workbook.SheetNames) {
-          const sheet = workbook.Sheets[sheetName];
-          const csv = XLSX.utils.sheet_to_csv(sheet);
-          if (csv.trim()) {
-            textParts.push(`Sheet: ${sheetName}\n${csv}`);
-          }
-        }
-        text = textParts.join('\n\n');
+        text = await parseExcelToText(arrayBuffer);
         
         toast({ 
           title: "📊 Excel file parsed", 
-          description: `Extracted ${text.length.toLocaleString()} characters from ${workbook.SheetNames.length} sheet(s)`,
+          description: `Extracted ${text.length.toLocaleString()} characters`,
           duration: 2000
         });
       } else {
@@ -1224,78 +1213,56 @@ export default function Calculator() {
         return;
       }
 
-      // Validate carbon factors before processing (same validation as /boq-import route)
+      // Validate CSV/text files for negative or all-empty carbon factors
+      // Uses shared validation module for consistency with BOQImport route
       const validationResult = validateCarbonFactors(text);
       if (!validationResult.valid) {
+        console.error('[Calculator] BOQ validation failed:', validationResult.error);
         toast({ 
-          title: "❌ Invalid BOQ Data", 
+          title: "Validation Error", 
           description: validationResult.error,
           variant: "destructive",
-          duration: 10000
+          duration: 7000
         });
         setAiProcessing(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
         return;
       }
 
-      // Split text into chunks if necessary (max 12,000 chars per chunk)
-      const CHUNK_SIZE = 12000;
+      // Split text into chunks if too long for AI
+      // Using smaller chunk size for Gemini token limits
+      const MAX_CHUNK_SIZE = 15000;
       const chunks: string[] = [];
-      
-      if (text.length <= CHUNK_SIZE) {
-        chunks.push(text);
-      } else {
-        // Split at paragraph or line breaks to preserve context
-        let remaining = text;
-        while (remaining.length > 0) {
-          if (remaining.length <= CHUNK_SIZE) {
-            chunks.push(remaining);
-            break;
-          }
-          
-          // Find a good break point (paragraph, then line, then space)
-          let breakPoint = CHUNK_SIZE;
-          const searchArea = remaining.slice(CHUNK_SIZE - 500, CHUNK_SIZE);
-          
-          const paragraphBreak = searchArea.lastIndexOf('\n\n');
-          if (paragraphBreak > 0) {
-            breakPoint = CHUNK_SIZE - 500 + paragraphBreak + 2;
+      if (text.length > MAX_CHUNK_SIZE) {
+        // Split by lines to avoid breaking mid-line
+        const lines = text.split('\n');
+        let currentChunk = '';
+        for (const line of lines) {
+          if ((currentChunk + '\n' + line).length > MAX_CHUNK_SIZE) {
+            if (currentChunk) chunks.push(currentChunk);
+            currentChunk = line;
           } else {
-            const lineBreak = searchArea.lastIndexOf('\n');
-            if (lineBreak > 0) {
-              breakPoint = CHUNK_SIZE - 500 + lineBreak + 1;
-            }
+            currentChunk = currentChunk ? currentChunk + '\n' + line : line;
           }
-          
-          chunks.push(remaining.slice(0, breakPoint));
-          remaining = remaining.slice(breakPoint);
         }
+        if (currentChunk) chunks.push(currentChunk);
+      } else {
+        chunks.push(text);
       }
 
-      // Show progress for multi-chunk processing
-      const totalChunks = chunks.length;
-      if (totalChunks > 1) {
-        toast({ 
-          title: "🔄 Processing large document", 
-          description: `Splitting into ${totalChunks} sections for analysis...`,
-          duration: 3000
-        });
-      }
+      toast({ 
+        title: "🔍 Processing with AI", 
+        description: `Analyzing ${chunks.length} section(s)...`,
+        duration: 3000
+      });
 
-      // Process each chunk sequentially
+      // Process each chunk
       const allMaterials: any[] = [];
+      const totalChunks = chunks.length;
       
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         
-        if (totalChunks > 1) {
-          toast({ 
-            title: `Processing section ${i + 1}/${totalChunks}`, 
-            description: `Analyzing ${chunk.length.toLocaleString()} characters...`,
-            duration: 2000
-          });
-        }
-
         const { data, error } = await supabase.functions.invoke('parse-boq', {
           body: { text: chunk }
         });
