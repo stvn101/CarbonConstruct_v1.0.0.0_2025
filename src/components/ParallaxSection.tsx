@@ -1,5 +1,4 @@
-import { useRef, ReactNode } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef, ReactNode, useEffect, useState, useCallback } from "react";
 
 interface ParallaxSectionProps {
   children: ReactNode;
@@ -15,21 +14,80 @@ export function ParallaxSection({
   direction = "up" 
 }: ParallaxSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
-  
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  });
+  const [transform, setTransform] = useState({ y: 0, opacity: 1 });
+  const rafId = useRef<number>(0);
+  const lastScrollY = useRef<number>(0);
 
-  const yRange = direction === "up" ? [100 * speed, -100 * speed] : [-100 * speed, 100 * speed];
-  const y = useTransform(scrollYProgress, [0, 1], yRange);
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.6, 1, 1, 0.6]);
+  // Throttled scroll handler using RAF to avoid forced reflow
+  const handleScroll = useCallback(() => {
+    if (rafId.current) return;
+    
+    rafId.current = requestAnimationFrame(() => {
+      const element = ref.current;
+      if (!element) {
+        rafId.current = 0;
+        return;
+      }
+
+      // Cache scroll position to minimize layout reads
+      const currentScrollY = window.scrollY;
+      if (currentScrollY === lastScrollY.current) {
+        rafId.current = 0;
+        return;
+      }
+      lastScrollY.current = currentScrollY;
+
+      const rect = element.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      
+      // Calculate progress (0 to 1) based on element position
+      const start = rect.top + currentScrollY - windowHeight;
+      const end = rect.bottom + currentScrollY;
+      const progress = Math.max(0, Math.min(1, (currentScrollY - start) / (end - start)));
+      
+      // Calculate y transform
+      const yRange = direction === "up" 
+        ? [100 * speed, -100 * speed] 
+        : [-100 * speed, 100 * speed];
+      const y = yRange[0] + (yRange[1] - yRange[0]) * progress;
+      
+      // Calculate opacity
+      let opacity = 1;
+      if (progress < 0.2) {
+        opacity = 0.6 + (progress / 0.2) * 0.4;
+      } else if (progress > 0.8) {
+        opacity = 1 - ((progress - 0.8) / 0.2) * 0.4;
+      }
+
+      setTransform({ y, opacity });
+      rafId.current = 0;
+    });
+  }, [speed, direction]);
+
+  useEffect(() => {
+    // Initial calculation
+    handleScroll();
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+      }
+    };
+  }, [handleScroll]);
 
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>
-      <motion.div style={{ y, opacity }}>
+      <div 
+        className="will-change-transform"
+        style={{ 
+          transform: `translateY(${transform.y}px)`,
+          opacity: transform.opacity,
+        }}
+      >
         {children}
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -48,25 +106,63 @@ export function ParallaxBackground({
   contentSpeed = 0.1
 }: ParallaxBackgroundProps) {
   const ref = useRef<HTMLDivElement>(null);
-  
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
+  const [transforms, setTransforms] = useState({ 
+    backgroundY: 0, 
+    contentY: 0, 
+    scale: 1 
   });
+  const rafId = useRef<number>(0);
 
-  const backgroundY = useTransform(scrollYProgress, [0, 1], [50 * backgroundSpeed, -50 * backgroundSpeed]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [30 * contentSpeed, -30 * contentSpeed]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.95, 1, 0.95]);
+  const handleScroll = useCallback(() => {
+    if (rafId.current) return;
+    
+    rafId.current = requestAnimationFrame(() => {
+      const element = ref.current;
+      if (!element) {
+        rafId.current = 0;
+        return;
+      }
+
+      const rect = element.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const scrollY = window.scrollY;
+      
+      const start = rect.top + scrollY - windowHeight;
+      const end = rect.bottom + scrollY;
+      const progress = Math.max(0, Math.min(1, (scrollY - start) / (end - start)));
+      
+      const backgroundY = (50 * backgroundSpeed) + ((-100 * backgroundSpeed) * progress);
+      const contentY = (30 * contentSpeed) + ((-60 * contentSpeed) * progress);
+      const scale = 0.95 + (0.05 * (progress < 0.5 ? progress * 2 : 2 - progress * 2));
+
+      setTransforms({ backgroundY, contentY, scale });
+      rafId.current = 0;
+    });
+  }, [backgroundSpeed, contentSpeed]);
+
+  useEffect(() => {
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
+  }, [handleScroll]);
 
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>
-      <motion.div 
-        className="absolute inset-0 -z-10"
-        style={{ y: backgroundY }}
+      <div 
+        className="absolute inset-0 -z-10 will-change-transform"
+        style={{ transform: `translateY(${transforms.backgroundY}px)` }}
       />
-      <motion.div style={{ y: contentY, scale }}>
+      <div 
+        className="will-change-transform"
+        style={{ 
+          transform: `translateY(${transforms.contentY}px) scale(${transforms.scale})` 
+        }}
+      >
         {children}
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -80,22 +176,51 @@ interface ParallaxImageProps {
 
 export function ParallaxImage({ src, alt, className = "", speed = 0.3 }: ParallaxImageProps) {
   const ref = useRef<HTMLDivElement>(null);
-  
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  });
+  const [transforms, setTransforms] = useState({ y: 0, scale: 1.1 });
+  const rafId = useRef<number>(0);
 
-  const y = useTransform(scrollYProgress, [0, 1], [-50 * speed, 50 * speed]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1.1, 1, 1.1]);
+  const handleScroll = useCallback(() => {
+    if (rafId.current) return;
+    
+    rafId.current = requestAnimationFrame(() => {
+      const element = ref.current;
+      if (!element) {
+        rafId.current = 0;
+        return;
+      }
+
+      const rect = element.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const scrollY = window.scrollY;
+      
+      const start = rect.top + scrollY - windowHeight;
+      const end = rect.bottom + scrollY;
+      const progress = Math.max(0, Math.min(1, (scrollY - start) / (end - start)));
+      
+      const y = (-50 * speed) + (100 * speed * progress);
+      const scale = 1.1 - (0.1 * (progress < 0.5 ? progress * 2 : 2 - progress * 2));
+
+      setTransforms({ y, scale });
+      rafId.current = 0;
+    });
+  }, [speed]);
+
+  useEffect(() => {
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
+  }, [handleScroll]);
 
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>
-      <motion.img
+      <img
         src={src}
         alt={alt}
-        className="w-full h-full object-cover"
-        style={{ y, scale }}
+        className="w-full h-full object-cover will-change-transform"
+        style={{ transform: `translateY(${transforms.y}px) scale(${transforms.scale})` }}
       />
     </div>
   );
