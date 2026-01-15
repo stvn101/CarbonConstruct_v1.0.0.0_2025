@@ -171,7 +171,7 @@ export default function LandingEnterprise() {
             {/* Trust Statement */}
             <p className="mt-8 text-sm text-muted-foreground">
               <Lock className="inline h-4 w-4 mr-1" />
-              All data stored in Sydney, Australia (ap-southeast-2). ABN 67 652 069 139.
+              All data stored in Sydney, Australia (ap-southeast-2). ABN 57 679 602 498.
             </p>
           </div>
         </div>
@@ -335,7 +335,7 @@ export default function LandingEnterprise() {
                     <span className="text-5xl">🇦🇺</span>
                   </div>
                   <p className="text-lg font-semibold">Australian Owned & Operated</p>
-                  <p className="text-sm text-muted-foreground">ABN 67 652 069 139</p>
+                  <p className="text-sm text-muted-foreground">ABN 57 679 602 498</p>
                 </div>
               </div>
             </CardContent>
