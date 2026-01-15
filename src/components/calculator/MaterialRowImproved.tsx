@@ -1,10 +1,11 @@
 import { useState, memo, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Leaf, ChevronRight, Info, ExternalLink, FileText, Sparkles } from "lucide-react";
+import { Trash2, Leaf, ChevronRight, Info, ExternalLink, FileText, Sparkles, AlertTriangle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { validateQuantity, getWarningIconClass } from "@/utils/quantity-validation";
 
 interface Material {
   id: string;
@@ -75,6 +76,12 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
   const hasSequestration = material.sequestration && material.sequestration > 0;
   const hasLifecycleData = material.ef_a1a3 && material.ef_a1a3 > 0;
   const hasEpdData = material.epdNumber || material.manufacturer;
+  
+  // Quantity validation warning
+  const quantityWarning = useMemo(() => 
+    validateQuantity(material.quantity, material.unit, material.category),
+    [material.quantity, material.unit, material.category]
+  );
 
   const { grossEmissions, sequestration, netEmissions, a1a3Emissions, a4Emissions, a5Emissions, a1a3Percent, a4Percent, a5Percent } = emissions;
 
@@ -149,7 +156,13 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
               type="number" 
               min="0"
               step="any"
-              className="h-9 md:h-10 pr-12 text-foreground font-medium text-sm"
+              className={`h-9 md:h-10 pr-12 text-foreground font-medium text-sm ${
+                quantityWarning?.level === 'critical' 
+                  ? 'border-destructive focus-visible:ring-destructive' 
+                  : quantityWarning?.level === 'warning'
+                    ? 'border-amber-500 focus-visible:ring-amber-500'
+                    : ''
+              }`}
               placeholder="0"
               value={material.quantity || ''} 
               onChange={(e) => onChange({ ...material, quantity: parseFloat(e.target.value) || 0 })}
@@ -167,6 +180,23 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
               </span>
             )}
           </div>
+          {/* Quantity Warning */}
+          {quantityWarning && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={`flex items-center gap-1 mt-1 text-xs ${getWarningIconClass(quantityWarning.level)}`}>
+                  <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">{quantityWarning.level === 'critical' ? 'Very high' : 'High'} qty</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p className="font-medium">{quantityWarning.message}</p>
+                {quantityWarning.suggestion && (
+                  <p className="text-xs mt-1 opacity-80">{quantityWarning.suggestion}</p>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
 
         {/* Factor */}
