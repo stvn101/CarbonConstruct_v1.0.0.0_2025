@@ -507,10 +507,29 @@ ${materialSchema}`;
     });
 
     const matchedCount = validatedMaterials.filter((m: Record<string, unknown>) => !m.isCustom).length;
-    console.log(`[parse-boq] Successfully parsed ${validatedMaterials.length} materials (${matchedCount} matched to database)`);
+    const reviewCount = validatedMaterials.filter((m: Record<string, unknown>) => m.requiresReview).length;
+    
+    // Enhanced logging for debugging
+    console.log(`[parse-boq] ========== PARSE COMPLETE ==========`);
+    console.log(`[parse-boq] Total materials parsed: ${validatedMaterials.length}`);
+    console.log(`[parse-boq] Matched to database: ${matchedCount}`);
+    console.log(`[parse-boq] Custom/unmatched: ${validatedMaterials.length - matchedCount}`);
+    console.log(`[parse-boq] Requires review: ${reviewCount}`);
+    console.log(`[parse-boq] Database had: ${allDbMaterials.length} total, ${dbMaterials.length} Australian materials`);
+    console.log(`[parse-boq] =====================================`);
 
     return new Response(
-      JSON.stringify({ materials: validatedMaterials }), 
+      JSON.stringify({ 
+        materials: validatedMaterials,
+        stats: {
+          total: validatedMaterials.length,
+          matched: matchedCount,
+          unmatched: validatedMaterials.length - matchedCount,
+          requiresReview: reviewCount,
+          dbMaterialsTotal: allDbMaterials.length,
+          dbMaterialsAustralian: dbMaterials.length
+        }
+      }), 
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
