@@ -363,7 +363,7 @@ export default function EcoGlassDashboard() {
 
       {/* Footer */}
       <footer className="mt-8 text-center text-xs text-muted-foreground">
-        <p>CarbonConstruct © 2024 | ABN 12 345 678 901 | Built for Australian Construction</p>
+        <p>CarbonConstruct © 2026 | ABN 67 652 069 139 | Built for Australian Construction</p>
       </footer>
     </div>
   );

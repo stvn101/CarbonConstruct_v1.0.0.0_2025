@@ -20,7 +20,7 @@ export default function CookiePolicy() {
         <CardHeader>
           <CardTitle>How We Use Cookies</CardTitle>
         <CardDescription>
-          This Cookie Policy explains how CarbonConstruct Tech ("we", "us", or "our"), a company of United Facade Pty Ltd (ABN 57 679 602 498), uses cookies and similar tracking technologies when you visit our website and use our Service.
+          This Cookie Policy explains how CarbonConstruct Tech ("we", "us", or "our"), a company of United Facade Pty Ltd (ABN 67 652 069 139), uses cookies and similar tracking technologies when you visit our website and use our Service.
         </CardDescription>
         </CardHeader>
         <CardContent>
@@ -383,7 +383,7 @@ export default function CookiePolicy() {
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg space-y-2">
                   <p className="text-sm"><strong>Company:</strong> CarbonConstruct Tech (a company of United Facade Pty Ltd)</p>
-                  <p className="text-sm"><strong>ABN:</strong> 57 679 602 498</p>
+                  <p className="text-sm"><strong>ABN:</strong> 67 652 069 139</p>
                   <p className="text-sm"><strong>Email:</strong> privacy@carbonconstruct.com.au</p>
                   <p className="text-sm"><strong>Phone:</strong> 0459 148 862</p>
                   <p className="text-sm"><strong>Mail:</strong> CarbonConstruct Tech Privacy Officer, Lawnton, Queensland, Australia</p>

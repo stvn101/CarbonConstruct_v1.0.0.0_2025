@@ -48,7 +48,7 @@ export default function About() {
                   <strong>Legal Entity:</strong> CarbonConstruct Tech is a company of <strong>United Facade Pty Ltd</strong>
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  <strong>ABN:</strong> 57 679 602 498
+                  <strong>ABN:</strong> 67 652 069 139
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   <strong>Location:</strong> Queensland, Australia
@@ -266,7 +266,7 @@ export default function About() {
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p><strong>Trading Name:</strong> CarbonConstruct Tech</p>
                   <p><strong>Parent Company:</strong> United Facade Pty Ltd</p>
-                  <p><strong>ABN:</strong> 57 679 602 498</p>
+                  <p><strong>ABN:</strong> 67 652 069 139</p>
                   <p><strong>Jurisdiction:</strong> Queensland, Australia</p>
                 </div>
               </div>
