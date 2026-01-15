@@ -159,12 +159,20 @@ export const BOQMaterialReview = memo(({
     }
   }, []);
 
-  const stats = useMemo(() => ({
-    total: materials.length,
-    selected: selectedIndices.size,
-    matched: matchedMaterials.length,
-    unmatched: unmatchedMaterials.length,
-  }), [materials.length, selectedIndices.size, matchedMaterials.length, unmatchedMaterials.length]);
+  const stats = useMemo(() => {
+    // Count materials with quantity warnings
+    const quantityWarnings = materials.filter(m => 
+      validateQuantity(m.quantity, m.unit, m.category) !== null
+    ).length;
+    
+    return {
+      total: materials.length,
+      selected: selectedIndices.size,
+      matched: matchedMaterials.length,
+      unmatched: unmatchedMaterials.length,
+      quantityWarnings,
+    };
+  }, [materials, selectedIndices.size, matchedMaterials.length, unmatchedMaterials.length]);
 
   const allCurrentSelected = useMemo(() => {
     const currentIndices = currentMaterials.map(m => m.originalIndex);
@@ -191,7 +199,7 @@ export const BOQMaterialReview = memo(({
 
         <CardContent className="space-y-4">
           {/* Statistics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <StatCard
               label="Total Materials"
               value={stats.total}
@@ -216,6 +224,14 @@ export const BOQMaterialReview = memo(({
               icon={<AlertTriangle className="h-4 w-4 text-yellow-600" />}
               className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950"
             />
+            {stats.quantityWarnings > 0 && (
+              <StatCard
+                label="Qty Warnings"
+                value={stats.quantityWarnings}
+                icon={<AlertTriangle className="h-4 w-4 text-amber-500" />}
+                className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950"
+              />
+            )}
           </div>
 
           {/* Tabs for filtering by match status */}
