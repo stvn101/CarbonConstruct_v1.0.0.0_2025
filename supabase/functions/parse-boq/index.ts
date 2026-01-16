@@ -3,26 +3,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
 import { logSecurityEvent, getClientIP } from "../_shared/security-logger.ts";
 import { validateCarbonFactorsServer } from "../_shared/boq-validation.ts";
-
+import { 
+  isAustralianMaterial, 
+  normalizeFactorToKg,
+  isWeightBasedUnit,
+  type DBMaterial 
+} from "../_shared/material-matching.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Define DBMaterial interface for type safety
-interface DBMaterial {
-  id: string;
-  material_name: string;
-  material_category: string;
-  subcategory: string | null;
-  unit: string;
-  ef_total: number;
-  data_source: string;
-  epd_number: string | null;
-  manufacturer: string | null;
-  state: string | null;
-  region: string | null;
-}
+// DBMaterial interface imported from _shared/material-matching.ts
 
 /**
  * Source Priority Hierarchy
@@ -329,19 +321,7 @@ serve(async (req) => {
       // Continue with fallback - don't fail entirely
     }
 
-    // AUSTRALIAN STATES for filtering
-    const AUSTRALIAN_STATES = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
-    
-    // Helper: check if material is Australian (moved here for early filtering)
-    const isAustralianMaterial = (mat: DBMaterial): boolean => {
-      if (mat.state && AUSTRALIAN_STATES.includes(mat.state.toUpperCase())) return true;
-      if (mat.region && mat.region.toLowerCase().includes('australia')) return true;
-      // Default to true if no region info (assume Australian for local DB)
-      if (!mat.state && !mat.region) return true;
-      return false;
-    };
-
-    // Filter to Australian materials only for matching
+    // Filter to Australian materials using shared module (includes ICE + EPiC global sources)
     const dbMaterials: DBMaterial[] = (allDbMaterials || []).filter(m => isAustralianMaterial(m as DBMaterial)) as DBMaterial[];
     
     // Log source distribution for debugging
