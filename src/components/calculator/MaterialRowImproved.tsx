@@ -1,7 +1,7 @@
 import { useState, memo, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Leaf, ChevronRight, Info, ExternalLink, FileText, Sparkles, AlertTriangle } from "lucide-react";
+import { Trash2, Leaf, ChevronRight, Info, ExternalLink, FileText, Sparkles, AlertTriangle, TrendingUp } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -34,6 +34,9 @@ interface Material {
   ef_b1b5?: number;
   ef_c1c4?: number;
   ef_d?: number;
+  // Outlier detection
+  isOutlier?: boolean;
+  outlierReason?: string;
 }
 
 interface MaterialRowImprovedProps {
@@ -76,6 +79,7 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
   const hasSequestration = material.sequestration && material.sequestration > 0;
   const hasLifecycleData = material.ef_a1a3 && material.ef_a1a3 > 0;
   const hasEpdData = material.epdNumber || material.manufacturer;
+  const hasOutlierWarning = material.isOutlier && material.outlierReason;
   
   // Quantity validation warning
   const quantityWarning = useMemo(() => 
@@ -89,10 +93,38 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
     <div className={`rounded-lg border p-3 md:p-4 mb-3 transition-all ${
       material.isCustom 
         ? 'bg-purple-50/50 border-purple-200 dark:bg-purple-950/20 dark:border-purple-800' 
-        : hasSequestration 
-          ? 'bg-emerald-50/30 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800'
-          : 'bg-card hover:shadow-sm'
+        : hasOutlierWarning
+          ? 'bg-amber-50/50 border-amber-300 dark:bg-amber-950/20 dark:border-amber-700'
+          : hasSequestration 
+            ? 'bg-emerald-50/30 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800'
+            : 'bg-card hover:shadow-sm'
     }`}>
+      {/* Outlier Warning Banner */}
+      {hasOutlierWarning && (
+        <div className="flex items-start gap-2 p-2 mb-3 bg-amber-100 dark:bg-amber-900/40 rounded-md border border-amber-200 dark:border-amber-700">
+          <TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-amber-800 dark:text-amber-300">
+              High Emission Factor Detected
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+              {material.outlierReason}
+            </p>
+          </div>
+          {onFindAlternatives && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onFindAlternatives(material)}
+              className="text-xs h-7 border-amber-300 text-amber-700 hover:bg-amber-200 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-800 flex-shrink-0"
+            >
+              <Sparkles className="h-3 w-3 mr-1" />
+              Alternatives
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Header: Material name and source */}
       <div className="flex items-start justify-between mb-2 gap-2">
         <div className="flex-1 min-w-0">
@@ -117,6 +149,20 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-sm">This timber material stores {material.sequestration?.toFixed(1)} kgCO₂/{material.unit}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                {hasOutlierWarning && (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 text-xs rounded-full whitespace-nowrap">
+                        <AlertTriangle className="h-3 w-3" />
+                        High Factor
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-sm font-medium">Outlier Emission Factor</p>
+                      <p className="text-xs mt-1">{material.outlierReason}</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -214,8 +260,15 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
               />
             </div>
           ) : (
-            <div className="h-9 md:h-10 flex items-center px-2 md:px-3 bg-muted/50 rounded-md border text-xs md:text-sm font-mono text-muted-foreground">
+            <div className={`h-9 md:h-10 flex items-center px-2 md:px-3 rounded-md border text-xs md:text-sm font-mono ${
+              hasOutlierWarning
+                ? 'bg-amber-100/50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
+                : 'bg-muted/50 text-muted-foreground'
+            }`}>
               × {material.factor.toFixed(1)}
+              {hasOutlierWarning && (
+                <AlertTriangle className="h-3 w-3 ml-1 text-amber-600 dark:text-amber-400" />
+              )}
             </div>
           )}
         </div>
@@ -240,9 +293,11 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
           <div className={`h-9 md:h-10 flex items-center justify-center px-2 rounded-md font-bold text-sm md:text-base ${
             netEmissions <= 0 
               ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400' 
-              : grossEmissions > 0 
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400' 
-                : 'bg-muted text-muted-foreground'
+              : hasOutlierWarning
+                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400'
+                : grossEmissions > 0 
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400' 
+                  : 'bg-muted text-muted-foreground'
           }`}>
             {netEmissions <= 0 && hasSequestration && '🌱 '}
             {netEmissions.toFixed(3)} t
@@ -290,7 +345,7 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
       {!material.isCustom && (
         <div className="mt-3 flex items-center justify-between gap-2">
           {/* Find Alternatives Button */}
-          {onFindAlternatives && (
+          {onFindAlternatives && !hasOutlierWarning && (
             <Button
               variant="outline"
               size="sm"
@@ -322,6 +377,19 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
                   <p className="font-medium text-foreground">{material.name}</p>
                   <p className="text-xs text-muted-foreground mt-1">{material.category}</p>
                 </div>
+
+                {/* Outlier warning in dialog */}
+                {hasOutlierWarning && (
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-medium">
+                      <AlertTriangle className="h-4 w-4" />
+                      High Emission Factor
+                    </div>
+                    <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+                      {material.outlierReason}
+                    </p>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
@@ -393,7 +461,8 @@ export const MaterialRowImproved = memo(({ material, onChange, onRemove, onFindA
                   <p className="font-medium mb-1">Methodology Note</p>
                   <p>
                     Emissions calculated using EN 15804 methodology. Global Warming Potential (GWP) 
-                    values represent CO₂ equivalent based on IPCC characterisation factors.
+                    factors represent cradle-to-gate (A1-A3) plus transport (A4) and installation (A5) 
+                    where available.
                   </p>
                 </div>
               </div>

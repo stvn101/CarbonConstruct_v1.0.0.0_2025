@@ -24,6 +24,123 @@ interface DBMaterial {
   region: string | null;
 }
 
+/**
+ * Source Priority Hierarchy
+ * Lower number = higher priority (more reliable for building LCA)
+ * 
+ * Rationale:
+ * - EPiC: Australian academic lifecycle data, product-specific
+ * - ICE: Global standard with granular kg-based factors
+ * - ICM: Australian LCI with good coverage
+ * - NABERS: Building-specific, Australian context
+ * - Australian Standard: Generic but reliable
+ * - NGER: National reporting factors - worst-case supply chain assumptions
+ *         (e.g., assumes Chinese aluminium smelting with coal grid ~32,000 kgCO2e/t
+ *          vs ICE global average ~10,700 kgCO2e/t)
+ */
+const SOURCE_PRIORITY: Record<string, number> = {
+  'EPiC Database 2024': 1,
+  'ICE V4.1 - Circular Ecology': 2,
+  'ICM Database 2019 (AusLCI)': 3,
+  'NABERS 2025 Emission Factors': 4,
+  'Australian Standard Materials Database v2025': 5,
+  'NGER Materials Database v2025.1': 6,
+};
+
+/**
+ * Get priority for a data source (lower = better)
+ */
+function getSourcePriority(source: string): number {
+  if (SOURCE_PRIORITY[source] !== undefined) {
+    return SOURCE_PRIORITY[source];
+  }
+  const sourceLower = source.toLowerCase();
+  if (sourceLower.includes('epic')) return 1;
+  if (sourceLower.includes('ice')) return 2;
+  if (sourceLower.includes('icm') || sourceLower.includes('auslci')) return 3;
+  if (sourceLower.includes('nabers')) return 4;
+  if (sourceLower.includes('nger')) return 6;
+  return 5;
+}
+
+/**
+ * Get best match using source priority hierarchy
+ * 1. Group by source priority tier
+ * 2. Select from highest-priority (lowest number) tier
+ * 3. Take median within that tier
+ */
+function getBestMatchBySourcePriority(matches: DBMaterial[]): DBMaterial | undefined {
+  if (!matches || matches.length === 0) return undefined;
+
+  // Group by source priority
+  const byPriority = new Map<number, DBMaterial[]>();
+  for (const m of matches) {
+    const priority = getSourcePriority(m.data_source);
+    if (!byPriority.has(priority)) byPriority.set(priority, []);
+    byPriority.get(priority)!.push(m);
+  }
+
+  // Get the highest priority tier (lowest number)
+  const sortedPriorities = [...byPriority.keys()].sort((a, b) => a - b);
+  const bestTier = byPriority.get(sortedPriorities[0])!;
+
+  // Log which source tier was selected
+  const tierSource = bestTier[0]?.data_source || 'unknown';
+  console.log(`[parse-boq] Selected source tier: ${tierSource} (priority ${sortedPriorities[0]}) from ${matches.length} matches`);
+
+  // Take median within the best tier
+  const sorted = [...bestTier].sort((a, b) => (a.ef_total || 0) - (b.ef_total || 0));
+  const medianIndex = Math.floor(sorted.length / 2);
+  return sorted[medianIndex];
+}
+
+/**
+ * Calculate category median for outlier detection
+ */
+function getCategoryMedian(
+  category: string,
+  unit: string,
+  dbMaterials: DBMaterial[]
+): number | null {
+  const catLower = category.toLowerCase();
+  const unitLower = unit.toLowerCase();
+
+  const categoryMatches = dbMaterials.filter(
+    m => m.material_category?.toLowerCase() === catLower &&
+         m.unit?.toLowerCase() === unitLower
+  );
+
+  if (categoryMatches.length < 3) return null;
+
+  const factors = categoryMatches.map(m => m.ef_total).sort((a, b) => a - b);
+  return factors[Math.floor(factors.length / 2)];
+}
+
+/**
+ * Check if factor is an outlier (>2x category median)
+ */
+function checkOutlier(
+  factor: number,
+  category: string,
+  unit: string,
+  dbMaterials: DBMaterial[]
+): { isOutlier: boolean; reason?: string } {
+  const categoryMedian = getCategoryMedian(category, unit, dbMaterials);
+  
+  if (categoryMedian === null) return { isOutlier: false };
+
+  const ratio = factor / categoryMedian;
+  
+  if (ratio > 2) {
+    return {
+      isOutlier: true,
+      reason: `Factor ${factor.toFixed(0)} is ${ratio.toFixed(1)}x the category median (${categoryMedian.toFixed(0)}). Consider reviewing or selecting a lower-emission alternative.`
+    };
+  }
+
+  return { isOutlier: false };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -227,6 +344,13 @@ serve(async (req) => {
     // Filter to Australian materials only for matching
     const dbMaterials: DBMaterial[] = (allDbMaterials || []).filter(m => isAustralianMaterial(m as DBMaterial)) as DBMaterial[];
     
+    // Log source distribution for debugging
+    const sourceDistribution: Record<string, number> = {};
+    for (const m of dbMaterials) {
+      const source = m.data_source || 'Unknown';
+      sourceDistribution[source] = (sourceDistribution[source] || 0) + 1;
+    }
+    console.log(`[parse-boq] Source distribution:`, JSON.stringify(sourceDistribution));
     console.log(`[parse-boq] Database: ${allDbMaterials?.length || 0} total materials, ${dbMaterials.length} Australian materials available for matching`);
 
     // Build material schema from actual database
@@ -388,12 +512,20 @@ ${materialSchema}`;
     }
 
     // Post-process: validate material IDs against database and fix fallback factors
-    // CRITICAL: Never trust AI-provided factors for custom materials
+    // CRITICAL: Uses source priority hierarchy to prevent NGER from dominating
     const validatedMaterials = materials.map((mat: Record<string, unknown>) => {
       // If typeId looks like a UUID, verify it exists in database
       if (mat.typeId && typeof mat.typeId === 'string' && mat.typeId.length === 36 && mat.typeId.includes('-')) {
         const dbMatch = dbMaterials?.find(m => m.id === mat.typeId);
         if (dbMatch) {
+          // Check for outlier even on exact match
+          const outlierCheck = checkOutlier(
+            dbMatch.ef_total,
+            dbMatch.material_category,
+            dbMatch.unit,
+            allDbMaterials // Use all materials for outlier comparison
+          );
+
           // Ensure we use exact database values - NEVER use AI-provided factor
           return {
             ...mat,
@@ -404,7 +536,10 @@ ${materialSchema}`;
             manufacturer: dbMatch.manufacturer,
             isCustom: false,
             confidenceLevel: 'high',
-            requiresReview: false
+            requiresReview: outlierCheck.isOutlier,
+            reviewReason: outlierCheck.isOutlier ? outlierCheck.reason : undefined,
+            isOutlier: outlierCheck.isOutlier,
+            outlierReason: outlierCheck.reason
           };
         }
       }
@@ -431,38 +566,30 @@ ${materialSchema}`;
         }
       }
 
-      // ID not found or custom - try to find DETERMINISTIC category match
-      // This ensures consistent results across multiple parses
+      // ID not found or custom - try to find DETERMINISTIC category match using SOURCE PRIORITY
       const matCategory = typeof mat.category === 'string' ? mat.category.toLowerCase() : '';
       const matName = typeof mat.name === 'string' ? mat.name.toLowerCase() : '';
       const matUnit = typeof mat.unit === 'string' ? mat.unit.toLowerCase() : '';
       
-      // Helper to get median value from sorted array (deterministic and reasonable)
-      const getMedianMatch = (matches: DBMaterial[]): DBMaterial | undefined => {
-        if (!matches || matches.length === 0) return undefined;
-        // Sort by ef_total ascending for consistent ordering
-        const sorted = [...matches].sort((a, b) => (a.ef_total || 0) - (b.ef_total || 0));
-        // Take the median (middle value) - more representative than max/min
-        const medianIndex = Math.floor(sorted.length / 2);
-        return sorted[medianIndex];
-      };
-      
       // STRICT matching: same category AND same unit
-      // dbMaterials is already filtered to Australian materials only
+      // Use source priority hierarchy instead of just median
       const categoryMatches = dbMaterials
         .filter(m =>
           m.material_category?.toLowerCase() === matCategory &&
           m.unit?.toLowerCase() === matUnit
         );
 
-      let proxyMatch = getMedianMatch(categoryMatches); // Take median (representative value)
+      let proxyMatch = getBestMatchBySourcePriority(categoryMatches);
       
       // If no exact category+unit match, try keyword matching (still unit-aware)
       if (!proxyMatch) {
-        const keywords = ['steel', 'concrete', 'timber', 'plasterboard', 'insulation', 'glass', 'aluminium', 'brick', 'masonry', 'carpet', 'vinyl'];
+        const keywords = [
+          'steel', 'concrete', 'timber', 'plasterboard', 'insulation', 
+          'glass', 'aluminium', 'aluminum', 'brick', 'masonry', 'carpet', 'vinyl',
+          'ceiling', 'louvre', 'louver', 'window', 'door', 'frame', 'panel'
+        ];
         for (const keyword of keywords) {
           if (matName.includes(keyword) || matCategory.includes(keyword)) {
-            // dbMaterials is already filtered to Australian materials only
             const keywordMatches = dbMaterials
               .filter(m =>
                 (m.material_category?.toLowerCase().includes(keyword) ||
@@ -470,14 +597,22 @@ ${materialSchema}`;
                 m.unit?.toLowerCase() === matUnit
               );
             
-            proxyMatch = getMedianMatch(keywordMatches); // Take median (representative value)
+            proxyMatch = getBestMatchBySourcePriority(keywordMatches);
             if (proxyMatch) break;
           }
         }
       }
       
-      // If we found a proxy match, use its factor (deterministic)
+      // If we found a proxy match, use its factor (deterministic + source-prioritized)
       if (proxyMatch) {
+        // Check for outlier
+        const outlierCheck = checkOutlier(
+          proxyMatch.ef_total,
+          matCategory,
+          matUnit,
+          allDbMaterials
+        );
+
         return {
           ...mat,
           factor: proxyMatch.ef_total,
@@ -487,7 +622,10 @@ ${materialSchema}`;
           proxyMaterialName: proxyMatch.material_name,
           isCustom: true,
           confidenceLevel: 'medium',
-          requiresReview: false // Has a valid proxy factor
+          requiresReview: outlierCheck.isOutlier,
+          reviewReason: outlierCheck.isOutlier ? outlierCheck.reason : undefined,
+          isOutlier: outlierCheck.isOutlier,
+          outlierReason: outlierCheck.reason
         };
       }
       
@@ -508,6 +646,7 @@ ${materialSchema}`;
 
     const matchedCount = validatedMaterials.filter((m: Record<string, unknown>) => !m.isCustom).length;
     const reviewCount = validatedMaterials.filter((m: Record<string, unknown>) => m.requiresReview).length;
+    const outlierCount = validatedMaterials.filter((m: Record<string, unknown>) => m.isOutlier).length;
     
     // Enhanced logging for debugging
     console.log(`[parse-boq] ========== PARSE COMPLETE ==========`);
@@ -515,6 +654,7 @@ ${materialSchema}`;
     console.log(`[parse-boq] Matched to database: ${matchedCount}`);
     console.log(`[parse-boq] Custom/unmatched: ${validatedMaterials.length - matchedCount}`);
     console.log(`[parse-boq] Requires review: ${reviewCount}`);
+    console.log(`[parse-boq] Outliers flagged: ${outlierCount}`);
     console.log(`[parse-boq] Database had: ${allDbMaterials.length} total, ${dbMaterials.length} Australian materials`);
     console.log(`[parse-boq] =====================================`);
 
@@ -526,6 +666,7 @@ ${materialSchema}`;
           matched: matchedCount,
           unmatched: validatedMaterials.length - matchedCount,
           requiresReview: reviewCount,
+          outliersFound: outlierCount,
           dbMaterialsTotal: allDbMaterials.length,
           dbMaterialsAustralian: dbMaterials.length
         }
