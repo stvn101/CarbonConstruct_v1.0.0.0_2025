@@ -7,10 +7,46 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+const logStep = (step: string, details?: Record<string, unknown>) => {
+  // Sanitize details to avoid PII exposure in production logs
+  const sanitizedDetails = details ? Object.fromEntries(
+    Object.entries(details).map(([key, value]) => {
+      if (key === 'email') return [key, '***@***'];
+      if (key === 'userId' && typeof value === 'string') return [key, value.substring(0, 8) + '...'];
+      return [key, value];
+    })
+  ) : undefined;
+  const detailsStr = sanitizedDetails ? ` - ${JSON.stringify(sanitizedDetails)}` : '';
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
+
+/**
+ * Check if a user has admin role via database query
+ * Uses the user_roles table for proper RBAC instead of hardcoded emails
+ */
+async function checkAdminRole(
+  supabaseClient: ReturnType<typeof createClient>,
+  userId: string
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .maybeSingle();
+    
+    if (error) {
+      logStep("Admin role check failed", { error: error.message });
+      return false;
+    }
+    
+    return data !== null;
+  } catch (err) {
+    logStep("Admin role check exception", { error: String(err) });
+    return false;
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -67,16 +103,28 @@ serve(async (req) => {
       });
     }
     
-    logStep("User authenticated", { userId: user.id.substring(0, 8) + '...' });
+    logStep("User authenticated", { userId: user.id });
 
-    // CRITICAL SECURITY: Only this single admin email gets admin access
-    // Do NOT add additional emails without explicit security review
-    const ADMIN_EMAILS = [
-      'contact@carbonconstruct.net',
-    ];
+    // Check admin role via database (proper RBAC)
+    // This replaces the previous hardcoded email check
+    const isAdmin = await checkAdminRole(supabaseClient, user.id);
     
-    if (ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-      logStep("Admin user detected - granting Pro access", { email: user.email });
+    if (isAdmin) {
+      logStep("Admin user detected via user_roles - granting Pro access");
+      
+      // Log admin access grant for audit trail
+      try {
+        await supabaseClient.from('analytics_events').insert({
+          user_id: user.id,
+          event_name: 'admin_subscription_bypass',
+          event_data: { tier: 'Pro', source: 'user_roles_table' },
+          page_url: '/api/check-subscription'
+        });
+      } catch (auditErr) {
+        // Non-blocking audit log
+        logStep("Audit log insert failed", { error: String(auditErr) });
+      }
+      
       return new Response(JSON.stringify({
         subscribed: true,
         tier_name: 'Pro',
@@ -140,8 +188,6 @@ serve(async (req) => {
       
       logStep("Valid subscription found", { 
         status: subscription.status,
-        endDate: subscriptionEnd,
-        trialEnd,
         isTrialing: subscription.status === "trialing"
       });
 
