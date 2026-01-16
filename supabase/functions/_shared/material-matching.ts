@@ -27,6 +27,12 @@ export interface ParsedMaterial {
   quantity: number;
   unit: string;
   factor: number | null;
+  /** Factor normalized to kgCO2e/kg for weight-based materials */
+  normalizedFactor?: number | null;
+  /** Unit after normalization (always 'kg' for weight-based) */
+  normalizedUnit?: string;
+  /** Whether unit conversion was applied (tonne → kg) */
+  factorNormalized?: boolean;
   isCustom: boolean;
   source: string;
   epdNumber: string | null;
@@ -68,6 +74,18 @@ export const SOURCE_PRIORITY: Record<string, number> = {
 };
 
 /**
+ * STANDARD UNIT for all emission factors: kgCO2e/kg
+ * 
+ * All weight-based factors MUST be normalized to kgCO2e/kg for:
+ * - Consistent calculations
+ * - Proper comparisons
+ * - EN 15978 compliance
+ * 
+ * Conversion: factors in kgCO2e/tonne → divide by 1000 → kgCO2e/kg
+ */
+export const STANDARD_WEIGHT_UNIT = 'kg';
+
+/**
  * Get priority for a data source (lower = better)
  */
 export function getSourcePriority(source: string): number {
@@ -84,6 +102,40 @@ export function getSourcePriority(source: string): number {
   if (sourceLower.includes('nger')) return 6;
   // Default to mid-priority for unknown sources
   return 5;
+}
+
+/**
+ * Normalize a weight-based emission factor to kgCO2e/kg
+ * 
+ * If the unit is 'tonne', 't', or 'tonnes', the factor is divided by 1000
+ * to convert from kgCO2e/tonne to kgCO2e/kg
+ */
+export function normalizeFactorToKg(factor: number, unit: string): { factor: number; unit: string; wasConverted: boolean } {
+  const unitLower = unit.toLowerCase().trim();
+  
+  // Check if this is a tonne-based factor
+  if (unitLower === 'tonne' || unitLower === 'tonnes' || unitLower === 't') {
+    return {
+      factor: factor / 1000, // Convert kgCO2e/tonne to kgCO2e/kg
+      unit: 'kg',
+      wasConverted: true
+    };
+  }
+  
+  // Already in kg or other unit (m2, m3, etc.) - no conversion needed
+  return {
+    factor,
+    unit,
+    wasConverted: false
+  };
+}
+
+/**
+ * Check if a unit is weight-based (kg, tonne, etc.)
+ */
+export function isWeightBasedUnit(unit: string): boolean {
+  const unitLower = unit.toLowerCase().trim();
+  return ['kg', 'tonne', 'tonnes', 't', 'kilogram', 'kilograms'].includes(unitLower);
 }
 
 /**
@@ -172,6 +224,7 @@ export function getBestMatchBySourcePriority(matches: DBMaterial[]): DBMaterial 
 
 /**
  * Calculate category median for outlier detection
+ * Normalizes all factors to kg for fair comparison
  */
 export function getCategoryMedian(
   category: string,
@@ -181,15 +234,32 @@ export function getCategoryMedian(
   const catLower = category.toLowerCase();
   const unitLower = unit.toLowerCase();
 
-  const categoryMatches = dbMaterials.filter(
-    m => m.material_category?.toLowerCase() === catLower &&
-         m.unit?.toLowerCase() === unitLower
-  );
+  // For weight-based units, include both kg and tonne materials and normalize
+  const isWeightBased = isWeightBasedUnit(unit);
+  
+  let categoryMatches: DBMaterial[];
+  if (isWeightBased) {
+    // Include both kg and tonne materials for weight-based comparisons
+    categoryMatches = dbMaterials.filter(
+      m => m.material_category?.toLowerCase() === catLower &&
+           isWeightBasedUnit(m.unit)
+    );
+  } else {
+    categoryMatches = dbMaterials.filter(
+      m => m.material_category?.toLowerCase() === catLower &&
+           m.unit?.toLowerCase() === unitLower
+    );
+  }
 
   if (categoryMatches.length < 3) return null; // Not enough data for meaningful median
 
-  const factors = categoryMatches.map(m => m.ef_total).sort((a, b) => a - b);
-  return factors[Math.floor(factors.length / 2)];
+  // Normalize all factors to kg for fair comparison
+  const normalizedFactors = categoryMatches.map(m => {
+    const normalized = normalizeFactorToKg(m.ef_total, m.unit);
+    return normalized.factor;
+  }).sort((a, b) => a - b);
+  
+  return normalizedFactors[Math.floor(normalizedFactors.length / 2)];
 }
 
 /**
@@ -298,8 +368,31 @@ export function isStructuralSteelInLinearMetres(name: string, unit: string): boo
 }
 
 /**
+ * Apply factor normalization to a material result
+ * Converts tonne-based factors to kg-based for consistency
+ */
+function applyFactorNormalization(result: ParsedMaterial): ParsedMaterial {
+  if (result.factor === null || result.factor === undefined) {
+    return result;
+  }
+  
+  const normalized = normalizeFactorToKg(result.factor, result.unit);
+  
+  return {
+    ...result,
+    normalizedFactor: normalized.factor,
+    normalizedUnit: normalized.unit,
+    factorNormalized: normalized.wasConverted,
+    // Update the main factor and unit to normalized values for consistent calculations
+    factor: normalized.factor,
+    unit: normalized.unit,
+  };
+}
+
+/**
  * Validate and enhance a parsed material against the database
  * Uses source priority hierarchy to prevent NGER from dominating
+ * Normalizes all weight-based factors to kgCO2e/kg
  */
 export function validateMaterial(
   mat: Partial<ParsedMaterial>,
@@ -316,15 +409,18 @@ export function validateMaterial(
   if (typeId) {
     const dbMatch = findExactMatch(typeId, dbMaterials);
     if (dbMatch) {
-      // Check for outlier even on exact match
+      // Normalize factor before outlier check
+      const normalized = normalizeFactorToKg(dbMatch.ef_total, dbMatch.unit);
+      
+      // Check for outlier using normalized factor
       const outlierCheck = isOutlierFactor(
-        dbMatch.ef_total,
+        normalized.factor,
         dbMatch.material_category,
-        dbMatch.unit,
+        normalized.unit,
         materialsForOutlierCheck
       );
 
-      return {
+      return applyFactorNormalization({
         ...mat,
         category: mat.category || dbMatch.material_category,
         typeId: dbMatch.id,
@@ -341,7 +437,7 @@ export function validateMaterial(
         reviewReason: outlierCheck.isOutlier ? outlierCheck.reason : undefined,
         isOutlier: outlierCheck.isOutlier,
         outlierReason: outlierCheck.reason
-      } as ParsedMaterial;
+      } as ParsedMaterial);
     }
   }
 
@@ -367,14 +463,17 @@ export function validateMaterial(
   // Try category match with source priority
   const categoryMatch = findCategoryMatch(category, unit, dbMaterials);
   if (categoryMatch) {
+    // Normalize factor before outlier check
+    const normalized = normalizeFactorToKg(categoryMatch.ef_total, categoryMatch.unit);
+    
     const outlierCheck = isOutlierFactor(
-      categoryMatch.ef_total,
+      normalized.factor,
       category,
-      unit,
+      normalized.unit,
       materialsForOutlierCheck
     );
 
-    return {
+    return applyFactorNormalization({
       ...mat,
       category,
       typeId: 'custom',
@@ -392,20 +491,23 @@ export function validateMaterial(
       reviewReason: outlierCheck.isOutlier ? outlierCheck.reason : undefined,
       isOutlier: outlierCheck.isOutlier,
       outlierReason: outlierCheck.reason
-    } as ParsedMaterial;
+    } as ParsedMaterial);
   }
 
   // Try keyword match with source priority
   const keywordMatch = findKeywordMatch(name, category, unit, dbMaterials);
   if (keywordMatch) {
+    // Normalize factor before outlier check
+    const normalized = normalizeFactorToKg(keywordMatch.ef_total, keywordMatch.unit);
+    
     const outlierCheck = isOutlierFactor(
-      keywordMatch.ef_total,
+      normalized.factor,
       category,
-      unit,
+      normalized.unit,
       materialsForOutlierCheck
     );
 
-    return {
+    return applyFactorNormalization({
       ...mat,
       category,
       typeId: 'custom',
@@ -423,7 +525,7 @@ export function validateMaterial(
       reviewReason: outlierCheck.isOutlier ? outlierCheck.reason : undefined,
       isOutlier: outlierCheck.isOutlier,
       outlierReason: outlierCheck.reason
-    } as ParsedMaterial;
+    } as ParsedMaterial);
   }
 
   // No match found - require review
