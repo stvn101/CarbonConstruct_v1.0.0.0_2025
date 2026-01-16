@@ -435,8 +435,7 @@ All colors MUST be HSL.
     overscroll-behavior-y: none;
     /* Touch action for better mobile scrolling */
     touch-action: manipulation;
-    /* Prevent pull-to-refresh on PWA */
-    overflow-y: auto;
+    /* Let body handle scrolling naturally - no explicit overflow-y to avoid double scrollbars */
     -webkit-overflow-scrolling: touch;
   }
   

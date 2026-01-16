@@ -1563,7 +1563,7 @@ export default function Calculator() {
   }
 
   return (
-    <div className="bg-background pb-12">
+    <div className="pb-12">
       <SEOHead 
         title="Carbon Calculator" 
         description="Calculate Scope 1, 2, and 3 carbon emissions for Australian construction projects. NCC compliant with AI-powered BOQ import."
