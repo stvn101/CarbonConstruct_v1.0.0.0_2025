@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, MapPin, Linkedin, Facebook, Instagram, Shield, Database } from "lucide-react";
+import { COMPANY_ABN, COMPANY_LEGAL_NAME } from "@/lib/constants";
 const logoImage32 = "/logo-32.webp";
 
 export const Footer = () => {
@@ -187,7 +188,7 @@ export const Footer = () => {
             {/* ABN Display */}
             <div className="pt-2 border-t border-border/50">
               <p className="text-xs text-muted-foreground">
-                <span className="font-medium">United Facade Pty Ltd ABN:</span> 67 652 069 139
+                <span className="font-medium">{COMPANY_LEGAL_NAME} ABN:</span> {COMPANY_ABN}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Trading as CarbonConstruct Tech
