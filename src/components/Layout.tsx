@@ -43,10 +43,10 @@ export function Layout({ children }: LayoutProps) {
       </a>
 
       <SidebarProvider defaultOpen={false}>
-        <div className="min-h-dvh flex w-full bg-background supports-[min-height:100dvh]:min-h-dvh overflow-x-hidden">
+        <div className="flex w-full bg-background">
         <AppSidebar />
 
-        <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+        <div className="flex-1 flex flex-col min-w-0">
           <header
             className="h-14 border-b border-primary/30 bg-card/50 backdrop-blur-sm sticky top-0 z-40 flex items-center px-3 md:px-4 pt-[env(safe-area-inset-top)]"
             role="banner"
