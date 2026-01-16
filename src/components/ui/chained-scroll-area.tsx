@@ -33,10 +33,11 @@ const ChainedScrollArea = React.forwardRef<
       const atBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 1;
 
       // If the inner scroll region can't scroll further in the wheel direction,
-      // push the scroll to the page instead.
+      // let the event bubble naturally - do NOT preventDefault.
+      // The browser will handle scroll chaining to the page automatically.
       if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
-        window.scrollBy({ top: deltaY, left: 0, behavior: "auto" });
-        e.preventDefault();
+        // Simply allow the event to propagate - no manual scrollBy needed
+        return;
       }
     },
     [chainToWindow]
