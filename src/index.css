@@ -432,11 +432,8 @@ All colors MUST be HSL.
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     /* Prevent overscroll bounce on iOS */
-    overscroll-behavior-y: none;
     /* Touch action for better mobile scrolling */
     touch-action: manipulation;
-    /* Let body handle scrolling naturally - no explicit overflow-y to avoid double scrollbars */
-    -webkit-overflow-scrolling: touch;
   }
   
   /* PWA standalone mode adjustments */
