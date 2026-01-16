@@ -25,7 +25,7 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
  * Uses the user_roles table for proper RBAC instead of hardcoded emails
  */
 async function checkAdminRole(
-  supabaseClient: ReturnType<typeof createClient>,
+  supabaseClient: any,
   userId: string
 ): Promise<boolean> {
   try {
