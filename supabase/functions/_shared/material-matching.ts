@@ -87,13 +87,40 @@ export function getSourcePriority(source: string): number {
 }
 
 /**
- * Check if a material is Australian based on state/region fields
+ * Global reference sources that should ALWAYS be included
+ * These provide high-quality lifecycle data regardless of region flags
+ */
+export const GLOBAL_REFERENCE_SOURCES = [
+  'ICE V4.1 - Circular Ecology',
+  'EPiC Database 2024',
+];
+
+/**
+ * Check if a material should be included in Australian matching
+ * 
+ * Includes:
+ * 1. Materials with Australian state/region flags
+ * 2. Materials from global reference sources (ICE, EPiC) - always included
+ * 3. Materials with no region info (default assume Australian)
  */
 export function isAustralianMaterial(mat: DBMaterial): boolean {
+  // Always include global reference sources (ICE, EPiC) - high quality data
+  if (mat.data_source) {
+    const sourceLower = mat.data_source.toLowerCase();
+    if (sourceLower.includes('ice') || sourceLower.includes('epic')) {
+      return true;
+    }
+  }
+  
+  // Check for Australian state
   if (mat.state && AUSTRALIAN_STATES.includes(mat.state.toUpperCase())) return true;
+  
+  // Check for Australia in region
   if (mat.region && mat.region.toLowerCase().includes('australia')) return true;
+  
   // Default to true if no region info (assume Australian for local DB)
   if (!mat.state && !mat.region) return true;
+  
   return false;
 }
 
