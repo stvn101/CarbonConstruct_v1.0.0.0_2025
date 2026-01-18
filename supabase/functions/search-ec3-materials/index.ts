@@ -408,17 +408,25 @@ serve(async (req) => {
       program_operator_name: item.program_operator_name,
       
       // Environmental data - GWP per declared unit
-      gwp: item.gwp_per_declared_unit || item.gwp || item.gwp_total || item.carbon_footprint,
-      declared_unit: item.declared_unit || item.unit,
+      // CRITICAL: EC3 API returns GWP values as strings, must parse to numbers
+      gwp: parseFloat(item.gwp_per_category_declared_unit) || 
+           parseFloat(item.gwp_per_declared_unit) || 
+           parseFloat(item.gwp) || 
+           parseFloat(item.gwp_total) || 
+           parseFloat(item.carbon_footprint) || 
+           null,
+      declared_unit: item.declared_unit || item.unit || 'unit',
       impacts: {
-        gwp_per_declared_unit: item.gwp_per_declared_unit || item.gwp || item.gwp_total,
-        declared_unit: item.declared_unit || item.unit,
-        gwp_a1a2a3: item.gwp_a1a2a3 || item.gwp_a1_a3,
-        gwp_a4: item.gwp_a4,
-        gwp_a5: item.gwp_a5,
-        gwp_c: item.gwp_c1c4 || item.gwp_c || item.gwp_c1_c4,
-        gwp_d: item.gwp_d,
-        gwp_biogenic: item.gwp_biogenic,
+        gwp_per_declared_unit: parseFloat(item.gwp_per_category_declared_unit) ||
+                               parseFloat(item.gwp_per_declared_unit) || 
+                               parseFloat(item.gwp) || null,
+        declared_unit: item.declared_unit || item.unit || 'unit',
+        gwp_a1a2a3: parseFloat(item.gwp_a1a2a3) || parseFloat(item.gwp_a1_a3) || null,
+        gwp_a4: parseFloat(item.gwp_a4) || null,
+        gwp_a5: parseFloat(item.gwp_a5) || null,
+        gwp_c: parseFloat(item.gwp_c1c4) || parseFloat(item.gwp_c) || parseFloat(item.gwp_c1_c4) || null,
+        gwp_d: parseFloat(item.gwp_d) || null,
+        gwp_biogenic: parseFloat(item.gwp_biogenic) || null,
       },
       
       // Geographic scope
