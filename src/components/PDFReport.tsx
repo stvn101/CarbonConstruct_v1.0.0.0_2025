@@ -820,35 +820,70 @@ const PDFReportContent: React.FC<PDFReportContentProps> = ({
         marginTop: '24px', 
         paddingTop: '16px', 
         borderTop: '1px solid #e5e7eb',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
         fontSize: '10px',
         color: '#666666'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img 
-            src="/logos/circular-ecology-logo.png" 
-            alt="Circular Ecology" 
-            style={{ height: '32px', width: 'auto' }}
-            crossOrigin="anonymous"
-          />
-          <div>
-            <p style={{ fontWeight: 'bold', color: '#333333', margin: 0 }}>
-              Inventory of Carbon & Energy (V4.7)
-            </p>
-            <p style={{ margin: '2px 0 0 0' }}>© Circular Ecology</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img 
+              src="/logos/circular-ecology-logo.png" 
+              alt="Circular Ecology" 
+              style={{ height: '32px', width: 'auto' }}
+              crossOrigin="anonymous"
+            />
+            <div>
+              <p style={{ fontWeight: 'bold', color: '#333333', margin: 0 }}>
+                Inventory of Carbon & Energy (V4.7)
+              </p>
+              <p style={{ margin: '2px 0 0 0' }}>© Circular Ecology</p>
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ margin: 0 }}>Embodied carbon data provided under license</p>
+            <a 
+              href="https://circularecology.com" 
+              style={{ color: '#2d5a27', textDecoration: 'underline' }}
+            >
+              circularecology.com
+            </a>
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ margin: 0 }}>Embodied carbon data provided under license</p>
-          <a 
-            href="https://circularecology.com" 
-            style={{ color: '#2d5a27', textDecoration: 'underline' }}
-          >
-            circularecology.com
-          </a>
-        </div>
+        
+        {/* EC3 Attribution - shown when EC3 materials are included */}
+        {Array.isArray(data.breakdown.materials) && 
+         data.breakdown.materials.some(m => m.source?.toLowerCase().includes('ec3') || m.source?.toLowerCase().includes('buildingtransparency')) && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            padding: '12px',
+            backgroundColor: '#eff6ff',
+            borderRadius: '4px',
+            border: '1px solid #bfdbfe'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg viewBox="0 0 24 24" style={{ height: '24px', width: '24px', fill: '#2563eb' }}>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+              </svg>
+              <div>
+                <p style={{ fontWeight: 'bold', color: '#1e40af', margin: 0 }}>
+                  EC3® Global EPD Database
+                </p>
+                <p style={{ margin: '2px 0 0 0', color: '#3b82f6' }}>
+                  Powered by Building Transparency | Licensed under CC BY 4.0
+                </p>
+              </div>
+            </div>
+            <a 
+              href="https://buildingtransparency.org" 
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#2563eb', textDecoration: 'underline', fontWeight: '500' }}
+            >
+              buildingtransparency.org
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

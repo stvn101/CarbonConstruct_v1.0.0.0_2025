@@ -489,9 +489,6 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
 
       {/* Footer Attribution - always visible per licensing requirements */}
       <EC3Attribution variant="footer" className="mt-4" />
-
-      {/* Attribution Footer */}
-      <EC3Attribution variant="footer" />
     </div>
   );
 }
