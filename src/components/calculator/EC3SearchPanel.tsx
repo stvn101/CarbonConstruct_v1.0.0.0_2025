@@ -8,8 +8,8 @@
  * NOTE: Materials are NOT stored - they're fetched on-demand per licensing.
  */
 
-import { useState, useCallback, useEffect } from "react";
-import { Search, Loader2, AlertCircle, Plus, Globe, Building2, Calendar, Scale, Filter, RefreshCw } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Search, Loader2, AlertCircle, Plus, Globe, Building2, Calendar, Scale, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,30 +20,37 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EC3Attribution, EC3MaterialLink } from "./EC3Attribution";
 
-// Fallback categories if API fetch fails
-const FALLBACK_CATEGORIES = [
+// Static categories - EC3's /categories/public endpoint returns schema metadata, not category list
+// These are the main construction material categories supported by EC3
+const EC3_CATEGORIES = [
   { id: 'all', display_name: 'All Categories', path: '', level: 0 },
   { id: 'Concrete', display_name: 'Concrete', path: 'Concrete', level: 0 },
+  { id: 'ReadyMix', display_name: 'Ready Mix Concrete', path: 'ReadyMix', level: 0 },
+  { id: 'Cement', display_name: 'Cement', path: 'Cement', level: 0 },
   { id: 'Steel', display_name: 'Steel', path: 'Steel', level: 0 },
-  { id: 'Wood', display_name: 'Timber', path: 'Wood', level: 0 },
+  { id: 'SteelRebar', display_name: 'Steel Rebar', path: 'SteelRebar', level: 0 },
+  { id: 'StructuralSteel', display_name: 'Structural Steel', path: 'StructuralSteel', level: 0 },
+  { id: 'Wood', display_name: 'Timber / Wood', path: 'Wood', level: 0 },
+  { id: 'MassTimber', display_name: 'Mass Timber (CLT/Glulam)', path: 'MassTimber', level: 0 },
   { id: 'Aluminum', display_name: 'Aluminium', path: 'Aluminum', level: 0 },
   { id: 'Glass', display_name: 'Glass', path: 'Glass', level: 0 },
+  { id: 'FlatGlass', display_name: 'Flat Glass', path: 'FlatGlass', level: 0 },
   { id: 'Insulation', display_name: 'Insulation', path: 'Insulation', level: 0 },
   { id: 'Masonry', display_name: 'Masonry', path: 'Masonry', level: 0 },
+  { id: 'CMU', display_name: 'Concrete Masonry Units', path: 'CMU', level: 0 },
+  { id: 'Brick', display_name: 'Brick', path: 'Brick', level: 0 },
   { id: 'Gypsum', display_name: 'Gypsum', path: 'Gypsum', level: 0 },
   { id: 'Roofing', display_name: 'Roofing', path: 'Roofing', level: 0 },
   { id: 'Flooring', display_name: 'Flooring', path: 'Flooring', level: 0 },
+  { id: 'Carpet', display_name: 'Carpet', path: 'Carpet', level: 0 },
   { id: 'Cladding', display_name: 'Cladding', path: 'Cladding', level: 0 },
+  { id: 'Ceilings', display_name: 'Ceilings', path: 'Ceilings', level: 0 },
+  { id: 'Paint', display_name: 'Paint & Coatings', path: 'Paint', level: 0 },
+  { id: 'Waterproofing', display_name: 'Waterproofing', path: 'Waterproofing', level: 0 },
+  { id: 'Precast', display_name: 'Precast Concrete', path: 'Precast', level: 0 },
+  { id: 'Aggregates', display_name: 'Aggregates', path: 'Aggregates', level: 0 },
 ];
 
-// Dynamic category type from EC3 API
-interface EC3CategoryOption {
-  id: string;
-  name?: string;
-  display_name: string;
-  path: string;
-  level: number;
-}
 
 // EC3 Types - defined locally to avoid module resolution issues
 interface EC3Category {
@@ -155,46 +162,8 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
   const [searched, setSearched] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   
-  // Dynamic categories from EC3 API
-  const [categories, setCategories] = useState<EC3CategoryOption[]>(FALLBACK_CATEGORIES);
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
-
-  // Fetch EC3 categories on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setCategoriesLoading(true);
-      
-      try {
-        const { data, error: fnError } = await supabase.functions.invoke('get-ec3-categories', {});
-        
-        if (fnError || data?.error) {
-          console.warn('[EC3] Failed to fetch categories, using fallback:', fnError?.message || data?.error);
-          return; // Keep fallback categories
-        }
-        
-        if (data?.categories && Array.isArray(data.categories)) {
-          // Prepend "All Categories" option
-          const dynamicCategories: EC3CategoryOption[] = [
-            { id: 'all', display_name: 'All Categories', path: '', level: 0 },
-            ...data.categories.map((cat: EC3CategoryOption) => ({
-              id: cat.id || cat.name || cat.display_name,
-              display_name: cat.display_name || cat.name || cat.id,
-              path: cat.path || cat.display_name,
-              level: cat.level || 0,
-            }))
-          ];
-          setCategories(dynamicCategories);
-          console.log(`[EC3] Loaded ${dynamicCategories.length - 1} categories from API`);
-        }
-      } catch (err) {
-        console.warn('[EC3] Category fetch error:', err);
-      } finally {
-        setCategoriesLoading(false);
-      }
-    };
-    
-    fetchCategories();
-  }, []);
+  // Use static categories list (EC3 API doesn't provide a usable categories endpoint)
+  const categories = EC3_CATEGORIES;
 
   const handleSearch = useCallback(async () => {
     // Allow category-only search or text search
@@ -337,17 +306,13 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
     <div className="space-y-4">
       {/* Search Input with Category Filter */}
       <div className="flex flex-col sm:flex-row gap-2">
-        {/* Category Dropdown - now dynamic */}
-        <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={disabled || loading || categoriesLoading}>
+        {/* Category Dropdown - static list */}
+        <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={disabled || loading}>
           <SelectTrigger className="w-full sm:w-[220px]">
-            {categoriesLoading ? (
-              <RefreshCw className="h-4 w-4 mr-2 text-muted-foreground animate-spin" />
-            ) : (
-              <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
-            )}
+            <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
+          <SelectContent className="max-h-[300px] bg-popover border shadow-md z-50">
             {categories.map((cat) => (
               <SelectItem 
                 key={cat.id} 
