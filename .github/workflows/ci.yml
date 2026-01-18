@@ -89,6 +89,7 @@ jobs:
 
       - name: Check coverage thresholds
         run: |
+          sudo apt-get update && sudo apt-get install -y jq bc
           COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.statements.pct')
           echo "Statement coverage: $COVERAGE%"
           if (( $(echo "$COVERAGE < 70" | bc -l) )); then
