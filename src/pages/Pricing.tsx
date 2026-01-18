@@ -462,6 +462,16 @@ const Pricing = () => {
               </p>
             </CardContent>
           </Card>
+          <Card variant="glass" className="border-border/30 glass-glow-hover">
+            <CardHeader className="pb-2">
+              <h3 className="font-semibold">Why aren't EC3 Global search results showing?</h3>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground">
+                Common issues include: <strong>spelling errors</strong> (e.g., 'Concret' vs 'Concrete'), using Australian vs American spelling (e.g., 'Timber' vs 'Wood', 'Aluminium' vs 'Aluminum'), or overly specific search terms. Start with broad category terms and use the troubleshooting help icon (?) next to the EC3 toggle for more tips.
+              </p>
+            </CardContent>
+          </Card>
         </CardContent>
       </Card>
     </div>

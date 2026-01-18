@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { EC3DatabaseToggle, MaterialDatabaseSource } from "@/components/calculator/EC3DatabaseToggle";
 import { EC3SearchPanel, EC3ConvertedMaterial } from "@/components/calculator/EC3SearchPanel";
+import { EC3TroubleshootingPopover } from "@/components/calculator/EC3TroubleshootingPopover";
 import { useEC3Integration } from "@/hooks/useEC3Integration";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -1531,7 +1532,8 @@ export default function Calculator() {
       // Use validated data for insertion
       const validatedData = validationResult.data;
 
-      const { error } = await supabase.from('unified_calculations').insert([{
+      // Use upsert to handle both new and existing calculations for a project
+      const { error } = await supabase.from('unified_calculations').upsert([{
         project_id: currentProject.id,
         user_id: user.id,
         materials: validatedData.materials as any,
@@ -1540,7 +1542,7 @@ export default function Calculator() {
         transport_inputs: validatedData.transportInputs as any,
         totals: calculations as any,
         is_draft: false
-      }]);
+      }], { onConflict: 'project_id' });
 
       if (error) throw error;
 
@@ -2151,6 +2153,8 @@ export default function Calculator() {
                             ec3Available={ec3Enabled && isPro}
                             disabled={ec3Loading || !isPro}
                           />
+                          {/* EC3 Troubleshooting Help */}
+                          {isPro && <EC3TroubleshootingPopover />}
                           {!isPro && (
                             <Badge variant="outline" className="text-xs text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-700">
                               <Crown className="h-3 w-3 mr-1" />
