@@ -21,6 +21,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,6 +30,12 @@ const corsHeaders = {
 
 // Correct EC3 API base URL per implementation blueprint
 const EC3_API_BASE = 'https://etl-api.cqd.io/api';
+
+// Rate limit: 20 searches per hour for Pro users
+const EC3_RATE_LIMIT = {
+  windowMinutes: 60,
+  maxRequests: 20,
+};
 
 interface SearchRequest {
   query?: string;
@@ -41,6 +48,140 @@ interface SearchRequest {
   page?: number;
   page_size?: number;
   only_valid?: boolean; // Filter expired EPDs
+}
+
+/**
+ * Check if user has Pro or Enterprise subscription via Stripe
+ */
+async function checkProSubscription(email: string): Promise<{ isPro: boolean; isAdmin: boolean }> {
+  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+  if (!stripeKey) {
+    console.warn('[EC3] STRIPE_SECRET_KEY not configured, denying access');
+    return { isPro: false, isAdmin: false };
+  }
+
+  try {
+    const stripe = new Stripe(stripeKey, { apiVersion: '2025-08-27.basil' });
+    
+    // Find customer by email
+    const customers = await stripe.customers.list({ email, limit: 1 });
+    if (customers.data.length === 0) {
+      return { isPro: false, isAdmin: false };
+    }
+
+    // Check for active subscription
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customers.data[0].id,
+      status: 'active',
+      limit: 1,
+    });
+
+    if (subscriptions.data.length === 0) {
+      // Check for trialing subscription
+      const trialingSubs = await stripe.subscriptions.list({
+        customer: customers.data[0].id,
+        status: 'trialing',
+        limit: 1,
+      });
+      
+      if (trialingSubs.data.length === 0) {
+        return { isPro: false, isAdmin: false };
+      }
+    }
+
+    // Has active/trialing subscription = Pro access
+    return { isPro: true, isAdmin: false };
+  } catch (error) {
+    console.error('[EC3] Stripe check error:', error);
+    return { isPro: false, isAdmin: false };
+  }
+}
+
+/**
+ * Check if user is admin via user_roles table
+ */
+async function checkAdminRole(supabase: any, userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .maybeSingle();
+    
+    return !error && data !== null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Rate limit check using rate_limits table
+ */
+async function checkRateLimit(supabase: any, userId: string): Promise<{ allowed: boolean; remaining: number; resetAt: string }> {
+  const endpoint = 'ec3-search';
+  const windowStart = new Date(Date.now() - EC3_RATE_LIMIT.windowMinutes * 60 * 1000).toISOString();
+  
+  try {
+    // Check existing rate limit record
+    const { data: existing, error: fetchError } = await supabase
+      .from('rate_limits')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('endpoint', endpoint)
+      .gte('window_start', windowStart)
+      .maybeSingle();
+
+    if (fetchError && !fetchError.message.includes('no rows')) {
+      console.error('[EC3] Rate limit fetch error:', fetchError);
+      // Allow on error to prevent blocking legitimate requests
+      return { allowed: true, remaining: EC3_RATE_LIMIT.maxRequests, resetAt: new Date(Date.now() + EC3_RATE_LIMIT.windowMinutes * 60 * 1000).toISOString() };
+    }
+
+    if (existing) {
+      // Check if limit exceeded
+      if (existing.request_count >= EC3_RATE_LIMIT.maxRequests) {
+        const resetAt = new Date(new Date(existing.window_start).getTime() + EC3_RATE_LIMIT.windowMinutes * 60 * 1000);
+        return { 
+          allowed: false, 
+          remaining: 0, 
+          resetAt: resetAt.toISOString() 
+        };
+      }
+
+      // Increment counter
+      await supabase
+        .from('rate_limits')
+        .update({ request_count: existing.request_count + 1, updated_at: new Date().toISOString() })
+        .eq('id', existing.id);
+
+      return { 
+        allowed: true, 
+        remaining: EC3_RATE_LIMIT.maxRequests - existing.request_count - 1,
+        resetAt: new Date(new Date(existing.window_start).getTime() + EC3_RATE_LIMIT.windowMinutes * 60 * 1000).toISOString()
+      };
+    }
+
+    // Create new rate limit record
+    await supabase
+      .from('rate_limits')
+      .insert({
+        user_id: userId,
+        endpoint,
+        request_count: 1,
+        window_start: new Date().toISOString(),
+      });
+
+    return { 
+      allowed: true, 
+      remaining: EC3_RATE_LIMIT.maxRequests - 1,
+      resetAt: new Date(Date.now() + EC3_RATE_LIMIT.windowMinutes * 60 * 1000).toISOString()
+    };
+  } catch (error) {
+    console.error('[EC3] Rate limit error:', error);
+    // Allow on error
+    return { allowed: true, remaining: EC3_RATE_LIMIT.maxRequests, resetAt: new Date(Date.now() + EC3_RATE_LIMIT.windowMinutes * 60 * 1000).toISOString() };
+  }
 }
 
 serve(async (req) => {
@@ -62,12 +203,20 @@ serve(async (req) => {
 
     // Initialize Supabase client for auth verification
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    // Use anon key for auth verification (respects JWT)
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
+    
+    // Use service role for rate limits and admin check (bypasses RLS)
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false }
+    });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
     if (authError || !user) {
       console.error('[EC3] Auth error:', authError?.message);
       return new Response(
@@ -77,6 +226,45 @@ serve(async (req) => {
     }
 
     console.log(`[EC3] Search request from user: ${user.id}`);
+
+    // Check admin role first (admins bypass subscription check)
+    const isAdmin = await checkAdminRole(supabaseAdmin, user.id);
+    
+    if (!isAdmin) {
+      // Check Pro subscription for non-admins
+      const { isPro } = await checkProSubscription(user.email || '');
+      
+      if (!isPro) {
+        console.log(`[EC3] User ${user.id} denied - not Pro subscriber`);
+        return new Response(
+          JSON.stringify({ 
+            error: 'EC3 Global Database access requires a Pro subscription. Upgrade to unlock 90,000+ verified EPDs.',
+            status_code: 403,
+            upgrade_required: true
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      console.log(`[EC3] Admin user ${user.id} - bypassing subscription check`);
+    }
+
+    // Check rate limit (applies to both admins and Pro users)
+    const rateLimit = await checkRateLimit(supabaseAdmin, user.id);
+    if (!rateLimit.allowed) {
+      console.log(`[EC3] User ${user.id} rate limited until ${rateLimit.resetAt}`);
+      return new Response(
+        JSON.stringify({ 
+          error: `Rate limit exceeded. You can make ${EC3_RATE_LIMIT.maxRequests} EC3 searches per hour. Try again at ${new Date(rateLimit.resetAt).toLocaleTimeString()}.`,
+          status_code: 429,
+          rate_limit_remaining: 0,
+          rate_limit_reset: rateLimit.resetAt
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`[EC3] Rate limit OK - ${rateLimit.remaining} requests remaining`);
 
     // Get EC3 API key
     const ec3ApiKey = Deno.env.get('EC3_API_KEY');

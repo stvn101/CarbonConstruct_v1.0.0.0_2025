@@ -249,7 +249,7 @@ export default function Calculator() {
   const location = useLocation();
   const { toast } = useToast();
   const { canPerformAction } = useUsageTracking();
-  useSubscriptionStatus();
+  const subscriptionStatus = useSubscriptionStatus();
   const { currentTier } = useSubscription();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
@@ -268,7 +268,7 @@ export default function Calculator() {
   
   // Feature access checks based on subscription tier
   // Admin users always have full access regardless of tier limits
-  const { is_admin: isAdmin } = useSubscriptionStatus();
+  const isAdmin = subscriptionStatus.is_admin;
   const canAccessEN15978 = isAdmin || (currentTier?.limits?.en15978_calculators ?? false);
   const canAccessMaterialComparer = isAdmin || (currentTier?.limits?.material_comparer ?? false);
   
@@ -297,9 +297,11 @@ export default function Calculator() {
     }
   });
   
-  // EC3 Global Database Integration
+  // EC3 Global Database Integration (Pro subscribers only)
   const [materialSource, setMaterialSource] = useState<MaterialDatabaseSource>('local');
   const { isAvailable: ec3Available, isLoading: ec3Loading } = useEC3Integration();
+  const isPro = subscriptionStatus.subscribed || subscriptionStatus.is_trialing || subscriptionStatus.is_admin;
+  const ec3Enabled = isPro && ec3Available;
   
   // Favorite materials for quick-add
   const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites, syncWithDatabase, cloudSyncEnabled, isSyncing, lastSyncTime, saveToCloud } = useFavoriteMaterials();
@@ -2140,28 +2142,57 @@ export default function Calculator() {
                   {/* NEW UI: Category Browser + Search */}
                   {useNewMaterialUI && (
                     <div className="mb-4 space-y-4">
-                      {/* EC3 Database Toggle */}
+                      {/* EC3 Database Toggle - Pro subscribers only */}
                       <div className="flex items-center justify-between">
-                        <EC3DatabaseToggle 
-                          source={materialSource}
-                          onSourceChange={setMaterialSource}
-                          ec3Available={ec3Available}
-                          disabled={ec3Loading}
-                        />
-                        {materialSource === 'ec3' && (
+                        <div className="flex items-center gap-2">
+                          <EC3DatabaseToggle 
+                            source={materialSource}
+                            onSourceChange={isPro ? setMaterialSource : () => {}}
+                            ec3Available={ec3Enabled}
+                            disabled={ec3Loading || !isPro}
+                          />
+                          {!isPro && (
+                            <Badge variant="outline" className="text-xs text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-700">
+                              <Crown className="h-3 w-3 mr-1" />
+                              Pro
+                            </Badge>
+                          )}
+                        </div>
+                        {materialSource === 'ec3' && isPro && (
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Globe className="h-3 w-3" />
-                            Searching global EC3 database
+                            Searching 90,000+ global EPDs (20/hr limit)
                           </div>
                         )}
                       </div>
 
-                      {/* EC3 Search Panel (when EC3 source is selected) */}
-                      {materialSource === 'ec3' ? (
+                      {/* EC3 Search Panel (when EC3 source is selected and user is Pro) */}
+                      {materialSource === 'ec3' && isPro ? (
                         <EC3SearchPanel 
                           onAddMaterial={handleAddEC3Material}
-                          disabled={!ec3Available}
+                          disabled={!ec3Enabled}
                         />
+                      ) : materialSource === 'ec3' && !isPro ? (
+                        <Card className="p-4 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900">
+                              <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">EC3 Global Database</p>
+                              <p className="text-xs text-muted-foreground">
+                                Unlock access to 90,000+ verified EPDs from Building Transparency with a Pro subscription.
+                              </p>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              onClick={() => navigate('/pricing')}
+                              className="bg-amber-600 hover:bg-amber-700 text-white"
+                            >
+                              Upgrade
+                            </Button>
+                          </div>
+                        </Card>
                       ) : (
                         <>
                           {/* Local Database: Category Browser */}
