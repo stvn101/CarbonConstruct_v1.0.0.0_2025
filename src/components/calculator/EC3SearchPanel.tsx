@@ -8,8 +8,8 @@
  * NOTE: Materials are NOT stored - they're fetched on-demand per licensing.
  */
 
-import { useState, useCallback } from "react";
-import { Search, Loader2, AlertCircle, Plus, Globe, Building2, Calendar, Scale, Filter } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Search, Loader2, AlertCircle, Plus, Globe, Building2, Calendar, Scale, Filter, X, Clock, History } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EC3Attribution, EC3MaterialLink } from "./EC3Attribution";
+
+// Recent searches storage key
+const RECENT_SEARCHES_KEY = 'ec3_recent_searches';
+const MAX_RECENT_SEARCHES = 5;
+
+interface RecentSearch {
+  query: string;
+  category: string;
+  categoryName: string;
+  timestamp: number;
+}
+
+function getRecentSearches(): RecentSearch[] {
+  try {
+    const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentSearch(query: string, category: string, categoryName: string): void {
+  try {
+    const searches = getRecentSearches();
+    // Remove duplicate if exists
+    const filtered = searches.filter(
+      s => !(s.query === query && s.category === category)
+    );
+    // Add new search at beginning
+    const newSearch: RecentSearch = { query, category, categoryName, timestamp: Date.now() };
+    const updated = [newSearch, ...filtered].slice(0, MAX_RECENT_SEARCHES);
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+  } catch {
+    // Silently fail if localStorage unavailable
+  }
+}
+
+function clearRecentSearches(): void {
+  try {
+    localStorage.removeItem(RECENT_SEARCHES_KEY);
+  } catch {
+    // Silently fail
+  }
+}
 
 // Static categories - EC3's /categories/public endpoint returns schema metadata, not category list
 // These are the main construction material categories supported by EC3
@@ -161,9 +205,35 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   
   // Use static categories list (EC3 API doesn't provide a usable categories endpoint)
   const categories = EC3_CATEGORIES;
+
+  // Load recent searches on mount
+  useEffect(() => {
+    setRecentSearches(getRecentSearches());
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setQuery('');
+    setSelectedCategory('all');
+    setResults([]);
+    setSearched(false);
+    setTotalCount(0);
+    setError(null);
+  }, []);
+
+  const handleClearRecentSearches = useCallback(() => {
+    clearRecentSearches();
+    setRecentSearches([]);
+    toast({ title: "Recent searches cleared" });
+  }, [toast]);
+
+  const handleRecentSearchClick = useCallback((search: RecentSearch) => {
+    setQuery(search.query);
+    setSelectedCategory(search.category);
+  }, []);
 
   const handleSearch = useCallback(async () => {
     // Allow category-only search or text search
@@ -201,13 +271,9 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
       }
 
       // Add category filter if selected (not 'all')
-      if (selectedCategory && selectedCategory !== 'all') {
-        // Find the selected category to get its path/name for the API
-        const categoryConfig = categories.find(c => c.id === selectedCategory);
-        if (categoryConfig) {
-          // Send the category display_name or path to the edge function
-          requestBody.category = categoryConfig.path || categoryConfig.display_name || categoryConfig.id;
-        }
+      const categoryConfig = categories.find(c => c.id === selectedCategory);
+      if (selectedCategory && selectedCategory !== 'all' && categoryConfig) {
+        requestBody.category = categoryConfig.path || categoryConfig.display_name || categoryConfig.id;
       }
 
       const { data, error: fnError } = await supabase.functions.invoke('search-ec3-materials', {
@@ -215,13 +281,11 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
       });
 
       if (fnError) {
-        // Try to extract detailed error from function response
         const errorMessage = fnError.message || 'Failed to search EC3';
         throw new Error(errorMessage);
       }
 
       if (data?.error) {
-        // Handle specific EC3 API errors with detailed rate limit info
         if (data.status_code === 429 || data.error.includes('rate limit') || data.error.includes('Rate limit')) {
           const resetTime = data.rate_limit_reset 
             ? new Date(data.rate_limit_reset).toLocaleTimeString()
@@ -243,6 +307,13 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
       setResults(response.results || []);
       setTotalCount(response.total_count || 0);
 
+      // Save successful search to recent searches
+      if (response.results && response.results.length > 0) {
+        const categoryName = categoryConfig?.display_name || 'All Categories';
+        saveRecentSearch(query.trim(), selectedCategory, categoryName);
+        setRecentSearches(getRecentSearches());
+      }
+
       if (response.results?.length === 0) {
         toast({ 
           title: "No results found", 
@@ -257,7 +328,7 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
     } finally {
       setLoading(false);
     }
-  }, [query, selectedCategory, toast]);
+  }, [query, selectedCategory, toast, categories]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !loading) {
@@ -304,6 +375,46 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
 
   return (
     <div className="space-y-4">
+      {/* Recent Searches - show before search if available */}
+      {recentSearches.length > 0 && !searched && (
+        <div className="p-3 rounded-lg bg-muted/30 border">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <History className="h-4 w-4" />
+              Recent Searches
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearRecentSearches}
+              className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3 w-3 mr-1" />
+              Clear
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {recentSearches.map((search, index) => (
+              <Button
+                key={`${search.query}-${search.category}-${index}`}
+                variant="outline"
+                size="sm"
+                onClick={() => handleRecentSearchClick(search)}
+                className="h-7 text-xs cursor-pointer"
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                {search.query || search.categoryName}
+                {search.query && search.category !== 'all' && (
+                  <Badge variant="secondary" className="ml-1 text-xs px-1">
+                    {search.categoryName}
+                  </Badge>
+                )}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Search Input with Category Filter */}
       <div className="flex flex-col sm:flex-row gap-2">
         {/* Category Dropdown - static list */}
@@ -334,8 +445,21 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
             onChange={(e) => setQuery(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={disabled || loading}
-            className="pl-9"
+            className="pl-9 pr-9"
           />
+          {/* Clear input button */}
+          {(query || selectedCategory !== 'all' || searched) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearSearch}
+              disabled={loading}
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
         
         <Button 
