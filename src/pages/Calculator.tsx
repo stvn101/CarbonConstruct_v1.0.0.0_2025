@@ -2,6 +2,9 @@ import * as React from "react";
 import { parseExcelToText } from "@/utils/excel-parser";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { EC3DatabaseToggle, MaterialDatabaseSource } from "@/components/calculator/EC3DatabaseToggle";
+import { EC3SearchPanel, EC3ConvertedMaterial } from "@/components/calculator/EC3SearchPanel";
+import { useEC3Integration } from "@/hooks/useEC3Integration";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/contexts/ProjectContext";
@@ -16,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet, Cloud, CloudOff, FileUp, FileDown, CheckCircle, History, RotateCcw, FileJson, Hash } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Eraser, Leaf, CloudUpload, Upload, Sparkles, Search, X, Database, Clock, Scale, Crown, ChevronDown, ChevronRight, Lock, Download, FileSpreadsheet, Cloud, CloudOff, FileUp, FileDown, CheckCircle, History, RotateCcw, FileJson, Hash, Globe } from "lucide-react";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { FUEL_FACTORS, STATE_ELEC_FACTORS, COMMUTE_FACTORS, WASTE_FACTORS, A5_EQUIPMENT_FACTORS } from "@/lib/emission-factors";
 import { MaterialSchema } from "@/lib/validation-schemas";
@@ -293,6 +296,10 @@ export default function Calculator() {
       return true;
     }
   });
+  
+  // EC3 Global Database Integration
+  const [materialSource, setMaterialSource] = useState<MaterialDatabaseSource>('local');
+  const { isAvailable: ec3Available, isLoading: ec3Loading } = useEC3Integration();
   
   // Favorite materials for quick-add
   const { quickAddMaterials, recentlyUsedMaterials, trackMaterialUsage, hideMaterial, clearAllFavorites, syncWithDatabase, cloudSyncEnabled, isSyncing, lastSyncTime, saveToCloud } = useFavoriteMaterials();
@@ -888,6 +895,33 @@ export default function Calculator() {
       eco_platform_compliant: material.eco_platform_compliant !== false,
       data_quality_rating: material.data_quality_rating || undefined,
     });
+  };
+
+  // Add material from EC3 global database
+  const handleAddEC3Material = (ec3Material: EC3ConvertedMaterial) => {
+    const material: Material = {
+      id: ec3Material.id,
+      name: ec3Material.name,
+      category: ec3Material.category,
+      typeId: ec3Material.ec3_id,
+      unit: ec3Material.unit,
+      factor: ec3Material.factor,
+      source: 'EC3 Global',
+      quantity: ec3Material.quantity || 0,
+      isCustom: false,
+      epdNumber: ec3Material.epdNumber,
+      epdUrl: ec3Material.epdUrl,
+      manufacturer: ec3Material.manufacturer,
+      publishDate: ec3Material.publishDate,
+      expiryDate: ec3Material.expiryDate,
+      ef_a1a3: ec3Material.ef_a1a3,
+      ef_a4: ec3Material.ef_a4,
+      ef_a5: ec3Material.ef_a5,
+      ef_c1c4: ec3Material.ef_c1c4,
+      ef_d: ec3Material.ef_d,
+    };
+    
+    setSelectedMaterials(prev => [...prev, material]);
   };
 
   // Quick add from favorites - includes full EPD data
@@ -2106,12 +2140,37 @@ export default function Calculator() {
                   {/* NEW UI: Category Browser + Search */}
                   {useNewMaterialUI && (
                     <div className="mb-4 space-y-4">
-                      <MaterialCategoryBrowser
-                        categories={categoryCounts}
-                        selectedCategory={selectedCategory}
-                        onSelectCategory={setSelectedCategory}
-                        totalMaterials={dbMaterials.length}
-                      />
+                      {/* EC3 Database Toggle */}
+                      <div className="flex items-center justify-between">
+                        <EC3DatabaseToggle 
+                          source={materialSource}
+                          onSourceChange={setMaterialSource}
+                          ec3Available={ec3Available}
+                          disabled={ec3Loading}
+                        />
+                        {materialSource === 'ec3' && (
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Globe className="h-3 w-3" />
+                            Searching global EC3 database
+                          </div>
+                        )}
+                      </div>
+
+                      {/* EC3 Search Panel (when EC3 source is selected) */}
+                      {materialSource === 'ec3' ? (
+                        <EC3SearchPanel 
+                          onAddMaterial={handleAddEC3Material}
+                          disabled={!ec3Available}
+                        />
+                      ) : (
+                        <>
+                          {/* Local Database: Category Browser */}
+                          <MaterialCategoryBrowser
+                            categories={categoryCounts}
+                            selectedCategory={selectedCategory}
+                            onSelectCategory={setSelectedCategory}
+                            totalMaterials={dbMaterials.length}
+                          />
                       
                       {/* Search and State Filter Row */}
                       <div className="flex gap-3">
@@ -2334,6 +2393,8 @@ export default function Calculator() {
                         hideExpiredEPDs={hideExpiredEPDs}
                         onToggleHideExpired={() => setHideExpiredEPDs(!hideExpiredEPDs)}
                       />
+                        </>
+                      )}
                     </div>
                   )}
 

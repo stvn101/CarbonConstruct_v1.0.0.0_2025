@@ -6,9 +6,17 @@
  * 
  * Materials are returned for display but NOT stored per licensing requirements.
  * 
- * Rate limits (default EC3): 45/min, 400/hour, 2000/day, 10000/month
+ * Rate limits (default EC3):
+ * - 45 requests/minute
+ * - 400 requests/hour  
+ * - 2,000 tokens/day
+ * - 10,000 tokens/month
  * 
- * @see https://docs.buildingtransparency.org/ec3/api-and-integrations
+ * Token costs:
+ * - Material Filter Query: 0.01 tokens (cheap)
+ * - EPD Details: 1.0 token (expensive - avoid)
+ * 
+ * @see https://buildingtransparency.org/ec3/manage-apps (API documentation)
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -19,21 +27,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// EC3 API base URL
-const EC3_API_BASE = 'https://buildingtransparency.org/api';
+// Correct EC3 API base URL per implementation blueprint
+const EC3_API_BASE = 'https://etl-api.cqd.io/api';
 
 interface SearchRequest {
   query?: string;
-  category_id?: string;
+  category?: string;
   manufacturer?: string;
-  country?: string;
+  country?: string; // e.g., "AU", "US-NY"
   min_gwp?: number;
   max_gwp?: number;
   declared_unit?: string;
   page?: number;
   page_size?: number;
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
+  only_valid?: boolean; // Filter expired EPDs
 }
 
 serve(async (req) => {
@@ -95,29 +102,49 @@ serve(async (req) => {
       );
     }
 
-    // Build EC3 API request
-    // Note: EC3 uses a GraphQL-like query language, but also has REST endpoints
-    // The materials endpoint supports text search via 'q' parameter
+    // Build EC3 API request per implementation blueprint
+    // Using /materials endpoint with correct query parameters
     const params = new URLSearchParams();
-    params.set('q', body.query.trim());
     
-    if (body.category_id) params.set('category', body.category_id);
-    if (body.manufacturer) params.set('manufacturer', body.manufacturer);
-    if (body.country) params.set('country', body.country);
-    if (body.declared_unit) params.set('declared_unit', body.declared_unit);
+    // Text search - EC3 uses 'search' parameter
+    params.set('search', body.query.trim());
+    
+    // Category filtering - EC3 uses product_classes with JSON format
+    if (body.category) {
+      params.set('product_classes', JSON.stringify({ "EC3": body.category }));
+    }
+    
+    // Geographic filtering - EC3 uses 'jurisdiction' (e.g., "AU", "US-NY")
+    if (body.country) {
+      params.set('jurisdiction', body.country);
+    }
+    
+    // Filter expired EPDs by checking validity end date
+    if (body.only_valid !== false) {
+      const today = new Date().toISOString().split('T')[0];
+      params.set('epd__date_validity_ends__gt', today);
+    }
+    
+    // Pagination
+    params.set('page_size', String(Math.min(body.page_size || 25, 100)));
     if (body.page) params.set('page', String(body.page));
-    if (body.page_size) params.set('page_size', String(Math.min(body.page_size, 100)));
-    if (body.sort_by) params.set('sort_by', body.sort_by);
-    if (body.sort_order) params.set('sort_order', body.sort_order);
+    
+    // Specify return fields to minimize response size and token usage
+    const returnFields = [
+      'id', 'name', 'product_name', 'category', 'manufacturer',
+      'gwp', 'gwp_per_declared_unit', 'declared_unit', 
+      'date_of_issue', 'date_of_expiry', 'date_validity_ends',
+      'epd_number', 'declaration_url', 'plant_or_group', 
+      'jurisdiction', 'country', 'region',
+      'gwp_a1a2a3', 'gwp_a4', 'gwp_a5', 'gwp_c1c4', 'gwp_d',
+      'open_xpd_uuid', 'ec3_url'
+    ];
+    params.set('return_fields', JSON.stringify(returnFields));
 
-    // Add filters for GWP range
-    if (body.min_gwp !== undefined) params.set('gwp_min', String(body.min_gwp));
-    if (body.max_gwp !== undefined) params.set('gwp_max', String(body.max_gwp));
-
-    const ec3Url = `${EC3_API_BASE}/epds?${params.toString()}`;
+    const ec3Url = `${EC3_API_BASE}/materials?${params.toString()}`;
     console.log('[EC3] Calling EC3 API:', ec3Url.replace(ec3ApiKey, '***'));
 
-    // Call EC3 API
+    // Call EC3 API with Bearer token authentication
     const ec3Response = await fetch(ec3Url, {
       method: 'GET',
       headers: {
@@ -164,73 +191,75 @@ serve(async (req) => {
 
     // Parse and transform EC3 response
     const ec3Data = await ec3Response.json();
-    console.log(`[EC3] Received ${ec3Data.results?.length || 0} results`);
+    console.log(`[EC3] Received ${ec3Data.results?.length || ec3Data.length || 0} results`);
 
-    // Transform EC3 data to our format
-    // Note: Actual EC3 response structure may vary - adjust mapping as needed
-    const transformedResults = (ec3Data.results || ec3Data.data || ec3Data || []).map((item: any) => ({
-      id: item.id || item.epd_id || item.open_xpd_uuid,
+    // Handle both array response and paginated response formats
+    const rawResults = ec3Data.results || ec3Data.data || (Array.isArray(ec3Data) ? ec3Data : []);
+
+    // Transform EC3 data to our standardized format
+    const transformedResults = rawResults.map((item: any) => ({
+      id: item.id || item.open_xpd_uuid,
       name: item.name || item.product_name,
       product_name: item.product_name || item.name,
       category: {
         id: item.category?.id || item.category_id,
-        display_name: item.category?.display_name || item.category_name || item.category,
+        display_name: item.category?.display_name || item.category?.name || item.category_name || 
+                      (typeof item.category === 'string' ? item.category : 'Uncategorized'),
       },
-      manufacturer: item.manufacturer,
-      manufacturer_name: item.manufacturer_name || item.manufacturer?.name,
+      manufacturer: item.manufacturer?.name || item.manufacturer,
+      manufacturer_name: item.manufacturer?.name || item.manufacturer_name || item.manufacturer,
       plant_or_group: item.plant_or_group || item.plant_name,
       
       // EPD info
       epd_number: item.epd_number || item.declaration_number,
-      epd_url: item.epd_url || item.declaration_url,
+      epd_url: item.declaration_url || item.epd_url,
       date_of_issue: item.date_of_issue || item.issued_date,
-      date_of_expiry: item.date_of_expiry || item.expiry_date || item.valid_until,
+      date_of_expiry: item.date_of_expiry || item.date_validity_ends || item.valid_until,
       program_operator: item.program_operator,
       program_operator_name: item.program_operator_name,
       
-      // Environmental data
-      gwp: item.gwp || item.gwp_total || item.gwp_per_declared_unit || item.carbon_footprint,
+      // Environmental data - GWP per declared unit
+      gwp: item.gwp_per_declared_unit || item.gwp || item.gwp_total || item.carbon_footprint,
       declared_unit: item.declared_unit || item.unit,
       impacts: {
-        gwp_per_declared_unit: item.gwp || item.gwp_total,
+        gwp_per_declared_unit: item.gwp_per_declared_unit || item.gwp || item.gwp_total,
         declared_unit: item.declared_unit || item.unit,
         gwp_a1a2a3: item.gwp_a1a2a3 || item.gwp_a1_a3,
         gwp_a4: item.gwp_a4,
         gwp_a5: item.gwp_a5,
-        gwp_b: item.gwp_b || item.gwp_b1_b7,
-        gwp_c: item.gwp_c || item.gwp_c1_c4,
+        gwp_c: item.gwp_c1c4 || item.gwp_c || item.gwp_c1_c4,
         gwp_d: item.gwp_d,
         gwp_biogenic: item.gwp_biogenic,
       },
       
-      // Geographic
+      // Geographic scope
       geographic_scope: {
-        country: item.country || item.geography?.country,
-        state: item.state || item.region || item.geography?.region,
+        country: item.country || item.jurisdiction || item.geography?.country,
+        state: item.region || item.state || item.geography?.region,
         plant_city: item.plant_city || item.manufacturing_city,
         plant_country: item.plant_country || item.manufacturing_country,
       },
       
       // Metadata
       product_description: item.description || item.product_description,
-      ec3_url: item.ec3_url || `https://buildingtransparency.org/ec3/epds/${item.id}`,
+      ec3_url: item.ec3_url || `https://buildingtransparency.org/ec3/epds/${item.id || item.open_xpd_uuid}`,
       last_updated: item.last_updated || item.updated_at,
       
-      // Quality
+      // Quality info
       pcr_name: item.pcr_name || item.pcr?.name,
       pcr_id: item.pcr_id || item.pcr?.id,
       data_quality_score: item.data_quality_score,
       conservativeness: item.conservativeness,
     }));
 
-    // Build response
+    // Build response with pagination info
     const response = {
       results: transformedResults,
       total_count: ec3Data.count || ec3Data.total_count || transformedResults.length,
       page: body.page || 1,
       page_size: body.page_size || 25,
-      has_next: ec3Data.has_next || (transformedResults.length === (body.page_size || 25)),
-      query_tokens_used: ec3Data.tokens_used || 1,
+      has_next: ec3Data.has_next || ec3Data.next !== null || (transformedResults.length === (body.page_size || 25)),
+      query_tokens_used: 0.01, // Material filter queries cost 0.01 tokens
     };
 
     console.log(`[EC3] Returning ${response.results.length} results to user ${user.id}`);
