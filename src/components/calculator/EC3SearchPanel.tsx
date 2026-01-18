@@ -220,6 +220,16 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
     }
   };
 
+  /**
+   * Safely format GWP values - handles strings, numbers, null/undefined
+   * EC3 API sometimes returns GWP as strings instead of numbers
+   */
+  const formatGwp = (gwp: unknown): string => {
+    if (gwp === null || gwp === undefined) return '—';
+    const numValue = typeof gwp === 'number' ? gwp : parseFloat(String(gwp));
+    return isNaN(numValue) ? '—' : numValue.toFixed(2);
+  };
+
   return (
     <div className="space-y-4">
       {/* Search Input */}
@@ -363,7 +373,7 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
                       <div className="text-right">
                         <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
                           <Scale className="h-3.5 w-3.5" />
-                          <span>{material.gwp?.toFixed(2) || '—'}</span>
+                          <span>{formatGwp(material.gwp)}</span>
                         </div>
                         <div className="text-xs text-muted-foreground">
                           kgCO₂e/{material.declared_unit || 'unit'}
