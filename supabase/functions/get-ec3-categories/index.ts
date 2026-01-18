@@ -37,29 +37,83 @@ interface EC3Category {
 
 /**
  * Flatten the category tree into a simple array with parent paths
+ * Handles EC3 API formats: array of categories, or object with category names as keys
  */
 function flattenCategories(
-  categories: EC3Category[], 
+  data: any, 
   parentPath: string = '',
   level: number = 0
 ): Array<{ id: string; name: string; display_name: string; path: string; level: number }> {
   const result: Array<{ id: string; name: string; display_name: string; path: string; level: number }> = [];
   
-  for (const cat of categories) {
-    const currentPath = parentPath ? `${parentPath} >> ${cat.display_name || cat.name}` : (cat.display_name || cat.name);
-    
-    result.push({
-      id: cat.id,
-      name: cat.name,
-      display_name: cat.display_name || cat.name,
-      path: currentPath,
-      level,
-    });
-    
-    // Recursively add children (limit depth to 3 for usability)
-    if (cat.children && cat.children.length > 0 && level < 3) {
-      result.push(...flattenCategories(cat.children, currentPath, level + 1));
+  // Handle array of categories
+  if (Array.isArray(data)) {
+    for (const cat of data) {
+      const catName = cat.display_name || cat.name || cat.id || 'Unknown';
+      const currentPath = parentPath ? `${parentPath} >> ${catName}` : catName;
+      
+      result.push({
+        id: cat.id || catName,
+        name: cat.name || catName,
+        display_name: catName,
+        path: currentPath,
+        level,
+      });
+      
+      // Recursively add children (limit depth to 3 for usability)
+      if (cat.children && Array.isArray(cat.children) && cat.children.length > 0 && level < 3) {
+        result.push(...flattenCategories(cat.children, currentPath, level + 1));
+      }
+      
+      // Handle subcategories in alternative format
+      if (cat.subcategories && Array.isArray(cat.subcategories) && cat.subcategories.length > 0 && level < 3) {
+        result.push(...flattenCategories(cat.subcategories, currentPath, level + 1));
+      }
     }
+    return result;
+  }
+  
+  // Handle object format: { "CategoryName": { id, description, ... }, ... }
+  if (typeof data === 'object' && data !== null) {
+    const keys = Object.keys(data);
+    for (const key of keys) {
+      // Skip non-category keys like 'id', 'pagination', 'meta'
+      if (['id', 'pagination', 'meta', 'total', 'page'].includes(key)) continue;
+      
+      const cat = data[key];
+      const catName = cat?.display_name || cat?.name || key;
+      const catId = cat?.id || key;
+      const currentPath = parentPath ? `${parentPath} >> ${catName}` : catName;
+      
+      // If the value is a simple string/number, use the key as category
+      if (typeof cat !== 'object' || cat === null) {
+        result.push({
+          id: key,
+          name: key,
+          display_name: key,
+          path: key,
+          level,
+        });
+        continue;
+      }
+      
+      result.push({
+        id: catId,
+        name: cat.name || key,
+        display_name: catName,
+        path: currentPath,
+        level,
+      });
+      
+      // Recursively add nested categories
+      if (cat.children && level < 3) {
+        result.push(...flattenCategories(cat.children, currentPath, level + 1));
+      }
+      if (cat.subcategories && level < 3) {
+        result.push(...flattenCategories(cat.subcategories, currentPath, level + 1));
+      }
+    }
+    return result;
   }
   
   return result;
@@ -155,11 +209,18 @@ serve(async (req) => {
     }
 
     const ec3Data = await ec3Response.json();
-    console.log(`[EC3-Categories] Received ${ec3Data.length || Object.keys(ec3Data).length} top-level categories`);
+    const dataKeys = Array.isArray(ec3Data) ? ec3Data.length : Object.keys(ec3Data).length;
+    console.log(`[EC3-Categories] Received data with ${dataKeys} top-level entries, type: ${Array.isArray(ec3Data) ? 'array' : 'object'}`);
+    
+    // Debug: log first few keys/items
+    if (Array.isArray(ec3Data)) {
+      console.log('[EC3-Categories] Sample items:', ec3Data.slice(0, 3).map((c: any) => c.name || c.display_name || c.id));
+    } else {
+      console.log('[EC3-Categories] Object keys:', Object.keys(ec3Data).slice(0, 10));
+    }
 
-    // Flatten the category tree for dropdown use
-    const rawCategories = Array.isArray(ec3Data) ? ec3Data : (ec3Data.results || ec3Data.categories || []);
-    const flatCategories = flattenCategories(rawCategories);
+    // Flatten the category tree - pass directly to flattenCategories which handles both formats
+    const flatCategories = flattenCategories(ec3Data);
     
     // Sort alphabetically by display name within each level
     flatCategories.sort((a, b) => {

@@ -101,6 +101,89 @@ const Index = () => {
               </div>
             </div>
 
+            {/* EC3 Global Database Hero Section */}
+            <div className="max-w-5xl mx-auto mt-8 animate-fade-in [animation-delay:0.25s]">
+              <Card variant="glass" className="relative border-2 border-blue-500/30 bg-gradient-to-br from-blue-600/5 via-blue-500/10 to-cyan-500/5 overflow-hidden glass-glow-hover">
+                <div className="absolute top-0 right-0">
+                  <Badge className="rounded-none rounded-bl-lg bg-blue-600 text-white border-0 px-4 py-1.5 font-bold text-xs">
+                    <Globe className="h-3 w-3 mr-1" />
+                    PRO FEATURE
+                  </Badge>
+                </div>
+                <CardContent className="p-6 md:p-8 lg:p-10">
+                  <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-center">
+                    {/* Left - Content */}
+                    <div className="flex-1 space-y-4 text-center lg:text-left">
+                      <div className="flex items-center justify-center lg:justify-start gap-3">
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg">
+                          <Globe className="h-7 w-7 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl md:text-2xl font-bold text-foreground">EC3 Global Database</h3>
+                          <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Powered by Building Transparency</p>
+                        </div>
+                      </div>
+                      
+                      <p className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
+                        90,000+ EPDs at Your Fingertips
+                      </p>
+                      
+                      <p className="text-muted-foreground text-sm md:text-base max-w-xl">
+                        Access the world's largest free database of Environmental Product Declarations. Search verified EPDs from manufacturers worldwide with real-time GWP data, lifecycle stages, and geographic filtering.
+                      </p>
+                      
+                      <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+                        <Badge variant="secondary" className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                          <Database className="h-3 w-3 mr-1" />
+                          Real-time Search
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                          A1-D Lifecycle Stages
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                          Global Coverage
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start pt-2">
+                        <Button 
+                          onClick={() => navigate("/lp/ec3")} 
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                          size="lg"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Learn More
+                        </Button>
+                        <Button 
+                          onClick={() => navigate("/pricing")} 
+                          variant="outline"
+                          size="lg"
+                          className="border-blue-500/50 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        >
+                          Upgrade to Pro
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Right - Visual */}
+                    <div className="hidden lg:flex flex-col items-center justify-center w-48">
+                      <div className="relative">
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
+                          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500/30 to-cyan-500/30 flex items-center justify-center">
+                            <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">90K+</span>
+                          </div>
+                        </div>
+                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold rounded-full px-2 py-1">
+                          LIVE
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground text-center mt-3">Verified EPDs from BuildingTransparency.org</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Sign In Section - Replaced BOQ video teaser */}
             <div className="py-8 md:py-12">
               <Card variant="glass" className="max-w-xl mx-auto p-6 md:p-8 text-center glass-glow-hover">
@@ -567,89 +650,6 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* EC3 Global Database Hero Section */}
-            <div className="max-w-5xl mx-auto animate-fade-in [animation-delay:0.72s]">
-              <Card variant="glass" className="relative border-2 border-blue-500/30 bg-gradient-to-br from-blue-600/5 via-blue-500/10 to-cyan-500/5 overflow-hidden glass-glow-hover">
-                <div className="absolute top-0 right-0">
-                  <Badge className="rounded-none rounded-bl-lg bg-blue-600 text-white border-0 px-4 py-1.5 font-bold text-xs">
-                    <Globe className="h-3 w-3 mr-1" />
-                    PRO FEATURE
-                  </Badge>
-                </div>
-                <CardContent className="p-6 md:p-8 lg:p-10">
-                  <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-center">
-                    {/* Left - Content */}
-                    <div className="flex-1 space-y-4 text-center lg:text-left">
-                      <div className="flex items-center justify-center lg:justify-start gap-3">
-                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg">
-                          <Globe className="h-7 w-7 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-xl md:text-2xl font-bold text-foreground">EC3 Global Database</h3>
-                          <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Powered by Building Transparency</p>
-                        </div>
-                      </div>
-                      
-                      <p className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
-                        90,000+ EPDs at Your Fingertips
-                      </p>
-                      
-                      <p className="text-muted-foreground text-sm md:text-base max-w-xl">
-                        Access the world's largest free database of Environmental Product Declarations. Search verified EPDs from manufacturers worldwide with real-time GWP data, lifecycle stages, and geographic filtering.
-                      </p>
-                      
-                      <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
-                        <Badge variant="secondary" className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                          <Database className="h-3 w-3 mr-1" />
-                          Real-time Search
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                          A1-D Lifecycle Stages
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                          Global Coverage
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start pt-2">
-                        <Button 
-                          onClick={() => navigate("/lp/ec3")} 
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                          size="lg"
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Learn More
-                        </Button>
-                        <Button 
-                          onClick={() => navigate("/pricing")} 
-                          variant="outline"
-                          size="lg"
-                          className="border-blue-500/50 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                        >
-                          Upgrade to Pro
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {/* Right - Visual */}
-                    <div className="hidden lg:flex flex-col items-center justify-center w-48">
-                      <div className="relative">
-                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
-                          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500/30 to-cyan-500/30 flex items-center justify-center">
-                            <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">90K+</span>
-                          </div>
-                        </div>
-                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold rounded-full px-2 py-1">
-                          LIVE
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground text-center mt-3">Verified EPDs from BuildingTransparency.org</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
 
             {/* Trust & Transparency Section */}
             <div className="max-w-4xl mx-auto animate-fade-in [animation-delay:0.75s]">
