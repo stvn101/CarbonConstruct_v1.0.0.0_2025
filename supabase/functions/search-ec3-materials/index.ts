@@ -255,39 +255,16 @@ async function convertMaterialFilter(
 }
 
 /**
- * Fallback: Build simple query parameters when MaterialFilter conversion fails
- * Uses direct category parameter which EC3 does support
+ * Fallback: Build simple query parameters using text search only
+ * EC3 category parameter requires UUIDs, so we skip it in fallback mode
  */
 function buildFallbackParams(params: SearchRequest): URLSearchParams {
   const urlParams = new URLSearchParams();
   
-  // Infer category from query if not explicitly provided
-  let category = params.category && params.category !== 'all' 
-    ? EC3_CATEGORY_MAP[params.category] || params.category 
-    : null;
-  
-  if (!category && params.query) {
-    const q = params.query.toLowerCase();
-    if (q.includes('concrete') || q.includes('cement')) category = 'Concrete';
-    else if (q.includes('steel') || q.includes('rebar')) category = 'Steel';
-    else if (q.includes('timber') || q.includes('wood') || q.includes('lumber')) category = 'Wood';
-    else if (q.includes('glass')) category = 'Glass';
-    else if (q.includes('alumin')) category = 'Aluminum';
-    else if (q.includes('insulation')) category = 'Insulation';
-    else if (q.includes('masonry') || q.includes('brick')) category = 'Masonry';
-    else if (q.includes('gypsum')) category = 'Gypsum';
-  }
-  
-  // Use category parameter - EC3 supports this directly
-  if (category) {
-    urlParams.set('category', category);
-    console.log(`[EC3] Fallback using category: ${category}`);
-  }
-  
-  // Text search - try multiple param names that EC3 might support
+  // Text search using 'q' parameter - this is the reliable fallback
   if (params.query && params.query.trim().length >= 2) {
-    // EC3 uses 'q' for general search
     urlParams.set('q', params.query.trim());
+    console.log(`[EC3] Fallback using text search: "${params.query.trim()}"`);
   }
   
   // Filter expired EPDs
