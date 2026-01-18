@@ -28,8 +28,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Correct EC3 API base URL per implementation blueprint
-const EC3_API_BASE = 'https://etl-api.cqd.io/api';
+// Correct EC3 API base URL - verified from ec3-python-wrapper source
+const EC3_API_BASE = 'https://buildingtransparency.org/api';
 
 // Rate limit: 20 searches per hour for Pro users
 const EC3_RATE_LIMIT = {
@@ -290,19 +290,21 @@ serve(async (req) => {
       );
     }
 
-    // Build EC3 API request per implementation blueprint
-    // Using /materials endpoint with correct query parameters
+    // Build EC3 API request - using correct format from ec3-python-wrapper
+    // See: https://github.com/jbf1212/ec3-python-wrapper/blob/master/ec3/ec3_materials.py
     const params = new URLSearchParams();
     
-    // Text search - EC3 uses 'search' parameter
-    params.set('search', body.query.trim());
+    // Text search - EC3 uses the query directly as a filter param
+    // The API allows searching by passing query text in different filter formats
+    // For simple text search, we can use a name filter
+    params.set('name__icontains', body.query.trim());
     
-    // Category filtering - EC3 uses product_classes with JSON format
+    // Category filtering - EC3 uses 'category' parameter
     if (body.category) {
-      params.set('product_classes', JSON.stringify({ "EC3": body.category }));
+      params.set('category', body.category);
     }
     
-    // Geographic filtering - EC3 uses 'jurisdiction' (e.g., "AU", "US-NY")
+    // Geographic filtering - EC3 uses 'jurisdiction' or 'country' parameter
     if (body.country) {
       params.set('jurisdiction', body.country);
     }
@@ -315,19 +317,18 @@ serve(async (req) => {
     
     // Pagination
     params.set('page_size', String(Math.min(body.page_size || 25, 100)));
-    if (body.page) params.set('page', String(body.page));
+    if (body.page) params.set('page_number', String(body.page));
     
     // Specify return fields to minimize response size and token usage
+    // EC3 uses comma-separated field names in 'fields' param
     const returnFields = [
-      'id', 'name', 'product_name', 'category', 'manufacturer',
-      'gwp', 'gwp_per_declared_unit', 'declared_unit', 
-      'date_of_issue', 'date_of_expiry', 'date_validity_ends',
+      'id', 'name', 'category', 'manufacturer',
+      'gwp', 'gwp_per_category_declared_unit', 'declared_unit', 
+      'date_of_issue', 'date_validity_ends',
       'epd_number', 'declaration_url', 'plant_or_group', 
-      'jurisdiction', 'country', 'region',
-      'gwp_a1a2a3', 'gwp_a4', 'gwp_a5', 'gwp_c1c4', 'gwp_d',
-      'open_xpd_uuid', 'ec3_url'
+      'jurisdiction', 'country', 'open_xpd_uuid'
     ];
-    params.set('return_fields', JSON.stringify(returnFields));
+    params.set('fields', returnFields.join(','));
 
     const ec3Url = `${EC3_API_BASE}/materials?${params.toString()}`;
     console.log('[EC3] Calling EC3 API:', ec3Url.replace(ec3ApiKey, '***'));
