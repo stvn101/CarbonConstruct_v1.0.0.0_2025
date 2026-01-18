@@ -33,10 +33,11 @@ const corsHeaders = {
 // buildingtransparency.org/api is the working production endpoint (verified 2026-01-18)
 const EC3_API_BASE = 'https://buildingtransparency.org/api';
 
-// Rate limit: 20 searches per hour for Pro users
+// Rate limit: 200 searches per hour for Pro users (generous for testing)
+// EC3 allows 400 tokens/hour; material search = 0.01 tokens each
 const EC3_RATE_LIMIT = {
   windowMinutes: 60,
-  maxRequests: 20,
+  maxRequests: 200,
 };
 
 interface SearchRequest {
@@ -251,22 +252,25 @@ serve(async (req) => {
       console.log(`[EC3] Admin user ${user.id} - bypassing subscription check`);
     }
 
-    // Check rate limit (applies to both admins and Pro users)
-    const rateLimit = await checkRateLimit(supabaseAdmin, user.id);
-    if (!rateLimit.allowed) {
-      console.log(`[EC3] User ${user.id} rate limited until ${rateLimit.resetAt}`);
-      return new Response(
-        JSON.stringify({ 
-          error: `Rate limit exceeded. You can make ${EC3_RATE_LIMIT.maxRequests} EC3 searches per hour. Try again at ${new Date(rateLimit.resetAt).toLocaleTimeString()}.`,
-          status_code: 429,
-          rate_limit_remaining: 0,
-          rate_limit_reset: rateLimit.resetAt
-        }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Check rate limit (admins bypass rate limiting for testing/support)
+    if (!isAdmin) {
+      const rateLimit = await checkRateLimit(supabaseAdmin, user.id);
+      if (!rateLimit.allowed) {
+        console.log(`[EC3] User ${user.id} rate limited until ${rateLimit.resetAt}`);
+        return new Response(
+          JSON.stringify({ 
+            error: `Rate limit exceeded. You can make ${EC3_RATE_LIMIT.maxRequests} EC3 searches per hour. Try again at ${new Date(rateLimit.resetAt).toLocaleTimeString()}.`,
+            status_code: 429,
+            rate_limit_remaining: 0,
+            rate_limit_reset: rateLimit.resetAt
+          }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      console.log(`[EC3] Rate limit OK - ${rateLimit.remaining} requests remaining`);
+    } else {
+      console.log(`[EC3] Admin user ${user.id} - bypassing rate limit`);
     }
-
-    console.log(`[EC3] Rate limit OK - ${rateLimit.remaining} requests remaining`);
 
     // Get EC3 API key
     const ec3ApiKey = Deno.env.get('EC3_API_KEY');
@@ -285,9 +289,13 @@ serve(async (req) => {
     const body: SearchRequest = await req.json();
     console.log('[EC3] Search params:', JSON.stringify(body));
 
-    if (!body.query || body.query.trim().length < 2) {
+    // Allow text search OR category-only search (not requiring both)
+    const hasQuery = body.query && body.query.trim().length >= 2;
+    const hasCategory = body.category && body.category.trim().length > 0;
+    
+    if (!hasQuery && !hasCategory) {
       return new Response(
-        JSON.stringify({ error: 'Search query must be at least 2 characters', status_code: 400 }),
+        JSON.stringify({ error: 'Please provide a search query (min 2 chars) or select a category', status_code: 400 }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -299,8 +307,8 @@ serve(async (req) => {
     // Text search - EC3 uses the query directly as a filter param
     // The API allows searching by passing query text in different filter formats
     // For simple text search, we can use a name filter
-    if (body.query?.trim()) {
-      params.set('name__icontains', body.query.trim());
+    if (hasQuery) {
+      params.set('name__icontains', body.query!.trim());
     }
     
     // Category filtering - EC3 uses 'product_classes' parameter per Blueprint spec

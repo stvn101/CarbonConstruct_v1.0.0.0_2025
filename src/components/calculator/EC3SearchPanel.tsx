@@ -149,7 +149,7 @@ interface EC3SearchPanelProps {
 export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPanelProps) {
   const { toast } = useToast();
   const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [results, setResults] = useState<EC3Material[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -204,15 +204,22 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
       });
 
       if (fnError) {
-        throw new Error(fnError.message || 'Failed to search EC3');
+        // Try to extract detailed error from function response
+        const errorMessage = fnError.message || 'Failed to search EC3';
+        throw new Error(errorMessage);
       }
 
       if (data?.error) {
-        // Handle specific EC3 API errors
-        if (data.error.includes('rate limit') || data.status_code === 429) {
-          setError('EC3 rate limit exceeded. Please wait a moment and try again.');
+        // Handle specific EC3 API errors with detailed rate limit info
+        if (data.status_code === 429 || data.error.includes('rate limit') || data.error.includes('Rate limit')) {
+          const resetTime = data.rate_limit_reset 
+            ? new Date(data.rate_limit_reset).toLocaleTimeString()
+            : 'soon';
+          setError(`EC3 rate limit exceeded. Try again at ${resetTime}.`);
         } else if (data.error.includes('API key') || data.status_code === 401) {
           setError('EC3 API key not configured. Please add your EC3 API key in settings.');
+        } else if (data.status_code === 403 && data.upgrade_required) {
+          setError('EC3 Global Database requires a Pro subscription. Upgrade to access 90,000+ EPDs.');
         } else {
           setError(data.error);
         }
@@ -479,6 +486,9 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
           </p>
         </div>
       )}
+
+      {/* Footer Attribution - always visible per licensing requirements */}
+      <EC3Attribution variant="footer" className="mt-4" />
 
       {/* Attribution Footer */}
       <EC3Attribution variant="footer" />
