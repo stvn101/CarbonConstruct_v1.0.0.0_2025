@@ -8,16 +8,94 @@
  * NOTE: Materials are NOT stored - they're fetched on-demand per licensing.
  */
 
-import { useState, useCallback } from "react";
-import { Search, Loader2, AlertCircle, Plus, Globe, Building2, Calendar, Scale } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Search, Loader2, AlertCircle, Plus, Globe, Building2, Calendar, Scale, Filter, X, Clock, History } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EC3Attribution, EC3MaterialLink } from "./EC3Attribution";
+
+// Recent searches storage key
+const RECENT_SEARCHES_KEY = 'ec3_recent_searches';
+const MAX_RECENT_SEARCHES = 5;
+
+interface RecentSearch {
+  query: string;
+  category: string;
+  categoryName: string;
+  timestamp: number;
+}
+
+function getRecentSearches(): RecentSearch[] {
+  try {
+    const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentSearch(query: string, category: string, categoryName: string): void {
+  try {
+    const searches = getRecentSearches();
+    // Remove duplicate if exists
+    const filtered = searches.filter(
+      s => !(s.query === query && s.category === category)
+    );
+    // Add new search at beginning
+    const newSearch: RecentSearch = { query, category, categoryName, timestamp: Date.now() };
+    const updated = [newSearch, ...filtered].slice(0, MAX_RECENT_SEARCHES);
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+  } catch {
+    // Silently fail if localStorage unavailable
+  }
+}
+
+function clearRecentSearches(): void {
+  try {
+    localStorage.removeItem(RECENT_SEARCHES_KEY);
+  } catch {
+    // Silently fail
+  }
+}
+
+// Static categories - EC3's /categories/public endpoint returns schema metadata, not category list
+// These are the main construction material categories supported by EC3
+const EC3_CATEGORIES = [
+  { id: 'all', display_name: 'All Categories', path: '', level: 0 },
+  { id: 'Concrete', display_name: 'Concrete', path: 'Concrete', level: 0 },
+  { id: 'ReadyMix', display_name: 'Ready Mix Concrete', path: 'ReadyMix', level: 0 },
+  { id: 'Cement', display_name: 'Cement', path: 'Cement', level: 0 },
+  { id: 'Steel', display_name: 'Steel', path: 'Steel', level: 0 },
+  { id: 'SteelRebar', display_name: 'Steel Rebar', path: 'SteelRebar', level: 0 },
+  { id: 'StructuralSteel', display_name: 'Structural Steel', path: 'StructuralSteel', level: 0 },
+  { id: 'Wood', display_name: 'Timber / Wood', path: 'Wood', level: 0 },
+  { id: 'MassTimber', display_name: 'Mass Timber (CLT/Glulam)', path: 'MassTimber', level: 0 },
+  { id: 'Aluminum', display_name: 'Aluminium', path: 'Aluminum', level: 0 },
+  { id: 'Glass', display_name: 'Glass', path: 'Glass', level: 0 },
+  { id: 'FlatGlass', display_name: 'Flat Glass', path: 'FlatGlass', level: 0 },
+  { id: 'Insulation', display_name: 'Insulation', path: 'Insulation', level: 0 },
+  { id: 'Masonry', display_name: 'Masonry', path: 'Masonry', level: 0 },
+  { id: 'CMU', display_name: 'Concrete Masonry Units', path: 'CMU', level: 0 },
+  { id: 'Brick', display_name: 'Brick', path: 'Brick', level: 0 },
+  { id: 'Gypsum', display_name: 'Gypsum', path: 'Gypsum', level: 0 },
+  { id: 'Roofing', display_name: 'Roofing', path: 'Roofing', level: 0 },
+  { id: 'Flooring', display_name: 'Flooring', path: 'Flooring', level: 0 },
+  { id: 'Carpet', display_name: 'Carpet', path: 'Carpet', level: 0 },
+  { id: 'Cladding', display_name: 'Cladding', path: 'Cladding', level: 0 },
+  { id: 'Ceilings', display_name: 'Ceilings', path: 'Ceilings', level: 0 },
+  { id: 'Paint', display_name: 'Paint & Coatings', path: 'Paint', level: 0 },
+  { id: 'Waterproofing', display_name: 'Waterproofing', path: 'Waterproofing', level: 0 },
+  { id: 'Precast', display_name: 'Precast Concrete', path: 'Precast', level: 0 },
+  { id: 'Aggregates', display_name: 'Aggregates', path: 'Aggregates', level: 0 },
+];
+
+
 // EC3 Types - defined locally to avoid module resolution issues
 interface EC3Category {
   id: string;
@@ -121,14 +199,55 @@ interface EC3SearchPanelProps {
 export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPanelProps) {
   const { toast } = useToast();
   const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [results, setResults] = useState<EC3Material[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  
+  // Use static categories list (EC3 API doesn't provide a usable categories endpoint)
+  const categories = EC3_CATEGORIES;
+
+  // Load recent searches on mount
+  useEffect(() => {
+    setRecentSearches(getRecentSearches());
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setQuery('');
+    setSelectedCategory('all');
+    setResults([]);
+    setSearched(false);
+    setTotalCount(0);
+    setError(null);
+  }, []);
+
+  const handleClearRecentSearches = useCallback(() => {
+    clearRecentSearches();
+    setRecentSearches([]);
+    toast({ title: "Recent searches cleared" });
+  }, [toast]);
+
+  const handleRecentSearchClick = useCallback((search: RecentSearch) => {
+    setQuery(search.query);
+    setSelectedCategory(search.category);
+  }, []);
 
   const handleSearch = useCallback(async () => {
-    if (!query.trim() || query.trim().length < 2) {
+    // Allow category-only search or text search
+    const hasCategory = selectedCategory && selectedCategory !== 'all';
+    if (!query.trim() && !hasCategory) {
+      toast({ 
+        title: "Search required", 
+        description: "Please enter a search term or select a category",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    if (query.trim() && query.trim().length < 2) {
       toast({ 
         title: "Search query too short", 
         description: "Please enter at least 2 characters",
@@ -142,23 +261,40 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
     setSearched(true);
 
     try {
+      // Build request body with optional category
+      const requestBody: Record<string, unknown> = {
+        page_size: 25,
+      };
+
+      if (query.trim()) {
+        requestBody.query = query.trim();
+      }
+
+      // Add category filter if selected (not 'all')
+      const categoryConfig = categories.find(c => c.id === selectedCategory);
+      if (selectedCategory && selectedCategory !== 'all' && categoryConfig) {
+        requestBody.category = categoryConfig.path || categoryConfig.display_name || categoryConfig.id;
+      }
+
       const { data, error: fnError } = await supabase.functions.invoke('search-ec3-materials', {
-        body: { 
-          query: query.trim(),
-          page_size: 25 
-        }
+        body: requestBody
       });
 
       if (fnError) {
-        throw new Error(fnError.message || 'Failed to search EC3');
+        const errorMessage = fnError.message || 'Failed to search EC3';
+        throw new Error(errorMessage);
       }
 
       if (data?.error) {
-        // Handle specific EC3 API errors
-        if (data.error.includes('rate limit') || data.status_code === 429) {
-          setError('EC3 rate limit exceeded. Please wait a moment and try again.');
+        if (data.status_code === 429 || data.error.includes('rate limit') || data.error.includes('Rate limit')) {
+          const resetTime = data.rate_limit_reset 
+            ? new Date(data.rate_limit_reset).toLocaleTimeString()
+            : 'soon';
+          setError(`EC3 rate limit exceeded. Try again at ${resetTime}.`);
         } else if (data.error.includes('API key') || data.status_code === 401) {
           setError('EC3 API key not configured. Please add your EC3 API key in settings.');
+        } else if (data.status_code === 403 && data.upgrade_required) {
+          setError('EC3 Global Database requires a Pro subscription. Upgrade to access 90,000+ EPDs.');
         } else {
           setError(data.error);
         }
@@ -171,10 +307,17 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
       setResults(response.results || []);
       setTotalCount(response.total_count || 0);
 
+      // Save successful search to recent searches
+      if (response.results && response.results.length > 0) {
+        const categoryName = categoryConfig?.display_name || 'All Categories';
+        saveRecentSearch(query.trim(), selectedCategory, categoryName);
+        setRecentSearches(getRecentSearches());
+      }
+
       if (response.results?.length === 0) {
         toast({ 
           title: "No results found", 
-          description: "Try a different search term or check spelling" 
+          description: "Try a different search term or category" 
         });
       }
     } catch (err) {
@@ -185,7 +328,7 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
     } finally {
       setLoading(false);
     }
-  }, [query, toast]);
+  }, [query, selectedCategory, toast, categories]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !loading) {
@@ -232,23 +375,97 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
 
   return (
     <div className="space-y-4">
-      {/* Search Input */}
-      <div className="flex gap-2">
+      {/* Recent Searches - show before search if available */}
+      {recentSearches.length > 0 && !searched && (
+        <div className="p-3 rounded-lg bg-muted/30 border">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <History className="h-4 w-4" />
+              Recent Searches
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearRecentSearches}
+              className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3 w-3 mr-1" />
+              Clear
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {recentSearches.map((search, index) => (
+              <Button
+                key={`${search.query}-${search.category}-${index}`}
+                variant="outline"
+                size="sm"
+                onClick={() => handleRecentSearchClick(search)}
+                className="h-7 text-xs cursor-pointer"
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                {search.query || search.categoryName}
+                {search.query && search.category !== 'all' && (
+                  <Badge variant="secondary" className="ml-1 text-xs px-1">
+                    {search.categoryName}
+                  </Badge>
+                )}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Search Input with Category Filter */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        {/* Category Dropdown - static list */}
+        <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={disabled || loading}>
+          <SelectTrigger className="w-full sm:w-[220px]">
+            <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[300px] bg-popover border shadow-md z-50">
+            {categories.map((cat) => (
+              <SelectItem 
+                key={cat.id} 
+                value={cat.id}
+                className={cat.level > 0 ? `pl-${Math.min(cat.level * 4, 12)}` : ''}
+              >
+                {cat.level > 0 ? `${'  '.repeat(cat.level)}${cat.display_name}` : cat.display_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Search Input */}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search EC3 materials (e.g., concrete, steel, insulation)..."
+            placeholder="Search EC3 materials (e.g., 32 MPa, low carbon)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={disabled || loading}
-            className="pl-9"
+            className="pl-9 pr-9"
           />
+          {/* Clear input button */}
+          {(query || selectedCategory !== 'all' || searched) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearSearch}
+              disabled={loading}
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
+        
         <Button 
           onClick={handleSearch} 
-          disabled={disabled || loading || query.trim().length < 2}
-          className="min-w-[100px]"
+          disabled={disabled || loading || (!query.trim() && (!selectedCategory || selectedCategory === 'all'))}
+          className="min-w-[100px] cursor-pointer"
         >
           {loading ? (
             <>
@@ -292,7 +509,7 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
             <div className="flex flex-col items-center justify-center h-full p-8 text-center text-muted-foreground">
               <Search className="h-12 w-12 mb-3 opacity-30" />
               <p className="font-medium">No materials found</p>
-              <p className="text-xs">Try different keywords or check spelling</p>
+              <p className="text-xs">Try different keywords or select a category</p>
             </div>
           ) : (
             <div className="p-2 space-y-2">
@@ -383,7 +600,7 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
                         size="sm"
                         variant="outline"
                         onClick={() => handleAddMaterial(material)}
-                        className="h-8"
+                        className="h-8 cursor-pointer"
                       >
                         <Plus className="h-3.5 w-3.5 mr-1" />
                         Add
@@ -409,8 +626,8 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
         </div>
       )}
 
-      {/* Attribution Footer */}
-      <EC3Attribution variant="footer" />
+      {/* Footer Attribution - always visible per licensing requirements */}
+      <EC3Attribution variant="footer" className="mt-4" />
     </div>
   );
 }

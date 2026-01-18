@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
-import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark, TrendingUp, Award, HardHat, ClipboardList, FolderKanban, Globe2 } from 'lucide-react';
+import { Copy, ExternalLink, Users, Building, Briefcase, Truck, Leaf, Calculator, Landmark, TrendingUp, Award, HardHat, ClipboardList, FolderKanban, Globe2, Database } from 'lucide-react';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { LandingPageAnalytics } from '@/components/LandingPageAnalytics';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -176,6 +176,14 @@ const campaignPages: CampaignPage[] = [
     audience: 'ESG & Sustainability Leaders',
     icon: <Globe2 className="h-5 w-5" />,
     description: 'Portfolio-wide carbon tracking and ESG reporting',
+  },
+  // Feature Landing Pages
+  {
+    path: '/lp/ec3-integration',
+    name: 'EC3 Integration',
+    audience: 'LCA Practitioners & Carbon Specialists',
+    icon: <Database className="h-5 w-5" />,
+    description: 'Access 90,000+ EPDs from BuildingTransparency.org',
   },
 ];
 

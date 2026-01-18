@@ -24,6 +24,14 @@ export function EC3DatabaseToggle({
   disabled = false,
   ec3Available = true 
 }: EC3DatabaseToggleProps) {
+  const isEc3Enabled = ec3Available && !disabled;
+
+  const handleEc3Click = () => {
+    if (isEc3Enabled) {
+      onSourceChange('ec3');
+    }
+  };
+
   return (
     <div className="inline-flex items-center rounded-lg border bg-muted/30 p-1">
       <Tooltip>
@@ -31,7 +39,7 @@ export function EC3DatabaseToggle({
           <Button
             variant={source === 'local' ? 'secondary' : 'ghost'}
             size="sm"
-            className="h-8 px-3 gap-2"
+            className="h-8 px-3 gap-2 cursor-pointer hover:bg-accent"
             onClick={() => onSourceChange('local')}
             disabled={disabled}
           >
@@ -46,16 +54,24 @@ export function EC3DatabaseToggle({
 
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            variant={source === 'ec3' ? 'secondary' : 'ghost'}
-            size="sm"
-            className={`h-8 px-3 gap-2 ${!ec3Available ? 'opacity-50' : ''}`}
-            onClick={() => ec3Available && onSourceChange('ec3')}
-            disabled={disabled || !ec3Available}
+          <span
+            role="button"
+            tabIndex={isEc3Enabled ? 0 : -1}
+            onClick={handleEc3Click}
+            onKeyDown={(e) => e.key === 'Enter' && handleEc3Click()}
+            className={`inline-block ${isEc3Enabled ? 'cursor-pointer' : 'cursor-not-allowed'}`}
           >
-            <Globe className="h-4 w-4" />
-            <span className="hidden sm:inline">EC3 Global</span>
-          </Button>
+            <Button
+              variant={source === 'ec3' ? 'secondary' : 'ghost'}
+              size="sm"
+              className={`h-8 px-3 gap-2 pointer-events-none ${!ec3Available ? 'opacity-50' : ''}`}
+              tabIndex={-1}
+              aria-disabled={!isEc3Enabled}
+            >
+              <Globe className="h-4 w-4" />
+              <span className="hidden sm:inline">EC3 Global</span>
+            </Button>
+          </span>
         </TooltipTrigger>
         <TooltipContent>
           {ec3Available ? (
