@@ -28,9 +28,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Correct EC3 API base URL per Blueprint specification v1.2
-// https://etl-api.cqd.io/api/ is the correct endpoint per EC3 documentation
-const EC3_API_BASE = 'https://etl-api.cqd.io/api';
+// EC3 API configuration
+// NOTE: Blueprint specifies etl-api.cqd.io but that returns 404.
+// buildingtransparency.org/api is the working production endpoint (verified 2026-01-18)
+const EC3_API_BASE = 'https://buildingtransparency.org/api';
 
 // Rate limit: 20 searches per hour for Pro users
 const EC3_RATE_LIMIT = {

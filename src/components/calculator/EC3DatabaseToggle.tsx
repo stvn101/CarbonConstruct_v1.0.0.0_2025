@@ -46,16 +46,22 @@ export function EC3DatabaseToggle({
 
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            variant={source === 'ec3' ? 'secondary' : 'ghost'}
-            size="sm"
-            className={`h-8 px-3 gap-2 cursor-pointer ${!ec3Available ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={() => onSourceChange('ec3')}
-            disabled={disabled || !ec3Available}
+          <div 
+            className={ec3Available && !disabled ? 'cursor-pointer' : 'cursor-not-allowed'}
+            style={{ cursor: ec3Available && !disabled ? 'pointer' : 'not-allowed' }}
           >
-            <Globe className="h-4 w-4" />
-            <span className="hidden sm:inline">EC3 Global</span>
-          </Button>
+            <Button
+              variant={source === 'ec3' ? 'secondary' : 'ghost'}
+              size="sm"
+              className={`h-8 px-3 gap-2 ${!ec3Available ? 'opacity-50' : ''}`}
+              onClick={() => ec3Available && !disabled && onSourceChange('ec3')}
+              disabled={disabled || !ec3Available}
+              style={{ cursor: ec3Available && !disabled ? 'pointer' : 'not-allowed' }}
+            >
+              <Globe className="h-4 w-4" />
+              <span className="hidden sm:inline">EC3 Global</span>
+            </Button>
+          </div>
         </TooltipTrigger>
         <TooltipContent>
           {ec3Available ? (
