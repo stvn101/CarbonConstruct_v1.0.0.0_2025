@@ -2147,8 +2147,8 @@ export default function Calculator() {
                         <div className="flex items-center gap-2">
                           <EC3DatabaseToggle 
                             source={materialSource}
-                            onSourceChange={isPro ? setMaterialSource : () => {}}
-                            ec3Available={ec3Enabled}
+                            onSourceChange={setMaterialSource}
+                            ec3Available={ec3Enabled && isPro}
                             disabled={ec3Loading || !isPro}
                           />
                           {!isPro && (

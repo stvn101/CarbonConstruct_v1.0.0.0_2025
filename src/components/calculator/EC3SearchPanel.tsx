@@ -9,15 +9,43 @@
  */
 
 import { useState, useCallback } from "react";
-import { Search, Loader2, AlertCircle, Plus, Globe, Building2, Calendar, Scale } from "lucide-react";
+import { Search, Loader2, AlertCircle, Plus, Globe, Building2, Calendar, Scale, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EC3Attribution, EC3MaterialLink } from "./EC3Attribution";
+
+/**
+ * EC3 Material Categories per Blueprint specification
+ * Using product_classes parameter format for EC3 API
+ */
+const EC3_CATEGORIES = [
+  { id: '', label: 'All Categories', ec3Class: '' },
+  { id: 'concrete', label: 'Concrete', ec3Class: 'Concrete' },
+  { id: 'concrete-readymix', label: 'Concrete - ReadyMix', ec3Class: 'Concrete >> ReadyMix' },
+  { id: 'concrete-precast', label: 'Concrete - Precast', ec3Class: 'Concrete >> Precast' },
+  { id: 'steel', label: 'Steel', ec3Class: 'Steel' },
+  { id: 'steel-structural', label: 'Steel - Structural', ec3Class: 'Steel >> StructuralSteel' },
+  { id: 'steel-reinforcing', label: 'Steel - Reinforcing', ec3Class: 'Steel >> SteelRebar' },
+  { id: 'timber', label: 'Timber', ec3Class: 'Timber' },
+  { id: 'timber-softwood', label: 'Timber - Softwood', ec3Class: 'Timber >> SoftwoodLumber' },
+  { id: 'timber-hardwood', label: 'Timber - Hardwood', ec3Class: 'Timber >> HardwoodLumber' },
+  { id: 'insulation', label: 'Insulation', ec3Class: 'Insulation' },
+  { id: 'aluminium', label: 'Aluminium', ec3Class: 'Aluminum' },
+  { id: 'glass', label: 'Glass', ec3Class: 'Glass' },
+  { id: 'masonry', label: 'Masonry', ec3Class: 'Masonry' },
+  { id: 'masonry-brick', label: 'Masonry - Brick', ec3Class: 'Masonry >> ClayMasonryBrick' },
+  { id: 'masonry-cmu', label: 'Masonry - CMU', ec3Class: 'Masonry >> CMU' },
+  { id: 'roofing', label: 'Roofing', ec3Class: 'Roofing' },
+  { id: 'cladding', label: 'Cladding', ec3Class: 'Cladding' },
+  { id: 'flooring', label: 'Flooring', ec3Class: 'Flooring' },
+];
+
 // EC3 Types - defined locally to avoid module resolution issues
 interface EC3Category {
   id: string;
@@ -121,6 +149,7 @@ interface EC3SearchPanelProps {
 export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPanelProps) {
   const { toast } = useToast();
   const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [results, setResults] = useState<EC3Material[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,7 +157,17 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
   const [totalCount, setTotalCount] = useState(0);
 
   const handleSearch = useCallback(async () => {
-    if (!query.trim() || query.trim().length < 2) {
+    // Allow category-only search or text search
+    if (!query.trim() && !selectedCategory) {
+      toast({ 
+        title: "Search required", 
+        description: "Please enter a search term or select a category",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    if (query.trim() && query.trim().length < 2) {
       toast({ 
         title: "Search query too short", 
         description: "Please enter at least 2 characters",
@@ -142,11 +181,25 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
     setSearched(true);
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('search-ec3-materials', {
-        body: { 
-          query: query.trim(),
-          page_size: 25 
+      // Build request body with optional category
+      const requestBody: Record<string, unknown> = {
+        page_size: 25,
+      };
+
+      if (query.trim()) {
+        requestBody.query = query.trim();
+      }
+
+      // Add category filter if selected
+      if (selectedCategory) {
+        const categoryConfig = EC3_CATEGORIES.find(c => c.id === selectedCategory);
+        if (categoryConfig?.ec3Class) {
+          requestBody.category = categoryConfig.ec3Class;
         }
+      }
+
+      const { data, error: fnError } = await supabase.functions.invoke('search-ec3-materials', {
+        body: requestBody
       });
 
       if (fnError) {
@@ -174,7 +227,7 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
       if (response.results?.length === 0) {
         toast({ 
           title: "No results found", 
-          description: "Try a different search term or check spelling" 
+          description: "Try a different search term or category" 
         });
       }
     } catch (err) {
@@ -185,7 +238,7 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
     } finally {
       setLoading(false);
     }
-  }, [query, toast]);
+  }, [query, selectedCategory, toast]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !loading) {
@@ -232,12 +285,28 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
 
   return (
     <div className="space-y-4">
-      {/* Search Input */}
-      <div className="flex gap-2">
+      {/* Search Input with Category Filter */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        {/* Category Dropdown */}
+        <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={disabled || loading}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
+          <SelectContent>
+            {EC3_CATEGORIES.map((cat) => (
+              <SelectItem key={cat.id} value={cat.id}>
+                {cat.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Search Input */}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search EC3 materials (e.g., concrete, steel, insulation)..."
+            placeholder="Search EC3 materials (e.g., 32 MPa, low carbon)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyPress={handleKeyPress}
@@ -245,10 +314,11 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
             className="pl-9"
           />
         </div>
+        
         <Button 
           onClick={handleSearch} 
-          disabled={disabled || loading || query.trim().length < 2}
-          className="min-w-[100px]"
+          disabled={disabled || loading || (!query.trim() && !selectedCategory)}
+          className="min-w-[100px] cursor-pointer"
         >
           {loading ? (
             <>
@@ -292,7 +362,7 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
             <div className="flex flex-col items-center justify-center h-full p-8 text-center text-muted-foreground">
               <Search className="h-12 w-12 mb-3 opacity-30" />
               <p className="font-medium">No materials found</p>
-              <p className="text-xs">Try different keywords or check spelling</p>
+              <p className="text-xs">Try different keywords or select a category</p>
             </div>
           ) : (
             <div className="p-2 space-y-2">
@@ -383,7 +453,7 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
                         size="sm"
                         variant="outline"
                         onClick={() => handleAddMaterial(material)}
-                        className="h-8"
+                        className="h-8 cursor-pointer"
                       >
                         <Plus className="h-3.5 w-3.5 mr-1" />
                         Add

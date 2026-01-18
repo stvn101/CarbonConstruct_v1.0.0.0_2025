@@ -28,8 +28,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Correct EC3 API base URL - verified from ec3-python-wrapper source
-const EC3_API_BASE = 'https://buildingtransparency.org/api';
+// Correct EC3 API base URL per Blueprint specification v1.2
+// https://etl-api.cqd.io/api/ is the correct endpoint per EC3 documentation
+const EC3_API_BASE = 'https://etl-api.cqd.io/api';
 
 // Rate limit: 20 searches per hour for Pro users
 const EC3_RATE_LIMIT = {
@@ -297,11 +298,14 @@ serve(async (req) => {
     // Text search - EC3 uses the query directly as a filter param
     // The API allows searching by passing query text in different filter formats
     // For simple text search, we can use a name filter
-    params.set('name__icontains', body.query.trim());
+    if (body.query?.trim()) {
+      params.set('name__icontains', body.query.trim());
+    }
     
-    // Category filtering - EC3 uses 'category' parameter
+    // Category filtering - EC3 uses 'product_classes' parameter per Blueprint spec
+    // Format: "EC3":"Concrete >> ReadyMix" 
     if (body.category) {
-      params.set('category', body.category);
+      params.set('product_classes', `"EC3":"${body.category}"`);
     }
     
     // Geographic filtering - EC3 uses 'jurisdiction' or 'country' parameter

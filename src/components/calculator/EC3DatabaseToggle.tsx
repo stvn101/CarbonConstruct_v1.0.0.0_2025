@@ -31,7 +31,7 @@ export function EC3DatabaseToggle({
           <Button
             variant={source === 'local' ? 'secondary' : 'ghost'}
             size="sm"
-            className="h-8 px-3 gap-2"
+            className="h-8 px-3 gap-2 cursor-pointer"
             onClick={() => onSourceChange('local')}
             disabled={disabled}
           >
@@ -49,8 +49,8 @@ export function EC3DatabaseToggle({
           <Button
             variant={source === 'ec3' ? 'secondary' : 'ghost'}
             size="sm"
-            className={`h-8 px-3 gap-2 ${!ec3Available ? 'opacity-50' : ''}`}
-            onClick={() => ec3Available && onSourceChange('ec3')}
+            className={`h-8 px-3 gap-2 cursor-pointer ${!ec3Available ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={() => onSourceChange('ec3')}
             disabled={disabled || !ec3Available}
           >
             <Globe className="h-4 w-4" />
