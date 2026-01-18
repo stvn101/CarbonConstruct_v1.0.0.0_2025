@@ -8,8 +8,8 @@
  * NOTE: Materials are NOT stored - they're fetched on-demand per licensing.
  */
 
-import { useState, useCallback } from "react";
-import { Search, Loader2, AlertCircle, Plus, Globe, Building2, Calendar, Scale, Filter } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Search, Loader2, AlertCircle, Plus, Globe, Building2, Calendar, Scale, Filter, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,31 +20,30 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EC3Attribution, EC3MaterialLink } from "./EC3Attribution";
 
-/**
- * EC3 Material Categories per Blueprint specification
- * Using product_classes parameter format for EC3 API
- */
-const EC3_CATEGORIES = [
-  { id: 'all', label: 'All Categories', ec3Class: '' },
-  { id: 'concrete', label: 'Concrete', ec3Class: 'Concrete' },
-  { id: 'concrete-readymix', label: 'Concrete - ReadyMix', ec3Class: 'Concrete >> ReadyMix' },
-  { id: 'concrete-precast', label: 'Concrete - Precast', ec3Class: 'Concrete >> Precast' },
-  { id: 'steel', label: 'Steel', ec3Class: 'Steel' },
-  { id: 'steel-structural', label: 'Steel - Structural', ec3Class: 'Steel >> StructuralSteel' },
-  { id: 'steel-reinforcing', label: 'Steel - Reinforcing', ec3Class: 'Steel >> SteelRebar' },
-  { id: 'timber', label: 'Timber', ec3Class: 'Timber' },
-  { id: 'timber-softwood', label: 'Timber - Softwood', ec3Class: 'Timber >> SoftwoodLumber' },
-  { id: 'timber-hardwood', label: 'Timber - Hardwood', ec3Class: 'Timber >> HardwoodLumber' },
-  { id: 'insulation', label: 'Insulation', ec3Class: 'Insulation' },
-  { id: 'aluminium', label: 'Aluminium', ec3Class: 'Aluminum' },
-  { id: 'glass', label: 'Glass', ec3Class: 'Glass' },
-  { id: 'masonry', label: 'Masonry', ec3Class: 'Masonry' },
-  { id: 'masonry-brick', label: 'Masonry - Brick', ec3Class: 'Masonry >> ClayMasonryBrick' },
-  { id: 'masonry-cmu', label: 'Masonry - CMU', ec3Class: 'Masonry >> CMU' },
-  { id: 'roofing', label: 'Roofing', ec3Class: 'Roofing' },
-  { id: 'cladding', label: 'Cladding', ec3Class: 'Cladding' },
-  { id: 'flooring', label: 'Flooring', ec3Class: 'Flooring' },
+// Fallback categories if API fetch fails
+const FALLBACK_CATEGORIES = [
+  { id: 'all', display_name: 'All Categories', path: '', level: 0 },
+  { id: 'Concrete', display_name: 'Concrete', path: 'Concrete', level: 0 },
+  { id: 'Steel', display_name: 'Steel', path: 'Steel', level: 0 },
+  { id: 'Wood', display_name: 'Timber', path: 'Wood', level: 0 },
+  { id: 'Aluminum', display_name: 'Aluminium', path: 'Aluminum', level: 0 },
+  { id: 'Glass', display_name: 'Glass', path: 'Glass', level: 0 },
+  { id: 'Insulation', display_name: 'Insulation', path: 'Insulation', level: 0 },
+  { id: 'Masonry', display_name: 'Masonry', path: 'Masonry', level: 0 },
+  { id: 'Gypsum', display_name: 'Gypsum', path: 'Gypsum', level: 0 },
+  { id: 'Roofing', display_name: 'Roofing', path: 'Roofing', level: 0 },
+  { id: 'Flooring', display_name: 'Flooring', path: 'Flooring', level: 0 },
+  { id: 'Cladding', display_name: 'Cladding', path: 'Cladding', level: 0 },
 ];
+
+// Dynamic category type from EC3 API
+interface EC3CategoryOption {
+  id: string;
+  name?: string;
+  display_name: string;
+  path: string;
+  level: number;
+}
 
 // EC3 Types - defined locally to avoid module resolution issues
 interface EC3Category {
@@ -155,6 +154,47 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
+  
+  // Dynamic categories from EC3 API
+  const [categories, setCategories] = useState<EC3CategoryOption[]>(FALLBACK_CATEGORIES);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+
+  // Fetch EC3 categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setCategoriesLoading(true);
+      
+      try {
+        const { data, error: fnError } = await supabase.functions.invoke('get-ec3-categories', {});
+        
+        if (fnError || data?.error) {
+          console.warn('[EC3] Failed to fetch categories, using fallback:', fnError?.message || data?.error);
+          return; // Keep fallback categories
+        }
+        
+        if (data?.categories && Array.isArray(data.categories)) {
+          // Prepend "All Categories" option
+          const dynamicCategories: EC3CategoryOption[] = [
+            { id: 'all', display_name: 'All Categories', path: '', level: 0 },
+            ...data.categories.map((cat: EC3CategoryOption) => ({
+              id: cat.id || cat.name || cat.display_name,
+              display_name: cat.display_name || cat.name || cat.id,
+              path: cat.path || cat.display_name,
+              level: cat.level || 0,
+            }))
+          ];
+          setCategories(dynamicCategories);
+          console.log(`[EC3] Loaded ${dynamicCategories.length - 1} categories from API`);
+        }
+      } catch (err) {
+        console.warn('[EC3] Category fetch error:', err);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
 
   const handleSearch = useCallback(async () => {
     // Allow category-only search or text search
@@ -193,9 +233,11 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
 
       // Add category filter if selected (not 'all')
       if (selectedCategory && selectedCategory !== 'all') {
-        const categoryConfig = EC3_CATEGORIES.find(c => c.id === selectedCategory);
-        if (categoryConfig?.ec3Class) {
-          requestBody.category = categoryConfig.ec3Class;
+        // Find the selected category to get its path/name for the API
+        const categoryConfig = categories.find(c => c.id === selectedCategory);
+        if (categoryConfig) {
+          // Send the category display_name or path to the edge function
+          requestBody.category = categoryConfig.path || categoryConfig.display_name || categoryConfig.id;
         }
       }
 
@@ -295,16 +337,24 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
     <div className="space-y-4">
       {/* Search Input with Category Filter */}
       <div className="flex flex-col sm:flex-row gap-2">
-        {/* Category Dropdown */}
-        <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={disabled || loading}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+        {/* Category Dropdown - now dynamic */}
+        <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={disabled || loading || categoriesLoading}>
+          <SelectTrigger className="w-full sm:w-[220px]">
+            {categoriesLoading ? (
+              <RefreshCw className="h-4 w-4 mr-2 text-muted-foreground animate-spin" />
+            ) : (
+              <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+            )}
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
-          <SelectContent>
-            {EC3_CATEGORIES.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id}>
-                {cat.label}
+          <SelectContent className="max-h-[300px]">
+            {categories.map((cat) => (
+              <SelectItem 
+                key={cat.id} 
+                value={cat.id}
+                className={cat.level > 0 ? `pl-${Math.min(cat.level * 4, 12)}` : ''}
+              >
+                {cat.level > 0 ? `${'  '.repeat(cat.level)}${cat.display_name}` : cat.display_name}
               </SelectItem>
             ))}
           </SelectContent>

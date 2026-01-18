@@ -1,4 +1,4 @@
-import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, DollarSign, Leaf, Map, Play, Upload, Sparkles, Database, Receipt } from "lucide-react";
+import { Calculator, FileBarChart, Settings, Home, HelpCircle, ChevronRight, DollarSign, Leaf, Map, Play, Upload, Sparkles, Database, Receipt, Globe } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -44,6 +44,11 @@ const otherItems = [{
   url: "/materials/status",
   icon: Database,
   color: "text-emerald-400"
+}, {
+  title: "EC3 Global Database",
+  url: "/lp/ec3",
+  icon: Globe,
+  color: "text-blue-400"
 }, {
   title: "AI BOQ Demo",
   url: "/demo",

@@ -122,3 +122,6 @@ verify_jwt = true
 
 [functions.search-ec3-materials]
 verify_jwt = true
+
+[functions.get-ec3-categories]
+verify_jwt = true
