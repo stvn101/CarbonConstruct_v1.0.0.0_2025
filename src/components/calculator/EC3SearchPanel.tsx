@@ -25,7 +25,7 @@ import { EC3Attribution, EC3MaterialLink } from "./EC3Attribution";
  * Using product_classes parameter format for EC3 API
  */
 const EC3_CATEGORIES = [
-  { id: '', label: 'All Categories', ec3Class: '' },
+  { id: 'all', label: 'All Categories', ec3Class: '' },
   { id: 'concrete', label: 'Concrete', ec3Class: 'Concrete' },
   { id: 'concrete-readymix', label: 'Concrete - ReadyMix', ec3Class: 'Concrete >> ReadyMix' },
   { id: 'concrete-precast', label: 'Concrete - Precast', ec3Class: 'Concrete >> Precast' },
@@ -158,7 +158,8 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
 
   const handleSearch = useCallback(async () => {
     // Allow category-only search or text search
-    if (!query.trim() && !selectedCategory) {
+    const hasCategory = selectedCategory && selectedCategory !== 'all';
+    if (!query.trim() && !hasCategory) {
       toast({ 
         title: "Search required", 
         description: "Please enter a search term or select a category",
@@ -190,8 +191,8 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
         requestBody.query = query.trim();
       }
 
-      // Add category filter if selected
-      if (selectedCategory) {
+      // Add category filter if selected (not 'all')
+      if (selectedCategory && selectedCategory !== 'all') {
         const categoryConfig = EC3_CATEGORIES.find(c => c.id === selectedCategory);
         if (categoryConfig?.ec3Class) {
           requestBody.category = categoryConfig.ec3Class;
@@ -317,7 +318,7 @@ export function EC3SearchPanel({ onAddMaterial, disabled = false }: EC3SearchPan
         
         <Button 
           onClick={handleSearch} 
-          disabled={disabled || loading || (!query.trim() && !selectedCategory)}
+          disabled={disabled || loading || (!query.trim() && (!selectedCategory || selectedCategory === 'all'))}
           className="min-w-[100px] cursor-pointer"
         >
           {loading ? (
