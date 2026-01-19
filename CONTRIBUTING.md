@@ -48,6 +48,48 @@ npm run dev
 | `development` | Active development | Staging |
 | `experiment` | Experimental features | None |
 
+### Branch Protection Rules
+
+The `main` branch has the following protections enabled:
+
+#### Required Status Checks
+
+All of these must pass before merging:
+
+| Check | Description |
+|-------|-------------|
+| `lint` | ESLint code quality |
+| `typecheck` | TypeScript compilation |
+| `test` | Vitest unit tests |
+| `coverage` | Code coverage thresholds |
+| `security-scan` | CodeQL SAST analysis |
+| `secrets-scan` | TruffleHog detection |
+| `audit` | npm dependency audit |
+
+#### Review Requirements
+
+- ✅ **Minimum 1 approval** required before merge
+- ✅ **Dismiss stale reviews** when new commits are pushed
+- ✅ **Require review from code owners** for critical paths
+- ✅ **Restrict who can dismiss reviews** to maintainers only
+
+#### Additional Protections
+
+- 🔒 **Require signed commits** (recommended)
+- 🔒 **Require linear history** (squash merge only)
+- 🔒 **Do not allow bypassing** above settings
+- 🔒 **Restrict force pushes** to nobody
+- 🔒 **Restrict deletions** enabled
+
+#### Setting Up Branch Protection
+
+Repository admins can configure these rules at:
+```
+Settings → Branches → Branch protection rules → Add rule
+```
+
+Select `main` as the branch pattern and enable the required checks.
+
 ### Workflow Steps
 
 1. **Create a feature branch** from `development`:
