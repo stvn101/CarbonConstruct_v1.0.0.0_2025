@@ -25,7 +25,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
-import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
+import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.webp";
 import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.webp";
 import CircularEcologyLogo from "@/assets/CircularEcology-Logo.webp";
 
