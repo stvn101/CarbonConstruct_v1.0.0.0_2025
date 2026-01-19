@@ -22,6 +22,7 @@ import {
 import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.webp";
 import CircularEcologyLogo from "@/assets/CircularEcology-Logo.webp";
 import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.webp";
+import EPDAustralasiaLogo from "@/assets/EPD-Australasia-Logo.webp";
 
 interface DataSource {
   name: string;
@@ -42,35 +43,6 @@ interface DataSource {
 }
 
 const dataSources: DataSource[] = [
-  {
-    name: "ICE Database V4.1",
-    shortName: "ICE",
-    logo: CircularEcologyLogo,
-    logoBg: "bg-white",
-    description:
-      "The Inventory of Carbon and Energy (ICE) from Circular Ecology is the world's most widely used embodied carbon database, providing comprehensive emission factors for construction materials.",
-    materialCount: "511",
-    priority: 2,
-    tier: "Tier 2",
-    tierLabel: "National LCI",
-    uncertainty: "±15%",
-    integrationType: "Static Import",
-    features: [
-      "Global industry standard dataset",
-      "Comprehensive material coverage",
-      "Regular updates and versioning",
-      "Cradle-to-gate emission factors",
-      "Accepted as Australian proxy data",
-    ],
-    technicalDetails: [
-      "Excel import with column mapping",
-      "Automatic category classification",
-      "Priority 2 in source hierarchy",
-      "Normalized to kgCO2e/kg",
-    ],
-    url: "https://circularecology.com/embodied-carbon-footprint-database.html",
-    coverage: "Global (UK-based)",
-  },
   {
     name: "EC3 Global Database",
     shortName: "EC3",
@@ -102,6 +74,64 @@ const dataSources: DataSource[] = [
     coverage: "Global",
   },
   {
+    name: "EPD Australasia Collection",
+    shortName: "EPD-AU",
+    logo: EPDAustralasiaLogo,
+    logoBg: "bg-white",
+    description:
+      "EPD Australasia-verified Environmental Product Declarations from Australian and New Zealand manufacturers. This collection provides manufacturer-specific, third-party verified carbon data for construction materials sourced locally.",
+    materialCount: "3,408",
+    priority: 3,
+    tier: "Tier 1",
+    tierLabel: "EPD-Verified",
+    uncertainty: "±5%",
+    integrationType: "Static Import",
+    features: [
+      "Third-party verified EPDs",
+      "Australian & NZ manufacturers",
+      "Product-specific carbon data",
+      "Manufacturer attribution",
+      "Full lifecycle stage data",
+    ],
+    technicalDetails: [
+      "Bulk import with validation",
+      "Priority 3 in source hierarchy",
+      "EPD Australasia program compliant",
+      "Covers A1-A3 and beyond lifecycle stages",
+    ],
+    url: "https://epd-australasia.com",
+    coverage: "Australia & New Zealand",
+  },
+  {
+    name: "ICE Database V4.1",
+    shortName: "ICE",
+    logo: CircularEcologyLogo,
+    logoBg: "bg-white",
+    description:
+      "The Inventory of Carbon and Energy (ICE) from Circular Ecology is the world's most widely used embodied carbon database, providing comprehensive emission factors for construction materials.",
+    materialCount: "511",
+    priority: 2,
+    tier: "Tier 2",
+    tierLabel: "National LCI",
+    uncertainty: "±15%",
+    integrationType: "Static Import",
+    features: [
+      "Global industry standard dataset",
+      "Comprehensive material coverage",
+      "Regular updates and versioning",
+      "Cradle-to-gate emission factors",
+      "Accepted as Australian proxy data",
+    ],
+    technicalDetails: [
+      "Excel import with column mapping",
+      "Automatic category classification",
+      "Priority 2 in source hierarchy",
+      "Normalized to kgCO2e/kg",
+    ],
+    url: "https://circularecology.com/embodied-carbon-footprint-database.html",
+    coverage: "Global (UK-based)",
+  },
+  {
     name: "EPiC Database 2024",
     shortName: "EPiC",
     description:
@@ -127,33 +157,6 @@ const dataSources: DataSource[] = [
     ],
     url: "https://msd.unimelb.edu.au/research/projects/current/epic",
     coverage: "Australia",
-  },
-  {
-    name: "EPD Australasia Collection",
-    shortName: "EPD-AU",
-    description:
-      "EPD Australasia-verified Environmental Product Declarations from Australian and New Zealand manufacturers. This collection provides manufacturer-specific, third-party verified carbon data for construction materials sourced locally.",
-    materialCount: "3,408",
-    priority: 3,
-    tier: "Tier 1",
-    tierLabel: "EPD-Verified",
-    uncertainty: "±5%",
-    integrationType: "Static Import",
-    features: [
-      "Third-party verified EPDs",
-      "Australian & NZ manufacturers",
-      "Product-specific carbon data",
-      "Manufacturer attribution",
-      "Full lifecycle stage data",
-    ],
-    technicalDetails: [
-      "Bulk import with validation",
-      "Priority 3 in source hierarchy",
-      "EPD Australasia program compliant",
-      "Covers A1-A3 and beyond lifecycle stages",
-    ],
-    url: "https://epd-australasia.com",
-    coverage: "Australia & New Zealand",
   },
   {
     name: "United Facade",
