@@ -19,7 +19,8 @@ import {
   Globe,
   Users,
   Award,
-  ArrowRight
+  ArrowRight,
+  Layers
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -272,6 +273,15 @@ const Partners = () => {
               <Award className="h-4 w-4 mr-2" />
               Certifications
             </Badge>
+          </div>
+          
+          {/* Link to Integration Docs */}
+          <div className="mt-8">
+            <Button variant="outline" onClick={() => navigate("/partners/integrations")} className="hover-scale">
+              <Layers className="mr-2 h-4 w-4" />
+              View Data Source Integrations
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </div>
 
