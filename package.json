@@ -7,7 +7,11 @@
   "author": "CarbonConstruct Team",
   "license": "UNLICENSED",
   "overrides": {
-    "scheduler": "0.23.2"
+    "scheduler": "0.23.2",
+    "react-helmet-async": {
+      "react": "^19.2.3",
+      "react-dom": "^19.2.3"
+    }
   },
   "scripts": {
     "dev": "vite",
