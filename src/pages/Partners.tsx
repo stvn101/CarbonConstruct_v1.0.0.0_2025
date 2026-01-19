@@ -25,7 +25,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
-import BTTLogo from "@/assets/BTT-LogoWhite.svg";
 import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
 import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.png";
 import CircularEcologyLogo from "@/assets/CircularEcology-Logo.jpg";
@@ -50,52 +49,27 @@ interface PartnerProfile {
 
 const partners: PartnerProfile[] = [
   {
-    id: "btt",
-    name: "Build the Trend",
-    shortDescription: "Construction intelligence and market insights for sustainable building practices.",
-    fullDescription: "Build the Trend provides cutting-edge construction market intelligence, helping builders and developers make data-driven decisions. Their insights on sustainable building trends directly inform our compliance recommendations and market analysis features.",
-    logo: BTTLogo,
-    logoBg: "bg-slate-800",
-    url: "https://buildthetrend.com.au",
-    category: "industry",
+    id: "building-transparency",
+    name: "Building Transparency",
+    shortDescription: "EC3 Global Database — 90,000+ verified Environmental Product Declarations.",
+    fullDescription: "Building Transparency operates the EC3 (Embodied Carbon in Construction Calculator) database, providing access to over 90,000 verified EPDs from manufacturers worldwide. This integration enables CarbonConstruct Pro users to access the most comprehensive EPD database globally.",
+    logo: BuildingTransparencyLogo,
+    logoBg: "bg-slate-900",
+    url: "https://buildingtransparency.org",
+    category: "data",
     features: [
-      "Real-time market trend analysis",
-      "Sustainability benchmarking data",
-      "Construction industry forecasting",
-      "Regulatory change tracking"
+      "90,000+ verified EPDs",
+      "Global manufacturer coverage",
+      "Real-time API access",
+      "Open data initiative"
     ],
     caseStudy: {
-      title: "Enhanced Market Positioning",
-      description: "By integrating Build the Trend's market intelligence, CarbonConstruct users gain insights into how their projects compare against industry sustainability benchmarks.",
+      title: "Global EPD Access",
+      description: "Pro users can search and compare EPDs from the world's largest open database, enabling precise material selection based on verified carbon data.",
       metrics: [
-        { label: "Market Insights", value: "500+" },
-        { label: "Industry Coverage", value: "AU-Wide" },
-        { label: "Update Frequency", value: "Weekly" }
-      ]
-    }
-  },
-  {
-    id: "united-facade",
-    name: "United Facade",
-    shortDescription: "Premium facade solutions and sustainable building envelope specialists.",
-    fullDescription: "United Facade is a leading Australian facade specialist committed to sustainable building envelope solutions. As a founding partner, their expertise in low-carbon cladding and glazing systems directly influences our materials database and embodied carbon calculations.",
-    logo: UnitedFacadeLogo,
-    logoBg: "bg-white",
-    url: "https://unitedfacade.com.au",
-    category: "industry",
-    features: [
-      "EPD-certified facade products",
-      "Low-carbon cladding systems",
-      "Thermal performance optimisation",
-      "Sustainable glazing solutions"
-    ],
-    caseStudy: {
-      title: "Real-World Carbon Reduction",
-      description: "United Facade's product EPDs are integrated into CarbonConstruct, enabling accurate embodied carbon calculations for facade specifications.",
-      metrics: [
-        { label: "EPD Products", value: "50+" },
-        { label: "Avg Carbon Savings", value: "15%" },
-        { label: "Projects Supported", value: "200+" }
+        { label: "EPDs Available", value: "90K+" },
+        { label: "Manufacturers", value: "5,000+" },
+        { label: "Countries", value: "100+" }
       ]
     }
   },
@@ -125,27 +99,27 @@ const partners: PartnerProfile[] = [
     }
   },
   {
-    id: "building-transparency",
-    name: "Building Transparency",
-    shortDescription: "EC3 Global Database — 90,000+ verified Environmental Product Declarations.",
-    fullDescription: "Building Transparency operates the EC3 (Embodied Carbon in Construction Calculator) database, providing access to over 90,000 verified EPDs from manufacturers worldwide. This integration enables CarbonConstruct Pro users to access the most comprehensive EPD database globally.",
-    logo: BuildingTransparencyLogo,
-    logoBg: "bg-slate-900",
-    url: "https://buildingtransparency.org",
-    category: "data",
+    id: "united-facade",
+    name: "United Facade",
+    shortDescription: "Premium facade solutions and sustainable building envelope specialists.",
+    fullDescription: "United Facade is a leading Australian facade specialist committed to sustainable building envelope solutions. As a founding partner, their expertise in low-carbon cladding and glazing systems directly influences our materials database and embodied carbon calculations.",
+    logo: UnitedFacadeLogo,
+    logoBg: "bg-white",
+    url: "https://unitedfacade.com.au",
+    category: "industry",
     features: [
-      "90,000+ verified EPDs",
-      "Global manufacturer coverage",
-      "Real-time API access",
-      "Open data initiative"
+      "EPD-certified facade products",
+      "Low-carbon cladding systems",
+      "Thermal performance optimisation",
+      "Sustainable glazing solutions"
     ],
     caseStudy: {
-      title: "Global EPD Access",
-      description: "Pro users can search and compare EPDs from the world's largest open database, enabling precise material selection based on verified carbon data.",
+      title: "Real-World Carbon Reduction",
+      description: "United Facade's product EPDs are integrated into CarbonConstruct, enabling accurate embodied carbon calculations for facade specifications.",
       metrics: [
-        { label: "EPDs Available", value: "90K+" },
-        { label: "Manufacturers", value: "5,000+" },
-        { label: "Countries", value: "100+" }
+        { label: "EPD Products", value: "50+" },
+        { label: "Avg Carbon Savings", value: "15%" },
+        { label: "Projects Supported", value: "200+" }
       ]
     }
   }
