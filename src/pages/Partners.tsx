@@ -101,25 +101,25 @@ const partners: PartnerProfile[] = [
   {
     id: "united-facade",
     name: "United Facade",
-    shortDescription: "Premium facade solutions and sustainable building envelope specialists.",
-    fullDescription: "United Facade is a leading Australian facade specialist committed to sustainable building envelope solutions. As a founding partner, their expertise in low-carbon cladding and glazing systems directly influences our materials database and embodied carbon calculations.",
+    shortDescription: "Queensland commercial construction — 17 years of Tier 1 site experience shaping CarbonConstruct.",
+    fullDescription: "United Facade is Steven's Queensland-based commercial construction company specialising in steel-framed partitions, ceilings, curtain wall facade and carpentry work. With 17 years of hands-on site experience across Tier 1 projects in Queensland, NSW, and Victoria, the practical knowledge from running United Facade directly shaped how CarbonConstruct approaches carbon calculation.",
     logo: UnitedFacadeLogo,
     logoBg: "bg-white",
     url: "https://unitedfacade.com.au",
     category: "industry",
     features: [
-      "EPD-certified facade products",
-      "Low-carbon cladding systems",
-      "Thermal performance optimisation",
-      "Sustainable glazing solutions"
+      "Real project material selections",
+      "Estimating-first workflows",
+      "Carbon data integrated with quoting",
+      "17 years Tier 1 experience"
     ],
     caseStudy: {
-      title: "Real-World Carbon Reduction",
-      description: "United Facade's product EPDs are integrated into CarbonConstruct, enabling accurate embodied carbon calculations for facade specifications.",
+      title: "Builder-First Approach",
+      description: "Most carbon tools are built by consultants who've never priced a job. CarbonConstruct was built by someone who has — focusing on materials and workflows that actually matter to builders, not theoretical compliance frameworks.",
       metrics: [
-        { label: "EPD Products", value: "50+" },
-        { label: "Avg Carbon Savings", value: "15%" },
-        { label: "Projects Supported", value: "200+" }
+        { label: "Years Experience", value: "17+" },
+        { label: "States Covered", value: "QLD, NSW, VIC" },
+        { label: "Approach", value: "Builder-First" }
       ]
     }
   }
