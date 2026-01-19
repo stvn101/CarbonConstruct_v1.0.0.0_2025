@@ -21,7 +21,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.webp";
-import CircularEcologyLogo from "@/assets/CircularEcology-Logo.jpg";
+import CircularEcologyLogo from "@/assets/CircularEcology-Logo.webp";
 
 interface DataSource {
   name: string;

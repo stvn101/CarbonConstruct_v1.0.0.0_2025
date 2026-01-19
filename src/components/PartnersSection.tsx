@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Handshake, ExternalLink, ArrowRight } from "lucide-react";
 import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
 import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.webp";
-import CircularEcologyLogo from "@/assets/CircularEcology-Logo.jpg";
+import CircularEcologyLogo from "@/assets/CircularEcology-Logo.webp";
 
 interface Partner {
   name: string;
