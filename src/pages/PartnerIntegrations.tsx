@@ -1,6 +1,5 @@
 import { SEOHead } from "@/components/SEOHead";
 import { Link } from "react-router-dom";
-import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +21,7 @@ import {
 } from "lucide-react";
 import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.webp";
 import CircularEcologyLogo from "@/assets/CircularEcology-Logo.webp";
+import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.webp";
 
 interface DataSource {
   name: string;
@@ -31,7 +31,7 @@ interface DataSource {
   description: string;
   materialCount: string;
   priority: number;
-  tier: "Tier 1" | "Tier 2" | "Tier 3";
+  tier: "Tier 1" | "Tier 2" | "Tier 3" | "Partner";
   tierLabel: string;
   uncertainty: string;
   integrationType: "Static Import" | "Live API" | "Periodic Sync";
@@ -155,12 +155,42 @@ const dataSources: DataSource[] = [
     url: "https://www.nabers.gov.au",
     coverage: "Australia",
   },
+  {
+    name: "United Facade",
+    shortName: "UF",
+    logo: UnitedFacadeLogo,
+    logoBg: "bg-slate-100 dark:bg-slate-800",
+    description:
+      "United Facade is a Queensland-based commercial construction company with 17 years of hands-on Tier 1 site experience. The practical knowledge from running real projects directly shaped how CarbonConstruct approaches carbon calculation — focusing on materials and workflows that actually matter to builders.",
+    materialCount: "Builder Insights",
+    priority: 0,
+    tier: "Partner",
+    tierLabel: "Industry Partner",
+    uncertainty: "N/A",
+    integrationType: "Static Import",
+    features: [
+      "Real project material selections",
+      "Estimating-first workflows",
+      "Carbon data integrated with quoting",
+      "17 years Tier 1 experience",
+      "Queensland commercial construction",
+    ],
+    technicalDetails: [
+      "Builder-first approach to carbon calculation",
+      "Material selections based on real commercial projects",
+      "Workflows designed around actual estimating processes",
+      "Practical experience informing platform design",
+    ],
+    url: "https://unitedfacade.com.au",
+    coverage: "Queensland, Australia",
+  },
 ];
 
-const tierBadgeStyles = {
+const tierBadgeStyles: Record<string, string> = {
   "Tier 1": "bg-emerald-600/20 text-emerald-700 dark:text-emerald-300 border-emerald-600/40",
   "Tier 2": "bg-blue-600/20 text-blue-700 dark:text-blue-300 border-blue-600/40",
   "Tier 3": "bg-amber-600/20 text-amber-700 dark:text-amber-300 border-amber-600/40",
+  "Partner": "bg-primary/20 text-primary border-primary/40",
 };
 
 const integrationBadgeStyles = {
@@ -171,7 +201,7 @@ const integrationBadgeStyles = {
 
 export default function PartnerIntegrations() {
   return (
-    <Layout>
+    <>
       <SEOHead
         title="Data Source Integrations | CarbonConstruct"
         description="Learn how CarbonConstruct integrates industry-leading carbon databases including ICE, EC3, EPiC, and NABERS for accurate embodied carbon calculations."
@@ -486,6 +516,6 @@ export default function PartnerIntegrations() {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 }
