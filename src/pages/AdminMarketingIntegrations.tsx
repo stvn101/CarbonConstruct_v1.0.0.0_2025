@@ -20,10 +20,13 @@ import {
   Code,
   ExternalLink,
   Copy,
-  Settings
+  Settings,
+  Linkedin,
+  TrendingUp
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getCookiePreferences, resetCookieConsent } from '@/components/CookieConsent';
+import { MarketingAnalyticsDashboard } from '@/components/MarketingAnalyticsDashboard';
 
 interface TrackingScript {
   id: string;
@@ -108,6 +111,18 @@ export default function AdminMarketingIntegrations() {
         documentation: 'https://apollo.io/integrations',
         lastChecked: new Date().toISOString(),
       },
+      {
+        id: 'linkedin',
+        name: 'LinkedIn Insight Tag',
+        description: 'B2B conversion tracking and audience building',
+        icon: <Linkedin className="h-5 w-5" />,
+        status: win.linkedInLoaded ? 'active' : (prefs?.marketing ? 'pending' : 'inactive'),
+        consentRequired: 'marketing',
+        enabled: prefs?.marketing ?? false,
+        containerId: 'XXXXXXX', // Replace with actual LinkedIn Partner ID
+        documentation: 'https://business.linkedin.com/marketing-solutions/insight-tag',
+        lastChecked: new Date().toISOString(),
+      },
     ];
     
     setScripts(trackingScripts);
@@ -180,8 +195,12 @@ export default function AdminMarketingIntegrations() {
             </Button>
           </div>
 
-          <Tabs defaultValue="status" className="space-y-6">
+          <Tabs defaultValue="analytics" className="space-y-6">
             <TabsList>
+              <TabsTrigger value="analytics">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Analytics
+              </TabsTrigger>
               <TabsTrigger value="status">
                 <Activity className="h-4 w-4 mr-2" />
                 Status
@@ -195,6 +214,11 @@ export default function AdminMarketingIntegrations() {
                 Implementation
               </TabsTrigger>
             </TabsList>
+
+            {/* Analytics Tab */}
+            <TabsContent value="analytics">
+              <MarketingAnalyticsDashboard />
+            </TabsContent>
 
             {/* Status Tab */}
             <TabsContent value="status" className="space-y-6">
