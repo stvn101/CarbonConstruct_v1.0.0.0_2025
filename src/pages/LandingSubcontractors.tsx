@@ -24,7 +24,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SEOHead } from "@/components/SEOHead";
-import { Footer } from "@/components/Footer";
 import { WhitepaperSummary } from "@/components/WhitepaperSummary";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -577,7 +576,7 @@ const LandingSubcontractors = () => {
           </div>
         </section>
 
-        <Footer />
+        
 
         {/* Email Capture Popup */}
         <AnimatePresence>
