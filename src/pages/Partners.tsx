@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
 import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.webp";
-import CircularEcologyLogo from "@/assets/CircularEcology-Logo.jpg";
+import CircularEcologyLogo from "@/assets/CircularEcology-Logo.webp";
 
 // Partner data with expanded information
 interface PartnerProfile {
