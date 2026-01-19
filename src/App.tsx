@@ -95,6 +95,7 @@ const LandingEnterprise = lazy(() => import("./pages/LandingEnterprise"));
 const LandingEC3Integration = lazy(() => import("./pages/LandingEC3Integration"));
 const Resources = lazy(() => import("./pages/Resources"));
 const Partners = lazy(() => import("./pages/Partners"));
+const PartnerIntegrations = lazy(() => import("./pages/PartnerIntegrations"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -224,6 +225,7 @@ const FullApp = () => (
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/methodology" element={<Methodology />} />
                     <Route path="/partners" element={<Partners />} />
+                    <Route path="/partners/integrations" element={<PartnerIntegrations />} />
                     {/* Campaign landing pages */}
                     <Route path="/lp/builders" element={<LandingBuilders />} />
                     <Route path="/lp/architects" element={<LandingArchitects />} />
