@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { SEOHead } from "@/components/SEOHead";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -172,13 +172,11 @@ const integrationBadgeStyles = {
 export default function PartnerIntegrations() {
   return (
     <Layout>
-      <Helmet>
-        <title>Data Source Integrations | CarbonConstruct</title>
-        <meta
-          name="description"
-          content="Learn how CarbonConstruct integrates industry-leading carbon databases including ICE, EC3, EPiC, and NABERS for accurate embodied carbon calculations."
-        />
-      </Helmet>
+      <SEOHead
+        title="Data Source Integrations | CarbonConstruct"
+        description="Learn how CarbonConstruct integrates industry-leading carbon databases including ICE, EC3, EPiC, and NABERS for accurate embodied carbon calculations."
+        canonicalPath="/partners/integrations"
+      />
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
