@@ -20,7 +20,7 @@ import {
   AlertTriangle,
   TrendingUp,
 } from "lucide-react";
-import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.png";
+import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.avif";
 import CircularEcologyLogo from "@/assets/CircularEcology-Logo.jpg";
 
 interface DataSource {

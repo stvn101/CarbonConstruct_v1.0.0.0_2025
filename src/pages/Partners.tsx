@@ -26,7 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
-import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.png";
+import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.avif";
 import CircularEcologyLogo from "@/assets/CircularEcology-Logo.jpg";
 
 // Partner data with expanded information
