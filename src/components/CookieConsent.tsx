@@ -69,9 +69,16 @@ export function CookieConsent() {
         });
       }
       
-      // Initialize Apollo.io tracking if marketing consent granted
-      if (prefs.marketing && typeof (window as any).initApollo === "function") {
-        (window as any).initApollo();
+      // Initialize marketing tracking scripts if consent granted
+      if (prefs.marketing) {
+        // Apollo.io tracking
+        if (typeof (window as any).initApollo === "function") {
+          (window as any).initApollo();
+        }
+        // LinkedIn Insight Tag
+        if (typeof (window as any).initLinkedIn === "function") {
+          (window as any).initLinkedIn();
+        }
       }
     }
   };
