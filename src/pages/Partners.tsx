@@ -102,7 +102,7 @@ const partners: PartnerProfile[] = [
     id: "united-facade",
     name: "United Facade",
     shortDescription: "Queensland commercial construction — 17 years of Tier 1 site experience shaping CarbonConstruct.",
-    fullDescription: "United Facade is Steven's Queensland-based commercial construction company specialising in steel-framed partitions, ceilings, curtain wall facade and carpentry work. With 17 years of hands-on site experience across Tier 1 projects in Queensland, NSW, and Victoria, the practical knowledge from running United Facade directly shaped how CarbonConstruct approaches carbon calculation.",
+    fullDescription: "United Facade is Steven's Queensland-based commercial construction company specialising in steel-framed partitions, ceilings, curtain wall facade and carpentry work. With 17 years of hands-on site experience across Tier 1 projects in Queensland, the practical knowledge from running United Facade directly shaped how CarbonConstruct approaches carbon calculation.",
     logo: UnitedFacadeLogo,
     logoBg: "bg-white",
     url: "https://unitedfacade.com.au",
@@ -118,7 +118,7 @@ const partners: PartnerProfile[] = [
       description: "Most carbon tools are built by consultants who've never priced a job. CarbonConstruct was built by someone who has — focusing on materials and workflows that actually matter to builders, not theoretical compliance frameworks.",
       metrics: [
         { label: "Years Experience", value: "17+" },
-        { label: "States Covered", value: "QLD, NSW, VIC" },
+        { label: "Location", value: "Queensland" },
         { label: "Approach", value: "Builder-First" }
       ]
     }
