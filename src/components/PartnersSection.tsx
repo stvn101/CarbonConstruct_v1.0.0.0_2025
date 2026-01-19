@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Handshake, ExternalLink, ArrowRight } from "lucide-react";
 import BTTLogo from "@/assets/BTT-LogoWhite.svg";
 import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
+import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.png";
 
 interface Partner {
   name: string;
@@ -36,11 +37,14 @@ const partners: Partner[] = [
     name: "Circular Ecology",
     description: "ICE Database provider — Inventory of Carbon and Energy for embodied carbon data.",
     url: "https://circularecology.com",
+    logoBg: "bg-emerald-700",
     category: "data",
   },
   {
     name: "Building Transparency",
     description: "EC3 Global Database — 90,000+ verified Environmental Product Declarations.",
+    logo: BuildingTransparencyLogo,
+    logoBg: "bg-slate-900",
     url: "https://buildingtransparency.org",
     category: "data",
   },
