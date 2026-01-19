@@ -60,11 +60,19 @@ export function CookieConsent() {
   }, []);
 
   const applyPreferences = (prefs: CookiePreferences) => {
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("consent", "update", {
-        analytics_storage: prefs.analytics ? "granted" : "denied",
-        ad_storage: prefs.marketing ? "granted" : "denied",
-      });
+    if (typeof window !== "undefined") {
+      // Update Google Analytics consent
+      if ((window as any).gtag) {
+        (window as any).gtag("consent", "update", {
+          analytics_storage: prefs.analytics ? "granted" : "denied",
+          ad_storage: prefs.marketing ? "granted" : "denied",
+        });
+      }
+      
+      // Initialize Apollo.io tracking if marketing consent granted
+      if (prefs.marketing && typeof (window as any).initApollo === "function") {
+        (window as any).initApollo();
+      }
     }
   };
 
