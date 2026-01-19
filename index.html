@@ -12,6 +12,7 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link rel="dns-prefetch" href="https://htruyldcvakkzpykfoxq.supabase.co" />
     <link rel="preconnect" href="https://htruyldcvakkzpykfoxq.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://assets.apollo.io" />
     
     <!-- Critical CSS - Inlined for instant first paint (eliminates render-blocking) -->
     <style>
@@ -131,6 +132,46 @@
       }
       ['scroll', 'click', 'touchstart', 'keydown'].forEach(function(e) {
         document.addEventListener(e, loadGA, { once: true, passive: true });
+      });
+    </script>
+    
+    <!-- Apollo.io Tracking - Consent-gated, deferred loading for marketing -->
+    <script>
+      window.initApollo = function() {
+        // Check marketing consent before loading
+        var consent = localStorage.getItem('cc_cookie_preferences');
+        if (consent) {
+          try {
+            var prefs = JSON.parse(consent);
+            if (!prefs.marketing) return; // Don't load without marketing consent
+          } catch (e) { return; }
+        } else {
+          return; // No consent yet, don't load
+        }
+        
+        if (window.apolloLoaded) return;
+        window.apolloLoaded = true;
+        
+        var n = Math.random().toString(36).substring(7);
+        var o = document.createElement('script');
+        o.src = 'https://assets.apollo.io/micro/website-tracker/tracker.iife.js?nocache=' + n;
+        o.async = true;
+        o.defer = true;
+        o.onload = function() {
+          if (window.trackingFunctions) {
+            window.trackingFunctions.onLoad({ appId: '696d96f0b5e49900193ebcf6' });
+          }
+        };
+        document.head.appendChild(o);
+      };
+      // Load Apollo after user interaction (same deferred pattern as GA4)
+      if (document.readyState === 'complete') {
+        setTimeout(window.initApollo, 3000);
+      } else {
+        window.addEventListener('load', function() { setTimeout(window.initApollo, 3000); });
+      }
+      ['scroll', 'click', 'touchstart', 'keydown'].forEach(function(e) {
+        document.addEventListener(e, window.initApollo, { once: true, passive: true });
       });
     </script>
   </head>
