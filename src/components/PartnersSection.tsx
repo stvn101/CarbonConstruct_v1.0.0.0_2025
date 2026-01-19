@@ -1,6 +1,8 @@
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Handshake, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Handshake, ExternalLink, ArrowRight } from "lucide-react";
 import BTTLogo from "@/assets/BTT-LogoWhite.svg";
 import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
 
@@ -51,6 +53,8 @@ const categoryLabels = {
 };
 
 export function PartnersSection() {
+  const navigate = useNavigate();
+  
   return (
     <div className="max-w-5xl mx-auto animate-fade-in [animation-delay:0.78s]">
       <div className="text-center mb-6">
@@ -63,7 +67,7 @@ export function PartnersSection() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
         {partners.map((partner) => (
           <Card
             key={partner.name}
@@ -115,15 +119,23 @@ export function PartnersSection() {
         ))}
       </div>
 
-      {/* Integration Note */}
-      <div className="text-center mt-6">
+      {/* View All & CTA */}
+      <div className="text-center mt-6 space-y-3">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/partners")}
+          className="hover-scale"
+        >
+          View All Partners
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
         <p className="text-xs text-muted-foreground">
           Want to partner with CarbonConstruct?{" "}
           <a
-            href="mailto:partnerships@carbonconstruct.com.au"
+            href="/partners#inquiry"
             className="text-primary hover:underline"
           >
-            Contact us
+            Submit an inquiry
           </a>
         </p>
       </div>
