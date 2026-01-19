@@ -12,6 +12,8 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link rel="dns-prefetch" href="https://htruyldcvakkzpykfoxq.supabase.co" />
     <link rel="preconnect" href="https://htruyldcvakkzpykfoxq.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://assets.apollo.io" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
     
     <!-- Critical CSS - Inlined for instant first paint (eliminates render-blocking) -->
     <style>
@@ -108,6 +110,48 @@
     }
     </script>
     
+    <!-- Google Tag Manager - Central tag management (consent-aware) -->
+    <script>
+      (function(w,d,s,l,i){
+        // Check consent before loading GTM
+        var consent = localStorage.getItem('cc_cookie_preferences');
+        var analyticsAllowed = false;
+        if (consent) {
+          try { analyticsAllowed = JSON.parse(consent).analytics; } catch(e) {}
+        }
+        
+        w[l]=w[l]||[];
+        // Set default consent state
+        w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+        w[l].push(['consent', 'default', {
+          'analytics_storage': analyticsAllowed ? 'granted' : 'denied',
+          'ad_storage': 'denied',
+          'wait_for_update': 500
+        }]);
+        
+        // Defer GTM loading
+        function loadGTM() {
+          if (w.gtmLoaded) return;
+          w.gtmLoaded = true;
+          var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+          j.async=true;
+          j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+          f.parentNode.insertBefore(j,f);
+        }
+        
+        // Load after interaction or 3 seconds
+        if (d.readyState === 'complete') {
+          setTimeout(loadGTM, 3000);
+        } else {
+          w.addEventListener('load', function() { setTimeout(loadGTM, 3000); });
+        }
+        ['scroll', 'click', 'touchstart', 'keydown'].forEach(function(e) {
+          d.addEventListener(e, loadGTM, { once: true, passive: true });
+        });
+      })(window,document,'script','dataLayer','GTM-XXXXXXX');
+    </script>
+    
     <!-- Google Analytics 4 - Loaded after page is interactive to reduce unused JS -->
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -131,6 +175,89 @@
       }
       ['scroll', 'click', 'touchstart', 'keydown'].forEach(function(e) {
         document.addEventListener(e, loadGA, { once: true, passive: true });
+      });
+    </script>
+    
+    <!-- LinkedIn Insight Tag - Consent-gated, deferred loading for B2B tracking -->
+    <script>
+      window.initLinkedIn = function() {
+        // Check marketing consent before loading
+        var consent = localStorage.getItem('cc_cookie_preferences');
+        if (consent) {
+          try {
+            var prefs = JSON.parse(consent);
+            if (!prefs.marketing) return; // Don't load without marketing consent
+          } catch (e) { return; }
+        } else {
+          return; // No consent yet, don't load
+        }
+        
+        if (window.linkedInLoaded) return;
+        window.linkedInLoaded = true;
+        
+        // LinkedIn Insight Tag
+        window._linkedin_partner_id = "XXXXXXX"; // Replace with actual LinkedIn Partner ID
+        window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+        window._linkedin_data_partner_ids.push(window._linkedin_partner_id);
+        
+        (function(l) {
+          if (!l){window.lintrk = function(a,b){window.lintrk.q.push([a,b])};
+          window.lintrk.q=[]}
+          var s = document.getElementsByTagName("script")[0];
+          var b = document.createElement("script");
+          b.type = "text/javascript";b.async = true;
+          b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+          s.parentNode.insertBefore(b, s);
+        })(window.lintrk);
+      };
+      
+      // Load LinkedIn after user interaction (same deferred pattern)
+      if (document.readyState === 'complete') {
+        setTimeout(window.initLinkedIn, 3000);
+      } else {
+        window.addEventListener('load', function() { setTimeout(window.initLinkedIn, 3000); });
+      }
+      ['scroll', 'click', 'touchstart', 'keydown'].forEach(function(e) {
+        document.addEventListener(e, window.initLinkedIn, { once: true, passive: true });
+      });
+    </script>
+    <!-- Apollo.io Tracking - Consent-gated, deferred loading for marketing -->
+    <script>
+      window.initApollo = function() {
+        // Check marketing consent before loading
+        var consent = localStorage.getItem('cc_cookie_preferences');
+        if (consent) {
+          try {
+            var prefs = JSON.parse(consent);
+            if (!prefs.marketing) return; // Don't load without marketing consent
+          } catch (e) { return; }
+        } else {
+          return; // No consent yet, don't load
+        }
+        
+        if (window.apolloLoaded) return;
+        window.apolloLoaded = true;
+        
+        var n = Math.random().toString(36).substring(7);
+        var o = document.createElement('script');
+        o.src = 'https://assets.apollo.io/micro/website-tracker/tracker.iife.js?nocache=' + n;
+        o.async = true;
+        o.defer = true;
+        o.onload = function() {
+          if (window.trackingFunctions) {
+            window.trackingFunctions.onLoad({ appId: '696d96f0b5e49900193ebcf6' });
+          }
+        };
+        document.head.appendChild(o);
+      };
+      // Load Apollo after user interaction (same deferred pattern as GA4)
+      if (document.readyState === 'complete') {
+        setTimeout(window.initApollo, 3000);
+      } else {
+        window.addEventListener('load', function() { setTimeout(window.initApollo, 3000); });
+      }
+      ['scroll', 'click', 'touchstart', 'keydown'].forEach(function(e) {
+        document.addEventListener(e, window.initApollo, { once: true, passive: true });
       });
     </script>
   </head>

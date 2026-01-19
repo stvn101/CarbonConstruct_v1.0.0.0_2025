@@ -53,6 +53,7 @@ const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
 const AdminCampaigns = lazy(() => import("./pages/AdminCampaigns"));
 const AdminEmailCampaigns = lazy(() => import("./pages/AdminEmailCampaigns"));
 const AdminICEImport = lazy(() => import("./pages/AdminICEImport"));
+const AdminMarketingIntegrations = lazy(() => import("./pages/AdminMarketingIntegrations"));
 const AccessibilityStatement = lazy(() => import("./pages/AccessibilityStatement"));
 const MaterialVerification = lazy(() => import("./pages/MaterialVerification"));
 const MaterialDatabaseStatus = lazy(() => import("./pages/MaterialDatabaseStatus"));
@@ -211,6 +212,7 @@ const FullApp = () => (
                     <Route path="/admin/campaigns" element={<AdminRouteGuard><AdminCampaigns /></AdminRouteGuard>} />
                     <Route path="/admin/email-campaigns" element={<AdminRouteGuard><AdminEmailCampaigns /></AdminRouteGuard>} />
                     <Route path="/admin/ice-import" element={<AdminRouteGuard><AdminICEImport /></AdminRouteGuard>} />
+                    <Route path="/admin/marketing" element={<AdminRouteGuard><AdminMarketingIntegrations /></AdminRouteGuard>} />
                     <Route path="/admin/material-verification" element={<AdminRouteGuard><MaterialVerification /></AdminRouteGuard>} />
                     <Route path="/admin/eco-compliance" element={<AdminRouteGuard><EcoComplianceDashboard /></AdminRouteGuard>} />
                     <Route path="/materials/status" element={<MaterialDatabaseStatus />} />
