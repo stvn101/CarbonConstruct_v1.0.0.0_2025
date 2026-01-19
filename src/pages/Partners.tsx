@@ -27,6 +27,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 import BTTLogo from "@/assets/BTT-LogoWhite.svg";
 import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
+import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.png";
+import CircularEcologyLogo from "@/assets/CircularEcology-Logo.jpg";
 
 // Partner data with expanded information
 interface PartnerProfile {
@@ -102,6 +104,8 @@ const partners: PartnerProfile[] = [
     name: "Circular Ecology",
     shortDescription: "ICE Database provider — Inventory of Carbon and Energy for embodied carbon data.",
     fullDescription: "Circular Ecology maintains the globally recognised ICE (Inventory of Carbon and Energy) database, the most comprehensive free resource for embodied carbon data. Their peer-reviewed emission factors form the backbone of our materials carbon calculations.",
+    logo: CircularEcologyLogo,
+    logoBg: "bg-white",
     url: "https://circularecology.com",
     category: "data",
     features: [
@@ -125,6 +129,8 @@ const partners: PartnerProfile[] = [
     name: "Building Transparency",
     shortDescription: "EC3 Global Database — 90,000+ verified Environmental Product Declarations.",
     fullDescription: "Building Transparency operates the EC3 (Embodied Carbon in Construction Calculator) database, providing access to over 90,000 verified EPDs from manufacturers worldwide. This integration enables CarbonConstruct Pro users to access the most comprehensive EPD database globally.",
+    logo: BuildingTransparencyLogo,
+    logoBg: "bg-slate-900",
     url: "https://buildingtransparency.org",
     category: "data",
     features: [
