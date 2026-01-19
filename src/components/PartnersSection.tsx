@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Handshake, ExternalLink, ArrowRight } from "lucide-react";
-import BTTLogo from "@/assets/BTT-LogoWhite.svg";
 import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
 import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.png";
 import CircularEcologyLogo from "@/assets/CircularEcology-Logo.jpg";
@@ -19,20 +18,12 @@ interface Partner {
 
 const partners: Partner[] = [
   {
-    name: "Build the Trend",
-    description: "Construction intelligence and market insights for sustainable building practices.",
-    logo: BTTLogo,
-    logoBg: "bg-slate-800",
-    url: "https://buildthetrend.com.au",
-    category: "industry",
-  },
-  {
-    name: "United Facade",
-    description: "Premium facade solutions and sustainable building envelope specialists.",
-    logo: UnitedFacadeLogo,
-    logoBg: "bg-white",
-    url: "https://unitedfacade.com.au",
-    category: "industry",
+    name: "Building Transparency",
+    description: "EC3 Global Database — 90,000+ verified Environmental Product Declarations.",
+    logo: BuildingTransparencyLogo,
+    logoBg: "bg-slate-900",
+    url: "https://buildingtransparency.org",
+    category: "data",
   },
   {
     name: "Circular Ecology",
@@ -43,12 +34,12 @@ const partners: Partner[] = [
     category: "data",
   },
   {
-    name: "Building Transparency",
-    description: "EC3 Global Database — 90,000+ verified Environmental Product Declarations.",
-    logo: BuildingTransparencyLogo,
-    logoBg: "bg-slate-900",
-    url: "https://buildingtransparency.org",
-    category: "data",
+    name: "United Facade",
+    description: "Premium facade solutions and sustainable building envelope specialists.",
+    logo: UnitedFacadeLogo,
+    logoBg: "bg-white",
+    url: "https://unitedfacade.com.au",
+    category: "industry",
   },
 ];
 
