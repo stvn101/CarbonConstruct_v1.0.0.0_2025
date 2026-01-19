@@ -13,6 +13,7 @@
     <link rel="dns-prefetch" href="https://htruyldcvakkzpykfoxq.supabase.co" />
     <link rel="preconnect" href="https://htruyldcvakkzpykfoxq.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://assets.apollo.io" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
     
     <!-- Critical CSS - Inlined for instant first paint (eliminates render-blocking) -->
     <style>
@@ -107,6 +108,48 @@
         "priceCurrency": "AUD"
       }
     }
+    </script>
+    
+    <!-- Google Tag Manager - Central tag management (consent-aware) -->
+    <script>
+      (function(w,d,s,l,i){
+        // Check consent before loading GTM
+        var consent = localStorage.getItem('cc_cookie_preferences');
+        var analyticsAllowed = false;
+        if (consent) {
+          try { analyticsAllowed = JSON.parse(consent).analytics; } catch(e) {}
+        }
+        
+        w[l]=w[l]||[];
+        // Set default consent state
+        w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+        w[l].push(['consent', 'default', {
+          'analytics_storage': analyticsAllowed ? 'granted' : 'denied',
+          'ad_storage': 'denied',
+          'wait_for_update': 500
+        }]);
+        
+        // Defer GTM loading
+        function loadGTM() {
+          if (w.gtmLoaded) return;
+          w.gtmLoaded = true;
+          var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+          j.async=true;
+          j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+          f.parentNode.insertBefore(j,f);
+        }
+        
+        // Load after interaction or 3 seconds
+        if (d.readyState === 'complete') {
+          setTimeout(loadGTM, 3000);
+        } else {
+          w.addEventListener('load', function() { setTimeout(loadGTM, 3000); });
+        }
+        ['scroll', 'click', 'touchstart', 'keydown'].forEach(function(e) {
+          d.addEventListener(e, loadGTM, { once: true, passive: true });
+        });
+      })(window,document,'script','dataLayer','GTM-XXXXXXX');
     </script>
     
     <!-- Google Analytics 4 - Loaded after page is interactive to reduce unused JS -->
