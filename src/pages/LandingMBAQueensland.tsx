@@ -479,25 +479,6 @@ export default function LandingMBAQueensland() {
             </div>
           </div>
         </section>
-
-        {/* Footer */}
-        <footer className="py-8 border-t border-border/40">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <img src="/logo-32.webp" alt="CarbonConstruct" className="h-6 w-6" />
-                <span className="text-sm text-muted-foreground">
-                  © {new Date().getFullYear()} CarbonConstruct. All rights reserved.
-                </span>
-              </div>
-              <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-                <Link to="/terms" className="hover:text-foreground">Terms</Link>
-                <Link to="/help" className="hover:text-foreground">Help</Link>
-              </div>
-            </div>
-          </div>
-        </footer>
       </div>
     </>
   );

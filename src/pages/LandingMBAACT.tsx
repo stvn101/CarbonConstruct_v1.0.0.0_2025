@@ -351,23 +351,6 @@ export default function LandingMBAACT() {
             </div>
           </div>
         </section>
-
-        {/* Footer */}
-        <footer className="py-8 border-t border-border/40">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <img src="/logo-56.webp" alt="CarbonConstruct" className="h-6 w-6" />
-                <span className="text-sm text-muted-foreground">© 2024 CarbonConstruct. All rights reserved.</span>
-              </div>
-              <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-                <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-                <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-              </div>
-            </div>
-          </div>
-        </footer>
       </div>
     </>
   );
