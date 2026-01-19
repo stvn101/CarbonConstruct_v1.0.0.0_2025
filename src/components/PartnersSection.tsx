@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Handshake, ExternalLink, ArrowRight } from "lucide-react";
-import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
+import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.webp";
 import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.webp";
 import CircularEcologyLogo from "@/assets/CircularEcology-Logo.webp";
 
