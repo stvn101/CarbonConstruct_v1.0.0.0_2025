@@ -1,27 +1,85 @@
-    version: 2
+version: 2
+
 updates:
+  # NPM Dependencies
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+      day: "monday"
+      time: "06:00"
+      timezone: "Australia/Sydney"
+    open-pull-requests-limit: 15
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    labels:
+      - "dependencies"
+      - "automerge-patch"
+    reviewers:
+      - "NeoPrint3D"
     groups:
-      production:
+      # Production dependencies - grouped for easier review
+      supabase:
         patterns:
           - "@supabase/*"
-          - "react*"
+        update-types:
+          - "minor"
+          - "patch"
+      react-ecosystem:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-router-dom"
           - "@tanstack/*"
+        update-types:
+          - "minor"
+          - "patch"
+      ui-components:
+        patterns:
+          - "@radix-ui/*"
+          - "lucide-react"
+          - "sonner"
+          - "framer-motion"
+        update-types:
+          - "minor"
+          - "patch"
+      # Development dependencies - auto-merge patches
       development:
         patterns:
           - "@types/*"
           - "vitest"
+          - "@vitest/*"
           - "@playwright/*"
           - "eslint*"
+          - "@testing-library/*"
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # Ignore major React updates - review manually
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
 
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Australia/Sydney"
+    commit-message:
+      prefix: "chore(actions)"
+    labels:
+      - "github-actions"
+      - "automerge-patch"
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
