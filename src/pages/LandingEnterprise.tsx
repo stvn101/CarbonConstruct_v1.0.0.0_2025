@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 
 import { SEOHead } from '@/components/SEOHead';
-import { Footer } from '@/components/Footer';
+
 import { 
   Shield, 
   Building2, 
@@ -368,7 +368,7 @@ export default function LandingEnterprise() {
         </div>
       </section>
 
-      <Footer />
+      
     </>
   );
 }
