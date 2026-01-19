@@ -2,11 +2,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Handshake, ExternalLink } from "lucide-react";
 import BTTLogo from "@/assets/BTT-LogoWhite.svg";
+import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.png";
 
 interface Partner {
   name: string;
   description: string;
   logo?: string;
+  logoBg?: string;
   url?: string;
   category: "data" | "industry" | "certification";
 }
@@ -16,7 +18,16 @@ const partners: Partner[] = [
     name: "Build the Trend",
     description: "Construction intelligence and market insights for sustainable building practices.",
     logo: BTTLogo,
+    logoBg: "bg-slate-800",
     url: "https://buildthetrend.com.au",
+    category: "industry",
+  },
+  {
+    name: "United Facade",
+    description: "Premium facade solutions and sustainable building envelope specialists.",
+    logo: UnitedFacadeLogo,
+    logoBg: "bg-white",
+    url: "https://unitedfacade.com.au",
     category: "industry",
   },
   {
@@ -65,7 +76,7 @@ export function PartnersSection() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {partner.logo ? (
-                    <div className="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center p-2 flex-shrink-0">
+                    <div className={`w-12 h-12 rounded-lg ${partner.logoBg || "bg-slate-800"} flex items-center justify-center p-2 flex-shrink-0`}>
                       <img
                         src={partner.logo}
                         alt={`${partner.name} logo`}
