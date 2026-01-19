@@ -2,6 +2,8 @@
 
 [![CI/CD Pipeline](https://github.com/NeoPrint3D/CarbonConstruct/actions/workflows/ci.yml/badge.svg)](https://github.com/NeoPrint3D/CarbonConstruct/actions/workflows/ci.yml)
 [![Deploy Supabase Functions](https://github.com/NeoPrint3D/CarbonConstruct/actions/workflows/supabase.yml/badge.svg)](https://github.com/NeoPrint3D/CarbonConstruct/actions/workflows/supabase.yml)
+[![CodeQL Security](https://github.com/NeoPrint3D/CarbonConstruct/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/NeoPrint3D/CarbonConstruct/security/code-scanning)
+[![Lighthouse CI](https://github.com/NeoPrint3D/CarbonConstruct/actions/workflows/ci.yml/badge.svg)](https://github.com/NeoPrint3D/CarbonConstruct/actions/workflows/ci.yml)
 ## 🚀 Quick Start
 
 **New to the project?** Check out the [**BUILD_GUIDE.md**](./BUILD_GUIDE.md) for comprehensive build and development server setup instructions.
