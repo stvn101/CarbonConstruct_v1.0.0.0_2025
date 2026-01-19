@@ -8,7 +8,8 @@ import {
   BarChart3,
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Target
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,12 @@ const adminNavItems: NavItem[] = [
     name: "Verification",
     icon: Shield,
     description: "Material data verification reports",
+  },
+  {
+    path: "/admin/marketing",
+    name: "Marketing",
+    icon: Target,
+    description: "Tracking scripts and integrations",
   },
 ];
 
