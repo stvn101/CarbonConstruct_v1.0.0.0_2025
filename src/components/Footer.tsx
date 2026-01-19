@@ -99,6 +99,11 @@ export const Footer = () => {
                   Help & Resources
                 </Link>
               </li>
+              <li>
+                <Link to="/partners" className="text-muted-foreground hover:text-primary transition-colors">
+                  Partners
+                </Link>
+              </li>
             </ul>
           </nav>
 
