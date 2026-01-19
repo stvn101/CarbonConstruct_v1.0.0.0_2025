@@ -18,6 +18,7 @@ import { FloatingParticles } from "@/components/FloatingParticles";
 import { ParallaxSection } from "@/components/ParallaxSection";
 import { WhitepaperSummary } from "@/components/WhitepaperSummary";
 import { BuilderDashboard } from "@/components/BuilderDashboard";
+import { PartnersSection } from "@/components/PartnersSection";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -701,8 +702,11 @@ const Index = () => {
               </div>
             </div>
 
+            {/* Partners & Integrations Section */}
+            <PartnersSection />
+
             {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-muted-foreground animate-fade-in [animation-delay:0.8s]">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-muted-foreground animate-fade-in [animation-delay:0.85s]">
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-primary" />
                 <span>Bank-level encryption</span>
