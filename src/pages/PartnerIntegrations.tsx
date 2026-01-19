@@ -23,6 +23,7 @@ import BuildingTransparencyLogo from "@/assets/BuildingTransparency-Logo.webp";
 import CircularEcologyLogo from "@/assets/CircularEcology-Logo.webp";
 import UnitedFacadeLogo from "@/assets/UnitedFacade-Logo.webp";
 import EPDAustralasiaLogo from "@/assets/EPD-Australasia-Logo.webp";
+import EPiCDatabaseLogo from "@/assets/EPiC-Database-Logo.webp";
 
 interface DataSource {
   name: string;
@@ -134,6 +135,8 @@ const dataSources: DataSource[] = [
   {
     name: "EPiC Database 2024",
     shortName: "EPiC",
+    logo: EPiCDatabaseLogo,
+    logoBg: "bg-white",
     description:
       "The Environmental Performance in Construction (EPiC) Database from the University of Melbourne provides comprehensive Australian-specific lifecycle assessment data for construction materials.",
     materialCount: "350+",
@@ -212,6 +215,51 @@ export default function PartnerIntegrations() {
       />
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Founding Partner Banner */}
+        <Card className="mb-8 border-2 border-primary/40 bg-gradient-to-r from-primary/5 via-primary/10 to-accent/5 overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-20 h-20 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-3 ring-2 ring-primary/30">
+                  <img
+                    src={UnitedFacadeLogo}
+                    alt="United Facade logo"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
+                  <Badge className="bg-primary/20 text-primary border-primary/40">
+                    Founding Industry Partner
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    17 Years Tier 1 Experience
+                  </Badge>
+                </div>
+                <h2 className="text-xl font-bold mb-2">United Facade</h2>
+                <p className="text-sm text-muted-foreground max-w-2xl">
+                  Queensland-based commercial construction company whose 17 years of hands-on Tier 1 site experience 
+                  directly shaped CarbonConstruct's builder-first approach to carbon calculation.
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <Button variant="outline" size="sm" asChild>
+                  <a
+                    href="https://unitedfacade.com.au"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2"
+                  >
+                    Visit Partner
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Header */}
         <div className="text-center mb-12">
           <Badge className="mb-4 bg-primary/20 text-primary border-primary/40">
