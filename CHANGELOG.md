@@ -1,9 +1,12 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to CarbonConstruct will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+> **Note**: This changelog is automatically updated from conventional commits via GitHub Actions.
+> See `.github/workflows/changelog.yml` for the automation configuration.
 
 ## [1.0.0] - December 2026
 
@@ -155,6 +158,24 @@ This release represents comprehensive security, compliance, and accessibility ha
 ---
 
 ## [Unreleased]
+
+### Added
+- Automated changelog generation from conventional commits (`.github/workflows/changelog.yml`)
+- Lighthouse CI and CodeQL security badges in README
+- Comprehensive branch protection rules documentation in CONTRIBUTING.md
+- GitHub Action for automatic release creation on version tags
+
+### Changed
+- Standardized GitHub Actions versions to @v4 across all workflows
+- Enhanced CI pipeline with jq/bc installation for coverage checks
+
+### Removed
+- Removed redundant python-app.yml workflow (no Python code in project)
+- Removed duplicate codeql.yml (consolidated into ci.yml)
+
+### Fixed
+- Fixed CI coverage threshold check missing jq/bc dependencies
+- Fixed workflow branch targeting inconsistencies
 
 ### Security
 
